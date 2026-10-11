@@ -13,7 +13,7 @@ export default {
       try {
         const parsed = new URL(rawUrl);
         urlValid = parsed.protocol === 'https:' &&
-          /^[a-z0-9-]+\\.supabase\\.co$/i.test(parsed.hostname) &&
+          parsed.hostname.endsWith('.supabase.co') && parsed.hostname.split('.').length === 3 &&
           (parsed.pathname === '/' || parsed.pathname === '') &&
           !parsed.search && !parsed.hash && !parsed.username && !parsed.password;
         if (urlValid) projectUrl = parsed.origin;
