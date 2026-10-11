@@ -1,15 +1,13 @@
-# APEX Web Studio — Upgrade 20, Phase 1
+# APEX Refurb Management Studio — Electron updates
 
-A visual redesign of the actual APEX workflow navigation with functioning Supabase Cloud Staff inventory authentication and edits. This is **not** yet a full replacement for Windows Studio. Dashboard metrics use the authenticated cloud asset list (up to 1000 records); scanning, refurbishment, reports, and native desktop features are explicitly marked pending. Do not give staff access until RLS and permissions have been verified.
+This repository is reserved for **Windows APEX Refurb Management Studio** update releases and documentation. It is separate from the APEX Laptop Diagnostics updater.
 
-## Cloudflare setup
+The Cloudflare Worker, browser-only files and web deployment configuration have been removed from the current branch.
 
-Upload `public/`, `src/`, `wrangler.jsonc` to the **root** of your `apexjstool-hub/APEX-Refurb-Studio` repo; do not upload passwords or the original Windows source. Workers Git deploy command: `npx wrangler deploy`. Set Worker variables `APEX_SUPABASE_URL` and `APEX_SUPABASE_PUBLISHABLE_KEY` under Settings → Variables and Secrets. Both are public config; never use a service-role/secret key.
+## Future Electron releases
 
-## Testing
+Use the tested Electron Windows installer workflow in [RELEASE-GUIDE.md](RELEASE-GUIDE.md). Publish versioned installer artifacts only after validating installation, updates and data preservation on Windows.
 
-Check `/health`; verify login and active `apex_staff` membership; check only permitted assets load; edit a dummy asset and confirm revision conflict handling; sign out; test on mobile. Existing cloud data depends on prior migration/bridge. Cloudflare doesn't automatically migrate inventory. Keep your previous site and Windows source backed up. Git-based deployment only applies after commit and Cloudflare success.
+Do not publish local inventory, staff credentials, Supabase service-role/secret keys, hub tokens or private bridge configuration. Supabase and the Shared Inventory Hub are separate from the application release repository.
 
-## Migration roadmap
-
-Phase 2: authorised cloud barcode intake, duplicate checks, asset creation and audit. Phase 3: refurbishment and repairs schema/API. Phase 4: report/PDF workflows. Phase 5: permission model, audit, offline rules, QA and rollout. Validate DB Row Level Security independently before production.
+Deleting website files from GitHub does **not** automatically delete the already deployed Cloudflare Worker or its deployment history. Disable or delete that Worker from Cloudflare separately if you want the site offline.
