@@ -24,13 +24,13 @@ async function login(){
 async function refresh(silent=false){
  if(!token)return;
  const results=await request('apex_assets?select=id,payload,revision&order=updated_at.desc&limit=1000');items=results;
- render();if(!silent)msg('Inventory updated.');
+ render();window.apexDashboardUpdate?.(items);if(!silent)msg('Inventory updated.');
 }
 function render(){const term=el('search').value.trim().toLowerCase();const rows=items.filter(x=>[x.id,x.payload.model,x.payload.serial].some(v=>String(v||'').toLowerCase().includes(term)));
  el('count').textContent=rows.length+' of '+items.length+' assets';el('rows').replaceChildren();
  for(const a of rows){const tr=document.createElement('tr');for(const k of ['id','model','serial','location','status']){const td=document.createElement('td');td.textContent=k==='id'?a.id:a.payload[k]||'—';tr.append(td)}
  const td=document.createElement('td'),btn=document.createElement('button');btn.textContent='Edit';btn.className='secondary';btn.addEventListener('click',()=>openEdit(a.id));td.append(btn);tr.append(td);el('rows').append(tr);}}
-function openEdit(id){editing=items.find(a=>a.id===id);if(!editing)return;el('assetTitle').textContent=id;el('editor').hidden=false;for(const name of ['model','manufacturer','serial','location','status','condition','notes'])el('edit').elements[name].value=editing.payload[name]||'';el('editor').scrollIntoView({behavior:'smooth'});}
+function openEdit(id){editing=items.find(a=>a.id===id);if(!editing)return;el('assetTitle').textContent=id;el('editor').hidden=false;for(const name of ['model','manufacturer','serial','location','status','condition','notes'])el('edit').elements[name].value=editing.payload[name]||'';document.querySelector('[data-page=inventory]').click();el('editor').scrollIntoView({behavior:'smooth'});}
 async function save(e){e.preventDefault();if(!editing)return;const data=Object.fromEntries(new FormData(el('edit')));if(!data.model.trim()||!data.location.trim())return msg('Model and location required.');
  try{
  // Atomic check/commit on server: rejects a stale revision instead of overwriting a colleague.

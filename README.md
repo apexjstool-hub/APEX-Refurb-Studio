@@ -1,20 +1,15 @@
-# APEX Cloud Inventory — first online deployment
+# APEX Web Studio — Upgrade 20, Phase 1
 
-This is the **Cloud Staff Inventory** page from APEX Upgrade 19, **not** the complete Electron/Windows Management Studio. It can sign in with an authorised Supabase account and edit supported asset fields, provided the appropriate RLS policies exist and cloud inventory has been populated.
+A visual redesign of the actual APEX workflow navigation with functioning Supabase Cloud Staff inventory authentication and edits. This is **not** yet a full replacement for Windows Studio. Dashboard metrics use the authenticated cloud asset list (up to 1000 records); scanning, refurbishment, reports, and native desktop features are explicitly marked pending. Do not give staff access until RLS and permissions have been verified.
 
-## Deploy with Cloudflare Workers Builds
+## Cloudflare setup
 
-1. In Cloudflare Dashboard > Workers & Pages > Create, choose **Import a repository** and select `apexjstool-hub/APEX-Refurb-Studio` and branch `main`.
-2. Select a **Worker** (not a static-only Pages project) and set the root directory to `/`.
-3. Set the **Build command** to `echo No build required` if required, and **Deploy command** to `npx wrangler deploy`. Cloudflare may auto-detect `wrangler.jsonc`.
-4. In the Worker settings, add two **text variables**: `APEX_SUPABASE_URL` = `https://YOUR-PROJECT.supabase.co` and `APEX_SUPABASE_PUBLISHABLE_KEY` = the Supabase `sb_publishable_...` key. Redeploy after changing settings if Cloudflare prompts you. These are *public browser configuration*, not secrets.
-5. Never put the Supabase `sb_secret_...` / `service_role` key, database password, hub token, or private bridge configuration in GitHub, Worker variables used by browser code, or build output.
-6. Visit the Cloudflare `workers.dev` HTTPS URL; sign in using an existing authorised Supabase user. `/health` should return JSON. An empty asset list means the cloud database still needs inventory records; deploying the website alone does not migrate inventory.
+Upload `public/`, `src/`, `wrangler.jsonc` to the **root** of your `apexjstool-hub/APEX-Refurb-Studio` repo; do not upload passwords or the original Windows source. Workers Git deploy command: `npx wrangler deploy`. Set Worker variables `APEX_SUPABASE_URL` and `APEX_SUPABASE_PUBLISHABLE_KEY` under Settings → Variables and Secrets. Both are public config; never use a service-role/secret key.
 
-## Safety and limitations
+## Testing
 
-- Staff edits are controlled by Supabase row-level security policies; verify the configured policies before inviting staff.
-- This app contacts Supabase directly over HTTPS and does **not** connect to a local Windows hub. The older hub-to-Supabase bridge is a separate service and won't run on Cloudflare Workers.
-- The first deployment provides only the cloud asset table and editing fields. Scanning, full refurbishment workflows, PDF reports, and admin features require further browser migration.
-- Every commit to `main` can trigger a new web deployment after Cloudflare Git integration is enabled. Test changes before inviting employees.
-- If Cloudflare's UI differs, consult its current Workers Builds documentation for the Git-integrated Worker flow.
+Check `/health`; verify login and active `apex_staff` membership; check only permitted assets load; edit a dummy asset and confirm revision conflict handling; sign out; test on mobile. Existing cloud data depends on prior migration/bridge. Cloudflare doesn't automatically migrate inventory. Keep your previous site and Windows source backed up. Git-based deployment only applies after commit and Cloudflare success.
+
+## Migration roadmap
+
+Phase 2: authorised cloud barcode intake, duplicate checks, asset creation and audit. Phase 3: refurbishment and repairs schema/API. Phase 4: report/PDF workflows. Phase 5: permission model, audit, offline rules, QA and rollout. Validate DB Row Level Security independently before production.
