@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
    await win.loadFile(path.join(__dirname,'../src/renderer/asset-label-page.html'),{query:{label:JSON.stringify({record,type,size,dpi:203,preview:true})}});
    await win.webContents.executeJavaScript('window.apexLabelReady');
    for(const [vw,vh] of [[500,Math.round(500*h/w)],[300,Math.round(300*h/w)]]){
-    win.setContentSize(vw,vh);await new Promise(r=>setTimeout(r,200));
+    win.setContentSize(vw,vh);await win.webContents.executeJavaScript('window.apexResizeLabelPreview?.()');await new Promise(r=>setTimeout(r,200));
     const preview=await win.webContents.executeJavaScript(`(()=>{const s=document.getElementById('labelSheet').getBoundingClientRect();return {width:s.width,height:s.height,vw:innerWidth,vh:innerHeight,error:window.apexLabelError};})()`);
     if(preview.error||preview.width>preview.vw+1||preview.height>preview.vh+1||Math.abs(preview.width/preview.height-w/h)>.02)throw Error('Preview clipped/distorted: '+JSON.stringify(preview));
    }

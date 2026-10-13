@@ -92,7 +92,7 @@ function drawLabelPreview(){
   preview.replaceChildren();
   const frame=document.createElement('iframe');frame.className='apex-isolated-label-preview';frame.title='Actual label layout preview';frame.src=labelPageUrl(true);preview.append(frame);
   // Iframes otherwise keep a 150px intrinsic height, clipping the scaled preview.
-  const resize=()=>{frame.style.height=(frame.getBoundingClientRect().width*h/w)+'px';};resize();
+  const resize=()=>{frame.style.height=(frame.getBoundingClientRect().width*h/w)+'px';frame.contentWindow?.apexResizeLabelPreview?.();};resize();
   const observer=new ResizeObserver(()=>{if(frame.isConnected)resize();else observer.disconnect();});observer.observe(preview);
   frame.onload=resize;
   $('apexLabelDescription').textContent=geometry.dots<2?'Fine code: only 1 printer dot per narrow bar/module. A larger label (80 × 30 for long barcodes) or a higher-resolution printer gives more scan margin.':'Sharp black-on-white code at '+geometry.dots+' printer dots per narrow bar/module. Print at Actual size, with the matching paper size and margins None.';

@@ -19,7 +19,7 @@ window.apexLabelReady=(async()=>{
   }
   if(payload.preview){
    const resize=()=>{const scale=Math.min(innerWidth/(w*96/25.4),innerHeight/(h*96/25.4));sheet.style.transformOrigin='top left';sheet.style.transform='scale('+scale+')';};
-   resize();window.addEventListener('resize',resize);
+   window.apexResizeLabelPreview=resize;resize();window.addEventListener('resize',resize);
   }
  }catch(error){window.apexLabelError=error.message;document.getElementById('labelSheet').textContent=error.message;}
 })();
