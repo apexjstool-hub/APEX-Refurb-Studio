@@ -14,9 +14,10 @@ app.whenReady().then(async()=>{
    const rendered=await renderLabelDocument({record,type,size,dpi:203});
    const pdf=await rendered.window.webContents.printToPDF(pdfOptions(w,h));rendered.window.destroy();
    const expectedWidth=w*72/25.4,expectedHeight=h*72/25.4;
+   const pdfConfig=pdfOptions(w,h);if(pdfConfig.landscape!==(w>h)||pdfConfig.pageSize.width!==Math.min(w,h)/25.4)throw Error('PDF orientation mismatch');
    const media=pdf.toString('latin1').match(/\/MediaBox\s*\[\s*0\s+0\s+([0-9.]+)\s+([0-9.]+)/);
    if(!media||Math.abs(Number(media[1])-expectedWidth)>1||Math.abs(Number(media[2])-expectedHeight)>1)throw Error('Wrong physical PDF size: '+size);
-   const options=printerOptions(w,h,203);if(options.pageSize.width!==w*1000||options.landscape||options.scaleFactor!==100)throw Error('Wrong printer options');
+   const options=printerOptions(w,h,203);if(options.pageSize.width!==Math.min(w,h)*1000||options.pageSize.height!==Math.max(w,h)*1000||options.landscape!==(w>h)||options.scaleFactor!==100)throw Error('Wrong printer options');
    await win.loadFile(path.join(__dirname,'../src/renderer/asset-label-page.html'),{query:{label:JSON.stringify({record,type,size,dpi:203,preview:true})}});
    await win.webContents.executeJavaScript('window.apexLabelReady');
    for(const [vw,vh] of [[500,Math.round(500*h/w)],[300,Math.round(300*h/w)]]){
