@@ -1,0 +1,292 @@
+/* Asset label selector + thermal print output. SVG QR uses vector rects and 4-module quiet zone. */
+.mock-summary{position:relative;padding-right:150px}
+.asset-summary-print{position:absolute;right:16px;top:15px}
+.asset-summary-print .secondary{border:1px solid var(--violet);background:var(--card-bg);color:var(--text);font-weight:760}
+.asset-summary-print button:disabled{opacity:.48;cursor:not-allowed}
+.apex-label-dialog{max-height:min(85vh,790px);overflow:auto}
+.apex-print-caption{margin:0 0 13px!important;font-size:12px;line-height:1.6}
+.apex-label-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:11px 0 15px}
+.apex-label-type{display:flex;flex-direction:column;text-align:left;gap:5px;border:1px solid var(--line);padding:13px;border-radius:6px;color:var(--text);background:var(--card-bg);min-height:83px}
+.apex-label-type b{font-size:12px}.apex-label-type small{color:var(--muted);font-size:11px;line-height:1.4}
+.apex-label-type.selected{border:2px solid var(--violet);padding:12px;background:var(--surface-hover)}
+.apex-label-size-select{margin:10px 0}.apex-label-size-select select{margin-top:5px;background:var(--select-bg)!important;color:var(--select-fg)!important;width:100%}
+.apex-label-preview-title{font-size:10px;letter-spacing:1.6px;font-weight:800;color:var(--muted);margin:16px 0 8px}
+.apex-label-preview{background:repeating-linear-gradient(45deg,#8882 0 7px,#bbb2 7px 14px);padding:15px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:5px}
+.apex-label-preview .apex-label-stock{width:min(100%,365px);aspect-ratio:var(--apex-preview-ratio,5/3);border:1px solid #777;box-shadow:0 8px 20px #0003}
+.apex-print-hint{font-size:11px!important;line-height:1.55;margin:12px 0!important}
+.apex-label-stock{box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:2.5% 2.8%;background:#fff!important;color:#000!important;font-family:Arial,'Liberation Sans',sans-serif!important;overflow:hidden;border-radius:0!important}
+.apex-label-title{font-size:clamp(7px,2.7cqw,12px);font-weight:800;letter-spacing:.15px;line-height:1.05;white-space:nowrap;border-bottom:1px solid #000;padding-bottom:2px;color:#000}
+.apex-label-columns{display:flex;align-items:stretch;gap:2%;flex:1;min-height:0}
+.apex-label-qr{width:38%;flex:none;min-width:0;align-self:center;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center}
+.apex-label-qr svg{width:100%;height:100%;display:block}
+.apex-label-copy{min-width:0;flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;gap:2px}
+.apex-label-asset{font-weight:900;font-size:clamp(11px,4.2cqw,22px);line-height:1.1;overflow-wrap:anywhere;color:#000}
+.apex-label-name{font-size:clamp(8px,2.5cqw,13px);line-height:1.1;font-weight:800;overflow-wrap:anywhere;color:#000}
+.apex-label-spec{font-size:clamp(6px,1.8cqw,10px);line-height:1.05;overflow-wrap:anywhere;color:#000}
+.apex-refurb-label .apex-label-title{letter-spacing:.45px}
+#apexLabelPrintPane{display:none}
+@media(max-width:870px){.mock-summary{padding-right:16px;padding-top:62px}.asset-summary-print{left:16px;right:auto;top:12px}.apex-label-choices{grid-template-columns:1fr}}
+@media print{
+ html,body{margin:0!important;padding:0!important;background:#fff!important;color:#000!important;overflow:visible!important;min-height:0!important}
+ body>*:not(#apexLabelPrintPane){display:none!important}
+ body>#apexLabelPrintPane{display:block!important;position:absolute!important;left:0!important;top:0!important;width:var(--label-width)!important;height:var(--label-height)!important;overflow:hidden!important;background:#fff!important;margin:0!important;padding:0!important;break-inside:avoid!important}
+ #apexLabelPrintPane .apex-label-stock{width:100%!important;height:100%!important;border:0!important;box-shadow:none!important;gap:0.4mm!important;padding:1mm!important}
+ #apexLabelPrintPane .apex-label-title{font-size:7pt!important;padding-bottom:.3mm!important}
+ #apexLabelPrintPane .apex-label-columns{gap:.6mm!important}
+ #apexLabelPrintPane .apex-label-qr{width:43%!important;max-height:95%!important;aspect-ratio:1/1}
+ #apexLabelPrintPane .apex-label-asset{font-size:11pt!important}
+ #apexLabelPrintPane .apex-label-name{font-size:7pt!important}
+ #apexLabelPrintPane .apex-label-spec{font-size:5.7pt!important}
+ #apexLabelPrintPane *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+
+/* v1.5.2 - Single-screen label studio, no side scrollbar */
+#modalLayer:has(.apex-label-dialog) .modal-card{width:min(845px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:hidden;display:flex;flex-direction:column}
+#modalLayer:has(.apex-label-dialog) .modal-header{padding:14px 20px 11px;flex-shrink:0}
+#modalLayer:has(.apex-label-dialog) .modal-header h2{font-size:20px;margin-top:3px}
+#modalLayer:has(.apex-label-dialog) #modalContent{min-height:0;overflow:hidden}
+.apex-label-dialog{padding:15px 20px 16px!important;max-height:none!important;overflow:hidden!important}
+.apex-label-workspace{display:grid;grid-template-columns:minmax(205px,0.86fr) minmax(240px,1.14fr);gap:17px;align-items:stretch}
+.apex-label-settings{min-width:0}.apex-label-display{min-width:0;display:flex;flex-direction:column}
+.apex-print-caption{font-size:11px!important;line-height:1.4!important;margin:0 0 11px!important}
+.apex-label-choices{grid-template-columns:1fr;gap:7px;margin:0 0 10px}
+.apex-label-type{min-height:0;padding:9px 11px;gap:2px}.apex-label-type.selected{padding:8px 10px}
+.apex-label-type b{font-size:12px}.apex-label-type small{font-size:10px}
+.apex-label-size-select{margin:5px 0!important;font-size:11px}.apex-label-size-select select{padding:9px!important;font-size:11px!important}
+.apex-label-help,.apex-label-preview-desc{font-size:10px;color:var(--muted);line-height:1.45;margin-top:10px}
+.apex-label-preview-title{margin:0 0 7px;font-size:10px}
+.apex-label-preview{padding:12px;min-height:185px;flex:1}
+.apex-label-preview .apex-label-stock{width:min(100%,365px);max-height:215px;container-type:inline-size}
+.apex-label-footer{margin-top:13px;padding-top:11px;border-top:1px solid var(--line)}
+.apex-barcode-label{align-items:stretch;justify-content:space-around;text-align:center}
+.apex-barcode-name{font-weight:750;font-size:clamp(8px,2.4cqw,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#000!important}
+.apex-barcode-image{width:100%;height:37%;min-height:0;display:flex;align-items:stretch}
+.apex-barcode-image svg{width:100%;height:100%;display:block}
+.apex-barcode-human{font-weight:900;letter-spacing:.4px;font-size:clamp(14px,5cqw,25px);color:#000!important}
+@media(max-width:580px){.apex-label-workspace{grid-template-columns:1fr;gap:8px}.apex-label-dialog{padding:9px 12px!important}.apex-label-choices{grid-template-columns:1fr 1fr}.apex-label-preview{min-height:125px;padding:7px}.apex-label-preview .apex-label-stock{max-height:147px;width:min(100%,230px)}.apex-label-help{display:none}.apex-label-footer{padding-top:7px;margin-top:6px}}
+@media(max-height:560px){.apex-label-help,.apex-label-preview-desc{display:none}.apex-label-preview{min-height:110px}.apex-label-choices{gap:4px}.apex-label-type{padding:6px 9px}.apex-label-type.selected{padding:5px 8px}}
+@media print{#apexLabelPrintPane .apex-barcode-image{width:100%!important;height:44%!important;margin:.6mm 0}#apexLabelPrintPane .apex-barcode-image svg{height:100%!important}#apexLabelPrintPane .apex-barcode-name{font-size:7pt!important}#apexLabelPrintPane .apex-barcode-human{font-size:12pt!important;line-height:1.1!important}}
+
+/* v1.5.3 — thermal printer layout. Label dimensions specified in millimetres, no scaling to paper. */
+.apex-label-preview[data-label-size="60x40"] .apex-label-stock{width:min(100%,390px);max-height:none}
+.apex-label-preview .apex-label-stock{font-family:Arial,'Segoe UI',sans-serif!important}
+.apex-label-preview .apex-label-copy{gap:3px}
+.apex-label-id-caption{font-size:clamp(7px,1.9cqw,10px);line-height:1.1;font-weight:800;letter-spacing:.6px;color:#000!important}
+.apex-label-copy .apex-label-asset{font-size:clamp(15px,4.5cqw,25px);line-height:1.04;letter-spacing:0}
+.apex-label-copy .apex-label-name{font-size:clamp(9px,2.5cqw,14px);line-height:1.15;overflow-wrap:anywhere;white-space:normal;font-weight:800}
+.apex-label-copy .apex-label-spec{font-size:clamp(8px,2.2cqw,12px);line-height:1.13;overflow-wrap:anywhere}
+.apex-label-qr svg{shape-rendering:crispEdges;background:#fff}
+.apex-label-preview .apex-label-stock{gap:3px}
+@media print{
+  html,body{width:var(--label-width,auto);height:var(--label-height,auto);overflow:hidden!important}
+  #apexLabelPrintPane{inset:0 auto auto 0!important;box-sizing:border-box!important}
+  #apexLabelPrintPane .apex-label-stock{display:flex!important;padding:1.15mm!important;gap:.35mm!important;line-height:1.1!important}
+  #apexLabelPrintPane .apex-label-title{font-size:7.2pt!important;line-height:1.1!important;letter-spacing:.1mm!important;margin:0!important;border-bottom:.18mm solid #000!important}
+  #apexLabelPrintPane .apex-label-columns{display:flex!important;gap:.8mm!important;align-items:center!important;min-height:0!important;flex:1!important}
+  #apexLabelPrintPane .apex-label-qr{width:42%!important;height:auto!important;max-height:100%!important;aspect-ratio:1/1!important;flex-shrink:0!important}
+  #apexLabelPrintPane .apex-label-qr svg{width:100%!important;height:100%!important;display:block!important;shape-rendering:crispEdges!important}
+  #apexLabelPrintPane .apex-label-copy{flex:1!important;min-width:0!important;gap:.45mm!important;justify-content:center!important;overflow:hidden!important}
+  #apexLabelPrintPane .apex-label-id-caption{font-size:6.3pt!important;letter-spacing:.1mm!important;font-weight:800!important}
+  #apexLabelPrintPane .apex-label-asset{font-size:11pt!important;line-height:1.05!important;font-weight:900!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+  #apexLabelPrintPane .apex-label-name{font-size:7.4pt!important;line-height:1.16!important;font-weight:800!important;overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important}
+  #apexLabelPrintPane .apex-label-spec{font-size:7.2pt!important;line-height:1.14!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+  #apexLabelPrintPane .apex-barcode-image{height:42%!important;flex:0 0 42%!important}
+  #apexLabelPrintPane .apex-barcode-human{font-size:12pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-title{font-size:9pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-qr{width:44%!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-asset{font-size:15pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-name{font-size:9.4pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-spec{font-size:9pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"] .apex-label-id-caption{font-size:7pt!important}
+  #apexLabelPrintPane[data-label-size="50x25"] .apex-label-title{font-size:6.2pt!important}
+  #apexLabelPrintPane[data-label-size="50x25"] .apex-label-asset{font-size:10pt!important}
+  #apexLabelPrintPane[data-label-size="50x25"] .apex-label-name{font-size:6.8pt!important}
+  #apexLabelPrintPane[data-label-size="50x25"] .apex-label-spec{font-size:6.4pt!important}
+  #apexLabelPrintPane[data-label-size="50x25"] .apex-label-id-caption{font-size:5.5pt!important}
+}
+/* Match the on-screen preview's text hierarchy to the enlarged physical 60x40 label. */
+.apex-label-preview[data-label-size="60x40"] .apex-label-stock{padding:3.2% 3.5%;gap:3px}
+.apex-label-preview[data-label-size="60x40"] .apex-label-title{font-size:12px;line-height:1.1;border-bottom:1px solid #111;padding-bottom:3px}
+.apex-label-preview[data-label-size="60x40"] .apex-label-qr{width:44%;max-width:none}
+.apex-label-preview[data-label-size="60x40"] .apex-label-asset{font-size:22px;line-height:1.08}
+.apex-label-preview[data-label-size="60x40"] .apex-label-id-caption{font-size:9px}
+.apex-label-preview[data-label-size="60x40"] .apex-label-name{font-size:15px;line-height:1.14}
+.apex-label-preview[data-label-size="60x40"] .apex-label-spec{font-size:13px;line-height:1.14}
+
+/* APEX Thermal Label Clarity — QR owns the vertical printable area; physical mm controls
+   are deliberate and do not rely on screen viewport units. Scoped to label print only. */
+.apex-label-preview .apex-label-stock{container-type:inline-size}
+.apex-label-preview[data-label-type="refurb"] .apex-label-columns{height:100%;align-items:center}
+.apex-label-preview[data-label-type="refurb"] .apex-label-qr{width:auto!important;height:min(90%,100%);max-height:100%;aspect-ratio:1/1;flex:0 0 auto}
+.apex-label-preview[data-label-type="refurb"] .apex-label-stock{padding:2.2%;gap:0}
+.apex-label-preview[data-label-type="refurb"] .apex-label-copy{gap:2px}
+.apex-label-preview[data-label-type="refurb"] .apex-label-name{font-size:clamp(8px,2.2cqw,12px)}
+.apex-label-preview[data-label-type="refurb"] .apex-label-spec{font-size:clamp(7px,2cqw,11px)}
+.apex-label-preview[data-label-type="asset"] .apex-barcode-image{height:53%;flex:0 0 53%}
+.apex-label-preview[data-label-type="asset"] .apex-barcode-label{justify-content:space-between}
+@media print {
+  #apexLabelPrintPane{position:fixed!important;inset:0 auto auto 0!important;overflow:hidden!important}
+  #apexLabelPrintPane .apex-label-stock{box-sizing:border-box!important;width:var(--label-width)!important;height:var(--label-height)!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-stock{padding:1mm!important;gap:0!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-columns{height:100%!important;min-height:0!important;align-items:center!important;gap:.8mm!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-qr{width:auto!important;height:calc(var(--label-height) - 2mm)!important;max-width:58%!important;max-height:calc(var(--label-height) - 2mm)!important;aspect-ratio:1 / 1!important;flex:0 0 auto!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-qr svg{width:100%!important;height:100%!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-copy{min-width:0!important;gap:.4mm!important;align-items:flex-start!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-asset{font-size:11pt!important;overflow-wrap:anywhere!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-name{font-size:6.8pt!important;overflow-wrap:anywhere!important}
+  #apexLabelPrintPane[data-label-type="refurb"] .apex-label-spec{font-size:6pt!important;overflow-wrap:anywhere!important}
+  #apexLabelPrintPane[data-label-size="60x40"][data-label-type="refurb"] .apex-label-asset{font-size:15pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"][data-label-type="refurb"] .apex-label-name{font-size:9pt!important}
+  #apexLabelPrintPane[data-label-size="60x40"][data-label-type="refurb"] .apex-label-spec{font-size:8pt!important}
+  #apexLabelPrintPane[data-label-type="asset"] .apex-label-stock{justify-content:space-between!important;padding:1mm 2mm!important}
+  #apexLabelPrintPane[data-label-type="asset"] .apex-barcode-image{height:56%!important;flex:0 0 56%!important;margin:0!important}
+  #apexLabelPrintPane[data-label-type="asset"] .apex-barcode-image svg{height:100%!important;width:100%!important}
+  #apexLabelPrintPane[data-label-type="asset"] .apex-barcode-human{font-size:12pt!important;font-weight:900!important}
+  #apexLabelPrintPane[data-label-type="asset"] .apex-barcode-name{font-size:7pt!important}
+}
+
+/* APEX GK420t — 50 x 25 mm label correction */
+
+.apex-label-preview[data-label-size="50x25"]
+.apex-barcode-name {
+  display: none !important;
+}
+
+.apex-label-preview[data-label-size="50x25"]
+.apex-barcode-label {
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 5px !important;
+}
+
+.apex-label-preview[data-label-size="50x25"]
+.apex-barcode-image {
+  height: 55% !important;
+  flex: 0 0 55% !important;
+}
+
+@media print {
+
+  @page {
+    margin: 0;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"] {
+    width: 50mm !important;
+    height: 25mm !important;
+    overflow: hidden !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-stock {
+    width: 50mm !important;
+    height: 25mm !important;
+    padding: 1.5mm 2mm !important;
+    box-sizing: border-box !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* BARCODE LABEL */
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  [class~="apex-barcode-label"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 1mm !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-barcode-name {
+    display: none !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-title {
+    width: 100% !important;
+    text-align: center !important;
+    border: 0 !important;
+    font-size: 7pt !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-barcode-image {
+    width: 100% !important;
+    height: 11mm !important;
+    flex: 0 0 11mm !important;
+    margin: 0 !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-barcode-image svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-barcode-human {
+    font-size: 10pt !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    letter-spacing: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* QR LABEL */
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-columns {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1mm !important;
+    height: 100% !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-qr {
+    width: 21mm !important;
+    height: 21mm !important;
+    max-width: 21mm !important;
+    max-height: 21mm !important;
+    flex: 0 0 21mm !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-qr svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-copy {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    gap: .4mm !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-asset {
+    font-size: 8pt !important;
+    font-weight: 900 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-name {
+    font-size: 6pt !important;
+    line-height: 1.12 !important;
+  }
+
+  #apexLabelPrintPane[data-label-size="50x25"]
+  .apex-label-spec {
+    display: none !important;
+  }
+}
+

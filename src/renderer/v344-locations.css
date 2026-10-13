@@ -1,0 +1,29 @@
+/* v3.4.4 — Correct location name contrast and provide explicit delete controls. */
+@media screen {
+ html.apex-v34[data-theme="light"] #locationsPage .locations-table td,
+ html.apex-v34[data-theme="light"] #locationsPage .locations-table td b,
+ html.apex-v34[data-theme="light"] #locationsPage .locations-table td strong {
+  color:#1d293c!important;
+  opacity:1!important;
+  -webkit-text-fill-color:#1d293c!important;
+ }
+ html.apex-v34[data-theme="light"] #locationsPage .locations-table tbody tr:hover td {background:#f1f6ff!important}
+ html.apex-v34[data-theme="dark"] #locationsPage .locations-table td,
+ html.apex-v34[data-theme="dark"] #locationsPage .locations-table td b {color:#f2f5fb!important;opacity:1!important}
+ #locationsPage .v344-location-actions {white-space:nowrap;width:245px;text-align:right}
+ #locationsPage .v344-location-actions .text-button {color:var(--v3-accent,#086fe8)!important}
+ #locationsPage .v344-delete-location,.v344-confirm-delete {
+  border:1px solid #d8a6a8;background:#fff4f4;color:#a42330;min-height:32px;
+  padding:6px 12px;font-weight:700;font-size:12px;border-radius:4px;cursor:pointer;
+ }
+ #locationsPage .v344-delete-location{margin-left:13px}
+ #locationsPage .v344-delete-location:hover,.v344-confirm-delete:hover{background:#ffe2e4;border-color:#be5360}
+ html.apex-v34[data-theme="dark"] #locationsPage .v344-delete-location,
+ html.apex-v34[data-theme="dark"] .v344-confirm-delete{background:#46272f;border-color:#94515d;color:#ffcad0}
+ .v344-location-dialog p{font-size:13px;line-height:1.6}
+ .v344-location-dialog .v344-move-note{padding:10px 12px;background:var(--panel2);border-left:3px solid #086fe8}
+ .v344-location-dialog .v344-location-warning{font-size:12px;color:var(--muted)}
+ .v344-location-dialog .field{color:var(--text)}
+ .v344-location-dialog .field select{background:var(--field-bg);color:var(--text);border-color:var(--line)}
+ .v344-confirm-delete:disabled{opacity:.55;cursor:wait}
+}

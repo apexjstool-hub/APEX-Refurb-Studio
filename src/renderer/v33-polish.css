@@ -1,0 +1,55 @@
+/* v3.3: compact, clear inventory/refurb workspace. */
+@media screen {
+ .sidebar .menu{gap:3px}
+ .sidebar .menu-item{border-radius:2px}
+ .v3-report-body{min-height:210px}
+ .v33-location-bar{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:5px 0 14px}
+ .v33-location-bar form{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+ .v33-location-bar label{font-size:12px;font-weight:750}
+ .v33-location-bar input{min-width:185px;max-width:300px;height:38px;padding:8px 10px;border:1px solid var(--input-border);background:var(--field-bg);color:var(--text)}
+ .v33-location-bar p,.v33-location-bar #v33LocationMessage{font-size:11px;color:var(--muted);margin:8px 0 0}
+ #editLocation,#editSsdType {color:var(--select-fg)!important;background:var(--select-bg)!important}
+ #assetPage .flat-fields{column-gap:14px;row-gap:8px}
+ #assetPage .field.compact-field{min-height:43px;font-size:12px;grid-template-columns:minmax(108px,42%) minmax(0,1fr)}
+ #assetPage .field.compact-field input,#assetPage .field.compact-field select{height:41px;font-size:12px;padding:7px 10px}
+ #inventoryPage .section-panel{overflow:auto;max-height:calc(100vh - 220px)}
+ #locationsPage .section-panel{max-height:calc(100vh - 290px)}
+}
+@media(max-width:1040px){#assetPage .flat-fields{grid-template-columns:1fr}}
+
+/* APEX v3.4.2 – one laptop per row in Parts Needed, expandable details */
+.ops-grouped-parts .ops-part-asset-row td { vertical-align:middle; }
+.ops-grouped-parts .ops-part-buttons { white-space:nowrap; text-align:right; }
+.ops-grouped-parts .ops-part-buttons button { margin-left:6px; }
+.ops-grouped-parts .ops-part-count { font-weight:600; }
+.ops-grouped-parts .ops-part-details-row[hidden] { display:none!important; }
+.ops-grouped-parts .ops-part-details-row td { background:var(--surface-2,#f5f7fc); padding:12px 20px 16px; }
+.ops-expanded-parts { max-width:850px; margin-left:auto; margin-right:auto; }
+.ops-expanded-parts h4 { font-size:13px; margin:0 0 10px; }
+.ops-expanded-list { display:grid; gap:4px; }
+.ops-expanded-item { display:flex; justify-content:space-between; gap:18px; padding:7px 10px; border-bottom:1px solid var(--border-color,#dfe5ef); font-size:13px; }
+.ops-expanded-item:last-child { border-bottom:0; }
+[data-theme="dark"] .ops-part-details-row td, body.theme-dark .ops-part-details-row td { background:#202638; }
+@media (max-width:850px) { .ops-grouped-parts .ops-part-buttons button { margin:3px 0 3px 5px; } }
+
+/* The legacy dark-theme table bold rule has higher specificity than the light
+   table-cell colour; override it for this new grouped inventory view. */
+html[data-theme="light"] .ops-grouped-parts .ops-part-asset-row b,
+body[data-theme="light"] .ops-grouped-parts .ops-part-asset-row b,
+body:not(.theme-dark) .ops-grouped-parts .ops-part-asset-row b {
+  color:#18253d !important;
+}
+html[data-theme="dark"] .ops-grouped-parts .ops-part-asset-row b,
+body.theme-dark .ops-grouped-parts .ops-part-asset-row b {
+  color:#f2f4fa !important;
+}
+
+/* v3.4.3 — Selected-laptop refurbishment Excel exports */
+.ops-parts-select-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+.ops-part-export-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+#opsSelectedPartCount { font-size:12px; font-weight:650; color:var(--text-muted,#607087); white-space:nowrap; }
+.ops-select-col { width:42px; text-align:center!important; }
+.ops-select-col input { width:17px; height:17px; cursor:pointer; accent-color:#1168df; vertical-align:middle; }
+.ops-part-selected td { background:rgba(21,109,226,.08); }
+#opsExportRefurbPartsSelected:disabled { cursor:not-allowed; opacity:.43; }
+@media(max-width:730px){ .ops-part-export-actions { width:100%; } .ops-part-export-actions button { flex:1; } }

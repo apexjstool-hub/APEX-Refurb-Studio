@@ -1,0 +1,7 @@
+/* APEX 3.9.5 — bounded inventory row rendering and compact pagination. */
+.v395-pagebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 14px;border-top:1px solid var(--line,#dbe1e9);background:var(--panel,#fff);font-size:12px;color:var(--muted,#526078)}
+.v395-pagebar>div{display:flex;gap:7px}
+.v395-pagebar button{background:var(--panel2,#f5f7fa);color:var(--text,#102138);border:1px solid var(--line,#dbe1e9);border-radius:3px;padding:7px 12px;min-height:31px;font-size:12px;cursor:pointer}
+.v395-pagebar button:hover:not(:disabled){border-color:#2677e9;color:#146bda}
+.v395-pagebar button:disabled{opacity:.45;cursor:default}
+@media(max-width:650px){.v395-pagebar{align-items:flex-start}.v395-pagebar>div{width:100%}.v395-pagebar button{flex:1}}

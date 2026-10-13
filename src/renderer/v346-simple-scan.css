@@ -1,0 +1,44 @@
+/* APEX v3.4.6 — deliberately minimal Scan workspace. */
+.v346-page{max-width:none!important;min-height:0}
+.v346-page .v346-page-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 16px;gap:16px}
+.v346-page .v346-page-head h1{font-size:22px;font-weight:750;margin:0;color:var(--text)}
+.v346-page .v346-page-head p{font-size:13px;margin:5px 0 0;color:var(--muted)}
+.v346-page .v346-count{color:var(--muted);font-size:13px;font-weight:600}
+.v346-page .v346-scan-form{display:flex;gap:10px;max-width:920px}
+.v346-page .v346-scan-form input,.v346-page .v346-destination input,.v346-create-modal input{height:47px;min-width:0;border:1px solid var(--input-border,#cbd5e1);background:var(--field-bg,#fff)!important;color:var(--text,#192638)!important;border-radius:3px;box-sizing:border-box;padding:10px 14px;font-size:14px;outline-offset:2px}
+.v346-page .v346-scan-form input{flex:1}
+.v346-page .v346-scan-form button{min-width:100px}
+.v346-page .v346-message{margin:12px 0 16px;font-size:12px;color:var(--muted);min-height:18px}
+.v346-page .v346-message.v346-error{color:#c33838}
+.v346-page .v346-panel,.v346-page .v346-destination{background:var(--panel,#fff)!important;border:1px solid var(--line,#dfe5ee)!important;border-radius:3px;padding:16px 18px;margin-bottom:12px;color:var(--text)!important}
+.v346-page .v346-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.v346-page .v346-panel-heading h3{margin:0;font-size:15px}
+.v346-page .v346-panel-heading span{font-size:12px;color:var(--muted)}
+.v346-page .v346-table{width:100%}
+.v346-page .v346-table td,.v346-page .v346-table th{padding:12px 10px;vertical-align:middle;color:var(--text)!important}
+.v346-page .v346-table small{display:block;margin-top:3px;color:var(--muted)}
+.v346-page .v346-remove-cell{text-align:right;white-space:nowrap}
+.v346-page .v346-remove{background:transparent;color:#b12631;border:1px solid #efc4c8;padding:7px 13px;min-height:31px;border-radius:3px;font-weight:650;cursor:pointer}
+.v346-page .v346-outline{background:transparent;color:#0870d9;border:1px solid var(--line,#cbd5e1);padding:7px 13px;min-height:31px;border-radius:3px;font-weight:650;margin-right:8px;cursor:pointer}
+.v346-page .v346-quiet{background:transparent;border:0;color:#086bd4;font-weight:650;cursor:pointer}
+.v346-page .v346-destination{max-width:920px}
+.v346-page .v346-destination label{font-size:13px;display:block;font-weight:700;margin-bottom:8px}
+.v346-page .v346-destination input{width:100%}
+.v346-page .v346-actions{display:flex;gap:10px;justify-content:flex-start;align-items:center;margin-top:13px}
+.v346-page .v346-actions button{min-width:170px;border-radius:3px;min-height:42px}
+.v346-page .v346-tip{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+.v346-page .v346-empty{padding:35px;text-align:center;color:var(--muted)}
+.v346-create-modal .field{display:flex;flex-direction:column;gap:7px;font-weight:650;color:var(--text)}
+.v346-create-modal input[readonly]{background:var(--panel2,#f0f4f8)!important;font-weight:800;letter-spacing:0.2px}
+html.apex-v34[data-theme="dark"] .v346-page .v346-remove{color:#ffb4b4;border-color:#755055}
+html.apex-v34[data-theme="dark"] .v346-page .v346-outline{color:#b6d6ff}
+@media(max-width:650px){.v346-page .v346-actions{flex-direction:column}.v346-page .v346-actions button{width:100%}.v346-page .v346-table{font-size:11px}}
+/* Scan has only one title and one input; no extra inventory scan buttons. */
+#invScan,#locScan{display:none!important}
+#bulkPage .v346-page-head>div{display:none!important}
+#bulkPage .v346-page-head{justify-content:flex-end;margin:0 0 9px;min-height:12px}
+html.apex-v34[data-theme="light"] .v346-page .v346-table td b,
+html.apex-v34[data-theme="light"] .v346-page .v346-table td strong,
+html.apex-v34[data-theme="light"] .v346-page .v346-table td:first-child {color:#17283d!important;opacity:1!important;-webkit-text-fill-color:#17283d!important}
+html.apex-v34[data-theme="dark"] .v346-page .v346-table td b,
+html.apex-v34[data-theme="dark"] .v346-page .v346-table td strong {color:#eff5ff!important;-webkit-text-fill-color:#eff5ff!important}

@@ -1,0 +1,28 @@
+/* v3.9.2 Shared Hub intake receipt confirmation. Screen-only. */
+@media screen{
+.apex-v34 .verification-panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:15px 16px;margin:0 0 14px;color:var(--text)}
+.apex-v34 .verification-head,.apex-v34 .verification-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.apex-v34 .verification-head{margin-bottom:13px}
+.apex-v34 .verification-head h2{font-size:15px;font-weight:750;color:var(--text);margin:0 0 4px}
+.apex-v34 .verification-head p,.apex-v34 .verification-footnote{font-size:12px;color:var(--muted);line-height:1.4;margin:0}
+.apex-v34 .verification-controls{background:var(--panel2);border:1px solid var(--line);padding:9px 11px;margin-bottom:10px;border-radius:3px;font-size:12px}
+.apex-v34 .verification-totals{font-weight:650;color:var(--text)}
+.apex-v34 .verification-controls label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.apex-v34 .verification-controls select{min-height:32px!important;padding:5px 9px!important;font-size:12px!important}
+.apex-v34 .verification-table-scroll{width:100%;max-height:286px;overflow:auto;border:1px solid var(--line);border-radius:3px}
+.apex-v34 .verification-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+.apex-v34 .verification-table th{position:sticky;top:0;background:var(--panel2);z-index:1;text-transform:uppercase;letter-spacing:.035em;font-size:10px;color:var(--muted);padding:10px}
+.apex-v34 .verification-table td{background:var(--panel);padding:9px 10px;border-top:1px solid var(--line);color:var(--text);vertical-align:middle}
+.apex-v34 .verification-table tbody tr:hover td{background:var(--surface-hover)}
+.apex-v34 .verification-table td:nth-child(3){font-weight:750;white-space:nowrap}
+.apex-v34 .verification-table td:nth-child(5){min-width:180px;max-width:380px;word-break:break-word;font-size:11px;color:var(--muted)}
+.apex-v34 .verification-result{display:inline-block;padding:4px 7px;border-radius:3px;border:1px solid var(--line);font-weight:750;font-size:11px;white-space:nowrap}
+.apex-v34 .verification-result.saved{color:#106b43;border-color:#a4d5b9;background:#eafaef}
+.apex-v34 .verification-result.rejected{color:#ab3342;border-color:#ebb3bb;background:#fff1f2}
+.apex-v34 .verification-result.unchanged{color:#655d74;background:var(--panel2)}
+.apex-v34[data-theme="dark"] .verification-result.saved{color:#9aeab7;background:#214c39;border-color:#397b59}
+.apex-v34[data-theme="dark"] .verification-result.rejected{color:#ffc2ca;background:#4a2934;border-color:#a15465}
+.apex-v34 .verification-table button{white-space:nowrap;min-height:30px!important;padding:5px 9px!important;font-size:11px!important}
+.apex-v34 .verification-footnote{margin-top:9px}
+@media(max-width:900px){.apex-v34 .verification-head{align-items:flex-start}.apex-v34 .verification-table{min-width:660px}}
+}

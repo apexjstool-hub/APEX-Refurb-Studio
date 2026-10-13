@@ -1,0 +1,26 @@
+/* APEX v3.9.3: compact, admin-only sync conflict review. */
+.apex-v34 .conflict-panel{background:var(--panel);border:1px solid var(--line);border-radius:5px;margin:14px 0;padding:16px 18px;color:var(--text)}
+.apex-v34 .conflict-header{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.apex-v34 .conflict-header h2{font-size:17px;font-weight:750;margin:0 0 4px}
+.apex-v34 .conflict-header p,.apex-v34 .conflict-footnote{font-size:12px;line-height:1.5;margin:0;color:var(--muted)}
+.apex-v34 .conflict-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 8px}
+.apex-v34 .conflict-tools strong{font-size:12px}.apex-v34 .conflict-tools label{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
+.apex-v34 .conflict-tools select{max-width:180px;min-height:35px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:6px}
+.apex-v34 .conflict-scroll{overflow:auto;max-height:280px;border:1px solid var(--line);border-radius:4px}
+.apex-v34 .conflict-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px;min-width:690px}
+.apex-v34 .conflict-table th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.045em;padding:11px;font-weight:700}
+.apex-v34 .conflict-table td{padding:11px;border-top:1px solid var(--line);vertical-align:middle;color:var(--text)}
+.apex-v34 .conflict-table td button{min-height:30px!important;padding:5px 11px!important}
+.apex-v34 .conflict-status{font-weight:700;color:#b66a19}
+.apex-v34 .conflict-status.accepted{color:#248454}.apex-v34 .conflict-status.dismissed{color:var(--muted)}
+.apex-v34 .conflict-review{margin:12px 0;background:var(--panel2);border:1px solid var(--line);padding:14px;border-radius:4px}
+.apex-v34 .conflict-review[hidden]{display:none}
+.apex-v34 .conflict-review h3{font-size:14px;margin:0 0 12px}
+.apex-v34 .conflict-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.apex-v34 .conflict-identity{background:var(--panel);padding:13px;border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column;gap:5px}
+.apex-v34 .conflict-identity small{color:var(--muted)}
+.apex-v34 .conflict-identity b{font-size:16px;color:var(--text)}
+.apex-v34 .conflict-warning{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0}
+.apex-v34 .conflict-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.apex-v34 .conflict-footnote{margin-top:12px}
+@media(max-width:750px){.apex-v34 .conflict-compare{grid-template-columns:1fr}.apex-v34 .conflict-header{align-items:start}.apex-v34 .conflict-panel{padding:12px}}

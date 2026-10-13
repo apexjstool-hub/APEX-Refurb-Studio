@@ -1,0 +1,71 @@
+{
+  "name": "apex-inventory-studio",
+  "version": "4.0.4",
+  "description": "APEX Refurb Management Studio \u2014 inventory, locations, refurb imports and A4 / Excel reports",
+  "main": "src/main.js",
+  "author": "APEX Inventory Studio",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "pack:windows": "electron-builder --win nsis",
+    "pack:portable": "electron-builder --win portable --config.win.artifactName=APEX-Refurb-Studio-Portable-${version}.${ext}",
+    "prepack:windows": "node scripts/configure-distribution-login.js --check",
+    "prepack:portable": "node scripts/configure-distribution-login.js --check"
+  },
+  "dependencies": {
+    "@zxing/browser": "0.2.1",
+    "@zxing/library": "^0.23.0",
+    "electron-updater": "^6.6.2"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.apex.inventory",
+    "productName": "APEX Refurb Management Studio",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "hub/server.js",
+      "package.json",
+      "node_modules/@zxing/**/*",
+      "node_modules/@zxing/browser/**/*",
+      "cloud/sync-bridge.js"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "APEX-Refurb-Studio-Setup-${version}.${ext}",
+      "icon": "build/icon.ico"
+    },
+    "icon": "build/icon.png",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "apexjstool-hub",
+        "repo": "APEX-Refurb-Studio",
+        "releaseType": "release"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "APEX Refurb Management Studio",
+      "deleteAppDataOnUninstall": false
+    },
+    "extraResources": [
+      {
+        "from": "tools/update-centre-v2/INSTALL-PORTABLE-UPDATE.ps1",
+        "to": "updater/INSTALL-PORTABLE-UPDATE.ps1"
+      }
+    ]
+  }
+}

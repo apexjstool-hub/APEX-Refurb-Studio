@@ -1,0 +1,26 @@
+/* Professional Edition phase 3 — backup and device activity panel; screen only. */
+@media screen {
+ .apex-v34 .reliability-panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow);padding:16px;margin:0 0 14px;color:var(--text)}
+ .apex-v34 .reliability-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:13px}
+ .apex-v34 .reliability-heading h2{font-size:15px;line-height:1.25;font-weight:750;color:var(--text);margin:0 0 3px}
+ .apex-v34 .reliability-heading p,.apex-v34 .reliability-muted{font-size:12px;color:var(--muted);line-height:1.5;margin:0;overflow-wrap:anywhere}
+ .apex-v34 .reliability-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .apex-v34 .reliability-card{min-width:0;border:1px solid var(--line);border-radius:4px;padding:13px 14px;background:var(--panel2)}
+ .apex-v34 .reliability-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+ .apex-v34 .reliability-card-heading strong{font-size:13px}
+ .apex-v34 .reliability-badge{display:inline-flex;font-weight:750;font-size:11px;padding:4px 8px;background:var(--panel);border:1px solid var(--line);border-radius:3px;color:var(--muted)}
+ .apex-v34 .reliability-badge.good{border-color:#a2d5bd;color:#0a7745;background:#edfaf3}
+ .apex-v34[data-theme="dark"] .reliability-badge.good{background:#224b3e;color:#9aecbc;border-color:#3e8d70}
+ .apex-v34 .reliability-badge.warning{border-color:#e4b9a0;color:#a45419;background:#fff4e8}
+ .apex-v34[data-theme="dark"] .reliability-badge.warning{background:#533c30;color:#ffc99f;border-color:#a27b5b}
+ .apex-v34 .reliability-main{font-weight:700;font-size:13px;margin:0 0 5px}
+ .apex-v34 .reliability-card-actions{margin-top:13px;display:flex;flex-wrap:wrap;gap:8px}
+ .apex-v34 .reliability-card-actions button{min-height:33px!important}
+ .apex-v34 .reliability-devices{display:grid;gap:5px;max-height:175px;overflow:auto;margin-top:10px}
+ .apex-v34 .reliability-device{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px 10px;font-size:12px}
+ .apex-v34 .reliability-device span:first-child{font-weight:700}
+ .apex-v34 .reliability-device small{font-size:11px;color:var(--muted);line-height:1.4;text-align:right}
+ .apex-v34 .reliability-footnote{font-size:11px;line-height:1.5;color:var(--muted);margin:10px 0 0}
+ @media(max-width:920px){.apex-v34 .reliability-grid{grid-template-columns:1fr}}
+ @media(max-width:700px){.apex-v34 .reliability-heading{flex-wrap:wrap}.apex-v34 .reliability-card-actions button{flex:1}}
+}

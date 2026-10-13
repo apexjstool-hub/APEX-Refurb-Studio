@@ -1,0 +1,35 @@
+/* APEX Upgrade 2 — dashboard density and hierarchy. Dashboard-scoped only. */
+#dashboardPage { --dash-border:var(--border, #343b4b); min-width:0; }
+#dashboardPage .page-intro { margin-bottom:14px; gap:14px; align-items:center; }
+#dashboardPage .page-intro h1 { font-size:clamp(22px,2.4vw,29px); margin:3px 0 5px; letter-spacing:-.7px; }
+#dashboardPage .page-intro p { margin:0; line-height:1.5; }
+#dashboardPage .page-intro .eyebrow { font-size:9px; letter-spacing:1.2px; }
+#dashboardPage .page-intro .primary { min-height:36px; white-space:nowrap; }
+#dashboardPage .hero-banner { min-height:0!important; padding:15px 19px!important; margin:0 0 14px!important; border-radius:9px!important; overflow:hidden; display:flex; align-items:center; background:linear-gradient(110deg,rgba(125,87,212,.13),rgba(125,87,212,.035))!important; }
+#dashboardPage .hero-banner-content { max-width:none!important; width:100%; display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:15px; align-items:center; }
+#dashboardPage .hero-banner .banner-tag { grid-column:1/-1; font-size:9px; width:max-content; padding:3px 7px; margin-bottom:6px; letter-spacing:1.1px; }
+#dashboardPage .hero-banner h2 { font-size:17px!important; line-height:1.3; margin:0 0 3px!important; letter-spacing:-.3px; }
+#dashboardPage .hero-banner p { margin:0!important; font-size:11px; max-width:none; }
+#dashboardPage .hero-banner .banner-button { grid-column:2;grid-row:2/4; align-self:center; margin:0; white-space:nowrap; border-radius:6px; }
+#dashboardPage .banner-art { display:none!important; }
+#dashboardPage .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px!important; margin-bottom:14px!important; }
+#dashboardPage .metric { padding:13px 15px!important; min-width:0; min-height:108px!important; border-radius:9px!important; box-shadow:none!important; }
+#dashboardPage .metric-head { font-size:11px; font-weight:600; line-height:1.4; }
+#dashboardPage .metric-icon { width:25px; height:25px; border-radius:6px; font-size:13px; flex-shrink:0; }
+#dashboardPage .metric-value { font-size:29px!important; line-height:1.15; letter-spacing:-1px; margin:8px 0 5px!important; }
+#dashboardPage .metric-foot { font-size:10px; line-height:1.4; }
+#dashboardPage .smart-grid { gap:12px!important; margin-bottom:12px!important; align-items:stretch; }
+#dashboardPage .section-panel { border-radius:9px!important; min-width:0; }
+#dashboardPage .section-panel-head { padding:13px 16px!important; min-height:0!important; gap:10px; }
+#dashboardPage .section-panel-head h3 { font-size:13px!important; letter-spacing:-.15px; }
+#dashboardPage .section-panel-head p { margin:3px 0 0!important; font-size:10px; }
+#dashboardPage .location-grid, #dashboardPage .grade-grid { padding:0 13px 13px!important; gap:8px!important; }
+#dashboardPage .asset-table { width:100%; }
+#dashboardPage .asset-table th { padding:10px 13px!important; font-size:9px!important; letter-spacing:.7px; }
+#dashboardPage .asset-table td { padding:10px 13px!important; font-size:11px!important; }
+#dashboardPage .asset-table td b { font-size:11px!important; }
+#dashboardPage .status { padding:4px 7px; font-size:10px; }
+#dashboardPage .section-panel:last-child { overflow-x:auto; }
+#dashboardPage .text-button { white-space:nowrap; }
+@media (max-width:1020px) { #dashboardPage .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:640px) { #dashboardPage .page-intro { align-items:flex-start; } #dashboardPage .hero-banner-content { grid-template-columns:1fr; } #dashboardPage .hero-banner .banner-button { grid-column:1;grid-row:auto;justify-self:start;margin-top:10px; } #dashboardPage .metrics { gap:8px!important; } #dashboardPage .metric { padding:11px!important; } #dashboardPage .metric-value { font-size:25px!important; } #dashboardPage .section-panel-head { flex-wrap:wrap; } }

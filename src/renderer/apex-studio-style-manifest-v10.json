@@ -1,0 +1,32 @@
+{
+  "bundle": "apex-studio-bundle-v10.css",
+  "source_order": [
+    "styles.css",
+    "professional-theme.css",
+    "asset-label-print.css",
+    "refurb-ui.css",
+    "v3-design.css",
+    "v33-polish.css",
+    "v34-reference.css",
+    "v344-locations.css",
+    "v346-simple-scan.css",
+    "v347-clean.css",
+    "v348-workspace.css",
+    "v350-scan.css",
+    "v352-scan.css",
+    "v360-scan.css",
+    "v370-professional.css",
+    "v380-reliability.css",
+    "v392-intake.css",
+    "v393-conflicts.css",
+    "v395-performance.css",
+    "apex-navigation-v1.css",
+    "apex-dashboard-v2.css",
+    "apex-scanning-v3.css",
+    "apex-inventory-v4.css",
+    "apex-precision-v6.css",
+    "apex-workspace-v7-v8.css",
+    "apex-report-centre-v9.css"
+  ],
+  "notes": "Stylesheets concatenated in original link order. Edit canonical files and run build-apex-studio-css.py to regenerate bundle."
+}

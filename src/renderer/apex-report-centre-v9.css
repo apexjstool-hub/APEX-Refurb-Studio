@@ -1,0 +1,46 @@
+/* APEX Upgrade 9 – report centre; scoped to reports page only */
+#reportsPage.apex-report-centre {max-width: 1320px; width:100%; margin-inline:auto; padding-bottom:24px;}
+#reportsPage .apex-report-heading {display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:14px;}
+#reportsPage .apex-report-heading h1 {margin:4px 0;}
+#reportsPage .apex-report-header-tag,#reportsPage .apex-report-a4 {font-size:10px;font-weight:750;letter-spacing:.09em;border:1px solid var(--apex-border,rgba(145,158,181,.2));border-radius:7px;padding:7px 10px;white-space:nowrap;color:var(--apex-muted,#94a3b8);}
+#reportsPage .apex-report-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 14px;}
+#reportsPage .apex-report-stats .report-stat {min-height:76px;padding:14px 18px;border-radius:11px;display:flex;flex-direction:column;justify-content:center;gap:7px;}
+#reportsPage .apex-report-stats .report-stat span {font-size:11px;letter-spacing:.025em;}
+#reportsPage .apex-report-stats .report-stat b {font-size:25px;line-height:1.1;}
+#reportsPage .apex-report-shell {background:var(--apex-panel,var(--panel,#1c2430));border:1px solid var(--apex-border,rgba(145,158,181,.20));border-radius:13px;padding:18px;margin-bottom:13px;}
+#reportsPage .apex-report-shell-heading {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;}
+#reportsPage .apex-report-shell-heading h2 {font-size:18px;font-weight:750;line-height:1.3;margin:4px 0;}
+#reportsPage .apex-report-shell-heading p {font-size:12px;opacity:.78;margin:0;}
+#reportsPage .apex-report-eyebrow {font-size:10px;font-weight:800;letter-spacing:.11em;color:var(--apex-accent,#8b5cf6);}
+#reportsPage .v3-reports {margin:0;max-width:none;}
+#reportsPage .v3-report-tabs {display:flex;gap:5px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--apex-border,rgba(145,158,181,.2));padding:0 0 12px;margin-bottom:16px;}
+#reportsPage .v3-report-tabs .v3-tab {min-height:36px;padding:7px 12px;border-radius:7px;line-height:1.25;font-size:12px;white-space:normal;}
+#reportsPage .v3-report-body {border:0;box-shadow:none;background:transparent;margin:0;padding:0;display:grid;gap:14px;}
+#reportsPage .v3-report-body h2 {font-size:16px;margin:0 0 5px;}
+#reportsPage .v3-report-body p {font-size:12px;margin:0;line-height:1.55;}
+#reportsPage .v3-report-body label {font-size:12px;display:grid;gap:6px;max-width:550px;}
+#reportsPage .v3-report-body select {width:100%;height:38px;min-height:38px;}
+#reportsPage .v3-report-actions {display:flex;gap:9px;flex-wrap:wrap;}
+#reportsPage .v3-report-actions button,#reportsPage #v3BatchPrint {min-height:36px;padding:8px 14px;border-radius:8px;font-size:12px;}
+#reportsPage .v3-report-hint {font-size:11px;opacity:.68;line-height:1.5;}
+#reportsPage .apex-report-more {border:1px solid var(--apex-border,rgba(145,158,181,.20));border-radius:12px;overflow:hidden;background:var(--apex-panel,var(--panel,#1c2430));margin-bottom:12px;}
+#reportsPage .apex-report-more summary {cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 18px;}
+#reportsPage .apex-report-more summary::-webkit-details-marker {display:none;}
+#reportsPage .apex-report-more summary span:first-child {display:grid;gap:5px;}
+#reportsPage .apex-report-more summary strong {font-size:13px;}
+#reportsPage .apex-report-more summary small {font-size:11px;opacity:.72;line-height:1.5;}
+#reportsPage .apex-report-chevron {font-size:20px;transition:transform .18s ease;}
+#reportsPage .apex-report-more[open] .apex-report-chevron {transform:rotate(180deg);}
+#reportsPage .apex-report-extra {border-top:1px solid var(--apex-border,rgba(145,158,181,.20));padding:14px;}
+#reportsPage .report-actions-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 10px;}
+#reportsPage .report-card {padding:15px;border-radius:10px;min-width:0;}
+#reportsPage .report-card h3 {font-size:14px;margin:5px 0;}
+#reportsPage .report-card p {font-size:11px;line-height:1.5;margin:0 0 12px;}
+#reportsPage .report-card button {min-height:35px;font-size:12px;}
+#reportsPage .report-icon {font-size:18px;}
+#reportsPage .apex-report-locations {margin-top:5px;}
+#reportsPage .apex-report-footnote {opacity:.68;font-size:11px;line-height:1.5;padding:0 3px;}
+#reportsPage button:focus-visible,#reportsPage summary:focus-visible,#reportsPage select:focus-visible {outline:2px solid var(--apex-accent,#8b5cf6);outline-offset:3px;}
+@media(max-width:750px){#reportsPage .apex-report-stats {grid-template-columns:repeat(3,minmax(0,1fr));}#reportsPage .report-actions-grid {grid-template-columns:1fr;}#reportsPage .apex-report-shell{padding:13px;}#reportsPage .apex-report-header-tag,#reportsPage .apex-report-a4 {display:none;}}
+@media(max-width:500px){#reportsPage .apex-report-stats{grid-template-columns:1fr;}#reportsPage .apex-report-stats .report-stat {min-height:58px;}#reportsPage .v3-report-tabs .v3-tab{flex:1 1 40%;}}
+@media(prefers-reduced-motion:reduce){#reportsPage .apex-report-chevron{transition:none;}}

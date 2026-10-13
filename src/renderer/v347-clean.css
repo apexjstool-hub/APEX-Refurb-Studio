@@ -1,0 +1,63 @@
+/* APEX Studio v3.4.7 — clean, location-only workspaces.
+   Screen styles only. Thermal labels and A4 printing are intentionally untouched. */
+@media screen {
+  .apex-v34 .sidebar-description,.apex-v34 .sidebar-label,.apex-v34 .sidebar-subtitle{display:none!important}
+  .apex-v34 .sidebar-header{margin-bottom:21px!important;border-bottom:1px solid #304155!important;padding-bottom:22px!important}
+  .apex-v34 .sidebar .menu{gap:4px!important}
+  .apex-v34 .sidebar .menu-item{height:45px!important;font-weight:600!important;letter-spacing:0!important}
+  .apex-v34 .app-shell .main>.content{padding:20px 26px 24px!important}
+  .apex-v34 .v3-topline{margin-bottom:17px!important}
+  .apex-v34 .v3-workspace-label>span{font-weight:760!important;letter-spacing:-.55px!important}
+  .apex-v34 .v3-workspace-label small{color:var(--muted)!important;font-weight:450}
+  .apex-v34 .v3-tab{border-radius:2px 2px 0 0!important;font-size:12px!important;min-height:37px!important;padding:10px 16px!important}
+  .apex-v34 .v3-tab.selected{font-weight:760!important}
+  .apex-v34 .primary,.apex-v34 .secondary{min-height:35px}
+  .apex-v34 .v34-panel,.apex-v34 .v34-stat,.apex-v34 .section-panel,.apex-v34 .v34-report-list button,.apex-v34 .v3-reports,.apex-v34 .v346-panel,.apex-v34 .v346-destination,.apex-v34 .flat-editor,.apex-v34 .v33-location-bar{border-radius:3px!important;box-shadow:0 2px 9px #14263f08!important}
+  .apex-v34 .v34-stat{min-height:94px!important}
+  .apex-v34 .v34-panel h3{font-size:14px}
+  .apex-v34 #inventoryPage .inventory-overview{display:none!important}
+  .apex-v34 .v34-table th,.apex-v34 .asset-table th{font-size:11px!important;letter-spacing:.04em!important}
+  .apex-v34 .v34-table td,.apex-v34 .asset-table td{font-size:12px!important}
+  .apex-v34 .v34-table tbody tr:hover,.apex-v34 .asset-table tbody tr:hover{background:var(--surface-hover)!important}
+  .apex-v34 .v347-legacy-pallet,.apex-v34 .v347-legacy-pallet[hidden]{display:none!important}
+  /* Compact, calm device editor: related specs remain adjacent in existing groups. */
+  .apex-v34 #assetPage .v34-form-group{border-radius:3px!important}
+  .apex-v34 #assetPage .v34-form-group-head{padding-bottom:10px!important;margin-bottom:13px!important}
+  .apex-v34 #assetPage .v34-group-fields{row-gap:12px!important;column-gap:12px!important}
+  .apex-v34 #assetPage .field.compact-field{font-size:11px!important;color:var(--muted)!important}
+  .apex-v34 #assetPage .field.compact-field input,.apex-v34 #assetPage .field.compact-field select{min-height:37px!important;height:37px!important}
+  .apex-v34 .v346-page{margin:0!important;max-width:100%!important}
+  .apex-v34 #bulkPage{display:block;max-width:100%!important}
+  .apex-v34 #bulkPage.hidden{display:none!important}
+  .apex-v34 #bulkPage .v346-page-head{margin:0 0 10px!important}
+  .apex-v34 #bulkPage .v346-count{font-size:12px;border:1px solid var(--line);background:var(--panel);border-radius:2px;padding:6px 11px}
+  .apex-v34 #bulkPage .v346-scan-form{max-width:none!important;gap:8px!important}
+  .apex-v34 #bulkPage .v346-scan-form input{min-height:51px!important;font-size:15px!important;border:1px solid var(--input-border)!important}
+  .apex-v34 #bulkPage .v346-scan-form input:focus{outline:2px solid #91bcff!important;outline-offset:0!important;border-color:#277ade!important}
+  .apex-v34 #bulkPage .v346-scan-form button{min-width:105px!important}
+  .apex-v34 #bulkPage .v346-message{margin:10px 0 16px!important;line-height:1.5!important}
+  .apex-v34 #bulkPage .v346-panel{padding:0!important;overflow:hidden}
+  .apex-v34 #bulkPage .v346-panel-heading{margin:0!important;padding:15px 17px!important;border-bottom:1px solid var(--line)}
+  .apex-v34 #bulkPage .v346-panel-heading h3{font-size:14px!important}
+  .apex-v34 #bulkPage .v346-table{margin:0!important;width:100%!important}
+  .apex-v34 #bulkPage .v346-table thead{background:var(--panel2)}
+  .apex-v34 #bulkPage .v346-table td,.apex-v34 #bulkPage .v346-table th{padding:11px 17px!important;border-bottom:1px solid var(--line)}
+  .apex-v34 #bulkPage .v346-table tbody tr:last-child td{border-bottom:0}
+  .apex-v34 #bulkPage .v346-destination{max-width:none!important;padding:16px 18px!important;margin-top:12px!important}
+  .apex-v34 #bulkPage .v346-actions{margin-top:11px!important;justify-content:flex-end!important}
+  .apex-v34 #bulkPage .v346-actions .primary{min-width:175px!important;min-height:41px}
+  .apex-v34 #bulkPage .v346-tip{margin:12px 0 0!important;font-size:12px}
+  .apex-v34 #locationsPage .location-dashboard{display:none!important}
+  .apex-v34 #locationsPage .asset-table td:first-child,.apex-v34 #locationsPage .asset-table td:first-child b{color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;opacity:1!important}
+  .apex-v34 #locationsPage .asset-table th{background:var(--panel2)}
+  .apex-v34 .v34-report-list{gap:11px!important}
+  .apex-v34 .v34-report-list button{min-height:64px!important}
+  .apex-v34 #settingsPage .settings-row{min-height:73px}
+  .apex-v34[data-theme='dark'] #bulkPage .v346-scan-form input,.apex-v34[data-theme='dark'] #bulkPage .v346-destination input{background:var(--panel)!important;color:var(--text)!important}
+}
+@media screen and (max-width:720px){
+  .apex-v34 .app-shell .main>.content{padding:14px!important}
+  .apex-v34 #bulkPage .v346-scan-form button{min-width:70px!important}
+  .apex-v34 #bulkPage .v346-actions button{width:100%!important}
+  .apex-v34 #bulkPage .v346-table td,.apex-v34 #bulkPage .v346-table th{padding:9px 8px!important}
+}

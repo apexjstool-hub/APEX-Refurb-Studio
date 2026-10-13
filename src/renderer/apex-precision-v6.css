@@ -1,0 +1,32 @@
+/* APEX Precision design tokens — Upgrade 6. Keep functionality and themes untouched. */
+:root,[data-theme="dark"] {
+ --apex-bg:#0d1117;--apex-side:#111827;--apex-surface:#1c2430;
+ --apex-raised:#222d3b;--apex-border:#344154;--apex-text:#f1f5f9;
+ --apex-muted:#a7b5c8;--apex-accent:#a78bfa;--apex-accent-strong:#8b5cf6;
+ --apex-action:#a3e635;--apex-success:#6ee7b7;--apex-radius:10px;
+ --apex-focus:0 0 0 3px rgba(167,139,250,.30);
+}
+[data-theme="light"] {
+ --apex-bg:#f3f5f9;--apex-side:#fff;--apex-surface:#fff;
+ --apex-raised:#f7f9fc;--apex-border:#d9e1eb;--apex-text:#182235;
+ --apex-muted:#52657d;--apex-accent:#6843d1;--apex-accent-strong:#6d45d6;
+ --apex-action:#597b0f;--apex-success:#15825c;--apex-focus:0 0 0 3px rgba(109,69,214,.20);
+}
+:where(button,input,select,textarea){font-family:Inter,'Segoe UI',Arial,sans-serif;}
+:where(button,input,select,textarea):focus-visible{outline:2px solid var(--apex-accent)!important;outline-offset:2px;}
+:where(input,select,textarea){accent-color:var(--apex-accent-strong);}
+:where(button){transition:background-color .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease;}
+@media(prefers-reduced-motion:reduce){:where(button){transition:none!important}}
+
+/* Management Studio: preserve existing page-specific sizing and compact navigation. */
+:root,[data-theme="dark"] {--bg:var(--apex-bg);--side:var(--apex-side);--panel:var(--apex-surface);--panel2:var(--apex-raised);--line:var(--apex-border);--text:var(--apex-text);--muted:var(--apex-muted);--violet:var(--apex-accent);--violet2:var(--apex-accent-strong);}
+[data-theme="light"] {--bg:var(--apex-bg);--side:var(--apex-side);--panel:var(--apex-surface);--panel2:var(--apex-raised);--line:var(--apex-border);--text:var(--apex-text);--muted:var(--apex-muted);--violet:var(--apex-accent);--violet2:var(--apex-accent-strong);}
+.sidebar{background:var(--apex-side);border-color:var(--apex-border)}
+.topbar{border-color:var(--apex-border)}
+.section-panel,.metric,.report-card{border-color:var(--apex-border);background:var(--apex-surface)}
+:where(.menu-item,.secondary,.icon-action,.toolbar select){border-radius:var(--apex-radius)}
+.menu-item.active{border-color:var(--apex-accent-strong)}
+:where(.global-search,.table-search){border-color:var(--apex-border);border-radius:var(--apex-radius)}
+:where(.primary,.secondary){gap:8px;border-radius:var(--apex-radius);font-weight:650}
+:where(.text-button,.asset-id){color:var(--apex-accent)!important}
+[data-theme="light"] .sidebar,[data-theme="light"] .section-panel,[data-theme="light"] .metric,[data-theme="light"] .report-card{background:var(--apex-surface)}

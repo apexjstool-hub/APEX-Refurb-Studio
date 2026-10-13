@@ -1,0 +1,40 @@
+/* APEX Upgrade 3 — scanner visual system. No business-logic overrides. */
+@media screen {
+ .apex-v34 #bulkPage { max-width: 1460px; margin: 0 auto; }
+ .apex-v34 #bulkPage .v350-capture { position:relative; border:1px solid var(--line)!important; border-radius:12px!important; padding:18px 20px 14px!important; box-shadow:0 2px 12px #00000008!important; background:var(--panel)!important; }
+ .apex-v34 #bulkPage .apex-scan-overline { display:flex;align-items:center;gap:8px;margin:0 0 10px;color:var(--muted);font-size:10px;letter-spacing:.105em;font-weight:750; }
+ .apex-v34 #bulkPage .apex-scan-live-dot { width:7px;height:7px;border-radius:50%;background:#85c958;box-shadow:0 0 0 3px #85c95822; }
+ .apex-v34 #bulkPage .apex-scan-shortcut { margin-left:auto;font-weight:550;letter-spacing:0;color:var(--muted);font-size:11px; }
+ .apex-v34 #bulkPage .v350-section-title { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px!important; }
+ .apex-v34 #bulkPage .v350-section-title h2 { font-size:19px!important;letter-spacing:-.03em;margin-bottom:3px!important; }
+ .apex-v34 #bulkPage .v350-section-title p { font-size:12px!important;line-height:1.5;margin:0!important; }
+ .apex-v34 #bulkPage .v346-count { border-radius:7px!important;padding:6px 10px!important;font-size:11px!important;white-space:nowrap; }
+ .apex-v34 #bulkPage .v346-scan-form { display:flex!important; gap:9px!important;align-items:stretch; }
+ .apex-v34 #bulkPage #v346ScanInput { flex:1;min-width:0;height:46px!important;font-size:15px!important;font-weight:650;letter-spacing:.015em;border:1px solid var(--line)!important;border-radius:8px!important;padding:0 15px!important;background:var(--panel2)!important; }
+ .apex-v34 #bulkPage #v346ScanInput:focus { outline:2px solid #8b5cf6!important;outline-offset:1px;border-color:#8b5cf6!important; }
+ .apex-v34 #bulkPage .v346-scan-form button { min-width:128px;min-height:46px!important;border-radius:8px!important;font-size:12px!important; }
+ .apex-v34 #bulkPage .v360-scan-feedback { border-top:1px solid var(--line);margin-top:13px;padding-top:10px!important; }
+ .apex-v34 #bulkPage #v346ScanStatus { font-weight:600; }
+ .apex-v34 #bulkPage .v350-batch-area { display:flex!important; flex-direction:column!important;gap:12px!important;margin-top:14px!important; }
+ .apex-v34 #bulkPage .v346-panel,.apex-v34 #bulkPage .v346-destination { border-radius:10px!important;border:1px solid var(--line)!important;background:var(--panel)!important;overflow:hidden; }
+ .apex-v34 #bulkPage .v346-panel { padding:14px 0 0!important;min-height:130px!important; }
+ .apex-v34 #bulkPage .v346-panel-heading { padding:0 16px 12px!important; display:flex;align-items:center;justify-content:space-between; }
+ .apex-v34 #bulkPage .v346-panel-heading h3 { font-size:14px!important;letter-spacing:-.015em; }
+ .apex-v34 #bulkPage #v346DeviceList { overflow-x:auto;max-height:390px;overflow-y:auto; }
+ .apex-v34 #bulkPage #v346DeviceList table { width:100%;border-collapse:collapse; }
+ .apex-v34 #bulkPage .v346-table thead th { position:sticky;top:0;z-index:1;background:var(--panel2)!important;font-size:10px!important;letter-spacing:.055em;text-transform:uppercase; }
+ .apex-v34 #bulkPage .v346-table td { font-size:12px!important; padding:9px 14px!important; }
+ .apex-v34 #bulkPage .v346-table tbody tr { border-bottom:1px solid var(--line); }
+ .apex-v34 #bulkPage .v352-empty-row td { padding:22px 15px!important;color:var(--muted)!important;text-align:center!important; }
+ .apex-v34 #bulkPage .v346-destination { padding:16px!important; }
+ .apex-v34 #bulkPage .v350-destination-row { display:flex;gap:10px;align-items:center; }
+ .apex-v34 #bulkPage #v346Destination { flex:1;min-width:0;min-height:40px!important;border-radius:7px!important; }
+ .apex-v34 #bulkPage #v346MoveLocation { min-height:40px!important;border-radius:7px!important; }
+ .apex-v34 #bulkPage button:focus-visible { outline:2px solid #8b5cf6!important;outline-offset:3px!important; }
+}
+@media(max-width:650px){
+ .apex-v34 #bulkPage .v350-capture{padding:14px!important}
+ .apex-v34 #bulkPage .v350-section-title{align-items:flex-start;flex-wrap:wrap}
+ .apex-v34 #bulkPage .v346-scan-form,.apex-v34 #bulkPage .v350-destination-row{flex-wrap:wrap}
+ .apex-v34 #bulkPage .v346-scan-form button,.apex-v34 #bulkPage #v346MoveLocation{width:100%}
+}

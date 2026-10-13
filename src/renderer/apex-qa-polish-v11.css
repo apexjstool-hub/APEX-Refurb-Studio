@@ -1,0 +1,24 @@
+/* APEX Upgrade 11: resilient layout and accessibility polish. */
+/* Avoid horizontal expansion caused by long serials, paths and asset identifiers. */
+.app-shell .main, .app-shell .content, .section-panel, .section-panel-head,
+.page-intro, .toolbar, .flat-editor, .flat-fields, .settings-row { min-width: 0; }
+.section-panel-head > *, .page-intro > *, .settings-row > * { min-width: 0; }
+/* Inputs and actions never overflow their CSS grid tracks. */
+.flat-fields { grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+.flat-fields :is(input,select,textarea), .toolbar :is(input,select),
+.v346-scan-form input, .v350-destination-row input { min-width:0; max-width:100%; box-sizing:border-box; }
+/* Preserve horizontal scrolling for wide tables rather than overlapping buttons. */
+#inventoryTable, #recentTable, #v346DeviceList, .verification-table-scroll,
+.conflict-scroll { max-width:100%; overflow-x:auto; }
+/* Controls remain legible and keyboard-visible on both themes. */
+button:focus-visible, a:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible { outline:2px solid #8b5cf6; outline-offset:2px; }
+button:disabled { cursor:not-allowed; }
+@media(max-width:780px) {
+  .section-panel-head, .page-intro { flex-wrap:wrap; gap:12px; }
+  .toolbar, .flat-actions, .v350-destination-row { flex-wrap:wrap; }
+  .app-shell .content { min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell *, .app-shell *::before, .app-shell *::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; }
+}

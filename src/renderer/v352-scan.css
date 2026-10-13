@@ -1,0 +1,34 @@
+/* v3.5.2: persistent, compact scan table; no change to inventory logic or print output. */
+@media screen {
+  .apex-v34 #bulkPage .v350-batch-area,
+  .apex-v34 #bulkPage .v350-batch-area.hidden {
+    display:flex!important;
+    flex-direction:column;
+    gap:10px;
+    margin-top:12px;
+  }
+  .apex-v34 #bulkPage .v346-panel { min-height:115px; }
+  .apex-v34 #bulkPage .v352-empty-row td {
+    padding:18px 15px!important;
+    text-align:center!important;
+    font-size:12px!important;
+    color:var(--muted)!important;
+    background:var(--panel)!important;
+    border-bottom:0!important;
+    width:auto!important;
+    max-width:none!important;
+  }
+  .apex-v34 #bulkPage .v346-table .v352-empty-row td:last-child {
+    width:auto!important;
+    text-align:center!important;
+  }
+  .apex-v34 #bulkPage .v352-actions-col { font-size:10px; }
+  .apex-v34 #bulkPage #v346Clear:disabled,
+  .apex-v34 #bulkPage #v346MoveLocation:disabled {
+    opacity:.45!important;
+    cursor:not-allowed!important;
+  }
+  .apex-v34 #bulkPage .v346-panel-heading {padding:0 14px 9px!important;}
+  .apex-v34 #bulkPage .v346-panel .v346-table td, 
+  .apex-v34 #bulkPage .v346-panel .v346-table th {padding:8px 14px!important;}
+}

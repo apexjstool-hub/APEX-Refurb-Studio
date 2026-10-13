@@ -1,0 +1,166 @@
+/* APEX v3.4.8: refined operational UI. Screen only; PDF/thermal print CSS remains unchanged. */
+@media screen {
+  :root.apex-v34[data-theme="light"] {
+    --bg:#f4f6f9;--panel:#fff;--panel2:#f7f9fc;--line:#dbe3ec;
+    --text:#192b40;--muted:#53657a;--input-border:#bccada;--field-bg:#fff;
+    --surface-hover:#edf5ff;--shadow:0 1px 3px #102b4820;
+  }
+  :root.apex-v34[data-theme="dark"] {
+    --bg:#111a27;--panel:#182537;--panel2:#203047;--line:#3c4d63;
+    --text:#eff5ff;--muted:#b4c4d8;--input-border:#61758f;--field-bg:#1a293e;
+    --surface-hover:#243a56;--shadow:0 1px 4px #0004;
+  }
+  .apex-v34 .app-shell .sidebar {width:205px!important;min-width:205px!important;max-width:205px!important;padding:14px 10px!important;background:#142233!important}
+  .apex-v34 .sidebar-header{padding:2px 9px 14px!important;margin-bottom:12px!important;border-bottom:1px solid #35465b!important}
+  .apex-v34 .sidebar-header .wordmark span {font-size:19px!important}
+  .apex-v34 .sidebar-header .wordmark b{font-size:10px!important}
+  .apex-v34 .sidebar .menu{gap:3px!important}
+  .apex-v34 .sidebar .menu-item {height:43px!important;min-height:43px!important;padding:9px 12px!important;font-size:13px!important;border-radius:4px!important}
+  .apex-v34 .sidebar .menu-item:hover:not(.active),.apex-v34 .v3-small-link:hover{background:#243a54!important}
+  .apex-v34 .sidebar .menu-item.active {background:#176fe0!important;box-shadow:inset 3px 0 0 #a5d0ff!important}
+  .apex-v34 .topbar{height:54px!important;min-height:54px!important;padding:0 20px!important}
+  .apex-v34 .global-search {height:35px;width:min(350px,36vw);border-color:var(--input-border)!important}
+  .apex-v34 .global-search input {color:var(--text)!important}
+  .apex-v34 .global-search input::placeholder{color:var(--muted)!important}
+  .apex-v34 .app-shell .main>.content {padding:14px 18px 17px!important}
+  .apex-v34 .v3-topline {min-height:61px;margin-bottom:11px!important;gap:12px}
+  .apex-v34 .v3-workspace-label>span{font-size:23px!important;letter-spacing:-.55px}
+  .apex-v34 .v3-workspace-label small{font-size:12px!important;line-height:1.35!important}
+  .apex-v34 .v3-tab{font-size:12px!important;min-height:35px!important;padding:8px 13px!important}
+  .apex-v34 .v34-panel,.apex-v34 .section-panel,.apex-v34 .v34-stat,.apex-v34 .flat-editor,
+  .apex-v34 .v346-panel,.apex-v34 .v346-destination,.apex-v34 .v3-reports,.apex-v34 .v34-form-group,
+  .apex-v34 .v33-location-bar {border-radius:4px!important;box-shadow:var(--shadow)!important}
+  .apex-v34 .v34-panel {padding:13px 16px!important}
+  .apex-v34 .v34-overview-grid{gap:10px!important}
+  .apex-v34 .v34-overview-grid .v34-panel{min-height:208px!important}
+  .apex-v34 .v34-stat-grid{gap:10px!important;margin-bottom:11px!important}
+  .apex-v34 .v34-stat{min-height:84px!important;padding:12px 15px!important}
+  .apex-v34 .v34-stat b{font-size:25px!important}
+  .apex-v34 .v34-stat small {font-size:12px!important}
+  .apex-v34 .v34-panel h3{font-size:14px!important;margin-bottom:11px}
+  .apex-v34 .asset-table td,.apex-v34 .v34-table td,.apex-v34 .locations-table td {color:var(--text)!important;font-size:12px!important;line-height:1.4!important}
+  .apex-v34 .asset-table th,.apex-v34 .v34-table th{color:var(--muted)!important;letter-spacing:.025em!important;font-size:11px!important;font-weight:750!important}
+  .apex-v34 .v34-serial{color:var(--muted)!important}
+  .apex-v34 .v34-table tbody tr:hover td{background:var(--surface-hover)!important}
+  .apex-v34 .v34-row-delete {color:#af3744!important;border-color:#db919b!important}
+  .apex-v34[data-theme="dark"] .v34-row-delete {color:#ffb9c3!important;border-color:#a35b6a!important}
+  .apex-v34 #inventoryPage .section-panel-head{padding:12px 15px!important}
+  .apex-v34 .table-search input{font-size:12px!important}
+  .apex-v34 .toolbar select,.apex-v34 .table-search {font-size:12px!important;background:var(--panel)!important;border-color:var(--input-border)!important}
+  .apex-v34 .primary,.apex-v34 .secondary {min-height:38px!important;border-radius:4px!important;font-size:12px!important}
+  .apex-v34 button:disabled{opacity:.46;cursor:not-allowed!important;box-shadow:none!important}
+  .apex-v34 :is(input,select,textarea,button):focus-visible {outline:2px solid #287ee5!important;outline-offset:2px!important}
+  .apex-v34 input::placeholder,.apex-v34 textarea::placeholder{color:var(--muted)!important;opacity:1}
+  .apex-v34 select,.apex-v34 select option{color:var(--text)!important;background:var(--panel)!important}
+  .apex-v34 #assetPage .v34-form-group-head{padding:10px 13px!important}
+  .apex-v34 #assetPage .field.compact-field{font-size:12px!important;gap:4px!important}
+  .apex-v34 #assetPage .field.compact-field input,.apex-v34 #assetPage .field.compact-field select{font-size:13px!important;min-height:38px!important;height:38px!important}
+  .apex-v34 #assetPage .v34-group-fields{row-gap:10px!important;column-gap:12px!important;padding:12px!important}
+  .apex-v34 .v34-report-list button{min-height:65px!important}
+  .apex-v34 .v34-report-list button strong{font-size:13px!important}
+  .apex-v34 .v34-report-list button small{font-size:12px!important;line-height:1.45}
+  .apex-v34 .modal-card{border-radius:6px!important;box-shadow:0 22px 66px #040d2250!important}
+  .apex-v34 .modal-body {font-size:13px;line-height:1.6}
+  /* Scan: title, scan input and feedback occupy the first 125px below the system bar. */
+  .apex-v34[data-apex-page="bulk"] .app-shell .main>.content {padding:9px 17px 14px!important}
+  .apex-v34[data-apex-page="bulk"] .v3-topline {min-height:42px!important;height:auto!important;margin:0 0 8px!important;padding:0!important;align-items:flex-start!important;border:0!important}
+  .apex-v34[data-apex-page="bulk"] .v3-workspace-label {padding:0!important;gap:1px!important;min-width:0!important}
+  .apex-v34[data-apex-page="bulk"] .v3-workspace-label>span {font-size:22px!important;line-height:1.15!important}
+  .apex-v34[data-apex-page="bulk"] .v3-workspace-label small{font-size:12px!important;line-height:1.25!important}
+  .apex-v34[data-apex-page="bulk"] .v3-tabstrip{display:none!important}
+  .apex-v34[data-apex-page="bulk"] .global-search,.apex-v34[data-apex-page="bulk"] #topScan{display:none!important}
+  .apex-v34 #bulkPage{padding:0!important;overflow-y:auto!important;overscroll-behavior:contain}
+  .apex-v34 #bulkPage .v346-page-head{margin:0 0 4px!important;min-height:0!important;justify-content:flex-end!important}
+  .apex-v34 #bulkPage .v346-count {background:var(--panel2);border-color:var(--line);font-weight:750;font-size:12px;padding:2px 9px}
+  .apex-v34 #bulkPage .v348-scan-label{display:block;font-weight:700;color:var(--text);margin-bottom:6px;font-size:12px;letter-spacing:.01em}
+  .apex-v34 #bulkPage .v346-scan-form {max-width:none!important;width:100%;gap:8px!important;margin:0!important}
+  .apex-v34 #bulkPage .v346-scan-form input {height:46px!important;min-height:46px!important;font-size:16px!important;font-weight:600;letter-spacing:.05px;padding:9px 14px!important;background:var(--field-bg)!important;color:var(--text)!important;border:2px solid #488de5!important;box-shadow:0 0 0 3px #2d84e610!important;border-radius:4px!important}
+  .apex-v34 #bulkPage .v346-scan-form input:focus {border-color:#1073df!important;box-shadow:0 0 0 3px #338af12f!important;outline:0!important}
+  .apex-v34 #bulkPage .v346-scan-form button {height:46px!important;min-height:46px!important;min-width:88px!important;font-size:13px!important}
+  .apex-v34 #bulkPage .v346-message {font-size:12px!important;line-height:1.35!important;min-height:18px!important;margin:7px 0 11px!important;color:var(--muted)!important}
+  .apex-v34 #bulkPage .v346-message.v346-error {background:#fff0ee!important;color:#a1252e!important;border-left:3px solid #d72e3d;padding:8px 11px;margin:7px 0!important}
+  .apex-v34[data-theme="dark"] #bulkPage .v346-message.v346-error {background:#3a2431!important;color:#ffc6cd!important}
+  .apex-v34 #bulkPage .v346-message.v348-success{color:#126443!important}
+  .apex-v34[data-theme="dark"] #bulkPage .v346-message.v348-success{color:#85e3b0!important}
+  .apex-v34 #bulkPage .v346-panel{margin:0 0 10px!important;padding:0!important;background:var(--panel)!important;overflow:hidden!important}
+  .apex-v34 #bulkPage .v346-panel-heading{padding:10px 13px!important;margin:0!important}
+  .apex-v34 #bulkPage .v346-panel-heading h3{font-size:14px!important;margin:0!important}
+  .apex-v34 #bulkPage .v346-panel-heading button{margin:0!important}
+  .apex-v34 #bulkPage #v346DeviceList{max-height:min(42vh,380px);overflow:auto}
+  .apex-v34 #bulkPage .v346-table {width:100%!important;min-width:660px!important;border-collapse:collapse!important}
+  .apex-v34 #bulkPage .v346-table thead {position:sticky;top:0;z-index:2}
+  .apex-v34 #bulkPage .v346-table th {background:var(--panel2)!important;color:var(--muted)!important;font-size:11px!important}
+  .apex-v34 #bulkPage .v346-table td{font-size:13px!important;color:var(--text)!important}
+  .apex-v34 #bulkPage .v346-table td,.apex-v34 #bulkPage .v346-table th{padding:9px 13px!important}
+  .apex-v34 #bulkPage .v346-table tbody tr:nth-child(2n){background:var(--panel2)!important}
+  .apex-v34 #bulkPage .v346-table small{font-size:11px;color:var(--muted)!important}
+  .apex-v34 #bulkPage .v346-remove{border-color:#d7a1a9!important;color:#ac303d!important;font-size:12px!important;min-height:34px!important;background:transparent!important}
+  .apex-v34[data-theme="dark"] #bulkPage .v346-remove{color:#ffc2ca!important;border-color:#985567!important}
+  .apex-v34 #bulkPage .v346-destination{margin:0!important;padding:11px 13px!important;max-width:none!important;background:var(--panel)!important}
+  .apex-v34 #bulkPage .v346-destination label {margin-bottom:5px!important;font-size:12px!important}
+  .apex-v34 #bulkPage .v346-destination input{height:40px!important;min-height:40px!important;font-size:13px!important}
+  .apex-v34 #bulkPage .v346-actions{margin-top:8px!important;gap:10px!important}
+  .apex-v34 #bulkPage .v346-actions button{height:38px!important;min-height:38px!important;min-width:180px!important}
+  .apex-v34 #bulkPage .v346-tip{margin:6px 0 0!important;font-size:11px!important;color:var(--muted)!important}
+}
+@media screen and (max-width:1000px){
+  .apex-v34 .v34-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .apex-v34 .v34-editor-columns{grid-template-columns:1fr!important}
+  .apex-v34 .app-shell .sidebar{width:176px!important;min-width:176px!important;max-width:176px!important}
+}
+@media screen and (max-width:700px){
+  .apex-v34 .app-shell .sidebar{width:58px!important;min-width:58px!important;max-width:58px!important}
+  .apex-v34 .app-shell .main>.content{padding:10px!important}
+  .apex-v34[data-apex-page="bulk"] .app-shell .main>.content{padding:8px 10px!important}
+  .apex-v34 .v3-topline{min-height:58px!important}
+  .apex-v34 #bulkPage .v346-scan-form{flex-direction:column!important}
+  .apex-v34 #bulkPage .v346-scan-form button{width:100%!important}
+  .apex-v34 #bulkPage .v346-actions button{width:100%!important}
+  .apex-v34 #bulkPage .v346-table{min-width:640px!important}
+}
+
+
+/* v3.4.9 tab strip cleanup: stop overlap behind inventory section buttons and tighten workspace spacing. */
+@media screen{
+  .apex-v34 .v3-topline{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    align-items:start!important;
+    gap:10px!important;
+    min-height:auto!important;
+    margin-bottom:14px!important;
+    padding:0 0 2px!important;
+  }
+  .apex-v34 .v3-workspace-label{
+    min-width:0!important;
+    padding:0!important;
+  }
+  .apex-v34 .v3-tabstrip{
+    position:static!important;
+    left:auto!important;
+    bottom:auto!important;
+    max-width:100%!important;
+    width:100%!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:6px!important;
+    padding-top:2px!important;
+    margin:0!important;
+    overflow:visible!important;
+    white-space:normal!important;
+  }
+  .apex-v34 .v3-tab{
+    flex:0 0 auto;
+    border-radius:4px!important;
+    min-height:38px!important;
+    padding:9px 14px!important;
+    line-height:1.2!important;
+    background:var(--panel2)!important;
+  }
+  .apex-v34 .v3-tab.selected{
+    background:var(--panel)!important;
+    box-shadow:inset 0 -2px 0 #1278ef!important;
+  }
+  .apex-v34 .v3-single{display:none!important}
+}
