@@ -29,9 +29,34 @@
   dashboardView.id = 'v34Dashboard';
   dashboardView.className = 'v34-dashboard';
   dashboard?.prepend(dashboardView);
-  // New intake retains the original fields; saved devices use Device Audit Trail.
-  const header = byId('assetEditor')?.querySelector('.flat-editor-heading h2');
-  if (header) header.textContent = 'New Asset Intake';
+  // Group existing form inputs without changing form names, values or submit handlers.
+  const editor = byId('assetEditor');
+  const fieldGrid = editor?.querySelector('.flat-fields');
+  if (fieldGrid) {
+    const general = ['id', 'manufacturer', 'model', 'serial', 'productType', 'sku', 'location', 'condition', 'status'];
+    const hardware = ['processor', 'gpu', 'operatingSystem', 'batteryPercentage', 'ram', 'ramType', 'storage', 'ssdType'];
+    const columns = document.createElement('div');
+    columns.className = 'v34-editor-columns';
+    const makeSection = (heading, hint, names, cls) => {
+      const section = document.createElement('section');
+      section.className = 'v34-form-group ' + cls;
+      section.innerHTML = `<div class="v34-form-group-head"><h3>${heading}</h3><span>${hint}</span></div>`;
+      const fields = document.createElement('div'); fields.className = 'v34-group-fields';
+      names.forEach(name => {
+        const element = fieldGrid.querySelector(`[name="${name}"]`);
+        if (element) {
+          const field = element.closest('label');
+          if (field) fields.appendChild(field);
+        }
+      });
+      section.appendChild(fields); columns.appendChild(section);
+    };
+    makeSection('General Information', 'Asset identity and location', general, 'v34-general');
+    makeSection('Hardware Information', 'Synced from APEX Diagnostics', hardware, 'v34-hardware');
+    fieldGrid.replaceWith(columns);
+    const header = editor.querySelector('.flat-editor-heading h2');
+    if (header) header.textContent = 'Device Information';
+  }
   // Clean row layout: serial has its own column; View/Delete still work via existing listeners.
   rows = function(data, actions) {
     if (!data.length) return '<div class="empty"><strong>No devices found</strong><p>Scan an asset ID or add a device to begin.</p></div>';
