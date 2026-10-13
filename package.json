@@ -1,7 +1,7 @@
 {
   "name": "apex-inventory-studio",
-  "version": "4.0.3",
-  "description": "APEX Refurb Management Studio \u2014 inventory, locations, refurb imports and A4 / Excel reports",
+  "version": "4.0.5",
+  "description": "APEX Refurb Management Studio — inventory, locations, refurb imports and A4 / Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
   "license": "MIT",

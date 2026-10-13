@@ -1,0 +1,20 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+test('History-only CSS preserves Overview form and confines hiding to History',()=>{
+ const renderer=path.join(__dirname,'../src/renderer');
+ const css=fs.readFileSync(path.join(renderer,'apex-studio-bundle-v10.css'),'utf8');
+ const html=fs.readFileSync(path.join(renderer,'index.html'),'utf8');
+ const ui=fs.readFileSync(path.join(renderer,'v34-reference-ui.js'),'utf8');
+ const marker='/* History & checks: audit only.';
+ assert(css.includes(marker));
+ const block=css.slice(css.indexOf(marker)).split('*/')[1];
+ const selectors=block.split('{')[0].trim().split(',');
+ assert.equal(selectors.length,3);
+ for(const selector of selectors)assert(selector.includes('#assetPage[data-section="history"]'));
+ assert(block.includes('display:none!important'));
+ assert(html.includes('id="apexAssetDetailsSection"'));
+ assert(html.includes('name="model"'));
+ assert(html.includes('id="assetActivity"'));
+ assert(ui.includes("makeSection('General Information'"));
+ assert(ui.includes("makeSection('Hardware Information'"));
+});
