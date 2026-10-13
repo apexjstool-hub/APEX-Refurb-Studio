@@ -1,2 +1,5 @@
 /* v4.0.6: isolated print/preview documents share the exact physical label layout. */
-.apex-isolated-label-preview{display:block;width:100%;height:auto;min-height:0;border:0;background:white;flex:none}.apex-label-print-frame{position:fixed;left:-10000px;top:0;width:400px;height:320px;border:0;pointer-events:none}.apex-label-preview:has(.apex-isolated-label-preview){display:block;padding:10px;min-height:0}.apex-label-preview:has(.apex-isolated-label-preview) iframe{width:100%;aspect-ratio:2/1;height:auto}
+.apex-isolated-label-preview{display:block;width:100%;height:250px;min-height:0;border:0;background:white;flex:none}.apex-label-print-frame{position:fixed;left:-10000px;top:0;width:400px;height:320px;border:0;pointer-events:none}.apex-label-preview:has(.apex-isolated-label-preview){display:block;padding:10px;min-height:0}.apex-label-preview:has(.apex-isolated-label-preview) iframe{width:100%;aspect-ratio:2/1;height:250px}
+
+
+.apex-isolated-label-preview{aspect-ratio:auto!important}.apex-label-footer{flex-wrap:wrap}

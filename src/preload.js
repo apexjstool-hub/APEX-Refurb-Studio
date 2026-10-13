@@ -1,6 +1,8 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
+ saveLabelPdf:input=>ipcRenderer.invoke('inventory:saveLabelPdf',input),
+ printAssetLabel:input=>ipcRenderer.invoke('inventory:printAssetLabel',input),
  updateStatus:()=>ipcRenderer.invoke('inventory:updateStatus'),
  updateCheck:()=>ipcRenderer.invoke('inventory:updateCheck'),
  updateDownload:()=>ipcRenderer.invoke('inventory:updateDownload'),
@@ -54,3 +56,4 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  hubRevoke:id=>ipcRenderer.invoke('inventory:hubRevoke',id),
  hubUnrevoke:id=>ipcRenderer.invoke('inventory:hubUnrevoke',id)
 }));
+

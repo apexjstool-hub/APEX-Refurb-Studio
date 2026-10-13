@@ -17,6 +17,10 @@ window.apexLabelReady=(async()=>{
    let changed=false;for(const el of texts){const px=parseFloat(getComputedStyle(el).fontSize);if(px>8){el.style.fontSize=Math.max(8,px-.5)+'px';changed=true;}}
    if(!changed)throw Error('Device text does not fit. Choose a larger label.');
   }
-  if(payload.preview){const scale=Math.min(innerWidth/(w*96/25.4),innerHeight/(h*96/25.4));sheet.style.transformOrigin='top left';sheet.style.transform='scale('+scale+')';}
+  if(payload.preview){
+   const resize=()=>{const scale=Math.min(innerWidth/(w*96/25.4),innerHeight/(h*96/25.4));sheet.style.transformOrigin='top left';sheet.style.transform='scale('+scale+')';};
+   resize();window.addEventListener('resize',resize);
+  }
  }catch(error){window.apexLabelError=error.message;document.getElementById('labelSheet').textContent=error.message;}
 })();
+

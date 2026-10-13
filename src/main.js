@@ -490,6 +490,8 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:restore',secured(id=>inventoryCall('POST','/v1/trash/restore',{id},()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'restoreAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:manageDelete',adminSecured(command=>inventoryCall('POST','/v1/maintenance/delete',command,()=>{const db=loadDB(),r=maintenance.mutate(db,command);if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:remove',secured(id=>inventoryCall('DELETE','/v1/items/'+encodeURIComponent(id),null,()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'deleteAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
+ ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
+ ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
  ipcMain.handle('inventory:exportXlsx',secured(async (rows,kind)=>{
   if(!Array.isArray(rows)||rows.length>30001)return {ok:false,error:'Too many spreadsheet rows.'};
   const title=kind==='refurb-parts'?'Refurb Parts Required':kind==='inventory'?'Inventory':kind==='orders'?'Purchase Orders':'Parts Needed';
@@ -584,3 +586,4 @@ app.whenReady().then(()=>{
 app.on('before-quit',()=>{cloudStop();if(ownedHub&&!ownedHub.killed)ownedHub.kill();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)app.quit();});
+
