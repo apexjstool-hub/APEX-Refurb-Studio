@@ -39,6 +39,9 @@ const adminOnly=()=>authMode==='local'||(authMode==='cloud'&&cloudUserRole==='ad
 const secured=fn=>(evt,...args)=>safe(()=>{if(!authenticated)return {ok:false,error:'Please sign in first.'};if(authMode==='local'&&loadDB().user.mustChangePassword)return {ok:false,error:'Change your temporary admin password first.'};return fn(...args);});
 const adminSecured=fn=>secured((...args)=>adminOnly()?fn(...args):{ok:false,error:'Administrator access required.'});
 function hubConfig(){try{const h=JSON.parse(fs.readFileSync(hubPath(),'utf8'));return h?.url&&h?.token?h:null;}catch{return null;}}
+const accountSecurity=require('./account-security').createAccountSecurity({authenticated:()=>authenticated,admin:adminOnly,mode:()=>authMode,localUser:()=>loadDB().user,hash,cloud:()=>cloudSession,config:readPrivateCloud,fetch:(...args)=>fetch(...args)});
+const settingsSecured=fn=>adminSecured((...args)=>accountSecurity.isUnlocked()?fn(...args):{ok:false,error:'Unlock Settings with your administrator password first.'});
+
 function validateHub(url,token){const u=new URL(checkInput(url,240));if(u.username||u.password||u.search||u.hash||!['http:','https:'].includes(u.protocol))throw Error('Enter a valid hub URL without credentials, query or fragments.');
  if(u.pathname!=='/')throw Error('Use only the base URL of the hub.');
  const host=u.hostname.toLowerCase();const privateHost=host==='localhost'||host==='127.0.0.1'||host==='[::1]'||host.endsWith('.local')||/^10\./.test(host)||/^192\.168\./.test(host)||/^172\.(1[6-9]|2[0-9]|3[01])\./.test(host);
@@ -383,7 +386,7 @@ async function resumeRememberedCloud(){
   if(!staffResponse.ok)throw Error('Staff check unavailable');
   const staff=await staffResponse.json();
   if(!Array.isArray(staff)||staff.length!==1||staff[0].active!==true){forgetRememberedCloud();return {ok:false,error:'Cloud account is no longer authorised.'};}
-  cloudSession={url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};
+  cloudSession={email:auth.user.email||email,userId:auth.user.id,url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};
   authenticated=true;authMode='cloud';cloudUserRole=staff[0].role;loginFailures=0;cloudSeenRevisions.clear();
   saveRememberedCloud(email);return {ok:true,username:email,authMode:'cloud',role:staff[0].role};
  }catch{return {ok:false,error:'Cloud temporarily unavailable. Sign in manually or try again later.'};}
@@ -423,7 +426,7 @@ async function cloudStaffLogin(input){
   if(!Array.isArray(staff)||staff.length!==1||staff[0].active!==true)return {ok:false,error:'Your cloud account is not authorised in apex_staff.'};
   // Remembering the session is opt-in and uses OS-backed encryption, never the password.
   atomic(cloudLoginPublicFile(),{url,anonKey});
-  cloudSeenRevisions.clear();cloudSession={url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token||null,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};authenticated=true;authMode='cloud';cloudUserRole=staff[0].role;loginFailures=0;
+  cloudSeenRevisions.clear();cloudSession={email:auth.user.email||email,userId:auth.user.id,url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token||null,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};authenticated=true;authMode='cloud';cloudUserRole=staff[0].role;loginFailures=0;
   if(input?.rememberMe===true){if(!saveRememberedCloud(email))return {ok:true,username:email,mustChangePassword:false,authMode:'cloud',role:staff[0].role,warning:'Secure session storage unavailable. Sign-in will not be remembered.'};}
   else forgetRememberedCloud();
   return {ok:true,username:email,mustChangePassword:false,authMode:'cloud',role:staff[0].role};
@@ -440,6 +443,12 @@ app.whenReady().then(()=>{
   const camera=permission==='media'&&(!details?.mediaTypes||(details.mediaTypes.includes('video')&&!details.mediaTypes.includes('audio')));
   cb(Boolean(camera&&wc===win?.webContents));
  });
+ ipcMain.handle('inventory:settingsUnlock',secured(password=>accountSecurity.unlock(password)));
+ ipcMain.handle('inventory:settingsLock',()=>accountSecurity.lock());
+ ipcMain.handle('inventory:settingsAccess',secured(()=>({ok:true,admin:adminOnly(),unlocked:accountSecurity.isUnlocked()})));
+ ipcMain.handle('inventory:usersList',secured(()=>accountSecurity.list()));
+ ipcMain.handle('inventory:usersCreate',secured(input=>accountSecurity.create(input)));
+ ipcMain.handle('inventory:usersUpdate',secured(input=>accountSecurity.update(input)));
  ipcMain.handle('inventory:login',(evt,credentials)=>safe(()=>{
   if(Date.now()<nextAttempt)return {ok:false,error:'Too many login attempts. Try again shortly.'};
   const db=loadDB();const username=checkInput(credentials?.username,100).toLowerCase();const candidate=Buffer.from(hash(String(credentials?.password||''),db.user.salt),'hex');const actual=Buffer.from(db.user.passwordHash,'hex');
@@ -451,7 +460,7 @@ app.whenReady().then(()=>{
  }));
  ipcMain.handle('inventory:cloudLoginInfo',()=>safe(()=>({ok:true,configured:validCloudUrl(publicCloudLogin().url||'')&&validPublishableKey(publicCloudLogin().anonKey||'')})));
  ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{
-  if(!authenticated||authMode!=='local')return {ok:false,error:'Sign in as the local administrator to configure cloud login.'};
+  if(!authenticated||authMode!=='local'||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Settings as the local administrator to configure cloud login.'};
   const url=String(input?.url||'').trim().replace(/\/$/,'');
   const anonKey=String(input?.anonKey||'').trim();
   if(!validCloudUrl(url)||!validPublishableKey(anonKey))return {ok:false,error:'Enter a valid Supabase URL and publishable key.'};
@@ -461,7 +470,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:cloudStaffLogin',(evt,input)=>safe(()=>cloudStaffLogin(input)));
  ipcMain.handle('inventory:cloudResume',()=>safe(()=>resumeRememberedCloud()));
  ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
- ipcMain.handle('inventory:logout',()=>{forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
+ ipcMain.handle('inventory:logout',()=>{accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
   if(!authenticated||authMode!=='local')return {ok:false,error:'Local password changes require local admin sign-in.'};const db=loadDB();if(hash(String(oldPass),db.user.salt)!==db.user.passwordHash)return {ok:false,error:'Current password is incorrect.'};
   if(typeof newPass!=='string'||newPass.length<8||newPass.length>128)return {ok:false,error:'Choose a password of 8–128 characters.'};
@@ -545,28 +554,28 @@ app.whenReady().then(()=>{
   return {...r,mode:'shared'};
  }));
  ipcMain.handle('inventory:cloudStatus',secured(()=>cloudStatus()));
- ipcMain.handle('inventory:cloudSave',adminSecured(input=>cloudSave(input)));
- ipcMain.handle('inventory:cloudCheck',adminSecured(async()=>cloudCheck()));
- ipcMain.handle('inventory:cloudStart',adminSecured(async(input)=>cloudStart(input)));
- ipcMain.handle('inventory:cloudStop',adminSecured(()=>cloudStop()));
+ ipcMain.handle('inventory:cloudSave',settingsSecured(input=>cloudSave(input)));
+ ipcMain.handle('inventory:cloudCheck',settingsSecured(async()=>cloudCheck()));
+ ipcMain.handle('inventory:cloudStart',settingsSecured(async(input)=>cloudStart(input)));
+ ipcMain.handle('inventory:cloudStop',settingsSecured(()=>cloudStop()));
  ipcMain.handle('inventory:hubStatus',secured(()=>{if(authMode==='cloud')return {ok:true,mode:'cloud'};const h=hubConfig();return {ok:true,mode:h?'shared':'local',url:h?.url||null};}));
- ipcMain.handle('inventory:hubConnect',adminSecured(async data=>{
+ ipcMain.handle('inventory:hubConnect',settingsSecured(async data=>{
   try{const connection=validateHub(data?.url,data?.token);const r=await hubRequest('GET','/v1/items',null,connection);if(!r.ok)return r;atomic(hubPath(),connection);return {ok:true,mode:'shared',url:connection.url};}
   catch(e){return {ok:false,error:e.message||'Invalid hub connection.'};}
  }));
- ipcMain.handle('inventory:hubStart',adminSecured(async()=>startOwnedHub()));
+ ipcMain.handle('inventory:hubStart',settingsSecured(async()=>startOwnedHub()));
  ipcMain.handle('inventory:hubDevices',secured(async()=>hubRequest('GET','/v1/connect/devices')));
- ipcMain.handle('inventory:hubAutoApprove',adminSecured(async value=>hubRequest('POST','/v1/connect/config',{autoApprove:value===true})));
- ipcMain.handle('inventory:hubApprove',adminSecured(async id=>hubRequest('POST','/v1/connect/approve',{id})));
- ipcMain.handle('inventory:hubRevoke',adminSecured(async id=>hubRequest('POST','/v1/connect/revoke',{id})));
- ipcMain.handle('inventory:hubUnrevoke',adminSecured(async id=>hubRequest('POST','/v1/connect/unrevoke',{id})));
- ipcMain.handle('inventory:hubPair',adminSecured(async()=>{
+ ipcMain.handle('inventory:hubAutoApprove',settingsSecured(async value=>hubRequest('POST','/v1/connect/config',{autoApprove:value===true})));
+ ipcMain.handle('inventory:hubApprove',settingsSecured(async id=>hubRequest('POST','/v1/connect/approve',{id})));
+ ipcMain.handle('inventory:hubRevoke',settingsSecured(async id=>hubRequest('POST','/v1/connect/revoke',{id})));
+ ipcMain.handle('inventory:hubUnrevoke',settingsSecured(async id=>hubRequest('POST','/v1/connect/unrevoke',{id})));
+ ipcMain.handle('inventory:hubPair',settingsSecured(async()=>{
   const config=hubConfig();if(!config)return {ok:false,error:'Start or connect a shared hub first.'};
   const result=await hubRequest('POST','/v1/pair/create',{},config);
   if(!result.ok)return result;
   return {ok:true,code:result.code,expiresAt:result.expiresAt,host:config.url,ips:ipv4Addresses()};
  }));
- ipcMain.handle('inventory:hubDisconnect',adminSecured(()=>{if(fs.existsSync(hubPath()))fs.unlinkSync(hubPath());return {ok:true,mode:'local'};}));
+ ipcMain.handle('inventory:hubDisconnect',settingsSecured(()=>{if(fs.existsSync(hubPath()))fs.unlinkSync(hubPath());return {ok:true,mode:'local'};}));
  // A daily protected local snapshot covers local-only use; the separate shared hub
  // maintains its own snapshots, even when this Studio window is closed.
  const localAutoBackup=()=>{try{if(backupManager.due(userDir()))backupManager.snapshot({root:userDir(),files:localBackupFiles(),reason:'automatic'});}catch(e){console.error('Local backup:',e.message);}};

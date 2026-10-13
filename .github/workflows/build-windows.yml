@@ -47,7 +47,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/label-print.test.js tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
+          node --test tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
