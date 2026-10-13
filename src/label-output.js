@@ -1,6 +1,6 @@
 'use strict';
 const {BrowserWindow,dialog}=require('electron'),path=require('node:path'),fs=require('node:fs');
-const sizes={'50x25':[50,25],'50x30':[50,30],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
+const sizes={'2x1':[50.8,25.4],'50x25':[50,25],'50x30':[50,30],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
 function sanitise(input){
  if(!input||!sizes[input.size]||!['asset','refurb'].includes(input.type)||![203,300,600].includes(input.dpi))throw Error('Invalid label settings.');
  const record={};for(const [key,max] of Object.entries({id:80,manufacturer:90,model:140,serial:90}))record[key]=String(input.record?.[key]??'').trim().slice(0,max);
@@ -34,3 +34,4 @@ async function outputLabel(input,parent,mode){
  finally{if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();}
 }
 module.exports={renderLabelDocument,pdfOptions,printerOptions,outputLabel,sanitise};
+

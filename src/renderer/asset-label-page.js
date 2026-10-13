@@ -4,7 +4,7 @@ window.apexLabelReady=(async()=>{
   const payload=JSON.parse(new URLSearchParams(location.search).get('label')||'null');
   if(!payload||!APEX_LABEL_SIZES[payload.size]||!['asset','refurb'].includes(payload.type)||![203,300,600].includes(payload.dpi))throw Error('Invalid label settings.');
   const [w,h]=APEX_LABEL_SIZES[payload.size];
-  const root=document.documentElement;root.dataset.size=payload.size;root.style.setProperty('--label-width',w+'mm');root.style.setProperty('--label-height',h+'mm');
+  const root=document.documentElement;root.dataset.preview=String(payload.preview===true);root.dataset.size=payload.size;root.style.setProperty('--label-width',w+'mm');root.style.setProperty('--label-height',h+'mm');
   const sizeLink=document.getElementById('labelPageSize');
   const loaded=new Promise((resolve,reject)=>{sizeLink.onload=resolve;sizeLink.onerror=()=>reject(Error('Label paper stylesheet could not load.'));});
   sizeLink.href='asset-label-size-'+payload.size+'.css';
@@ -23,4 +23,5 @@ window.apexLabelReady=(async()=>{
   }
  }catch(error){window.apexLabelError=error.message;document.getElementById('labelSheet').textContent=error.message;}
 })();
+
 

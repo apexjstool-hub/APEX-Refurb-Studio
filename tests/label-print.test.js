@@ -35,3 +35,12 @@ test('print layouts use isolated page, physical sizes and keep QR quiet zone',()
  assert(!c.makeLabelMarkup({...device,id:'<img src=x>'},'refurb').includes('<img src=x>'));
  assert.equal(c.labelCodeGeometry(device,'refurb','60x40',203).dots>=c.labelCodeGeometry(device,'refurb','50x25',203).dots,true);
 });
+
+
+test('2 by 1 inch stock is exact and exposed as the only label-size choice',()=>{
+ const geometry=c.labelCodeGeometry(device,'refurb','2x1',203);assert(geometry.mm<25.4);
+ const source=fs.readFileSync(path.join(dir,'asset-label-print.js'),'utf8');
+ const choices=source.split('<select id="apexPrintLabelSize">')[1].split('</select>')[0];
+ assert.equal((choices.match(/<option/g)||[]).length,1);assert(choices.includes('value="2x1"'));
+ assert.equal(fs.readFileSync(path.join(dir,'asset-label-size-2x1.css'),'utf8').trim(),'@page{size:2in 1in;margin:0}');
+});

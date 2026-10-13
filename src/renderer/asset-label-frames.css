@@ -3,3 +3,7 @@
 
 
 .apex-isolated-label-preview{aspect-ratio:auto!important}.apex-label-footer{flex-wrap:wrap}
+
+
+.apex-label-preview:has(.apex-isolated-label-preview){flex:0 0 auto!important;min-height:0!important;height:auto!important;overflow:visible!important}
+.apex-isolated-label-preview{min-height:0!important;max-height:none!important;overflow:hidden}
