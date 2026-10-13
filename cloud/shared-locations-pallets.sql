@@ -1,0 +1,103 @@
+-- APEX cloud locations/pallets and atomic batch moves. Review before applying.
+create table if not exists public.apex_inventory_meta (
+ singleton_id integer primary key default 1 check (singleton_id=1),
+ locations jsonb not null default '[]'::jsonb,
+ pallets jsonb not null default '[]'::jsonb,
+ revision bigint not null default 0
+);
+alter table public.apex_inventory_meta enable row level security;
+revoke all on public.apex_inventory_meta from anon, authenticated;
+insert into public.apex_inventory_meta(singleton_id) values(1)
+on conflict(singleton_id) do nothing;
+
+create or replace function public.apex_inventory_meta_get()
+returns jsonb language plpgsql stable security definer set search_path=''
+as $$
+declare state public.apex_inventory_meta;
+begin
+ if not public.apex_is_staff() then raise exception 'Not an approved staff member';end if;
+ select * into state from public.apex_inventory_meta where singleton_id=1;
+ return jsonb_build_object('locations',state.locations,'pallets',state.pallets,'revision',state.revision);
+end $$;
+revoke all on function public.apex_inventory_meta_get() from public;
+grant execute on function public.apex_inventory_meta_get() to authenticated;
+
+-- Single SQL transaction for metadata updates and device transfers.
+create or replace function public.apex_inventory_location_pallet_action(
+ p_action text, p_input jsonb, p_meta_revision bigint, p_expected jsonb default '{}'::jsonb
+) returns jsonb language plpgsql security definer set search_path=''
+as $$
+declare state public.apex_inventory_meta;
+        row_asset public.apex_assets;
+        item jsonb; id text; loc text; pal text; nm text;
+        ids text[]; expected_revision bigint; cnt integer := 0;
+        current_loc text; current_pal text; updated_payload jsonb;
+        new_pallet jsonb;
+begin
+ if not public.apex_is_staff() then raise exception 'Not an approved staff member';end if;
+ if p_action not in ('addLocation','deleteLocation','createPallet','deletePallet','bulkMove','undoBulkMove')
+ then raise exception 'Unsupported cloud inventory operation'; end if;
+ select * into state from public.apex_inventory_meta where singleton_id=1 for update;
+ if not found then raise exception 'Cloud locations/pallets are not initialised';end if;
+ if state.revision is distinct from p_meta_revision then raise exception 'Locations/pallets changed; refresh';end if;
+ if p_action='addLocation' then
+  nm:=btrim(p_input->>'name');
+  if nm is null or length(nm)<1 or length(nm)>90 or nm ~ '[<>[:cntrl:]]' then raise exception 'Invalid location';end if;
+  if exists(select 1 from jsonb_array_elements_text(state.locations) as l(value) where lower(l.value)=lower(nm)) then raise exception 'Location exists';end if;
+  state.locations:=state.locations||to_jsonb(nm);
+ elsif p_action='createPallet' then
+  nm:=upper(btrim(p_input->>'name'));if nm is null or nm !~ '^[A-Z0-9][A-Z0-9 _.-]{0,79}$' then raise exception 'Invalid pallet';end if;
+  if exists(select 1 from jsonb_array_elements(state.pallets) as p(value) where upper(p.value->>'name')=nm) then raise exception 'Pallet exists';end if;
+  if length(coalesce(p_input->>'label',''))>90 or coalesce(p_input->>'label','') ~ '[<>[:cntrl:]]' then raise exception 'Invalid pallet label';end if;
+  if jsonb_typeof(p_input->'ids')='array' and jsonb_array_length(p_input->'ids')>0 then raise exception 'Use a separate bulk move to assign laptops to a new pallet';end if;
+  new_pallet:=jsonb_build_object('name',nm,'label',coalesce(p_input->>'label',''),'location','','createdAt',now()::text);
+  state.pallets:=state.pallets||jsonb_build_array(new_pallet);
+ elsif p_action='bulkMove' or p_action='undoBulkMove' then
+  if jsonb_typeof(p_input->'moves') <> 'array' or jsonb_array_length(p_input->'moves') not between 1 and 300 then raise exception 'Invalid move list'; end if;
+  for item in select value from jsonb_array_elements(p_input->'moves') loop
+   id:=item->>'id';
+   if id is null or length(id)>80 then raise exception 'Invalid asset id';end if;
+   if exists(select 1 from unnest(ids) as x where x=id) then raise exception 'Duplicate asset ID';end if;
+   ids:=array_append(ids,id);
+   select * into row_asset from public.apex_assets where public.apex_assets.id=id for update;
+   if not found or row_asset.payload->>'deletedAt' is not null then raise exception 'Asset unavailable';end if;
+   expected_revision:=(item->>'revision')::bigint;
+   if row_asset.revision is distinct from expected_revision then raise exception 'Asset changed; refresh';end if;
+   current_loc:=coalesce(row_asset.payload->>'location','Unassigned');
+   current_pal:=coalesce(row_asset.payload->>'pallet','');
+   if item ? 'expectedLocation' and current_loc is distinct from item->>'expectedLocation' then raise exception 'Location changed; refresh';end if;
+   if item ? 'expectedPallet' and current_pal is distinct from item->>'expectedPallet' then raise exception 'Pallet changed; refresh';end if;
+   loc:=coalesce(nullif(btrim(item->>'location'),''),'Unassigned');
+   pal:=coalesce(btrim(item->>'pallet'),'');
+   if pal<>'' then
+     if not exists(select 1 from jsonb_array_elements(state.pallets) as p(value) where p.value->>'name'=pal)
+       then raise exception 'Pallet not found';end if;
+     loc:='Unassigned';
+   elsif loc<>'Unassigned' and not exists(select 1 from jsonb_array_elements_text(state.locations) as l(value) where l.value=loc)
+       then raise exception 'Location not found';end if;
+   updated_payload:=jsonb_set(jsonb_set(row_asset.payload,'{location}',to_jsonb(loc),true),'{pallet}',to_jsonb(pal),true);
+   updated_payload:=jsonb_set(updated_payload,'{updatedAt}',to_jsonb(now()::text),true);
+   update public.apex_assets set payload=updated_payload where public.apex_assets.id=id;
+   cnt:=cnt+1;
+  end loop;
+ elsif p_action='deleteLocation' or p_action='deletePallet' then
+  -- Destructive metadata edits deliberately require empty locations/pallets.
+  nm:=p_input->>'name';
+  if nm is null or nm='' then raise exception 'Name required'; end if;
+  if p_action='deleteLocation' then
+   if coalesce(nullif(p_input->>'moveTo',''),'')<>'' then raise exception 'Move assets separately before deleting the location';end if;
+   if nm='Unassigned' or not exists(select 1 from jsonb_array_elements_text(state.locations) l(value) where l.value=nm) then raise exception 'Unknown location';end if;
+   if exists(select 1 from public.apex_assets where payload->>'location'=nm and payload->>'deletedAt' is null) then raise exception 'Location contains assets: move them first';end if;
+   state.locations:=(select coalesce(jsonb_agg(value),'[]'::jsonb) from jsonb_array_elements_text(state.locations) l(value) where value<>nm);
+  else
+   if exists(select 1 from public.apex_assets where payload->>'pallet'=nm and payload->>'deletedAt' is null) then raise exception 'Pallet contains assets: move them first';end if;
+   if not exists(select 1 from jsonb_array_elements(state.pallets) p(value) where value->>'name'=nm) then raise exception 'Pallet not found';end if;
+   state.pallets:=(select coalesce(jsonb_agg(value),'[]'::jsonb) from jsonb_array_elements(state.pallets) p(value) where value->>'name'<>nm);
+  end if;
+ end if;
+ update public.apex_inventory_meta set locations=state.locations,pallets=state.pallets,
+    revision=revision+1 where singleton_id=1;
+ return jsonb_build_object('ok',true,'locations',state.locations,'pallets',state.pallets,'moved',cnt,'revision',state.revision+1);
+end $$;
+revoke all on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) from public;
+grant execute on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) to authenticated;

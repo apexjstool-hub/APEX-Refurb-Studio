@@ -1,0 +1,7 @@
+{
+  "supabaseUrl": "https://YOUR_PROJECT.supabase.co",
+  "serviceRoleKey": "REPLACE_WITH_SERVER_ONLY_SUPABASE_SECRET_KEY",
+  "hubUrl": "http://127.0.0.1:4217",
+  "hubToken": "PASTE_YOUR_HUB_ADMIN_TOKEN",
+  "intervalSeconds": 15
+}
