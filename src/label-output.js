@@ -18,7 +18,7 @@ async function renderLabelDocument(input){
   return {window,payload,w,h};
  }catch(error){window.destroy();throw error;}
 }
-function pdfOptions(w,h){return {pageSize:{width:w*1000,height:h*1000},preferCSSPageSize:true,printBackground:true,landscape:false,scale:1,margins:{top:0,bottom:0,left:0,right:0}};}
+function pdfOptions(w,h){return {pageSize:{width:w/25.4,height:h/25.4},preferCSSPageSize:true,printBackground:true,landscape:false,scale:1,margins:{top:0,bottom:0,left:0,right:0}};}
 function printerOptions(w,h,dpi){return {silent:false,pageSize:{width:w*1000,height:h*1000},landscape:false,scaleFactor:100,margins:{marginType:'none'},printBackground:true,copies:1,dpi:{horizontal:dpi,vertical:dpi}};}
 async function outputLabel(input,parent,mode){
  let rendered;
