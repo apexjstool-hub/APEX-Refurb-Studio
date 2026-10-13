@@ -47,8 +47,13 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
+          node --test tests/label-print.test.js tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
+      - name: Verify thermal label layout and single-page PDF output
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-label-layout.js
+          if ($LASTEXITCODE -ne 0) { throw 'Thermal label layout checks failed.' }
       - name: Build installed Windows release
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
