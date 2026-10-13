@@ -1992,3 +1992,15 @@ body.apex-nav-collapsed #apexSidebar .sidebar-user{justify-content:center!import
 #assetPage[data-section="history"] #apexAssetDetailsSection,
 #assetPage[data-section="history"] #assetSummary,
 #assetPage[data-section="history"] .apex-asset-quicknav{display:none!important}
+
+/* Inventory report: restore its pane after legacy thermal-label print rules.
+   Scoped to an active inventory print so other report and label views are unchanged. */
+@media print{
+ html:has(#printPane),body:has(#printPane){width:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;margin:0!important;padding:0!important;background:#fff!important}
+ body:has(#printPane)>*:not(#printPane){display:none!important}
+ body:has(#printPane)>#printPane{display:block!important;position:static!important;inset:auto!important;width:auto!important;height:auto!important;overflow:visible!important;margin:0!important;padding:10mm!important;background:#fff!important;color:#111!important;font:10pt Arial,sans-serif!important}
+ #printPane table{width:100%!important;border-collapse:collapse!important;table-layout:fixed}
+ #printPane th,#printPane td{overflow-wrap:anywhere;white-space:normal}
+ #printPane thead{display:table-header-group}
+ #printPane tr{break-inside:avoid;page-break-inside:avoid}
+}

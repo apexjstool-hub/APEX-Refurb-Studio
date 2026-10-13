@@ -54,6 +54,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-label-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Thermal label layout checks failed.' }
+      - name: Verify inventory report PDF rendering
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-inventory-print.js
+          if ($LASTEXITCODE -ne 0) { throw 'Inventory print/PDF verification failed.' }
       - name: Build installed Windows release
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

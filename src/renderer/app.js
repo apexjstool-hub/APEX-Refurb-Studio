@@ -101,10 +101,17 @@ async function exportInventory(){
  else{const blob=new Blob([text],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download='APEX-Inventory-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);notify('Inventory CSV downloaded');}}
  catch(e){notify('Unable to export the CSV');}
 }
+let inventoryPrintCleanup=null;
 function printInventory(){
+ if(inventoryPrintCleanup)inventoryPrintCleanup();
  const content=`<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${items.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${items.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
  const pane=document.createElement('div');pane.id='printPane';pane.innerHTML=content;document.body.appendChild(pane);
- window.print();pane.remove();
+ let timeout,cleaned=false;
+ const cleanup=()=>{if(cleaned)return;cleaned=true;clearTimeout(timeout);window.removeEventListener('afterprint',cleanup);pane.remove();inventoryPrintCleanup=null;};
+ inventoryPrintCleanup=cleanup;window.addEventListener('afterprint',cleanup,{once:true});
+ timeout=setTimeout(cleanup,600000);
+ // Electron's print dialog can return before it captures the report.
+ try{window.print();}catch(error){cleanup();notify('Unable to print inventory: '+error.message);}
 }
 function adminPasswordModal(){
  showModal('Change admin password','USERS / SECURITY',`<form id="adminPasswordForm" class="modal-body"><p class="help-text">Update the administrator password used to sign in to this computer.</p><label class="field">Current password<input name="old" type="password" required autocomplete="current-password"></label><label class="field">New password (8+ characters)<input name="next" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><label class="field">Confirm new password<input name="confirm" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></label><div class="form-error" id="adminPasswordError"></div><div class="modal-actions"><button class="secondary" type="button" id="adminPasswordCancel">Cancel</button><button class="primary" type="submit">Save password</button></div></form>`);
