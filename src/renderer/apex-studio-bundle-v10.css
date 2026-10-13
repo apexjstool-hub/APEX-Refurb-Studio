@@ -1987,3 +1987,8 @@ body.apex-nav-collapsed #apexSidebar .sidebar-user{justify-content:center!import
 #assetPage[data-section="history"] .v63-history-event[hidden],#assetPage[data-section="history"] .v63-history-empty[hidden]{display:none!important}
 #assetPage[data-section="history"] .v63-history-empty{font-size:12px;padding:20px 8px;color:var(--muted,#64748b)}
 @media(max-width:850px){#assetPage[data-section="history"] .v63-history-event{grid-template-columns:1fr!important;gap:3px!important}#assetPage[data-section="history"] .v63-history-controls label:last-child{flex:1}#assetPage[data-section="history"] .v63-history-intro{align-items:flex-start;flex-direction:column}}
+
+/* History & checks: audit only. Overview retains every existing field and save handler. */
+#assetPage[data-section="history"] #apexAssetDetailsSection,
+#assetPage[data-section="history"] #assetSummary,
+#assetPage[data-section="history"] .apex-asset-quicknav{display:none!important}
