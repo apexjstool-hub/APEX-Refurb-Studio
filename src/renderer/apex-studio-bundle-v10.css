@@ -2004,3 +2004,38 @@ body.apex-nav-collapsed #apexSidebar .sidebar-user{justify-content:center!import
  #printPane thead{display:table-header-group}
  #printPane tr{break-inside:avoid;page-break-inside:avoid}
 }
+
+/* Device refurbishment workspace: focused notes and repair cards. */
+@media screen{
+ #assetPage[data-section="refurb"] .refurb-section,
+ #assetPage[data-section="parts"] .ops-asset-section{border:1px solid var(--line);border-radius:14px;padding:24px;background:var(--surface);box-shadow:0 6px 24px rgba(15,23,42,.04)}
+ #assetPage[data-section="refurb"] .refurb-header,
+ #assetPage[data-section="parts"] .section-panel-head{padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line);gap:16px}
+ #assetPage[data-section="refurb"] .refurb-header h3,
+ #assetPage[data-section="parts"] .section-panel-head h3{font-size:22px;line-height:1.3;margin:6px 0}
+ #assetPage[data-section="refurb"] .refurb-header p,
+ #assetPage[data-section="parts"] .section-panel-head p{line-height:1.65;max-width:650px}
+ #assetPage[data-section="refurb"] .refurb-facts{gap:12px;margin-bottom:20px}
+ #assetPage[data-section="refurb"] .refurb-facts>div{border-radius:10px;padding:16px;background:var(--input-bg)}
+ #assetPage[data-section="refurb"] .refurb-facts strong{font-size:20px;margin-top:8px}
+ #assetPage[data-section="refurb"] .refurb-info-grid{gap:16px}
+ #assetPage[data-section="refurb"] .refurb-info-card{padding:20px;border-radius:10px;min-height:130px;background:var(--surface)}
+ #assetPage[data-section="refurb"] .refurb-info-card h4{font-size:14px;margin-bottom:14px}
+ #assetPage[data-section="refurb"] .refurb-text{font-size:13px;line-height:1.8}
+ #assetPage[data-section="refurb"] .refurb-repairs>div{padding:10px 0;align-items:center}
+ #assetPage[data-section="refurb"] .refurb-repairs b{flex-shrink:0;border-radius:6px;padding:5px 9px;background:var(--input-bg);color:var(--text)}
+ #assetPage[data-section="refurb"] .refurb-foot{padding-top:16px;border-top:1px solid var(--line);line-height:1.7}
+ #assetPage[data-section="refurb"] .refurb-empty{padding:28px;border:1px dashed var(--line);border-radius:10px;line-height:1.7}
+ #assetPage[data-section="parts"] .ops-asset-top{padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--input-bg);gap:16px;flex-wrap:wrap;margin-bottom:18px}
+ #assetPage[data-section="parts"] .ops-part-list{display:grid;gap:12px}
+ #assetPage[data-section="parts"] .ops-part-row{border:1px solid var(--line);border-radius:10px;padding:18px;gap:16px;flex-wrap:wrap;background:var(--surface);line-height:1.7}
+ #assetPage[data-section="parts"] .ops-part-row>span:first-child{flex:1;min-width:180px}
+ #assetPage[data-section="parts"] .ops-part-row b{display:block;font-size:14px;margin-bottom:4px}
+ #assetPage[data-section="parts"] .ops-inline-row{padding:18px;border:1px solid var(--line);border-radius:10px;margin-top:18px;gap:16px;flex-wrap:wrap;line-height:1.7}
+ #assetPage[data-section="parts"] .ops-inline-buttons{display:flex;gap:8px;flex-wrap:wrap}
+ @media(max-width:700px){
+  #assetPage[data-section="refurb"] .refurb-section,#assetPage[data-section="parts"] .ops-asset-section{padding:16px}
+  #assetPage[data-section="parts"] .section-panel-head{flex-direction:column;align-items:flex-start}
+  #assetPage[data-section="refurb"] .refurb-info-grid{grid-template-columns:1fr}
+ }
+}
