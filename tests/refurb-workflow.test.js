@@ -1,0 +1,20 @@
+'use strict';const assert=require('node:assert/strict');const {test}=require('node:test');const W=require('../src/refurb-workflow');
+test('RefurbFlow requirements, ordering, partial delivery, fitting, QC, completion',()=>{
+const asset={id:'932453',manufacturer:'Dell',model:'Latitude 5420',serial:'J123',refurbishment:{latestKey:'b:j',reports:[{key:'b:j',repairs:[{name:'UK keyboard',quantity:2}]}]}};
+let ops=W.init();assert.equal(W.syncRefurb(ops,asset),true);assert.equal(W.syncRefurb(ops,asset),false);
+const id=asset.id,j=ops.jobs[id],p=j.parts[0];assert.equal(j.status,'Awaiting Parts');assert.equal(p.qty,2);
+const act=c=>{const r=W.apply(structuredClone(ops),[asset],c);if(r.ok)ops=r.workflow;return r;};
+assert.equal(act({type:'job',assetId:id,status:'Completed'}).ok,false);
+assert.equal(act({type:'createOrder',supplier:'Parts PLC',expectedAt:'2026-11-01',lines:[{assetId:id,partId:p.id,qty:2}],cost:37.40}).ok,true);
+assert.equal(W.outstanding(ops)[0].toOrder,0);const order=ops.orders[0];
+assert.equal(act({type:'createOrder',supplier:'Duplicate',lines:[{assetId:id,partId:p.id,qty:1}]}).ok,false);
+assert.equal(act({type:'receiveOrder',orderId:order.id,assetId:id,partId:p.id,qty:1}).ok,true);
+assert.equal(act({type:'fitPart',assetId:id,partId:p.id,qty:2}).ok,false);
+assert.equal(act({type:'receiveOrder',orderId:order.id,assetId:id,partId:p.id,qty:1}).ok,true);
+assert.equal(ops.jobs[id].status,'Ready for Repair');
+assert.equal(act({type:'fitPart',assetId:id,partId:p.id,qty:2}).ok,true);
+for(const check of W.QC)assert.equal(act({type:'qc',assetId:id,check,passed:true}).ok,true);
+assert.equal(act({type:'job',assetId:id,status:'Completed',technician:'Worker A',priority:'Normal'}).ok,true);
+assert.equal(ops.jobs[id].status,'Completed');assert.equal(ops.orders[0].lines[0].received,2);
+assert.ok(ops.audit.length>3);assert.equal(asset.location,undefined);assert.equal(asset.serial,'J123');
+});
