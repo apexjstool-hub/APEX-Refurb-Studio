@@ -106,6 +106,11 @@ function printInventory(selectedAssetIds){
  const ids=Array.isArray(selectedAssetIds)?new Set(selectedAssetIds):null,reportItems=ids?items.filter(a=>ids.has(a.id)):items;
  if(inventoryPrintCleanup)inventoryPrintCleanup();
  const content=`${window.ApexReportBrand.header()}<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${reportItems.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${reportItems.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
+ if(window.ApexReportPreview?.capture){window.ApexReportPreview.capture(content,'Inventory report','A4','inventory');return;}
+ printInventoryMarkup(content);
+}
+function printInventoryMarkup(content){
+ if(inventoryPrintCleanup)inventoryPrintCleanup();
  const pane=document.createElement('div');pane.id='printPane';pane.innerHTML=content;document.body.appendChild(pane);
  let timeout,cleaned=false;
  const cleanup=()=>{if(cleaned)return;cleaned=true;clearTimeout(timeout);window.removeEventListener('afterprint',cleanup);pane.remove();inventoryPrintCleanup=null;};
