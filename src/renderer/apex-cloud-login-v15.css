@@ -4,3 +4,32 @@
 
 .apex-login-help{font-size:12px;line-height:1.6;color:var(--muted);margin:12px 0 20px!important}.apex-cloud-advanced{margin:20px 0}.apex-cloud-advanced>summary{padding:16px;border:1px solid var(--line);border-radius:10px;cursor:pointer;color:var(--muted)}
 @media(max-height:800px){.login-page{min-height:100vh;height:auto;overflow:auto}.login-panel{padding:28px 30px 65px}.login-card>p{margin-bottom:18px}}
+
+/* v4.0.26: one main form, with alternate administrator access retained. */
+#loginPage .login-panel{padding:40px 36px 74px}
+#loginPage .login-card{width:min(100%,420px);padding:30px;background:var(--panel);border:1px solid var(--line);border-radius:14px!important;box-shadow:0 12px 36px rgba(16,35,65,.07)}
+#loginPage .login-card h2{font-size:25px;line-height:1.25;margin:12px 0 10px}
+#loginPage .login-card>p{margin-bottom:22px;line-height:1.6;font-size:13px}
+#loginPage .login-card label{display:block;margin:0 0 18px;font-size:12px;color:var(--text)}
+#loginPage .login-card input:not([type=checkbox]){min-height:46px;padding:12px 13px;border-radius:7px!important;margin-top:8px}
+#loginPage .input-icon input{padding-right:65px!important}
+#loginPage .pass-toggle{right:10px;top:16px;min-height:30px;padding:5px 8px;font-size:12px;color:var(--muted)}
+#loginPage #apexRememberCloudBox{display:flex;align-items:center;justify-content:flex-start;gap:9px;margin:2px 0 18px;font-size:12px;font-weight:400;line-height:1.5;text-align:left}
+#loginPage #apexRememberCloudBox.hidden{display:none!important}
+#loginPage #apexRememberCloud{display:block;width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;max-width:17px!important;flex:0 0 17px!important;margin:0!important;padding:0!important;accent-color:#7650dc}
+#loginPage #apexRememberCloudBox span{display:block;margin:0;padding:0}
+#loginPage .login-saved-hint{font-size:12px;color:var(--muted);margin:-8px 0 16px!important}
+#loginPage .login-saved-hint.hidden{display:none!important}
+#loginPage .apex-login-help{font-size:12px;margin:0 0 17px!important;line-height:1.5}
+#loginPage .login-card>.primary{min-height:46px;border-radius:7px!important;justify-content:center;gap:10px;margin-top:2px}
+#loginPage .apex-login-modes{margin:16px 0 0;display:flex;justify-content:center}
+#loginPage .apex-login-modes button{flex:none;background:transparent;border:0!important;padding:4px 0;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:3px;min-height:30px}
+#loginPage .apex-login-modes button.selected{display:none!important}
+#loginPage .apex-login-modes button:hover{color:var(--text)}
+#loginPage .login-hint{margin-top:14px;font-size:11px}
+#loginPage .login-hero h1{font-size:clamp(36px,4vw,62px);line-height:1.15;letter-spacing:-1.8px}
+#loginPage .login-hero p{font-size:16px;line-height:1.8;max-width:490px}
+#loginPage .login-left .wordmark b{font-size:11px;letter-spacing:1px}
+#loginPage .login-panel-footer{bottom:26px;font-size:10px}
+@media(max-width:900px){#loginPage .login-panel{padding:28px 20px 65px}#loginPage .login-card{padding:24px}}
+@media(max-height:760px){#loginPage{height:auto;min-height:100vh;overflow:auto}#loginPage .login-panel{align-items:center;padding-top:28px;padding-bottom:65px}#loginPage .login-left{padding-top:32px;padding-bottom:32px}}
