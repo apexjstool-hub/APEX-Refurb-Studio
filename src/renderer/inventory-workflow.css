@@ -40,26 +40,40 @@
 .assignment-print-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-bottom:16px}.assignment-print-toolbar>span{margin-right:auto;color:var(--muted);font-size:12px}.assignment-row-print{padding:7px 10px;margin:3px;font-size:12px}.assignment-label-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}#assignmentPrintFacts{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:18px;padding:12px;background:var(--panel2);border:1px solid var(--line);border-radius:7px}#assignmentPrintFacts:empty{display:none}#assignmentPrintFacts small{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}#assignmentPrintFacts p{width:100%;margin:0}#assignmentDocumentPreview{display:flex;flex-direction:column;align-items:center;gap:12px;margin:14px 0}.assignment-barcode-preview{border:0;background:white;max-width:100%;box-shadow:0 0 0 1px var(--line)}.assignment-manifest-preview{width:100%;overflow:auto}.assignment-manifest-preview td{font-size:12px}.assignment-print-dialog .modal-actions{flex-wrap:wrap}@media(max-width:600px){.assignment-label-controls{grid-template-columns:1fr}}
 
 
-/* Original summary theme retained; additional facts share its existing styling. */
-.apex-v34 #assetPage #assetSummary .mock-summary-facts{grid-template-columns:repeat(5,minmax(0,1fr));row-gap:16px}
-.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(5n+1){padding-left:0;border-left:0!important}
-#assetSummary .mock-summary-facts strong{display:block;line-height:1.45}
-#assetSummary .mock-summary-facts .status,#assetSummary .mock-summary-facts .condition-pill{display:inline-block;max-width:100%;white-space:normal;line-height:1.35}
-@media(max-width:1000px){.apex-v34 #assetPage #assetSummary .mock-summary-facts{grid-template-columns:repeat(3,minmax(0,1fr))}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding-left:12px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:0;border-left:0!important}}
-@media(max-width:650px){.apex-v34 #assetPage #assetSummary .mock-summary-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding-left:12px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(2n+1){padding-left:0;border-left:0!important}}
 
-/* v4.0.30: spacing and alignment refinements within the original summary UI. */
-.apex-v34 #assetPage #assetSummary.mock-summary{padding:20px 22px!important;gap:22px;align-items:center}
-#assetSummary .summary-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
-#assetSummary .summary-title-row h2{min-width:0;overflow-wrap:anywhere;margin:0!important;line-height:1.3!important}
-#assetSummary .summary-title-row .asset-summary-print{position:static!important;margin:0;flex:0 0 auto}
-#assetSummary .summary-title-row .asset-summary-print button{padding:8px 12px;font-size:12px;font-weight:600;line-height:1.4}
-#assetSummary .mock-type{margin:5px 0 17px;font-size:12px;color:var(--muted)}
-.apex-v34 #assetPage #assetSummary .mock-summary-facts{row-gap:20px;align-items:stretch}
-.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding:0 16px;min-width:0;min-height:54px}
-.apex-v34 #assetPage #assetSummary .mock-summary-facts small{font-size:11px!important;font-weight:400;line-height:1.35;margin-bottom:7px!important}
-.apex-v34 #assetPage #assetSummary .mock-summary-facts strong{font-size:13px!important;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
-#assetSummary .mock-summary-facts .status,#assetSummary .mock-summary-facts .condition-pill{font-size:12px;font-weight:600;line-height:1.4;padding:6px 9px;border-radius:5px}
-#assetSummary .mock-summary-facts>div:nth-child(1)>strong,#assetSummary .mock-summary-facts>div:nth-child(4)>strong{font-variant-numeric:tabular-nums;letter-spacing:.1px}
-@media(max-width:1000px){.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(5n+1){padding-left:16px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:0;border-left:0!important}}
-@media(max-width:650px){#assetSummary .summary-title-row{flex-wrap:wrap;gap:12px}#assetSummary .summary-title-row .asset-summary-print{width:100%}#assetSummary .mock-type{margin-top:10px}.apex-v34 #assetPage #assetSummary.mock-summary{padding:16px!important;gap:14px}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:16px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(2n+1){padding-left:0;border-left:0!important}}
+/* Screenshot reference card, scoped to Device details. */
+.apex-v34 #assetPage #assetSummary.mock-summary{display:block!important;background:linear-gradient(112deg,#101b24,#111b24 60%,#101a23)!important;color:#f4f7fb!important;border:1px solid #293b49!important;border-radius:16px!important;padding:24px 26px!important;box-shadow:0 8px 28px #00000018!important}
+#assetSummary .device-card-top{display:flex;gap:34px;align-items:stretch}
+#assetSummary .device-card-art{width:192px;flex:0 0 192px;min-height:158px;display:flex;align-items:center;justify-content:center;border:1px solid #344a5a;border-radius:12px;background:linear-gradient(135deg,#0b151e,#12202c);overflow:hidden}
+#assetSummary .device-card-art>svg{width:92%;height:auto;display:block}
+#assetSummary .device-card-main{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+#assetSummary .device-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.apex-v34 #assetPage #assetSummary .device-card-heading h2{color:#f7f9fb!important;font-size:30px!important;line-height:1.18!important;font-weight:700!important;letter-spacing:-.5px;margin:0 0 10px!important;overflow-wrap:anywhere}
+#assetSummary .device-card-type{display:inline-block;background:#253b4c;color:#adbed0;border-radius:8px;font-size:15px;line-height:1.3;padding:4px 12px}
+#assetSummary #assetViewFullDetails{display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(120deg,#182936,#1c2d3c);border:1px solid #4b7392;border-radius:10px;color:#9ed3ff;padding:13px 16px;flex:0 0 auto;font-size:15px;font-weight:600;white-space:nowrap;box-shadow:inset 0 0 12px #6195bf08}
+#assetSummary #assetViewFullDetails:hover{background:#233c4e;border-color:#8bbade}
+#assetSummary #assetViewFullDetails:focus-visible{outline:2px solid #9ed3ff;outline-offset:4px}
+#assetSummary #assetViewFullDetails svg{width:21px;height:21px}
+#assetSummary .device-card-primary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+#assetSummary .device-card-fact{min-width:0;display:flex;align-items:flex-start;gap:13px;padding:0 20px;border-left:1px solid #293b49}
+#assetSummary .device-card-primary .device-card-fact{display:block}
+#assetSummary .device-card-primary .device-card-fact>svg{float:left;width:22px;height:22px;margin-right:10px}
+#assetSummary .device-card-primary .device-card-fact>div{display:contents}
+#assetSummary .device-card-fact:first-child{padding-left:0;border-left:0}
+#assetSummary .device-card-fact>svg{color:#bdcad7;width:25px;height:25px;flex:0 0 25px}
+#assetSummary .device-card-fact>div{min-width:0}
+.apex-v34 #assetPage #assetSummary .device-card-fact small{display:block;color:#7f96ab!important;font-size:14px!important;font-weight:500!important;line-height:1.5!important;margin:0 0 10px!important}
+.apex-v34 #assetPage #assetSummary .device-card-fact strong{display:block;color:#f4f7fb!important;font-size:19px!important;font-weight:600!important;line-height:1.35!important;overflow-wrap:anywhere}
+#assetSummary .device-card-primary strong{clear:both;padding-top:2px}
+#assetSummary .device-card-workflow{display:grid;grid-template-columns:1.05fr 1fr 1fr 1.08fr;border-top:1px solid #293b49;margin-top:24px;padding-top:22px;gap:0}
+#assetSummary .device-card-workflow .device-card-fact{align-items:flex-start;gap:24px;padding:0 28px}
+#assetSummary .device-card-workflow .device-card-fact:first-child{padding-left:12px}
+#assetSummary .device-card-workflow .device-card-fact>svg{margin-top:9px}
+.apex-v34 #assetPage #assetSummary strong.device-card-status{display:inline-flex;align-items:center;gap:10px;border:1px solid #028044;color:#4af3b1!important;border-radius:16px;padding:8px 15px;background:#002d20;font-size:16px!important;white-space:normal}
+#assetSummary .device-card-status i{width:10px;height:10px;background:currentColor;border-radius:50%;flex:0 0 10px}
+.apex-v34 #assetPage #assetSummary strong.device-card-status.is-awaiting{color:#ffd278!important;border-color:#876029;background:#342714}
+.apex-v34 #assetPage #assetSummary strong.device-card-location{display:inline-block;background:#273f51;border-radius:10px;padding:8px 20px;color:#a3d6ff!important;font-size:17px!important}
+.device-inventory-navigation{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+@media(max-width:1150px){#assetSummary .device-card-top{gap:22px}#assetSummary .device-card-art{width:150px;flex-basis:150px}#assetSummary .device-card-fact{padding:0 12px}#assetSummary .device-card-primary .device-card-fact>svg{width:18px;margin-right:6px}.apex-v34 #assetPage #assetSummary .device-card-fact small{font-size:12px!important}.apex-v34 #assetPage #assetSummary .device-card-fact strong{font-size:16px!important}#assetSummary .device-card-workflow .device-card-fact{gap:14px;padding:0 20px}}
+@media(max-width:900px){#assetSummary .device-card-heading{flex-wrap:wrap}#assetSummary .device-card-primary{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:20px}#assetSummary .device-card-primary .device-card-fact:nth-child(3n+1){border-left:0;padding-left:0}#assetSummary .device-card-workflow{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:22px}#assetSummary .device-card-workflow .device-card-fact:nth-child(2n+1){border-left:0;padding-left:12px}}
+@media(max-width:600px){.apex-v34 #assetPage #assetSummary.mock-summary{padding:18px!important}#assetSummary .device-card-top{display:block}#assetSummary .device-card-art{width:140px;min-height:120px;margin-bottom:20px}#assetSummary .device-card-primary{grid-template-columns:repeat(2,minmax(0,1fr))}#assetSummary .device-card-primary .device-card-fact{border-left:1px solid #293b49;padding-left:12px}#assetSummary .device-card-primary .device-card-fact:nth-child(2n+1){border-left:0;padding-left:0}#assetSummary .device-card-primary .device-card-fact:nth-child(3n+1):not(:nth-child(2n+1)){border-left:1px solid #293b49;padding-left:12px}.apex-v34 #assetPage #assetSummary .device-card-heading h2{font-size:25px!important}#assetSummary .device-card-workflow .device-card-fact{gap:10px;padding:0 10px}#assetSummary .device-card-workflow .device-card-fact>svg{width:20px;flex-basis:20px}.apex-v34 #assetPage #assetSummary strong.device-card-status{font-size:13px!important;padding:7px 9px}}
