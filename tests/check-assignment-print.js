@@ -1,5 +1,6 @@
 'use strict';
 const {app}=require('electron'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),output=require('../src/assignment-output');
+app.on('window-all-closed',()=>{});
 app.whenReady().then(async()=>{
  let rendered;const dest=path.resolve('qa-print');fs.mkdirSync(dest,{recursive:true});
  try{
@@ -14,7 +15,8 @@ app.whenReady().then(async()=>{
   rendered=await output.renderDocument({kind:'pallet',name:'PALLET-0001',document:'barcode',size:'2x1',dpi:203},data);
   check=await rendered.window.webContents.executeJavaScript("(()=>{const label=document.querySelector('.assignment-label'),svg=document.querySelector('svg'),box=label.getBoundingClientRect(),bars=svg.getBoundingClientRect();return {width:box.width,height:box.height,scrollHeight:label.scrollHeight,left:bars.left,right:bars.right,text:label.textContent};})()");
   assert(check.right<=check.width+1&&check.left>=0&&check.scrollHeight<=Math.ceil(check.height));assert(check.text.includes('PALLET-0001')&&check.text.includes('14 Oct 2026'));
-  pdf=await rendered.window.webContents.printToPDF(output.pdfOptions(rendered));assert.equal((pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length,1);fs.writeFileSync(path.join(dest,'pallet-barcode-2x1.pdf'),pdf);fs.writeFileSync(path.join(dest,'barcode-preview.png'),(await rendered.window.webContents.capturePage({x:0,y:0,width:192,height:96})).toPNG());rendered.window.destroy();
+  pdf=await rendered.window.webContents.printToPDF(output.pdfOptions(rendered));assert.equal((pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length,1);fs.writeFileSync(path.join(dest,'pallet-barcode-2x1.pdf'),pdf);fs.writeFileSync(path.join(dest,'barcode-preview.png'),(await rendered.window.webContents.capturePage({x:0,y:0,width:192,height:96})).toPNG());await rendered.window.loadFile(path.resolve(__dirname,'../src/renderer/assignment-label-preview.html'),{query:{label:JSON.stringify({kind:'pallet',name:'PALLET-0001',createdAt:'2026-10-14T10:00:00Z',size:'2x1',dpi:203})}});assert(await rendered.window.webContents.executeJavaScript('window.assignmentLabelPreviewReady===true&&!window.assignmentLabelPreviewError'));rendered.window.destroy();
+  assert(['pallet-manifest-80-devices.pdf','empty-pallet-manifest.pdf','pallet-barcode-2x1.pdf'].every(name=>fs.existsSync(path.join(dest,name))));
   console.log('PASS: 2x1 barcode fits on one page with quiet zones, pallet number and creation date; empty manifest also prints one page.');app.exit(0);
  }catch(e){console.error(e);if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();app.exit(1);}
 });
