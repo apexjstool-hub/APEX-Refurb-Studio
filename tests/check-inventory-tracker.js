@@ -49,6 +49,9 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript('updateAssetOverview();');
   const summaryResult=await win.webContents.executeJavaScript("(()=>{const box=$('assetSummary'),facts=[...box.querySelectorAll('.mock-summary-facts>div')],bounds=facts.map(f=>f.getBoundingClientRect());return {count:facts.length,labels:facts.map(f=>f.querySelector('small').textContent),grade:facts[6].querySelector('[title]').getAttribute('title'),process:facts[9].textContent,aligned:Math.abs(bounds[0].top-bounds[1].top)<1&&Math.abs(bounds[5].top-bounds[6].top)<1&&Math.abs(bounds[6].top-bounds[7].top)<1,overflow:facts.some(f=>f.scrollWidth>f.clientWidth+1),print:typeof $('assetPrintLabel').onclick==='function'};})()");
   if(summaryResult.count!==10||!summaryResult.labels.includes('Pallet')||!summaryResult.labels.includes('Serial number')||!summaryResult.grade.includes('Assigned grade')||!summaryResult.process.includes('Parts fitting')||!summaryResult.aligned||summaryResult.overflow||!summaryResult.print)throw Error('Device summary layout failed: '+JSON.stringify(summaryResult));
+  const summaryBox=await win.webContents.executeJavaScript("(()=>{const r=$('assetSummary').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)};})()");
+  if(summaryBox.width<500||summaryBox.height<100)throw Error('Device summary was hidden or too narrow during layout verification.');
+  fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/device-summary-preview.png'),(await win.webContents.capturePage(summaryBox)).toPNG());
   console.log('PASS: real Windows renderer shows expanded Inventory tracker and persists a receipt through actual workflow logic.');win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(1);}
 });

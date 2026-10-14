@@ -47,3 +47,19 @@
 #assetSummary .mock-summary-facts .status,#assetSummary .mock-summary-facts .condition-pill{display:inline-block;max-width:100%;white-space:normal;line-height:1.35}
 @media(max-width:1000px){.apex-v34 #assetPage #assetSummary .mock-summary-facts{grid-template-columns:repeat(3,minmax(0,1fr))}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding-left:12px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:0;border-left:0!important}}
 @media(max-width:650px){.apex-v34 #assetPage #assetSummary .mock-summary-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding-left:12px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(2n+1){padding-left:0;border-left:0!important}}
+
+/* v4.0.30: spacing and alignment refinements within the original summary UI. */
+.apex-v34 #assetPage #assetSummary.mock-summary{padding:20px 22px!important;gap:22px;align-items:center}
+#assetSummary .summary-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+#assetSummary .summary-title-row h2{min-width:0;overflow-wrap:anywhere;margin:0!important;line-height:1.3!important}
+#assetSummary .summary-title-row .asset-summary-print{position:static!important;margin:0;flex:0 0 auto}
+#assetSummary .summary-title-row .asset-summary-print button{padding:8px 12px;font-size:12px;font-weight:600;line-height:1.4}
+#assetSummary .mock-type{margin:5px 0 17px;font-size:12px;color:var(--muted)}
+.apex-v34 #assetPage #assetSummary .mock-summary-facts{row-gap:20px;align-items:stretch}
+.apex-v34 #assetPage #assetSummary .mock-summary-facts>div{padding:0 16px;min-width:0;min-height:54px}
+.apex-v34 #assetPage #assetSummary .mock-summary-facts small{font-size:11px!important;font-weight:400;line-height:1.35;margin-bottom:7px!important}
+.apex-v34 #assetPage #assetSummary .mock-summary-facts strong{font-size:13px!important;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+#assetSummary .mock-summary-facts .status,#assetSummary .mock-summary-facts .condition-pill{font-size:12px;font-weight:600;line-height:1.4;padding:6px 9px;border-radius:5px}
+#assetSummary .mock-summary-facts>div:nth-child(1)>strong,#assetSummary .mock-summary-facts>div:nth-child(4)>strong{font-variant-numeric:tabular-nums;letter-spacing:.1px}
+@media(max-width:1000px){.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(5n+1){padding-left:16px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:0;border-left:0!important}}
+@media(max-width:650px){#assetSummary .summary-title-row{flex-wrap:wrap;gap:12px}#assetSummary .summary-title-row .asset-summary-print{width:100%}#assetSummary .mock-type{margin-top:10px}.apex-v34 #assetPage #assetSummary.mock-summary{padding:16px!important;gap:14px}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(3n+1){padding-left:16px;border-left:1px solid var(--line)!important}.apex-v34 #assetPage #assetSummary .mock-summary-facts>div:nth-child(2n+1){padding-left:0;border-left:0!important}}
