@@ -12,3 +12,27 @@
 .scan-create-pallet{margin-top:12px;display:flex}.pallet-creation-facts{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:18px}.pallet-creation-facts small{display:block;color:var(--muted);margin-bottom:6px}.pallet-creation-facts strong{display:block;font-size:14px}@media(max-width:600px){.pallet-creation-facts{grid-template-columns:1fr}}
 
 .ops-part-progress-scroll{overflow-x:auto}.ops-expanded-parts .ops-part-progress-table{width:100%;min-width:620px;border-collapse:collapse;table-layout:fixed}.ops-part-progress-table th,.ops-part-progress-table td{padding:12px 14px!important;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line);line-height:1.4}.ops-part-progress-table th{font-size:11px;font-weight:700;color:var(--muted);background:var(--panel2);text-transform:uppercase;letter-spacing:.035em}.ops-part-progress-table th:first-child{width:32%}.ops-part-progress-table .part-number{width:10%;text-align:center;font-variant-numeric:tabular-nums}.ops-part-progress-table th:last-child{width:17%}.ops-part-progress-table tbody tr:last-child td{border-bottom:0}.ops-part-progress-table td:first-child{font-weight:600;overflow-wrap:anywhere}.ops-part-progress-table button{margin:0;font-size:12px;padding:7px 10px}.ops-part-progress-badge{display:inline-block;padding:5px 9px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}.ops-part-progress-badge.is-fitted{color:#147147;background:rgba(22,132,91,.12)}.ops-part-progress-badge.is-ready{color:#996000;background:rgba(214,151,22,.13)}.ops-part-progress-badge.is-waiting{color:var(--muted);background:var(--panel2)}[data-theme="dark"] .ops-part-progress-badge.is-fitted{color:#78dda6}[data-theme="dark"] .ops-part-progress-badge.is-ready{color:#f0c46e}
+
+/* v4.0.25: visual dashboard features, retaining the existing layout. */
+#v34Dashboard.dashboard-visual-upgrade .v34-stat{position:relative;text-align:left;cursor:pointer;flex-wrap:wrap;min-width:0}
+#v34Dashboard .dashboard-card-hint{display:block;width:100%;font-size:11px;color:var(--muted);margin-top:6px}
+#v34Dashboard.dashboard-visual-upgrade .v34-stat:hover{border-color:#297be4;background:var(--panel2)}
+#v34Dashboard.dashboard-visual-upgrade .v34-stat:focus-visible{outline:2px solid #297be4;outline-offset:3px}
+#v34Dashboard .dashboard-repair-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px}
+#v34Dashboard .dashboard-repair-strip button{display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--text);font-size:12px;text-align:left;cursor:pointer}
+#v34Dashboard .dashboard-repair-strip button b{margin-left:auto;font-variant-numeric:tabular-nums}
+#v34Dashboard .dashboard-stage-dot{width:7px;height:7px;border-radius:50%;background:#a7b1c1;flex-shrink:0}
+#v34Dashboard .dashboard-stage-dot.stage-order{background:#e4a135}#v34Dashboard .dashboard-stage-dot.stage-delivery{background:#966dd5}#v34Dashboard .dashboard-stage-dot.stage-fit{background:#287be3}#v34Dashboard .dashboard-stage-dot.stage-qc{background:#25a779}
+#v34Dashboard.dashboard-visual-upgrade .v34-donut{display:grid!important;visibility:visible!important;opacity:1!important;width:145px!important;height:145px!important;border-radius:50%!important}
+#v34Dashboard.dashboard-visual-upgrade .v34-donut:before{display:block!important;content:''!important;position:absolute!important;inset:24px!important;border-radius:50%!important;background:var(--panel)!important}
+#v34Dashboard.dashboard-visual-upgrade .v34-legend-row>i{display:block!important;width:8px!important;height:8px!important;border-radius:50%;opacity:1!important}
+#v34Dashboard .v34-legend-row{position:relative;padding-bottom:11px}
+#v34Dashboard .dashboard-location-meter{position:absolute;left:20px;right:0;bottom:3px;height:3px;background:var(--panel2);border-radius:4px;overflow:hidden}
+#v34Dashboard .dashboard-location-meter i{display:block;height:100%;border-radius:4px}
+#v34Dashboard.dashboard-visual-upgrade .v34-progress-row>div{display:block!important;background:var(--panel2)!important;height:10px!important}
+#v34Dashboard.dashboard-visual-upgrade .v34-progress-row>div>i{display:block!important;height:100%!important;visibility:visible!important;opacity:1!important}
+#v34Dashboard .dashboard-recent-progress{min-width:145px;font-size:11px}#v34Dashboard .dashboard-recent-progress small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+#v34Dashboard .dashboard-mini-track{height:5px;max-width:130px;margin-top:6px;border-radius:5px;background:var(--panel2);overflow:hidden}
+#v34Dashboard .dashboard-mini-track i{display:block!important;height:100%;border-radius:5px;background:#287be3!important}
+@media(max-width:900px){#v34Dashboard .dashboard-repair-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:no-preference){#v34Dashboard .v34-progress-row>div>i,#v34Dashboard .dashboard-mini-track i{transition:width .2s ease}}
