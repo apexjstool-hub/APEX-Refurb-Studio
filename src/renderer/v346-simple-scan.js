@@ -83,10 +83,10 @@
   // Keep the whole scanned-device section visible, including its header, when empty.
   el('v346BatchContent').classList.remove('hidden');
   el('v346Clear').disabled=active.length===0;
-  el('v346MoveLocation').disabled=active.length===0||transferBusy;
-  el('v346DeviceList').innerHTML=`<table class="asset-table v346-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Current assignment</th><th><span class="v352-actions-col">Action</span></th></tr></thead><tbody>${active.length?active.map(a=>`<tr><td><b>${html(a.id)}</b></td><td>${html(deviceName(a))}<small>${html(a.serial||'')}</small></td><td>${html(a.location||'Unassigned')}</td><td class="v346-remove-cell"><button class="v346-remove" type="button" data-remove-id="${html(a.id)}" aria-label="Remove ${html(a.id)} from scan list">Remove</button></td></tr>`).join(''):'<tr class="v352-empty-row"><td colspan="4">No devices scanned yet. Scan an Asset ID or a saved location above.</td></tr>'}</tbody></table>`;
+  el('v346MoveLocation').disabled=active.length===0||transferBusy;el('scanCreatePallet').disabled=transferBusy;
+  el('v346DeviceList').innerHTML=`<table class="asset-table v346-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Current assignment</th><th><span class="v352-actions-col">Action</span></th></tr></thead><tbody>${active.length?active.map(a=>`<tr><td><b>${html(a.id)}</b></td><td>${html(deviceName(a))}<small>${html(a.serial||'')}</small></td><td>${html(a.pallet||a.location||'Unassigned')}</td><td class="v346-remove-cell"><button class="v346-remove" type="button" data-remove-id="${html(a.id)}" aria-label="Remove ${html(a.id)} from scan list">Remove</button></td></tr>`).join(''):'<tr class="v352-empty-row"><td colspan="4">No devices scanned yet. Scan an Asset ID or a saved location above.</td></tr>'}</tbody></table>`;
   el('v346DeviceList').querySelectorAll('[data-remove-id]').forEach(b=>b.onclick=()=>{batch=batch.filter(id=>id!==b.dataset.removeId);drawScan();showStatus(`${b.dataset.removeId} removed from the scan list. No asset was moved.`);el('v346ScanInput').focus();});
-  el('v346Destinations').innerHTML=locations().map(name=>`<option value="${html(name)}"></option>`).join('');
+  el('v346Destinations').innerHTML=[...new Set([...locations(),...managedPallets.map(p=>p.name)])].map(name=>`<option value="${html(name)}"></option>`).join('');
  }
  function scan(raw){
   const value=clean(raw);if(!value)return;
@@ -152,17 +152,17 @@
  el('v346MoveLocation').onclick=()=>{
   if(transferBusy)return;
   if(!batch.length){showStatus('Scan at least one laptop first.',true);return;}
-  const typed=clean(el('v346Destination').value),destination=locations().find(name=>name.toLowerCase()===typed.toLowerCase());
-  if(!destination){showStatus('Choose an existing location from Inventory → Locations.',true);el('v346Destination').focus();return;}
+  const typed=clean(el('v346Destination').value),targetPallet=managedPallets.find(p=>p.name.toLowerCase()===typed.toLowerCase()),destination=targetPallet?.name||locations().find(name=>name.toLowerCase()===typed.toLowerCase());
+  if(!destination){showStatus('Choose an existing location or pallet, or press Create pallet.',true);el('v346Destination').focus();return;}
   const originals=batch.map(id=>items.find(a=>a.id===id));
   if(originals.some(a=>!a)){showStatus('Some assets are no longer available. Refresh and scan again.',true);return;}
-  const unchanged=originals.filter(a=>a.location.toLowerCase()===destination.toLowerCase()&&!a.pallet).length;
+  const unchanged=originals.filter(a=>targetPallet?upper(a.pallet)===upper(destination):a.location.toLowerCase()===destination.toLowerCase()&&!a.pallet).length;
   const preview=originals.slice(0,7).map(a=>`<li><strong>${html(a.id)}</strong> — ${html(deviceName(a))} <span>${html(a.location||'Unassigned')}</span></li>`).join('');
-  showModal('Review location transfer','SCAN / CONFIRM MOVE',`<div class="modal-body v360-review">
+  showModal(targetPallet?'Review pallet transfer':'Review location transfer','SCAN / CONFIRM MOVE',`<div class="modal-body v360-review">
    <p>Move <b>${originals.length} laptop${originals.length===1?'':'s'}</b> to <strong>${html(destination)}</strong>?</p>
    <div class="v360-review-summary"><span>Destination</span><strong>${html(destination)}</strong><span>Already there</span><strong>${unchanged}</strong></div>
    <ul>${preview}${originals.length>7?`<li>… and ${originals.length-7} more devices</li>`:''}</ul>
-   <p class="section-note">Their existing location assignments will be replaced. This batch can be undone until another user changes one of these assets.</p>
+   <p class="section-note">${targetPallet?'Their direct locations will be cleared and they will be assigned to this pallet.':'Their existing location and pallet assignments will be replaced.'} This batch can be undone until another user changes one of these assets.</p>
    <div id="v360TransferError" class="form-error" role="alert"></div>
    <div class="modal-actions"><button type="button" class="secondary" id="v360CancelMove">Cancel</button><button type="button" class="primary" id="v360ConfirmMove">Confirm move</button></div></div>`);
   el('v360CancelMove').onclick=()=>{closeModal();scanField.focus();};
@@ -171,16 +171,17 @@
    transferBusy=true;el('v360ConfirmMove').disabled=true;el('v360ConfirmMove').textContent='Moving…';
    const expectedAssignments=originals.map(a=>({id:a.id,location:a.location,pallet:a.pallet||'',updatedAt:a.updatedAt}));
    try{
-    const r=await api.bulkMove({ids:[...batch],location:destination,pallet:'',expectedAssignments});
+    const r=await api.bulkMove({ids:[...batch],location:targetPallet?'Unassigned':destination,pallet:targetPallet?destination:'',expectedAssignments});
     if(!r.ok){const message=r.error||'Transfer failed. No devices were moved.';el('v360TransferError').textContent=message;showStatus(message,true);return;}
     const count=batch.length;
     batch=[];el('v346Destination').value='';closeModal();await refresh();
-    lastMove={destination,entries:expectedAssignments.map(a=>({id:a.id,location:a.location,pallet:a.pallet,expectedLocation:destination,expectedPallet:'',expectedUpdatedAt:items.find(x=>x.id===a.id)?.updatedAt||''}))};
+    lastMove={destination,entries:expectedAssignments.map(a=>({id:a.id,location:a.location,pallet:a.pallet,expectedLocation:targetPallet?'Unassigned':destination,expectedPallet:targetPallet?destination:'',expectedUpdatedAt:items.find(x=>x.id===a.id)?.updatedAt||''}))};
     showStatus(`${count} device(s) moved to ${destination}. Undo is available below.`);updateUndo();drawScan();
    }catch(e){const message='Could not confirm the transfer. Refresh Inventory and check assignments before retrying.';showStatus(message,true);if(el('v360TransferError'))el('v360TransferError').textContent=message;}
    finally{transferBusy=false;updateUndo();drawScan();scanField.focus();}
   };
  };
+ el('scanCreatePallet').onclick=()=>{if(transferBusy)return;window.ApexPalletPage.create(pallet=>{el('v346Destination').value=pallet.name;drawScan();showStatus(`${pallet.name} created. Ready to move the scanned devices.`);el('v346Destination').focus();});};
  el('v360UndoMove').onclick=async()=>{
   if(!lastMove||transferBusy)return;
   const previous=lastMove;

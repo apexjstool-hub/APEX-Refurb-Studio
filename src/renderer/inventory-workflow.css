@@ -8,3 +8,5 @@
 @media(max-width:900px){.inventory-repair-heading{flex-direction:column}.inventory-repair-heading>div:last-child{justify-content:flex-start}}
 
 #assetPage>.device-inventory-navigation{display:flex;align-items:center;margin:0 0 14px}#deviceReturnInventory{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;font-size:12px;font-weight:600;border-radius:7px}
+
+.scan-create-pallet{margin-top:12px;display:flex}.pallet-creation-facts{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:18px}.pallet-creation-facts small{display:block;color:var(--muted);margin-bottom:6px}.pallet-creation-facts strong{display:block;font-size:14px}@media(max-width:600px){.pallet-creation-facts{grid-template-columns:1fr}}
