@@ -1,0 +1,39 @@
+'use strict';
+(function(root,factory){
+ if(typeof module==='object'&&module.exports){require('./renderer/asset-label-barcode');module.exports=factory(globalThis.ApexAssetBarcode);}
+ else root.ApexAssignmentDocuments=factory(root.ApexAssetBarcode);
+})(typeof globalThis!=='undefined'?globalThis:this,function(barcode){
+ const sizes={'2x1':[50.8,25.4],'4x2':[101.6,50.8]};
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const key=v=>String(v??'').trim().toUpperCase();
+ const date=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'Not recorded';
+ function select(data,kind,name){
+  if(!['pallet','location'].includes(kind)||!name||String(name).length>90)throw Error('Choose a valid location or pallet.');
+  let meta=kind==='pallet'?(data.pallets||[]).find(p=>key(p.name)===key(name)):(data.locations||[]).map(p=>typeof p==='string'?{name:p}:p).find(p=>key(p.name)===key(name));
+  if(!meta&&kind==='location'&&(data.items||[]).some(a=>!a.deletedAt&&!a.pallet&&key(a.location||'Unassigned')===key(name)))meta={name:String(name),createdAt:''};
+  if(!meta)throw Error('This '+kind+' no longer exists. Refresh and try again.');
+  const assets=(data.items||[]).filter(a=>!a.deletedAt&&(kind==='pallet'?key(a.pallet)===key(meta.name):!a.pallet&&key(a.location||'Unassigned')===key(meta.name))).sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}));
+  return {...meta,kind,assets};
+ }
+ function barcodeGeometry(name,size='2x1',dpi=203){
+  if(!sizes[size]||![203,300,600].includes(dpi))throw Error('Invalid label size or printer resolution.');
+  const [w,h]=sizes[size],svg=barcode.code128Svg(name),units=Number(svg.match(/viewBox="0 0 ([0-9]+)/)?.[1]),dots=Math.floor((w-4)*dpi/25.4/units);
+  if(!units||dots<1)throw Error('This name is too long for a scannable barcode at this size. Choose 4 x 2 inches or shorten the name.');
+  return {svg:svg.replace('<svg ', '<svg width="'+(units*dots*25.4/dpi).toFixed(3)+'mm" height="'+(h<30?9:21)+'mm" '),w,h,dots};
+ }
+ function labelMarkup(meta,size='2x1',dpi=203){
+  const g=barcodeGeometry(meta.name,size,dpi);
+  return '<main class="assignment-label"><div class="label-type">APEX '+(meta.kind==='pallet'?'REFURB PALLET':'LOCATION')+'</div><div class="label-name">'+esc(meta.name)+'</div><div class="label-bars">'+g.svg+'</div><div class="label-date">Created: '+esc(date(meta.createdAt))+'</div>'+(g.h>30&&meta.label?'<div class="label-description">'+esc(meta.label)+'</div>':'')+'</main>';
+ }
+ function labelDocument(meta,size='2x1',dpi=203){
+  const [w,h]=sizes[size]||[];if(!w)throw Error('Invalid label size.');
+  return '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:"><title>'+esc(meta.name)+'</title><style>@page{size:'+w+'mm '+h+'mm;margin:0}*{box-sizing:border-box}html,body{margin:0;width:'+w+'mm;height:'+h+'mm;background:white;color:black;font-family:Arial,sans-serif}.assignment-label{width:'+w+'mm;height:'+h+'mm;padding:1.5mm 2mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6mm;overflow:hidden}.label-type{font-size:'+(h<30?'5.5':'9')+'pt;font-weight:bold;letter-spacing:.4pt}.label-name{font-size:'+(h<30?'8':'14')+'pt;font-weight:bold;line-height:1.1;text-align:center;max-width:100%;overflow-wrap:anywhere}.label-bars{line-height:0;flex:none}.label-bars svg{display:block;max-width:100%}.label-date{font-size:'+(h<30?'6':'9')+'pt;white-space:nowrap}.label-description{font-size:8pt;text-align:center;max-height:8mm;overflow:hidden}</style></head><body>'+labelMarkup(meta,size,dpi)+'</body></html>';
+ }
+ function manifestDocument(meta,generatedAt=new Date().toISOString()){
+  if(meta.kind!=='pallet')throw Error('Manifests are available for pallets.');
+  const rows=meta.assets.map((a,i)=>'<tr><td>'+ (i+1) +'</td><td class="asset-id">'+esc(a.id)+'</td><td>'+esc(a.model&&key(a.model).startsWith(key(a.manufacturer||' '))?a.model:[a.manufacturer,a.model].filter(Boolean).join(' ')||'Not recorded')+(a.processor?'<small>'+esc(a.processor)+'</small>':'')+'</td><td>'+esc(a.serial||'Not recorded')+'</td><td>'+esc(a.ram||'—')+'</td><td>'+esc(a.storage||'—')+'</td><td>'+esc(a.condition||'—')+'<small>'+esc(a.status||'—')+'</small></td></tr>').join('');
+  const barcodeSvg=barcodeGeometry(meta.name,'4x2',300).svg;
+  return '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:"><title>APEX pallet manifest '+esc(meta.name)+'</title><style>@page{size:A4 portrait;margin:13mm 11mm 15mm}*{box-sizing:border-box}body{margin:0;width:188mm;color:#17263a;background:white;font:9pt Arial,sans-serif}header{display:flex;justify-content:space-between;gap:8mm;align-items:flex-start;margin-bottom:7mm;break-inside:avoid}h1{font-size:20pt;margin:0 0 2mm}.brand{font-size:9pt;font-weight:bold;letter-spacing:1pt;color:#58677a;margin-bottom:3mm}.sub{font-size:11pt;font-weight:bold}.header-barcode{max-width:78mm;text-align:right}.header-barcode svg{width:auto;max-width:78mm;height:13mm}.header-barcode small{display:block;font-size:8pt;margin-top:1mm}.meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;padding:4mm;background:#f1f5fa;border:1px solid #dce4ee;margin-bottom:5mm;break-inside:avoid}.meta small{display:block;color:#536276;font-size:8pt;margin-bottom:1mm}.description{font-size:9pt;line-height:1.5;margin-bottom:6mm;overflow-wrap:anywhere}table{width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}th{background:#eaf0f7;color:#223d5c;text-align:left;font-size:8pt;padding:3mm 2mm;border-bottom:1px solid #bbc9d9}td{padding:3mm 2mm;vertical-align:top;border-bottom:1px solid #dce4ee;font-size:8pt;line-height:1.45;overflow-wrap:anywhere}tr{break-inside:avoid;page-break-inside:avoid}th:nth-child(1){width:5%}th:nth-child(2){width:12%}th:nth-child(3){width:24%}th:nth-child(4){width:18%}th:nth-child(5){width:9%}th:nth-child(6){width:15%}th:nth-child(7){width:17%}.asset-id{font-weight:bold}td small{display:block;color:#536276;font-size:7.5pt;margin-top:1mm}.empty{padding:8mm;border:1px solid #dce4ee}.end{margin-top:7mm;break-inside:avoid;font-size:8pt;color:#536276}.signatures{display:flex;gap:10mm;margin-top:10mm}.signatures span{flex:1;border-top:1px solid #b8c4d4;padding-top:2mm}</style></head><body><header><div><div class="brand">APEX REFURB MANAGEMENT STUDIO</div><h1>Pallet manifest</h1><div class="sub">'+esc(meta.name)+'</div></div><div class="header-barcode">'+barcodeSvg+'<small>'+esc(meta.name)+'</small></div></header><section class="meta"><div><small>Pallet created</small><strong>'+esc(date(meta.createdAt))+'</strong></div><div><small>Manifest generated</small><strong>'+esc(date(generatedAt))+'</strong></div><div><small>Devices on pallet</small><strong>'+meta.assets.length+'</strong></div></section>'+(meta.label?'<div class="description"><b>Description:</b> '+esc(meta.label)+'</div>':'')+(meta.assets.length?'<table><thead><tr><th>#</th><th>Asset ID</th><th>Make / model</th><th>Serial number</th><th>RAM</th><th>Storage</th><th>Condition / status</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">This pallet is empty. No devices were assigned when this manifest was generated.</div>')+'<footer class="end">End of manifest - '+meta.assets.length+' device(s). This is a snapshot of the pallet contents at export time.<div class="signatures"><span>Prepared by / date</span><span>Checked by / date</span></div></footer></body></html>';
+ }
+ return {sizes,select,date,barcodeGeometry,labelMarkup,labelDocument,manifestDocument};
+});

@@ -509,6 +509,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:restore',secured(id=>inventoryCall('POST','/v1/trash/restore',{id},()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'restoreAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:manageDelete',adminSecured(command=>inventoryCall('POST','/v1/maintenance/delete',command,()=>{const db=loadDB(),r=maintenance.mutate(db,command);if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:remove',secured(id=>inventoryCall('DELETE','/v1/items/'+encodeURIComponent(id),null,()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'deleteAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
+ ipcMain.handle('inventory:printAssignment',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./assignment-output').output(input,win,data);}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
  ipcMain.handle('inventory:exportXlsx',secured(async (rows,kind)=>{

@@ -1,6 +1,7 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
+ printAssignment:input=>ipcRenderer.invoke('inventory:printAssignment',input),
  saveLabelPdf:input=>ipcRenderer.invoke('inventory:saveLabelPdf',input),
  printAssetLabel:input=>ipcRenderer.invoke('inventory:printAssetLabel',input),
  updateStatus:()=>ipcRenderer.invoke('inventory:updateStatus'),
