@@ -15,7 +15,8 @@
   return {labels,parts,respray:sprays,known:!!job||requirements.length>0,onHold:job?.status==='On Hold'};
  }
  function grade(asset,suggestion){
-  if(/^[ABCD]$/.test(String(asset.condition||'')))return {value:asset.condition,source:'Assigned grade'};
+  const selected=String(asset.condition??'').trim();
+  if(['A','B','C','D','Excellent','Good','Fair','Not assessed'].includes(selected))return {value:selected,source:selected==='Not assessed'?'No grade recorded':'Assigned grade'};
   const value=suggestion?.grade||asset.grade;
   return value&&value!=='Pending'?{value,source:'Inspection grade'}:{value:'Not assessed',source:'No grade recorded'};
  }

@@ -10,8 +10,10 @@ test('Latest recorded RefurbFlow requirements provide a fallback without guessin
  assert.deepEqual(summary.process(a,{jobs:{}}).labels,['Respray']);assert.deepEqual(summary.process({id:'A',notes:'maybe needs paint'},{jobs:{}}).labels,['Not recorded']);
  assert.deepEqual(summary.process(a,{jobs:{A:{status:'Completed',parts:[{name:'Lid respray',qty:1,fitted:0}]}}}).labels,['Completed']);
 });
-test('Assigned A-D grades take precedence over calculated inspection grades',()=>{
+test('Every selected device grade takes precedence over calculated inspection grades',()=>{
  assert.deepEqual(summary.grade({condition:'B'},{grade:'D'}),{value:'B',source:'Assigned grade'});
- assert.deepEqual(summary.grade({condition:'Not assessed'},{grade:'C'}),{value:'C',source:'Inspection grade'});
+ for(const condition of ['A','B','C','D','Excellent','Good','Fair'])assert.deepEqual(summary.grade({condition},{grade:'C'}),{value:condition,source:'Assigned grade'});
+ assert.deepEqual(summary.grade({condition:'Not assessed'},{grade:'C'}),{value:'Not assessed',source:'No grade recorded'});
+ assert.deepEqual(summary.grade({}, {grade:'C'}),{value:'C',source:'Inspection grade'});
  assert.equal(summary.grade({}, {grade:'Pending'}).value,'Not assessed');
 });
