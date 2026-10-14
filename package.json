@@ -1,6 +1,6 @@
 {
   "name": "apex-inventory-studio",
-  "version": "4.0.17",
+  "version": "4.0.18",
   "description": "APEX Refurb Management Studio \u2014 inventory, locations, refurb imports and A4 / Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
@@ -35,7 +35,8 @@
       "package.json",
       "node_modules/@zxing/**/*",
       "node_modules/@zxing/browser/**/*",
-      "cloud/sync-bridge.js"
+      "cloud/sync-bridge.js",
+      "cloud/refurb-parts-bridge.js"
     ],
     "win": {
       "target": [

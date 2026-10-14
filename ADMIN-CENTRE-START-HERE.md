@@ -1,7 +1,7 @@
-# APEX 4.0.17 — one administrator account
+# APEX 4.0.18 — one administrator account
 
 ## On your trusted inventory hub PC
-1. Install APEX-Refurb-Studio-Setup-4.0.17.exe. Close old APEX / old standalone hub first, then launch the updated APEX.
+1. Install APEX-Refurb-Studio-Setup-4.0.18.exe. Close old APEX / old standalone hub first, then launch the updated APEX.
 2. Sign in using your MAIN shared administrator email/password. You do not need to switch to the local admin account.
 3. Open Admin Centre and unlock it with the SAME account password.
 4. If the hub is not connected, use Automatic tool connections → Start sharing on this PC. Existing hub inventory is retained in the existing shared-hub directory.
@@ -16,7 +16,7 @@ These remote controls require a trusted LAN or VPN connection to the hub. Do not
 
 ## Android receipts
 Intake verification reports whether a hub receipt's Asset ID is present in cloud inventory when you use a shared cloud account. Saved to Hub is not automatically proof that cloud sync completed. Test/start the hub sync and check again.
-This update does not resend Android records, migrate local inventory, or merge conflicting records. It does not add full two-way refurbishment workflow replication to the existing core-asset bridge. Local/LAN and cloud refurbishment jobs remain separate unless your existing cloud intake sends the job directly to the cloud workflow.
+The bridge now imports saved RefurbFlow parts requirements into cloud Parts Needed, including parts-only edits and earlier saved reports. Cloud orders, received/fitted quantities, manual requirements and QC remain authoritative. This is not full two-way replication of local refurbishment progress. Completed/on-hold jobs and serial conflicts require review; deleted assets are not resurrected.
 
 ## Updates
-The installed EXE still uses the existing GitHub Update Centre. The GitHub build creates a draft stable v4.0.17 with its NSIS Setup EXE, blockmap and latest.yml. Test it, then publish the draft normally (prerelease off) to make it available to installed PCs.
+The installed EXE still uses the existing GitHub Update Centre. The GitHub build creates a draft stable v4.0.18 with its NSIS Setup EXE, blockmap and latest.yml. Test it, then publish the draft normally (prerelease off) to make it available to installed PCs.

@@ -1,13 +1,14 @@
 'use strict';
 /* Runs only on an administrator-controlled computer. Never embed service-role keys in Electron renderer. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const {syncRequirements}=require('./refurb-parts-bridge');
 const envFile=process.env.APEX_CLOUD_BRIDGE_CONFIG || path.join(__dirname,'cloud-bridge.local.json');
 if(!fs.existsSync(envFile)){console.error('Create cloud-bridge.local.json from example first.');process.exit(1);}
 const config=JSON.parse(fs.readFileSync(envFile,'utf8'));
 if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(config.supabaseUrl||'')||!config.serviceRoleKey||!/^http:\/\/(127\.0\.0\.1|localhost):\d{2,5}$/.test(config.hubUrl||'')||!config.hubToken||config.hubToken==='SET_WHEN_STARTED'){console.error('Invalid bridge configuration. Use loopback hub URL and private server credentials.');process.exit(1);}
 const base=config.supabaseUrl+'/rest/v1/apex_assets',stateFile=process.env.APEX_CLOUD_STATE_FILE || path.join(__dirname,'cloud-sync-state.local.json');
 let state={};try{state=JSON.parse(fs.readFileSync(stateFile,'utf8'));}catch{}
-const headers={apikey:config.serviceRoleKey,Authorization:'Bearer '+config.serviceRoleKey,'Content-Type':'application/json'};
+const headers={apikey:config.serviceRoleKey,...(!config.serviceRoleKey.startsWith('sb_secret_')?{Authorization:'Bearer '+config.serviceRoleKey}:{}),'Content-Type':'application/json'};
 const hash=o=>crypto.createHash('sha256').update(JSON.stringify(o)).digest('hex');
 const syncedFields=['model','manufacturer','serial','location','status','condition','notes'];
 const shape=x=>Object.fromEntries(syncedFields.map(k=>[k,x?.[k]??'']));
@@ -53,7 +54,7 @@ try{
  const r=rem.get(id),h=hash(shape(a)),s=state[id];
  if(!r){ // Seed only new assets; never silently remove remote data.
   const created=await cloud('POST','?select=id,payload,revision',[{id,payload:a}],{Prefer:'return=representation'});
-  state[id]={localHash:h,cloudRevision:created[0].revision};added++;continue;
+  state[id]={localHash:h,cloudRevision:created[0].revision};rem.set(id,created[0]);added++;continue;
  }
  if(!s){ // Both sides existed before first sync. Require review unless identical.
   if(hash(shape(r.payload))===h)state[id]={localHash:h,cloudRevision:r.revision};
@@ -73,6 +74,14 @@ try{
   state[id]={localHash:h,cloudRevision:saved[0].revision};pushed++;
  }
  }
- persist();console.log(new Date().toISOString(),`Synced: seeded=${added}, local→cloud=${pushed}, cloud→local=${pulled}, permanently-deleted-skipped=${blocked}, conflicts=${conflicts}`);
+ let parts='not checked';
+ try{
+  const route=config.supabaseUrl+'/rest/v1/apex_refurb_workflow';
+  const merged=await syncRequirements({localAssets:local.items,cloudAssets:rem,deleted:permanentlyDeleted,
+   read:async()=>{const rows=await fetchJson(route+'?singleton_id=eq.1&select=document,revision',{headers});return rows[0];},
+   write:async(revision,document)=>{const rows=await fetchJson(route+'?singleton_id=eq.1&revision=eq.'+revision+'&select=revision',{method:'PATCH',headers:{...headers,Prefer:'return=representation'},body:JSON.stringify({document,revision:revision+1,updated_at:new Date().toISOString(),updated_by:null})});return rows.length===1;}
+  });parts='added='+merged.added+', updated='+merged.updated+', review-skipped='+merged.skipped;
+ }catch(e){parts='ERROR: '+e.message;}
+ persist();console.log(new Date().toISOString(),`Synced: seeded=${added}, local→cloud=${pushed}, cloud→local=${pulled}, permanently-deleted-skipped=${blocked}, conflicts=${conflicts}; refurb-parts ${parts}`);
 }catch(e){console.error('[SYNC ERROR]',e.message);}finally{busy=false;}}
 cycle();setInterval(cycle,Number(config.intervalSeconds||15)*1000);

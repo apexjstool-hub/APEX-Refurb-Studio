@@ -1,9 +1,0 @@
-APEX 4.0.17 Admin Centre
-
-Verified locally: source syntax; shared admin authorization and inactive/staff rejection; private configuration never returned; remote secret save denied; project mismatch denied; confirmed sync single-start; enable preference preserved on shutdown and cleared on manual stop; private-key account manager; live HTTP hub admin-token gate and restricted Android-token rejection; existing account security, inventory CRUD, diagnostic intake, RefurbFlow workflow, History visibility and label decode/layout tests.
-
-GitHub Windows build also runs source checks, core tests, existing real label/PDF checks and NSIS installer metadata validation.
-
-Live Supabase/physical multi-PC operations were not exercised here. No user inventory or live Supabase database was modified. No cloud SQL migration is required for the new Admin Centre.
-
-Limit: remote controls use an existing trusted LAN/VPN hub connection; no public internet relay is included. Private credentials remain on the actual hub. Sync runs while the hub/APEX is running.
