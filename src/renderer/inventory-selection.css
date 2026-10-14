@@ -49,3 +49,6 @@ input.inventory-row-select{appearance:auto!important;width:16px!important;min-wi
 .inventory-filter-footer{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
 @media(max-width:1100px){.inventory-inline-results{display:none}#inventoryPage .inventory-selection-count{margin-left:auto;font-size:10px}}
 @media(max-width:700px){#inventoryPage .inventory-selection-toolbar{flex-wrap:wrap}#inventoryPage .inventory-inline-search{flex:1;min-width:120px}#inventoryPage .inventory-selection-count{display:none}#inventoryFiltersButton{margin-left:auto}.inventory-filter-fields{grid-template-columns:1fr}}
+
+.apex-v34 #inventoryPage #inventorySearch{display:block!important;width:100%!important;height:32px!important;min-height:32px!important;border:2px solid #7b9ec3!important;border-radius:4px!important;background:var(--panel2)!important;padding:5px 10px!important;font-size:12px!important;color:var(--text)!important}
+.apex-v34 #inventoryPage #inventorySearch:focus{border-color:#176de3!important;outline:2px solid #176de322!important;outline-offset:1px}
