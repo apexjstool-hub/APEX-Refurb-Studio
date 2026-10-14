@@ -1,7 +1,7 @@
 'use strict';
 // APEX v3 workspace layer; reuses the existing verified inventory, hub, and repairs logic.
 (function(){
-const groups={dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['parts','Parts needed'],['partsOrdered','Parts ordered'],['locations','Locations'],['completed','Completed']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
+const groups={dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['parts','Parts needed'],['partsOrdered','Parts ordered'],['locations','Locations'],['pallets','Pallets'],['completed','Completed']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
 const groupNames={dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
 const esc=html;
 const getGroup=p=>p==='asset'||p==='scan'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
@@ -66,7 +66,7 @@ const oldOpenAsset=openAsset;openAsset=function(...args){const r=oldOpenAsset(..
 function snapshot(){return window.ApexWorkflowSnapshot||{jobs:{},orders:[],audit:[]};}
 const name=a=>deviceName(a);
 function exportRows(kind){const ops=snapshot();
-if(kind==='refurb-parts')return window.ApexRefurbExport.requiredPartsRows(items,ops);
+if(kind==='refurb-parts')return window.ApexRefurbExport.templatePartsRows(items,ops);
 if(kind==='orders'){const rows=[['Purchase Order','Supplier','Asset Tag','Full Manufacturer and Model','Part Needed','Quantity','Received','Expected Date','Status']];
 for(const o of ops.orders||[])for(const line of o.lines||[]){const a=items.find(x=>x.id===line.assetId);rows.push([o.id,o.supplier||'Not selected',line.assetId,a?name(a):'',line.name,line.qty,line.received,o.expectedAt||'',o.status==='Draft'?'Draft':line.qty===line.received?'Received':'Ordered']);}return rows;}
 return [['Asset Tag','Full Manufacturer and Model','Serial Number','Location','Condition','Processing Status'],...items.map(a=>[a.id,name(a),a.serial,a.location,a.condition,a.status])];

@@ -16,7 +16,7 @@ const init=()=>{
   root.classList.toggle('apex-inventory-comfortable',density.value==='comfortable');
   try{localStorage.setItem('apex.inventory.density',density.value);}catch(_e){}
  });
- const ids=['inventorySearch','locationFilter','gradeFilter','statusFilter'];
+ const ids=['inventorySearch','locationFilter','gradeFilter','statusFilter','palletFilter','repairFilter'];
  const update=()=>{
   const bar=table.querySelector('.v395-pagebar span');
   results.textContent=bar?bar.textContent.split(' · Page')[0]:'Inventory records';

@@ -33,7 +33,7 @@
   const editor = byId('assetEditor');
   const fieldGrid = editor?.querySelector('.flat-fields');
   if (fieldGrid) {
-    const general = ['id', 'manufacturer', 'model', 'serial', 'productType', 'sku', 'location', 'condition', 'status'];
+    const general = ['id', 'manufacturer', 'model', 'serial', 'productType', 'sku', 'location', 'pallet', 'condition', 'status'];
     const hardware = ['processor', 'gpu', 'operatingSystem', 'batteryPercentage', 'ram', 'ramType', 'storage', 'ssdType'];
     const columns = document.createElement('div');
     columns.className = 'v34-editor-columns';

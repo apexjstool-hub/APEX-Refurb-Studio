@@ -1,4 +1,4 @@
-# APEX 4.0.19 — receive parts and enable phone fitting
+# APEX 4.0.20 — receive parts and enable phone fitting
 
 Install the new Windows release and sign into your shared cloud workspace.
 1. Open Parts Ordered → View parts for the laptop.

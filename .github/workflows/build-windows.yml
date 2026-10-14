@@ -47,7 +47,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
+          node --test tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
@@ -59,6 +59,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-inventory-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Inventory print/PDF verification failed.' }
+      - name: Verify Inventory workflow rendering and receipt action
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-inventory-tracker.js
+          if ($LASTEXITCODE -ne 0) { throw 'Inventory workflow UI checks failed.' }
       - name: Build installed Windows release
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

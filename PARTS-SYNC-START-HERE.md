@@ -1,6 +1,6 @@
-# APEX 4.0.19 — RefurbFlow Parts Needed sync
+# APEX 4.0.20 — RefurbFlow Parts Needed sync
 
-Install the 4.0.19 NSIS update on your trusted HUB PC first, then close/reopen APEX. The existing enabled bridge will restart using the new parts-sync code. If sync was stopped, use Admin Centre → Hub sync controls → Start cloud sync.
+Install the 4.0.20 NSIS update on your trusted HUB PC first, then close/reopen APEX. The existing enabled bridge will restart using the new parts-sync code. If sync was stopped, use Admin Centre → Hub sync controls → Start cloud sync.
 
 Wait 15–30 seconds and refresh Parts Needed while signed into your shared cloud account. No phone update or rescan is needed for reports already saved on this Hub.
 

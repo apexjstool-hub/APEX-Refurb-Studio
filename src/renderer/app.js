@@ -9,8 +9,8 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre'};
-const PAGE_SUBS={dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration'};
+const PAGE_NAMES={dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets'};
+const PAGE_SUBS={dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
  if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
@@ -42,7 +42,7 @@ function render(){
  for(const asset of items)gradeCounts.set(asset.grade,(gradeCounts.get(asset.grade)||0)+1);
  $('gradeSummary').innerHTML=['A','B','C','D','Pending'].map(g=>`<div class="grade-tile"><b>${g}</b><small>${gradeCounts.get(g)||0} assets</small></div>`).join('');
  const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
- const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q))));
+ const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
  // Only draw the current page. Exports and scans still use the entire items array.
  const pageSize=100, pageCount=Math.max(1,Math.ceil(filtered.length/pageSize));
  inventoryPageIndex=Math.min(Math.max(0,inventoryPageIndex),pageCount-1);
@@ -57,7 +57,7 @@ function render(){
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>{if(!setPage('inventory'))return;$('inventorySearch').value='';$('locationFilter').value=b.dataset.location;render();});
- renderSupplementalPages();
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexPalletPage?.render();
 }
 function summarizeLocations(){
  const map=new Map(managedLocations.map(name=>[name,[]]));
@@ -180,7 +180,9 @@ function openAsset(id=''){
  if(!setPage('asset',true))return;
  const form=$('assetEditor');for(const [name,value] of Object.entries(a)){const field=form.elements.namedItem(name);if(field&&['INPUT','TEXTAREA'].includes(field.tagName))field.value=value??'';}
  fillOptions('editProductType',core.productTypes,a.productType);fillOptions('editRamType',core.ramTypes,a.ramType);fillOptions('editSsdType',core.ssdTypes,a.ssdType);
- fillOptions('editLocation',[...new Set([...managedLocations,...items.map(i=>i.location).filter(Boolean),a.location||'Inspection'])].sort(),a.location);
+ fillOptions('editPallet',['',...new Set([...managedPallets.map(p=>p.name),...items.map(i=>i.pallet).filter(Boolean),a.pallet||''])].sort(),a.pallet||'');
+ $('editPallet').options[0].textContent='No pallet';
+ fillOptions('editLocation',[...new Set(['Unassigned',...managedLocations,...items.map(i=>i.location).filter(Boolean),a.location||'Inspection'])].sort(),a.location);
  fillOptions('editCondition',core.conditions,a.condition);fillOptions('editStatus',core.statuses,a.status);
  fillOptions('editCosmetic',core.cosmetics,a.inspection.cosmetic);fillOptions('editFunctional',core.functions,a.inspection.functional);fillOptions('editBattery',core.batteries,a.inspection.battery);
  
@@ -193,9 +195,9 @@ function openAsset(id=''){
  $('assetAdvanced').classList.add('hidden');$('assetAdvancedToggle').setAttribute('aria-expanded','false');$('assetAdvancedToggle').textContent='Advanced inspection & history ↓';
  updateAssetOverview();
 }
-function readAsset(){const f=Object.fromEntries(new FormData($('assetEditor')));if(activeAssetId){const old=items.find(a=>a.id===activeAssetId);if(old&&String(old.location||'')!==String(f.location||''))f.pallet='';}f.id=String(f.id||'').trim().toUpperCase();f.inspection={cosmetic:f.cosmetic,functional:f.functional,battery:f.battery};return f;}
+function readAsset(){const f=Object.fromEntries(new FormData($('assetEditor')));f.id=String(f.id||'').trim().toUpperCase();f.inspection={cosmetic:f.cosmetic,functional:f.functional,battery:f.battery};return f;}
 function updateAssetOverview(){if(currentPage!=='asset')return;const a=readAsset();const name=deviceName(a),suggested=core.assess(a.inspection);
- $('assetSummary').innerHTML=`<div class="mock-device-art" aria-hidden="true"><svg viewBox="0 0 155 105" width="100%" height="100%"><defs><linearGradient id="device-glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#28a7fa"/><stop offset=".55" stop-color="#225bdc"/><stop offset="1" stop-color="#33236d"/></linearGradient></defs><rect x="21" y="7" width="112" height="79" rx="3" fill="#555c6c" stroke="#b2b5c5" stroke-width="2"/><rect x="25" y="11" width="104" height="70" fill="#091631"/><path d="M35 54Q60 15 109 38Q72 39 100 74Q48 78 35 54Z" fill="url(#device-glow)"/><path d="M12 88H142L153 97H1Z" fill="#9398a8"/><rect x="57" y="90" width="42" height="3" rx="1" fill="#3d4351"/></svg></div><div class="mock-summary-body"><h2>${html(name)}</h2><div class="mock-type">${html(a.productType)}</div><div class="mock-summary-facts"><div><small>Asset ID</small><strong>${html(a.id||'Not scanned')}</strong></div><div><small>Status</small>${state(a.status)}</div><div><small>Condition</small>${conditionBadge(a.condition)}</div><div><small>Location</small><strong>${html(a.location||'Unassigned')}</strong></div></div></div><div class="asset-summary-print"><button id="assetPrintLabel" type="button" class="secondary" ${activeAssetId?'':'disabled title="Save asset first"'}>▣ Print Label · Barcode / QR</button></div>`;
+ $('assetSummary').innerHTML=`<div class="mock-device-art" aria-hidden="true"><svg viewBox="0 0 155 105" width="100%" height="100%"><defs><linearGradient id="device-glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#28a7fa"/><stop offset=".55" stop-color="#225bdc"/><stop offset="1" stop-color="#33236d"/></linearGradient></defs><rect x="21" y="7" width="112" height="79" rx="3" fill="#555c6c" stroke="#b2b5c5" stroke-width="2"/><rect x="25" y="11" width="104" height="70" fill="#091631"/><path d="M35 54Q60 15 109 38Q72 39 100 74Q48 78 35 54Z" fill="url(#device-glow)"/><path d="M12 88H142L153 97H1Z" fill="#9398a8"/><rect x="57" y="90" width="42" height="3" rx="1" fill="#3d4351"/></svg></div><div class="mock-summary-body"><h2>${html(name)}</h2><div class="mock-type">${html(a.productType)}</div><div class="mock-summary-facts"><div><small>Asset ID</small><strong>${html(a.id||'Not scanned')}</strong></div><div><small>Status</small>${state(a.status)}</div><div><small>Condition</small>${conditionBadge(a.condition)}</div><div><small>Location</small><strong>${html(a.location||'Unassigned')}</strong></div><div><small>Pallet</small><strong>${html(a.pallet||'Not assigned')}</strong></div></div></div><div class="asset-summary-print"><button id="assetPrintLabel" type="button" class="secondary" ${activeAssetId?'':'disabled title="Save asset first"'}>▣ Print Label · Barcode / QR</button></div>`;
  const printButton=$('assetPrintLabel');if(printButton)printButton.onclick=openAssetPrintDialog;
  $('assetGradeSuggestion').innerHTML=`<span>Suggested grade</span>${grade(suggested)}<small>${html(suggested.reason)}</small>`;
  $('applySuggested').disabled=suggested.grade==='Pending';

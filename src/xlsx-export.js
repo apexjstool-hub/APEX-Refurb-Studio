@@ -63,4 +63,4 @@ function workbook(rows,title='APEX Parts Needed'){
   ];
   return archive(files);
 }
-module.exports={workbook};
+module.exports={workbook,archive,xml,col};

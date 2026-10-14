@@ -1,7 +1,0 @@
-APEX 4.0.19 — Parts Ordered receiving and reviewed duplicates
-
-31 local tests passed: direct receipt, linked purchase-order receipt, physical fitting after receipt, stale repeat and over-receipt rejection, locked stage rejection, untouched duplicate review, progress/order/notes/manual-part retention, repeat-import prevention, existing bridge/admin/intake/inventory/workflow/label tests. JavaScript syntax checked.
-
-Actual refurb-ui.js executed against source HTML in JSDOM: duplicate review submission retains one requirement; Mark received form writes quantity and displays Received; fitting is not automatically recorded.
-
-GitHub Windows build runs source and core tests plus real label/PDF checks, NSIS packaging and installer metadata validation. Live Supabase and phone UI were not exercised here. No live user records were changed or automatically deduplicated.

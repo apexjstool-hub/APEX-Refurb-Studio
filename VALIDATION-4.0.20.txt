@@ -1,0 +1,9 @@
+APEX 4.0.20 validation
+
+39 local backend/source tests passed, covering workflow counters, actual orders versus manual boards, receipt/fitting stages, recorded activity, pallet safeguards, template field mapping, four-slot overflow, 50-device table extension, literal Excel input safety, existing security/intake/inventory/refurb/label behaviour. Syntax checks and distribution public-configuration checks passed.
+
+Actual renderer functions in JSDOM passed Inventory expansion, inline purchase-order and receipt persistence, preserved expansion, repair filters, pallet membership filtering and Overview location/pallet assignment. The real Overview form-grouping script was included to verify the new pallet field remains visible.
+
+Template output was imported, inspected and rendered with Artifact Tool. Entering test numeric cost values recalculated Parts Total correctly with no formula errors. Independent OOXML/openpyxl read-only inspection confirmed ID/serial text values, styles, blank costs, table bounds and formulas. This is not a physical Microsoft Excel test.
+
+GitHub Windows checks include the real Electron Inventory workflow rendering and receipt test, existing label/PDF tests, core tests, NSIS build and update metadata verification. Live Supabase/multiple physical PCs/phone network operations were not exercised here; no production records were changed.

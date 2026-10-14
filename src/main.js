@@ -516,7 +516,7 @@ app.whenReady().then(()=>{
   const title=kind==='refurb-parts'?'Refurb Parts Required':kind==='inventory'?'Inventory':kind==='orders'?'Purchase Orders':'Parts Needed';
   const result=await dialog.showSaveDialog(win,{title:'Export '+title+' to Excel',defaultPath:'APEX-'+title.replaceAll(' ','-')+'-'+new Date().toISOString().slice(0,10)+'.xlsx',filters:[{name:'Excel workbook',extensions:['xlsx']}]});
   if(result.canceled||!result.filePath)return {ok:false,cancelled:true};
-  try{await fs.promises.writeFile(result.filePath,xlsx.workbook(rows,title));return {ok:true};}
+  try{await fs.promises.writeFile(result.filePath,kind==='refurb-parts'?require('./refurb-template-xlsx').workbook(rows):xlsx.workbook(rows,title));return {ok:true};}
   catch(e){return {ok:false,error:'Could not create Excel file: '+e.message};}
  }));
  ipcMain.handle('inventory:exportCsv',secured(async csv=>{
