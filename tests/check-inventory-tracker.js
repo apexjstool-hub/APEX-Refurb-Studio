@@ -67,6 +67,16 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('v346ScanInput').value='TEST-TRACKER';$('v346ScanForm').dispatchEvent(new Event('submit',{cancelable:true}));$('v346MoveLocation').click();$('v360ConfirmMove').click();");
   for(let i=0;i<30;i++){if(db.items[0].pallet==='PALLET-0002')break;await new Promise(r=>setTimeout(r,100));}
   if(db.items[0].pallet!=='PALLET-0002'||db.items[0].location!=='Unassigned')throw Error('Scan pallet move did not clear the direct location.');
+  await win.webContents.executeJavaScript("setPage('pallets');$('inventoryPage').classList.add('hidden');$('bulkPage').classList.add('hidden');$('palletsPage').classList.remove('hidden');window.ApexPalletPage.render();void 0;");
+  if(!await win.webContents.executeJavaScript("(()=>{const b=$('apexCreatePallet'),r=b.getBoundingClientRect();return r.width>80&&r.height>20&&!b.closest('.page-intro')&&b.textContent.includes('Add new pallet');})()"))throw Error('Add new pallet button is hidden or missing from the Pallets page.');
+  await win.webContents.executeJavaScript("$('apexCreatePallet').click();void 0;");
+  if(!await win.webContents.executeJavaScript("$('apexPalletNumber').textContent==='PALLET-0003'&&$('apexPalletForm').textContent.includes('Creation date')"))throw Error('Pallets page did not open automatic pallet creation.');
+  await win.webContents.executeJavaScript("$('apexPalletCancel').click();void 0;");
+  if(db.pallets.length!==2)throw Error('Cancelling pallet creation changed the saved pallets.');
+  await win.webContents.executeJavaScript("$('apexCreatePallet').click();$('apexPalletForm').elements.label.value='Created from Pallets page';$('apexPalletForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  let pagePalletReady=false;for(let i=0;i<30;i++){pagePalletReady=await win.webContents.executeJavaScript("$('apexPalletTable').textContent.includes('PALLET-0003')&&$('modalLayer').classList.contains('hidden')");if(pagePalletReady)break;await new Promise(r=>setTimeout(r,100));}
+  if(!pagePalletReady||!db.pallets.find(p=>p.name==='PALLET-0003'&&p.label==='Created from Pallets page'&&p.createdAt))throw Error('Pallets page creation failed to save metadata and refresh the list.');
+  await win.webContents.executeJavaScript("$('palletsPage').classList.add('hidden');$('inventoryPage').classList.remove('hidden');setPage('inventory');void 0;");
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'asset-label-qr.js'),'utf8'));
   await win.webContents.executeJavaScript('window.print=()=>{};void 0;');
   const reportCalls=["window.ApexOps.printWorksheet('TEST-TRACKER')","window.ApexOps.printBatchWorksheets(['TEST-TRACKER'])","window.ApexOps.printPartsReport()","window.ApexOps.printRefurbPartsReport()","window.ApexOps.printQCReport('TEST-TRACKER')","window.ApexOps.printPurchaseOrder("+JSON.stringify(state.orders[0].id)+")"];
