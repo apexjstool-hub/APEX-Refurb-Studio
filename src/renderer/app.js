@@ -8,7 +8,7 @@ const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
-function notify(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
+function notify(msg,kind='info'){$('toast').dataset.kind=kind;$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
 const PAGE_NAMES={dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets'};
 const PAGE_SUBS={dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register'};
 function setPage(page,force=false){
@@ -104,7 +104,7 @@ async function exportInventory(){
 let inventoryPrintCleanup=null;
 function printInventory(){
  if(inventoryPrintCleanup)inventoryPrintCleanup();
- const content=`<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${items.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${items.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
+ const content=`${window.ApexReportBrand.header()}<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${items.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${items.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
  const pane=document.createElement('div');pane.id='printPane';pane.innerHTML=content;document.body.appendChild(pane);
  let timeout,cleaned=false;
  const cleanup=()=>{if(cleaned)return;cleaned=true;clearTimeout(timeout);window.removeEventListener('afterprint',cleanup);pane.remove();inventoryPrintCleanup=null;};
@@ -213,7 +213,8 @@ async function saveAsset(e){e?.preventDefault();const data=readAsset();if(!data.
  }finally{$('assetTopSave').disabled=false;$('assetBottomSave').disabled=false;}
 }
 function openScan(){if(!setPage('scan'))return;$('inlineScanInput').value='';$('pageScanHelp').textContent='USB/Bluetooth keyboard scanners typically press Enter after a successful scan.';$('inlineScanInput').focus();}
-function resolveScan(raw){const id=window.ApexAssetLabelQR?.readAssetId(raw)||String(raw??'').trim().toUpperCase();if(!id)return;stopCamera();openAsset(id);if(!items.find(i=>i.id===id))notify('New asset ID · complete details and save to register.');}
+function inventoryLookupFeedback(found){notify(found?'Inventory found':'Inventory not found',found?'success':'warning');}
+function resolveScan(raw){const id=window.ApexAssetLabelQR?.readAssetId(raw)||String(raw??'').trim().toUpperCase();if(!id)return;const asset=items.find(i=>i.id===id);inventoryLookupFeedback(Boolean(asset));if(!asset)return;stopCamera();openAsset(asset.id);}
 async function toggleCamera(){if(scanRunning||scannerControls||cameraStream){stopCamera();return;}scanRunning=true;$('pageCameraFrame').classList.add('visible');$('pageCameraToggle').textContent='Stop camera';$('pageScanHelp').textContent='Starting camera…';try{
  const video=$('pageCameraVideo');if(window.ZXingBrowser?.BrowserMultiFormatReader){const reader=new window.ZXingBrowser.BrowserMultiFormatReader();scannerControls=await reader.decodeFromVideoDevice(undefined,video,result=>{if(result)resolveScan(result.getText());});}
  else if('BarcodeDetector' in window){const detector=new BarcodeDetector({formats:['qr_code','code_128','code_39','ean_13']});cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});video.srcObject=cameraStream;await video.play();const tick=async()=>{if(!cameraStream||currentPage!=='scan')return;try{const codes=await detector.detect(video);if(codes.length){resolveScan(codes[0].rawValue);return;}}catch{}requestAnimationFrame(tick);};requestAnimationFrame(tick);}
@@ -300,6 +301,10 @@ let inventorySearchTimer;
   if(id==='inventorySearch'){clearTimeout(inventorySearchTimer);inventorySearchTimer=setTimeout(render,120);}
   else render();
  });
+$('inventorySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(inventoryLookupTimer);resolveScan(e.currentTarget.value);}});
+let inventoryLookupTimer;
+$('inventorySearch').addEventListener('input',()=>{clearTimeout(inventoryLookupTimer);const value=$('inventorySearch').value.trim();if(!value)return;inventoryLookupTimer=setTimeout(()=>{const code=(window.ApexAssetLabelQR?.readAssetId(value)||value).toUpperCase(),found=items.some(a=>a.id===code);if(found)inventoryLookupFeedback(true);else if(!items.some(a=>[a.id,a.model,a.manufacturer,a.serial].some(v=>String(v||'').toLowerCase().includes(value.toLowerCase()))))inventoryLookupFeedback(false);},650);});
+api.onInventoryArrived?.(event=>{if(currentPage==='asset'&&dirty)return;if(!$('modalLayer').classList.contains('hidden'))return;refresh(true);if(event?.open)setPage('inventory');});
 $('globalSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();resolveScan(e.target.value);e.target.value='';}};
 $('sidebarUser').onclick=async()=>{if(currentPage==='asset'&&dirty&&!confirm('Sign out without saving changes?'))return;stopCamera();closeModal();await api.logout();items=[];syncMode='local';lastHubVersion=null;dirty=false;$('appPage').classList.add('hidden');$('loginPage').classList.remove('hidden');$('loginPass').focus();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modalLayer').classList.contains('hidden')&&!$('modalClose').classList.contains('hidden'))closeModal();});

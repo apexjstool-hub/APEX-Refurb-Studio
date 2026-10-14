@@ -14,6 +14,8 @@ const xlsx=require('./xlsx-export');
 const backupManager=require('./backup-manager');
 const {shell}=require('electron');
 const updateCentre=require('./update-centre');
+const arrivalTracker=new (require('./inventory-arrivals').InventoryArrivals)();
+let intakeNotification=null,arrivalPollBusy=false;
 // Use the same app identity and native Windows icon as APEX Laptop Diagnostics.
 app.setName('APEX Refurb Management Studio');
 if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory');
@@ -280,6 +282,8 @@ async function cloudInventoryCall(method,route,payload){
   return {ok:true,items:items.filter(x=>!x.deletedAt),locations,pallets,mode:'cloud'};
  }catch{return {ok:false,error:'Cloud inventory cannot be reached. No local data shown.'};}
 }
+function arrivalWorkspace(){return authMode==='cloud'?'cloud:'+cloudSession?.url+':'+cloudSession?.userId:'hub:'+(hubConfig()?.url||'local');}
+function observeArrivals(result){if(!authenticated)return result;const added=arrivalTracker.observe(result,arrivalWorkspace());if(added.length)intakeNotification?.show(added).catch(error=>console.warn('Inventory notification:',error.message));return result;}
 async function inventoryCall(method,route,payload,local){if(authMode==='cloud')return cloudInventoryCall(method,route,payload);const h=hubConfig();if(h)return hubRequest(method,route,payload,h);return local();}
 function ipv4Addresses(){
  const arr=[];
@@ -480,7 +484,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:cloudStaffLogin',(evt,input)=>safe(()=>cloudStaffLogin(input)));
  ipcMain.handle('inventory:cloudResume',()=>safe(()=>resumeRememberedCloud()));
  ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
- ipcMain.handle('inventory:logout',()=>{accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
+ ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
   if(!authenticated||authMode!=='local')return {ok:false,error:'Local password changes require local admin sign-in.'};const db=loadDB();if(hash(String(oldPass),db.user.salt)!==db.user.passwordHash)return {ok:false,error:'Current password is incorrect.'};
   if(typeof newPass!=='string'||newPass.length<8||newPass.length>128)return {ok:false,error:'Choose a password of 8–128 characters.'};
@@ -491,11 +495,11 @@ app.whenReady().then(()=>{
   const db=loadDB();const cloned=structuredClone(db.operations);const r=workflow.apply(cloned,db.items,command);
   if(r.ok){db.operations=r.workflow;atomic(dbPath(),db);}return r;
  })));
- ipcMain.handle('inventory:list',secured(knownVersion=>{
+ ipcMain.handle('inventory:list',secured(async knownVersion=>{
   // A version hint is a read-only optimisation, not a way to skip authentication.
   const valid=Number.isSafeInteger(knownVersion)&&knownVersion>=0;
   const route=valid?'/v1/items?knownVersion='+knownVersion:'/v1/items';
-  return inventoryCall('GET',route,null,()=>localList());
+  const workspace=arrivalWorkspace();const result=await inventoryCall('GET',route,null,()=>localList());return workspace===arrivalWorkspace()?observeArrivals(result):result;
  }));
  ipcMain.handle('inventory:addLocation',secured(input=>inventoryCall('POST','/v1/locations',{name:input},()=>{const db=loadDB();const name=String(input||'').trim().replace(/\s+/g,' ').slice(0,90);if(!name||/[<>\r\n]/.test(name))return {ok:false,error:'Enter a valid location name.'};if(db.locations.some(n=>n.toLowerCase()===name.toLowerCase()))return {ok:false,error:'Location already exists.'};db.locations.push(name);atomic(dbPath(),db);return {ok:true,locations:db.locations};})));
  ipcMain.handle('inventory:deleteLocation',secured(input=>inventoryCall('DELETE','/v1/locations/'+encodeURIComponent(String(input?.name||'')),{moveTo:input?.moveTo||''},()=>{const db=loadDB();const result=locationManagement.deleteLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
@@ -503,7 +507,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:deletePallet',secured(input=>inventoryCall('POST','/v1/pallets/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:bulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-move',input,()=>{const db=loadDB();const result=palletManagement.moveBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:undoBulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-restore',input,()=>{const db=loadDB();const result=palletManagement.restoreBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;}))); 
- ipcMain.handle('inventory:add',secured(data=>inventoryCall('POST','/v1/items',data,()=>{const db=loadDB();const r=core.add(db.items,data);if(r.ok)atomic(dbPath(),db);return r;})));
+ ipcMain.handle('inventory:add',secured(async data=>{const result=await inventoryCall('POST','/v1/items',data,()=>{const db=loadDB();const r=core.add(db.items,data);if(r.ok)atomic(dbPath(),db);return r;});if(result.ok)arrivalTracker.remember(result.item?.id||data?.id);return result;}));
  ipcMain.handle('inventory:update',secured((id,patch)=>inventoryCall('PATCH','/v1/items/'+encodeURIComponent(id),patch,()=>{const db=loadDB();const r=core.update(db.items,id,patch);if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:trash',secured(()=>inventoryCall('GET','/v1/trash',null,()=>({ok:true,items:loadDB().items.filter(a=>a.deletedAt)}))));
  ipcMain.handle('inventory:restore',secured(id=>inventoryCall('POST','/v1/trash/restore',{id},()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'restoreAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
@@ -604,6 +608,15 @@ app.whenReady().then(()=>{
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
  win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#0c0e17',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer','index.html'));
+ intakeNotification=require('./desktop-intake-notification').createDesktopIntakeNotification(()=>win,ids=>{win.webContents.send('apex:inventory-arrived',{ids,open:true});});
+ const arrivalTimer=setInterval(async()=>{
+  if(arrivalPollBusy||!authenticated||!win||win.isDestroyed()||(authMode==='local'&&loadDB().user.mustChangePassword))return;
+  arrivalPollBusy=true;const workspace=arrivalWorkspace();
+  try{const result=await inventoryCall('GET','/v1/items',null,()=>localList());if(authenticated&&workspace===arrivalWorkspace())observeArrivals(result);}
+  catch(error){/* Failed reads never create notifications or replace the baseline. */}
+  finally{arrivalPollBusy=false;}
+ },15000);arrivalTimer.unref();
+ win.on('closed',()=>{clearInterval(arrivalTimer);intakeNotification?.close();});
  updateCentre.init(win); // Silent on startup, no automatic installation.
 
  // Re-launch the hub automatically only when this installation previously owned one.

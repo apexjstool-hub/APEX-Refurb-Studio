@@ -1,0 +1,5 @@
+
+#toast.toast{max-width:calc(100vw - 40px);right:22px;bottom:22px;z-index:2000;background:#142332;color:#edf4ff;border:1px solid #39536c;padding:13px 18px;border-radius:10px;box-shadow:0 8px 28px #0003;font-size:13px;font-weight:600}
+#toast.toast[data-kind=success]{border-color:#23856b;background:#103329;color:#81edc3}
+#toast.toast[data-kind=warning]{border-color:#9b7535;background:#382b16;color:#ffda8d}
+.apex-report-brand{display:flex;align-items:center;gap:12px;break-inside:avoid;margin-bottom:16px}.apex-report-logo{flex:0 0 36px;display:block}.apex-report-logo svg{display:block;width:36px!important;height:36px!important}.apex-report-wordmark{font:700 11px Arial,sans-serif;letter-spacing:.8px;color:#28384b}.apex-report-wordmark small{display:block;font:400 9px Arial,sans-serif;letter-spacing:0;color:#65738a;margin-top:4px}

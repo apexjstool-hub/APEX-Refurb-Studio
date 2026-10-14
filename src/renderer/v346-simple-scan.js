@@ -92,7 +92,7 @@
   const value=clean(raw);if(!value)return;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
   const asset=items.find(a=>a.id===decoded);
-  if(asset){if(batch.includes(asset.id)){showStatus(`${asset.id} already scanned — not added twice.`,true);return;}
+  if(asset){inventoryLookupFeedback(true);if(batch.includes(asset.id)){showStatus(`${asset.id} already scanned — not added twice.`,true);return;}
    if(batch.length>=300){showStatus('Maximum 300 devices per move.',true);return;}
    batch.push(asset.id);showStatus(`${asset.id} added. ${batch.length} device(s) in your list.`);drawScan();return;}
   const scannedLocation=clean(value.replace(/^(LOCATION|LOC)\s*[:#]\s*/i,''));
@@ -101,7 +101,7 @@
    for(const a of matches){if(batch.length>=300)break;if(!batch.includes(a.id)){batch.push(a.id);added++;}}
    showStatus(`${found}: ${matches.length} device(s) found, ${added} added${batch.length>=300?' (300-device limit)':''}.`);
    drawScan();return;}
-  showStatus(`“${value}” isn't an existing Asset ID or location. Check the scan.`,true);
+  inventoryLookupFeedback(false);showStatus(`“${value}” isn't an existing Asset ID or location. Check the scan.`,true);
  }
  el('topScan').onclick=()=>setPage('bulk');
  scanField.addEventListener('keydown',event=>{
