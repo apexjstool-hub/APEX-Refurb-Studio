@@ -51,7 +51,7 @@ app.whenReady().then(async()=>{
   if(summaryResult.count!==10||!summaryResult.labels.includes('Pallet')||!summaryResult.labels.includes('Serial number')||!summaryResult.grade.includes('Assigned grade')||!summaryResult.process.includes('Parts fitting')||!summaryResult.aligned||summaryResult.overflow||!summaryResult.print)throw Error('Device summary layout failed: '+JSON.stringify(summaryResult));
   await win.webContents.executeJavaScript(source.split('\n').find(line=>line.startsWith('const state=')).replace('const state=','state=')+source.split('\n').find(line=>line.startsWith('function conditionBadge('))+';void 0;');
   await win.webContents.executeJavaScript("updateAssetOverview();const card=$('assetSummary').outerHTML;document.body.innerHTML='<section id=assetPage>'+card+'</section>';document.body.style.display='block';document.body.style.padding='16px';document.body.style.overflow='auto';$('assetPage').style.maxWidth='1120px';$('assetPage').style.margin='0 auto';");
-  await new Promise(r=>setTimeout(r,100));
+  win.show();await new Promise(r=>setTimeout(r,350));
   const summaryBox=await win.webContents.executeJavaScript("(()=>{const r=$('assetSummary').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)};})()");
   if(summaryBox.width<500||summaryBox.height<100)throw Error('Device summary was hidden or too narrow during layout verification.');
   fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/device-summary-preview.png'),(await win.webContents.capturePage(summaryBox)).toPNG());
