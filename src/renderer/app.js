@@ -277,7 +277,7 @@ document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const f=$(b.da
 document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 for(const id of ['dashAdd','invAdd'])$(id).onclick=()=>openAsset();
 for(const id of ['topScan','invScan'])$(id).onclick=openScan;
-for(const id of ['dashBrowse','viewAll','assetBack','assetCancel','scanBack'])$(id).onclick=()=>setPage('inventory');
+for(const id of ['dashBrowse','viewAll','assetBack','assetCancel','scanBack','deviceReturnInventory'])$(id).onclick=()=>setPage('inventory');
 $('assetEditor').onsubmit=saveAsset;$('assetTopSave').onclick=()=>$('assetEditor').requestSubmit();
 $('assetEditor').addEventListener('input',()=>{dirty=true;updateAssetOverview();$('assetEditedHint').textContent='Unsaved changes · press Save changes when ready.';});
 $('assetEditor').addEventListener('change',()=>{dirty=true;updateAssetOverview();});

@@ -6,3 +6,5 @@
 #inventoryTable .inventory-repair-toggle:focus-visible{outline:2px solid #2864cc;outline-offset:2px}
 .inventory-repair-heading>div:last-child{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.inventory-repair-heading>div:last-child button{margin:0}
 @media(max-width:900px){.inventory-repair-heading{flex-direction:column}.inventory-repair-heading>div:last-child{justify-content:flex-start}}
+
+#assetPage>.device-inventory-navigation{display:flex;align-items:center;margin:0 0 14px}#deviceReturnInventory{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;font-size:12px;font-weight:600;border-radius:7px}
