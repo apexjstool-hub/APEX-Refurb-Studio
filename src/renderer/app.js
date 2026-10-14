@@ -60,8 +60,8 @@ function render(){
  renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexPalletPage?.render();
 }
 function summarizeLocations(){
- const map=new Map(managedLocations.map(name=>[name,[]]));
- for(const item of items){const location=item.location||'Unassigned';if(!map.has(location))map.set(location,[]);map.get(location).push(item);}
+ const map=new Map(managedLocations.filter(name=>String(name).trim().toLowerCase()!=='unassigned').map(name=>[name,[]]));
+ for(const item of items){const location=item.location||'Unassigned';if(location.trim().toLowerCase()==='unassigned')continue;if(!map.has(location))map.set(location,[]);map.get(location).push(item);}
  return [...map].sort(([a],[b])=>a.localeCompare(b)).map(([location,assets])=>({location,assets}));
 }
 function renderSupplementalPages(){
@@ -102,9 +102,10 @@ async function exportInventory(){
  catch(e){notify('Unable to export the CSV');}
 }
 let inventoryPrintCleanup=null;
-function printInventory(){
+function printInventory(selectedAssetIds){
+ const ids=Array.isArray(selectedAssetIds)?new Set(selectedAssetIds):null,reportItems=ids?items.filter(a=>ids.has(a.id)):items;
  if(inventoryPrintCleanup)inventoryPrintCleanup();
- const content=`${window.ApexReportBrand.header()}<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${items.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${items.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
+ const content=`${window.ApexReportBrand.header()}<h1>APEX Smart Inventory — Asset Register</h1><p>Generated ${html(new Date().toLocaleString('en-GB'))} · ${reportItems.length} assets</p><table><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th><th>Location</th><th>Condition</th><th>Status</th></tr></thead><tbody>${reportItems.map(a=>`<tr><td>${html(a.id)}</td><td>${html(deviceName(a))}</td><td>${html(a.serial)}</td><td>${html(a.location)}</td><td>${html(a.condition)}</td><td>${html(a.status)}</td></tr>`).join('')}</tbody></table>`;
  const pane=document.createElement('div');pane.id='printPane';pane.innerHTML=content;document.body.appendChild(pane);
  let timeout,cleaned=false;
  const cleanup=()=>{if(cleaned)return;cleaned=true;clearTimeout(timeout);window.removeEventListener('afterprint',cleanup);pane.remove();inventoryPrintCleanup=null;};
@@ -289,7 +290,7 @@ $('applySuggested').onclick=()=>{const suggestion=core.assess(readAsset().inspec
 $('inlineScanForm').onsubmit=e=>{e.preventDefault();resolveScan($('inlineScanInput').value);};$('pageCameraToggle').onclick=toggleCamera;
 $('assetAdvancedToggle').onclick=()=>{const opening=$('assetAdvanced').classList.contains('hidden');$('assetAdvanced').classList.toggle('hidden',!opening);$('assetAdvancedToggle').setAttribute('aria-expanded',String(opening));$('assetAdvancedToggle').textContent=opening?'Hide inspection & history ↑':'Advanced inspection & history ↓';};
 $('locScan').onclick=openScan;
- $('v33AddLocationForm').onsubmit=async e=>{e.preventDefault();const field=$('v33LocationName'),name=field.value.trim();if(!name)return;const result=await api.addLocation(name);$('v33LocationMessage').textContent=result.ok?'Location added. Select it on any asset and save to move the device.':(result.error||'Could not add location');if(result.ok){field.value='';await refresh();}};
+ $('v33AddLocationForm').onsubmit=async e=>{e.preventDefault();const field=$('v33LocationName'),name=field.value.trim();if(!name)return;if(name.toLowerCase()==='unassigned'){$('v33LocationMessage').textContent='Unassigned is used automatically when a device has no location.';return;}const result=await api.addLocation(name);$('v33LocationMessage').textContent=result.ok?'Location added. Select it on any asset and save to move the device.':(result.error||'Could not add location');if(result.ok){field.value='';await refresh();}};
 $('reportExport').onclick=exportInventory;$('settingsExport').onclick=exportInventory;
 $('reportPrint').onclick=printInventory;
 $('userChangePassword').onclick=adminPasswordModal;

@@ -6,3 +6,7 @@
 html[data-preview="true"],html[data-preview="true"] body{width:100%;height:100%;min-height:100%;overflow:hidden}
 html[data-size="2x1"] .apex-label-asset{font-size:10pt}
 html[data-size="2x1"] .apex-label-name{font-size:8pt}
+
+html[data-batch="true"],html[data-batch="true"] body{height:auto;overflow:visible}
+.label-batch-sheet{width:var(--label-width);height:var(--label-height);margin:0;padding:0;overflow:hidden}
+@media print{html[data-batch="true"] #labelSheet,html[data-batch="true"] .label-batch-sheet{break-after:page;page-break-after:always;break-inside:avoid}html[data-batch="true"] .label-batch-sheet:last-child{break-after:auto;page-break-after:auto}}

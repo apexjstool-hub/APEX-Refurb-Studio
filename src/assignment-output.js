@@ -2,8 +2,14 @@
 const {BrowserWindow,dialog}=require('electron'),fs=require('node:fs'),docs=require('./assignment-documents'),labelOutput=require('./label-output');
 async function renderDocument(input,data){
  if(!input||!['barcode','manifest'].includes(input.document))throw Error('Choose a barcode label or pallet manifest.');
- const meta=docs.select(data,input.kind,input.name),size=input.size||'2x1',dpi=Number(input.dpi)||203;
- const markup=input.document==='manifest'?docs.manifestDocument(meta):docs.labelDocument(meta,size,dpi);
+ const names=Array.isArray(input.names)?input.names:[input.name];if(!names.length||names.length>300)throw Error('Select between 1 and 300 locations or pallets.');
+ const metas=[...new Set(names)].map(name=>docs.select(data,input.kind,name)),meta=metas[0],size=input.size||'2x1',dpi=Number(input.dpi)||203;
+ let markup=input.document==='manifest'?docs.manifestDocument(meta):docs.labelDocument(meta,size,dpi);
+ if(metas.length>1){
+  const body=metas.map(m=>(input.document==='manifest'?docs.manifestDocument(m):docs.labelDocument(m,size,dpi)).match(/<body>([\s\S]*)<\/body>/)[1]);
+  markup=markup.replace(/<body>[\s\S]*<\/body>/,'<body>'+body.map(html=>'<section class="assignment-batch-sheet">'+html+'</section>').join('')+'</body>').replace('</style>','html,body{height:auto}.assignment-batch-sheet{break-after:page;page-break-after:always}.assignment-batch-sheet:last-child{break-after:auto;page-break-after:auto}</style>');
+ }
+
  const win=new BrowserWindow({show:false,width:900,height:900,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,backgroundThrottling:false}});
  win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
  try{await win.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(markup));await win.webContents.executeJavaScript("document.fonts.ready.then(()=>true)");return {window:win,meta,size,dpi,document:input.document};}

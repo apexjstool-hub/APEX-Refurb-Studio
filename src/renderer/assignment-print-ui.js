@@ -7,21 +7,11 @@
   div.innerHTML='<span>Print '+(kind==='pallet'?'pallet documents':'location labels')+'</span><button type="button" class="secondary" data-open-doc="barcode">▣ Barcode label</button>'+(kind==='pallet'?'<button type="button" class="secondary" data-open-doc="manifest">▤ A4 manifest</button>':'');
   const host=$id(page);host?.prepend(div);div.querySelectorAll('[data-open-doc]').forEach(b=>b.onclick=()=>open(kind,'',b.dataset.openDoc));
  }
- function decorate(){
-  toolbar('locationsPage','location');toolbar('palletsPage','pallet');
-  $id('locationsTable')?.querySelectorAll('[data-jump-location]').forEach(b=>{
-   const cell=b.closest('td');if(cell.querySelector('[data-assignment-label]'))return;
-   const button=document.createElement('button');button.type='button';button.className='secondary assignment-row-print';button.dataset.assignmentLabel='location';button.textContent='▣ Barcode';button.onclick=()=>open('location',b.dataset.jumpLocation,'barcode');cell.prepend(button);
-  });
-  $id('apexPalletTable')?.querySelectorAll('[data-pallet-show]').forEach(b=>{
-   const cell=b.closest('td');if(cell.querySelector('[data-assignment-label]'))return;
-   for(const [label,document] of [['▣ Barcode','barcode'],['▤ Manifest','manifest']]){const button=window.document.createElement('button');button.type='button';button.className='secondary assignment-row-print';button.dataset.assignmentLabel='pallet';button.textContent=label;button.onclick=()=>open('pallet',b.dataset.palletShow,document);cell.insertBefore(button,b);}
-  });
- }
+ function decorate(){}
  async function open(kind,name,document){
   try{
    const data=await api.list();if(!data.ok){notify(data.error||'Could not read inventory for printing.');return;}
-   const choices=kind==='pallet'?(data.pallets||[]).map(p=>p.name):(data.locations||[]);
+   const choices=kind==='pallet'?(data.pallets||[]).map(p=>p.name):(data.locations||[]).filter(n=>String(n).trim().toLowerCase()!=='unassigned');
    showModal(document==='manifest'?'Pallet manifest':'Print barcode label','INVENTORY / '+kind.toUpperCase(),'<div class="modal-body assignment-print-dialog"><label class="field">'+(kind==='pallet'?'Pallet':'Location')+'<select id="assignmentPrintChoice"><option value="">Choose '+kind+'</option>'+choices.map(n=>'<option value="'+esc(n)+'" '+(n===name?'selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label><div id="assignmentPrintFacts"></div>'+(document==='barcode'?'<div class="assignment-label-controls"><label class="field">Label size<select id="assignmentLabelSize"><option value="2x1">2 × 1 inches</option><option value="4x2">4 × 2 inches</option></select></label><label class="field">Printer resolution<select id="assignmentLabelDpi"><option value="203">203 DPI</option><option value="300">300 DPI</option><option value="600">600 DPI</option></select></label></div>':'')+'<div id="assignmentDocumentPreview"></div><div id="assignmentPrintError" class="form-error" role="alert"></div><div class="modal-actions"><button id="assignmentPrintCancel" type="button" class="secondary">Close</button><button id="assignmentSavePdf" type="button" class="secondary" disabled>Save PDF</button><button id="assignmentPrintGo" type="button" class="primary" disabled>Print '+(document==='manifest'?'A4 manifest':'barcode')+'</button></div></div>');
    function preview(){
     $id('assignmentPrintError').textContent='';$id('assignmentPrintFacts').innerHTML='';$id('assignmentDocumentPreview').innerHTML='';let valid=false;

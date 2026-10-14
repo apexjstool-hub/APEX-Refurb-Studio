@@ -3,9 +3,10 @@ const {BrowserWindow,dialog}=require('electron'),path=require('node:path'),fs=re
 const sizes={'2x1':[50.8,25.4],'50x25':[50,25],'50x30':[50,30],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
 function sanitise(input){
  if(!input||!sizes[input.size]||!['asset','refurb'].includes(input.type)||![203,300,600].includes(input.dpi))throw Error('Invalid label settings.');
- const record={};for(const [key,max] of Object.entries({id:80,manufacturer:90,model:140,serial:90}))record[key]=String(input.record?.[key]??'').trim().slice(0,max);
- if(!record.id)throw Error('Asset ID is required.');
- return {record,size:input.size,type:input.type,dpi:input.dpi,preview:false};
+ const normalise=raw=>{const record={};for(const [key,max] of Object.entries({id:80,manufacturer:90,model:140,serial:90}))record[key]=String(raw?.[key]??'').trim().slice(0,max);
+ if(!record.id)throw Error('Asset ID is required.');return record;};
+ const records=Array.isArray(input.records)?input.records:[input.record];if(!records.length||records.length>300)throw Error('Select between 1 and 300 devices for labels.');
+ const cleaned=records.map(normalise);return {record:cleaned[0],...(cleaned.length>1?{records:cleaned}:{}),size:input.size,type:input.type,dpi:input.dpi,preview:false};
 }
 async function renderLabelDocument(input){
  const payload=sanitise(input),[w,h]=sizes[payload.size];
@@ -25,7 +26,7 @@ async function outputLabel(input,parent,mode){
  try{
   rendered=await renderLabelDocument(input);const {window,w,h,payload}=rendered;
   if(mode==='pdf'){
-   const selected=await dialog.showSaveDialog(parent,{title:'Save label PDF ('+w+' × '+h+' mm)',defaultPath:'APEX-'+payload.record.id.replace(/[^a-zA-Z0-9_-]/g,'_')+'-'+payload.type+'.pdf',filters:[{name:'PDF label',extensions:['pdf']}]});
+   const selected=await dialog.showSaveDialog(parent,{title:'Save label PDF ('+w+' × '+h+' mm)',defaultPath:'APEX-'+(payload.records?payload.records.length+'-labels':payload.record.id.replace(/[^a-zA-Z0-9_-]/g,'_'))+'-'+payload.type+'.pdf',filters:[{name:'PDF label',extensions:['pdf']}]});
    if(selected.canceled||!selected.filePath)return {ok:false,cancelled:true};
    const pdf=await window.webContents.printToPDF(pdfOptions(w,h));await fs.promises.writeFile(selected.filePath,pdf);return {ok:true};
   }

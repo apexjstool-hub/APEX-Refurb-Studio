@@ -513,6 +513,13 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:restore',secured(id=>inventoryCall('POST','/v1/trash/restore',{id},()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'restoreAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:manageDelete',adminSecured(command=>inventoryCall('POST','/v1/maintenance/delete',command,()=>{const db=loadDB(),r=maintenance.mutate(db,command);if(r.ok)atomic(dbPath(),db);return r;})));
  ipcMain.handle('inventory:remove',secured(id=>inventoryCall('DELETE','/v1/items/'+encodeURIComponent(id),null,()=>{const db=loadDB(),r=maintenance.mutate(db,{type:'deleteAsset',assetId:id});if(r.ok)atomic(dbPath(),db);return r;})));
+ ipcMain.handle('inventory:printAssetBatch',secured(async input=>{
+  if(!Array.isArray(input?.ids)||!input.ids.length||input.ids.length>300||!['print','pdf'].includes(input.mode))return {ok:false,error:'Select between 1 and 300 devices for labels.'};
+  const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;
+  const byId=new Map(data.items.filter(a=>!a.deletedAt).map(a=>[a.id,a])),ids=[...new Set(input.ids)],records=ids.map(id=>byId.get(id));
+  if(records.some(a=>!a))return {ok:false,error:'A selected device no longer exists. Refresh inventory and select it again.'};
+  return require('./label-output').outputLabel({records,type:input.type,size:'2x1',dpi:Number(input.dpi)||203},win,input.mode);
+ }));
  ipcMain.handle('inventory:printAssignment',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./assignment-output').output(input,win,data);}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));

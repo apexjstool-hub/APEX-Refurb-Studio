@@ -29,6 +29,11 @@ app.whenReady().then(async()=>{
    if(pages!==1)throw Error(size+' '+type+' produced '+pages+' pages');
    console.log('PASS: '+size+' '+type+' fits and prints exactly one page');
   }
+  for(const type of ['asset','refurb']){
+   const records=Array.from({length:3},(_,i)=>({...record,id:'BATCH-'+(i+1)})),rendered=await renderLabelDocument({records,type,size:'2x1',dpi:203}),pdf=await rendered.window.webContents.printToPDF(pdfOptions(50.8,25.4));
+   const pages=(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length;if(pages!==3)throw Error('Selected label batch omitted a device or created an extra page: '+pages);
+   const fs=require('node:fs');fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/selected-'+type+'-labels.pdf'),pdf);rendered.window.destroy();console.log('PASS: three selected '+type+' labels produce exactly three 2x1 pages.');
+  }
   win.destroy();app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();app.exit(1);}
 });
