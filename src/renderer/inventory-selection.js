@@ -6,7 +6,7 @@
  function names(kind){return kind==='inventory'?items.map(a=>a.id):kind==='location'?summarizeLocations().map(l=>l.location):managedPallets.map(p=>p.name);}
  function devices(kind){const values=new Set([...selected[kind]].map(value=>String(value).trim().toUpperCase())),has=value=>values.has(String(value||'').trim().toUpperCase());return kind==='inventory'?items.filter(a=>has(a.id)):kind==='pallet'?items.filter(a=>has(a.pallet)):items.filter(a=>!a.pallet&&has(a.location));}
  function ids(kind){return devices(kind).map(a=>a.id);}
- function closeMenus(){document.querySelectorAll('.inventory-action-menu').forEach(m=>{if(m.matches(':popover-open'))m.hidePopover();m.hidden=true;});document.querySelectorAll('[data-selection-menu]').forEach(b=>b.setAttribute('aria-expanded','false'));}
+ function closeMenus(){document.querySelectorAll('.inventory-action-menu,.inventory-filter-menu').forEach(m=>{if(m.matches(':popover-open'))m.hidePopover();m.hidden=true;});document.querySelectorAll('[data-selection-menu],#inventoryFiltersButton').forEach(b=>b.setAttribute('aria-expanded','false'));}
  function update(kind){
   const host=$('selection-toolbar-'+kind);if(!host)return;
   const n=selected[kind].size;host.querySelector('.inventory-selection-count').textContent=n?n+' '+scopes[kind].label+' selected':'Select '+scopes[kind].label;
@@ -45,6 +45,32 @@
   if(kind==='inventory')return;const query=$('selectionSearch-'+kind)?.value.trim().toLowerCase()||'',table=$(scopes[kind].table)?.querySelector('table');
   if(table)for(const row of table.tBodies[0].rows)row.hidden=!!query&&!row.textContent.toLowerCase().includes(query);update(kind);
  }
+ function setupFilters(){
+  const bar=$('selection-toolbar-inventory');if(!bar||$('inventoryFiltersButton'))return;
+  const head=$('inventoryPage').querySelector('.section-panel-head'),results=$('inventoryPage').querySelector('.apex-inventory-results');
+  const count=$('apexInventoryResults');if(count){count.classList.add('inventory-inline-results');count.setAttribute('aria-live','polite');bar.insertBefore(count,bar.querySelector('.inventory-selection-count'));}
+  const button=document.createElement('button');button.type='button';button.id='inventoryFiltersButton';button.className='secondary inventory-filter-button';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','inventoryFiltersMenu');bar.appendChild(button);
+  const menu=document.createElement('div');menu.id='inventoryFiltersMenu';menu.className='inventory-filter-menu';menu.setAttribute('popover','manual');menu.hidden=true;
+  menu.innerHTML='<div class="inventory-filter-heading"><strong>Filter inventory</strong><button type="button" id="inventoryFiltersClose" aria-label="Close filters">×</button></div><div class="inventory-filter-fields"></div><div class="inventory-filter-footer"></div>';
+  bar.appendChild(menu);
+  for(const [id,label] of [['locationFilter','Location'],['gradeFilter','Grade'],['statusFilter','Status'],['palletFilter','Pallet'],['repairFilter','Repair stage'],['apexInventoryDensity','Row spacing']]){
+   const control=$(id);if(!control)continue;const field=document.createElement('label');field.className='field';field.htmlFor=id;const text=document.createElement('span');text.textContent=label;field.append(text,control);menu.querySelector('.inventory-filter-fields').appendChild(field);
+  }
+  const reset=$('apexInventoryReset');if(reset)menu.querySelector('.inventory-filter-footer').appendChild(reset);
+  const done=document.createElement('button');done.type='button';done.className='primary';done.textContent='Done';done.onclick=closeMenus;menu.querySelector('.inventory-filter-footer').appendChild(done);
+  head?.remove();results?.remove();
+  button.onclick=()=>{const open=menu.hidden;closeMenus();if(!open)return;menu.hidden=false;menu.showPopover();button.setAttribute('aria-expanded','true');placeFilters();};
+  $('inventoryFiltersClose').onclick=closeMenus;
+ }
+ function placeFilters(){
+  const menu=$('inventoryFiltersMenu'),button=$('inventoryFiltersButton');if(!menu||!button||menu.hidden)return;
+  const r=button.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(r.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=(r.bottom+5)+'px';menu.style.maxHeight=Math.max(80,innerHeight-r.bottom-14)+'px';
+ }
+ function filterBadge(){
+  const button=$('inventoryFiltersButton');if(!button)return;
+  const active=['locationFilter','gradeFilter','statusFilter','palletFilter','repairFilter'].filter(id=>$(id)&&(id==='statusFilter'?$(id).value!=='All statuses':Boolean($(id).value))).length;
+  button.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h18l-7 8v7l-4 2v-9Z"/></svg><span>Filter'+(active?' ('+active+')':'')+'</span>';button.classList.toggle('has-active-filters',active>0);
+ }
  function decorate(){
   for(const kind of Object.keys(scopes)){
    const allowed=new Set(names(kind));for(const value of selected[kind])if(!allowed.has(value))selected[kind].delete(value);
@@ -62,6 +88,7 @@
    table.querySelectorAll('[data-delete-asset],[data-delete-location],[data-pallet-delete]').forEach(b=>{b.classList.add('inventory-bin-delete');b.innerHTML=bin;const value=b.dataset.deleteAsset||b.dataset.deleteLocation||b.dataset.palletDelete;b.title='Delete '+value;b.setAttribute('aria-label','Delete '+value);});
    filter(kind);update(kind);
   }
+  setupFilters();filterBadge();
  }
  function action(kind,name){
   closeMenus();if(name==='clear'){selected[kind].clear();update(kind);return;}
@@ -76,9 +103,9 @@
   const values=[...selected[kind]];if(!values.length)return;if(values.length>300){notify('Select up to 300 rows for one print job.');return;}
   window.ApexSelectionPreviews.labels(kind,type,values,scopes[kind].label);
  }
- document.addEventListener('click',event=>{if(!event.target.closest('.inventory-menu-wrap'))closeMenus();});
+ document.addEventListener('click',event=>{if(!event.target.closest('.inventory-menu-wrap,.inventory-filter-menu,#inventoryFiltersButton'))closeMenus();});
  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenus();});
- window.addEventListener('resize',()=>Object.keys(scopes).forEach(placeMenu));document.addEventListener('scroll',()=>Object.keys(scopes).forEach(placeMenu),true);
+ window.addEventListener('resize',()=>{Object.keys(scopes).forEach(placeMenu);placeFilters();});document.addEventListener('scroll',()=>Object.keys(scopes).forEach(placeMenu),true);
  const previous=render;render=function(...args){const result=previous(...args);decorate();return result;};
  const previousPage=setPage;setPage=function(...args){closeMenus();return previousPage(...args);};
  window.ApexInventorySelection={decorate,selected,ids};decorate();
