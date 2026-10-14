@@ -1,3 +1,6 @@
 .apex-login-modes{display:flex;gap:6px;margin:14px 0}.apex-login-modes button{flex:1;background:transparent;border:1px solid #485265;color:inherit;border-radius:8px;padding:10px;cursor:pointer}.apex-login-modes button.selected{border-color:#8b5cf6;background:rgba(139,92,246,.17);color:inherit}#apexCloudCredentials{display:grid;gap:10px;margin:8px 0}#apexCloudCredentials.hidden,#apexLocalUsername.hidden,#apexLocalHint.hidden{display:none!important}#apexCloudCredentials input{max-width:100%;min-width:0}
 /* Upgrade 16: credentials only on staff sign-in; connection values live in admin Settings. */
 #apexCloudLoginSetup .apex-cloud-grid input{width:100%;min-width:0}
+
+.apex-login-help{font-size:12px;line-height:1.6;color:var(--muted);margin:12px 0 20px!important}.apex-cloud-advanced{margin:20px 0}.apex-cloud-advanced>summary{padding:16px;border:1px solid var(--line);border-radius:10px;cursor:pointer;color:var(--muted)}
+@media(max-height:800px){.login-page{min-height:100vh;height:auto;overflow:auto}.login-panel{padding:28px 30px 65px}.login-card>p{margin-bottom:18px}}

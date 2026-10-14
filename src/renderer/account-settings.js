@@ -1,25 +1,49 @@
 'use strict';
 (function(){
  const baseSetPage=setPage;let accessReady=false,pending=false;
- function promptSettings(target,force){
-  showModal('Unlock Settings','ADMINISTRATOR ACCESS',`<form id="apexUnlockSettings" class="modal-body"><p>Enter the password for your signed-in administrator account.</p><label class="field">Administrator password<input id="apexSettingsPassword" type="password" autocomplete="current-password" maxlength="128" required></label><div id="apexSettingsError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexSettingsCancel" class="secondary" type="button">Cancel</button><button class="primary" type="submit">Unlock Settings</button></div></form>`);
-  $('apexSettingsCancel').onclick=closeModal;$('apexSettingsPassword').focus();
-  $('apexUnlockSettings').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('[type="submit"]');button.disabled=true;
-   try{const r=await api.settingsUnlock($('apexSettingsPassword').value);$('apexSettingsPassword').value='';if(!r.ok){$('apexSettingsError').textContent=r.error;return;}closeModal();accessReady=true;setPage(target,force);}finally{button.disabled=false;}
-  };
+ let unlocking=null;
+ function promptSettings(){
+  return new Promise(resolve=>{
+   showModal('Unlock Settings','ADMINISTRATOR ACCESS',`<form id="apexUnlockSettings" class="modal-body"><p>Enter the password for your signed-in administrator account.</p><label class="field">Administrator password<input id="apexSettingsPassword" type="password" autocomplete="current-password" maxlength="128" required></label><div id="apexSettingsError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexSettingsCancel" class="secondary" type="button">Cancel</button><button class="primary" type="submit">Unlock Settings</button></div></form>`);
+   let finished=false;
+   const finish=ok=>{if(finished)return;finished=true;$('modalClose').removeEventListener('click',cancel);$('modalLayer').removeEventListener('click',outside);document.removeEventListener('keydown',escape);resolve(ok);};
+   const cancel=()=>{closeModal();finish(false);};
+   const outside=e=>{if(e.target===$('modalLayer'))cancel();};
+   const escape=e=>{if(e.key==='Escape')cancel();};
+   $('modalClose').addEventListener('click',cancel);$('modalLayer').addEventListener('click',outside);document.addEventListener('keydown',escape);$('apexSettingsCancel').onclick=cancel;$('apexSettingsPassword').focus();
+   $('apexUnlockSettings').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('[type="submit"]');button.disabled=true;
+    try{const r=await api.settingsUnlock($('apexSettingsPassword').value);if(finished)return;$('apexSettingsPassword').value='';if(!r.ok){$('apexSettingsError').textContent=r.error;return;}closeModal();finish(true);}catch{if(!finished)$('apexSettingsError').textContent='Could not verify your password. Try again.';}finally{button.disabled=false;}
+   };
+  });
  }
+ window.apexEnsureSettingsUnlocked=async function(){
+  if(unlocking)return unlocking;
+  unlocking=(async()=>{try{const r=await api.settingsAccess();if(!r.ok||!r.admin){notify(r.error||'Only administrators can access Settings.');return false;}if(r.unlocked)return true;accessReady=false;return await promptSettings();}catch{notify('Could not check Settings access.');return false;}})();
+  try{return await unlocking;}finally{unlocking=null;}
+ };
  setPage=function(page,force){
   if(['settings','users'].includes(page)&&!accessReady){
    if(pending)return false;pending=true;
-   api.settingsAccess().then(r=>{if(!r.ok||!r.admin){notify(r.error||'Only administrators can access Settings.');return;}promptSettings(page,force);}).catch(()=>notify('Could not check Settings access.')).finally(()=>pending=false);return false;
+   window.apexEnsureSettingsUnlocked().then(ok=>{if(ok){accessReady=true;setPage(page,force);}}).finally(()=>pending=false);return false;
   }
   const result=baseSetPage(page,force);if(!result)return result;
   if(!['settings','users'].includes(page)&&accessReady){accessReady=false;api.settingsLock();}
   if(page==='users')renderUsers();return result;
  };
+ $('apexSharedAccountSignIn').onclick=async()=>{
+  await $('sidebarUser').onclick();
+  if($('appPage').classList.contains('hidden')){selectLoginMode('cloud');$('loginCloudEmail').focus();}
+ };
+ async function connectionStatus(){
+  const r=await api.hubStatus();
+  $('apexSharedAccountStatus').textContent=r.ok&&r.mode==='cloud'?'Connected to your shared cloud workspace. No hub secret is needed on this PC.':'You are using a local or LAN workspace. Sign in with a shared account to open your cloud inventory.';
+  $('apexSharedAccountSignIn').textContent=r.ok&&r.mode==='cloud'?'Switch shared account':'Sign in to shared workspace';
+ }
+ const beforeConnectionPage=setPage;
+ setPage=function(page,force){const result=beforeConnectionPage(page,force);if(result&&page==='settings')connectionStatus().catch(()=>{});return result;};
  async function renderUsers(){
   const host=$('apexUsersManager');if(!host)return;host.innerHTML='<p>Loading shared accounts…</p>';
-  const result=await api.usersList();if(currentPage!=='users')return;
+  if(!await window.apexEnsureSettingsUnlocked())return;const result=await api.usersList();if(currentPage!=='users')return;
   if(!result.ok){host.innerHTML=`<div class="refurb-empty"><strong>Shared account management</strong><p>${html(result.error)}</p><button id="apexUsersRetry" class="secondary">Try again</button></div>`;$('apexUsersRetry').onclick=renderUsers;return;}
   host.innerHTML=`<div class="apex-users-heading"><div><h2>Shared staff accounts</h2><p>Each account works on every APEX PC connected to this cloud project.</p></div><button id="apexAddUser" class="primary">＋ Add account</button></div><div class="apex-user-roles"><p><b>Staff</b> · Inventory, locations, refurbishment and reports. No Settings or account administration.</p><p><b>Administrator</b> · Staff access plus protected Settings, account management and permanent deletion.</p></div><div class="apex-users-list">${result.users.map(u=>`<div class="apex-user-row"><div><strong>${html(u.name||u.email)}</strong><small>${html(u.email)}</small></div><span>${u.role==='admin'?'Administrator':'Staff'}</span><span>${u.active?'Active':'Disabled'}</span><button class="secondary" data-edit-user="${html(u.id)}">Manage</button></div>`).join('')||'<p>No shared staff profiles found.</p>'}</div>`;
   $('apexAddUser').onclick=()=>userModal();host.querySelectorAll('[data-edit-user]').forEach(b=>b.onclick=()=>userModal(result.users.find(u=>u.id===b.dataset.editUser)));

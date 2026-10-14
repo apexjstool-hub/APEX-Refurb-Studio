@@ -1,0 +1,13 @@
+APEX 4.0.16 — new-PC login clarity and Settings reauthentication
+
+Verified locally:
+- JavaScript syntax in source, hub and scripts.
+- Public distribution connection validation.
+- 12 account security, diagnostic intake, History visibility, label decode/layout and refurbishment tests passed.
+- Smart Inventory shared/local hub test passed.
+- JSDOM execution of real login and Settings renderer code: shared account selected from bundled connection; remembered email; no automatic startup sign-in; password required for a different account; explicit saved-session resume; expired lock password prompt; cancel/Escape and retry; shared account switch; advanced hub controls collapsed.
+- Complete ZIP integrity and package/lock versions agree.
+
+Unchanged: Supabase transport/database schema, updater implementation/workflow, device Overview, Diagnostics, RefurbFlow, Repairs & progress, label printing and account permissions.
+
+Not performed here: live Supabase authentication/account creation; physical Windows UI; NSIS installer build or GitHub publication. Existing Windows workflow will build the installer when these source files are committed to GitHub.
