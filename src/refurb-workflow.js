@@ -1,5 +1,6 @@
 'use strict';
 /* APEX refurbishment workflow. Admin-only writes; device intake can create requirements but cannot place orders. */
+const requirements=require('./part-requirements');
 const STATUSES=['Received','Inspected','Awaiting Parts','Ready for Repair','Repair In Progress','Quality Control','Completed','On Hold'];
 const PART_STATUSES=['Needed','Ordered','Partially Received','Received','Fitted'];
 const QC=['Visual inspection','Required parts fitted','Hardware retest','Final clean & sign-off'];
@@ -23,7 +24,8 @@ function syncRefurb(s,asset,action){
  if(job.status==='Received'){job.status='Inspected';changed=true;}
  for(const request of parts){const name=clip(request.name,160);if(!name)continue;
   const source=clip(report.key||ref.latestKey,140), key=(source+'|'+name.toLowerCase());
-  const existing=job.parts.find(p=>p.sourceKey===key);
+  const existing=job.parts.find(p=>p.sourceKey===key||(p.hubSourceKeys||[]).includes(key)||(requirements.imported(p)&&requirements.nameKey(p.name)===requirements.nameKey(name)));
+  if(existing&&existing.sourceKey!==key&&!(existing.hubSourceKeys||[]).includes(key))existing.hubSourceKeys=[...(existing.hubSourceKeys||[]),key];
   if(existing){const latestQty=Math.max(1,Math.min(999,Number(request.quantity)||1));if(latestQty>existing.qty){existing.qty=latestQty;changed=true;}continue;} // Never erase ordered or received quantities on an older report.
   job.parts.push({id:uid(),name,qty:Math.max(1,Math.min(999,Number(request.quantity)||1)),received:0,fitted:0,sourceKey:key,notes:'',createdAt:stamp()});changed=true;
  }
@@ -104,6 +106,27 @@ function apply(state,assets,cmd,by='Administrator'){
   const qty=asQty(cmd.qty,1);job.parts.push({id:uid(),name,qty,received:0,fitted:0,sourceKey:'',notes:clip(cmd.notes,200),createdAt:stamp()});
   if(job.status==='Received'||job.status==='Inspected'||job.status==='Ready for Repair')job.status='Awaiting Parts';
   history(s,'Part required',`${name} × ${qty}`,id,by);
+ }else if(type==='receivePart'){
+  if(['Completed','On Hold'].includes(job.status))throw Error('Change this job stage before receiving parts.');
+  const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');
+  if(cmd.expectedReceived!==p.received)throw Error('Received quantity changed. Refresh before recording another receipt.');
+  const qty=asQty(cmd.qty,1);if(p.received+qty>p.qty)throw Error('Cannot receive more than the required quantity.');
+  let remaining=qty;
+  for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const line of order.lines||[]){
+   if(line.assetId!==id||line.partId!==p.id||remaining<=0)continue;
+   const amount=Math.min(remaining,Math.max(0,line.qty-line.received));if(!amount)continue;
+   line.received+=amount;remaining-=amount;order.updatedAt=stamp();
+  }
+  p.received+=qty;p.lastReceivedAt=stamp();p.lastReceivedBy=by;
+  if(job.parts.every(x=>x.received>=x.qty)&&job.status==='Awaiting Parts')job.status='Ready for Repair';
+  history(s,'Parts received',`${p.name} × ${qty}; received ${p.received}/${p.qty}`+(remaining?' · direct receipt':' · linked order updated'),id,by);
+ }else if(type==='removeDuplicateParts'){
+  const available=requirements.duplicates(job,s.orders),chosen=Array.isArray(cmd.partIds)?cmd.partIds:[];
+  if(!chosen.length||new Set(chosen).size!==chosen.length||chosen.length>1000)throw Error('Select duplicate requirements to remove.');
+  const rows=chosen.map(partId=>available.find(x=>x.removeId===partId));if(rows.some(x=>!x))throw Error('These duplicates changed or have recorded work. Refresh and review again.');
+  for(const row of rows){const keep=job.parts.find(p=>p.id===row.keepId),removed=job.parts.find(p=>p.id===row.removeId);keep.hubSourceKeys=[...new Set([...(keep.hubSourceKeys||[]),removed.sourceKey,...(removed.hubSourceKeys||[])])];}
+  const removed=new Set(chosen);job.parts=job.parts.filter(p=>!removed.has(p.id));
+  history(s,'Duplicate requirements reviewed',`Removed ${chosen.length} unused imported duplicates; original requirements and progress retained`,id,by);
  }else if(type==='fitPart'){
   const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');const qty=asQty(cmd.qty,1);
   if(qty+p.fitted>p.received)throw Error('Cannot fit more parts than have been received.');p.fitted+=qty;

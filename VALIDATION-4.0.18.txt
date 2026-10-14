@@ -1,5 +1,0 @@
-APEX 4.0.18 — Hub RefurbFlow parts requirements → cloud Parts Needed
-
-25 local tests passed, including saved-report backfill, parts-only edits, repeat deduplication, direct-cloud/Hub duplicate matching, cloud order/fitting/QC preservation, removed-part suppression, serial/deletion/stage guards, concurrent revision retries and conflict non-acknowledgement. Existing admin security, live hub, intake, inventory, workflow and label tests also passed. Source syntax and public distribution configuration checks passed.
-
-GitHub Windows build runs the same tests plus existing real label/PDF checks, NSIS build and installer metadata verification. Live Supabase and physical multi-PC/phone testing were not performed here; no production database was changed.

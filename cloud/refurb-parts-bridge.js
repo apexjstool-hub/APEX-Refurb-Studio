@@ -1,4 +1,5 @@
 'use strict';
+const requirements=require('../src/part-requirements');
 const crypto=require('node:crypto');
 const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const clip=(x,n)=>String(x??'').trim().slice(0,n);
@@ -14,7 +15,7 @@ function mergeRequirements(document,localAssets,cloudAssets,deleted){
   for(const report of reports){
    const key=clip(report.key,140);if(!key||!Array.isArray(report.repairs)||!report.repairs.length)continue;
    let job=next.jobs[asset.id];if(job&&['Completed','On Hold'].includes(job.status)){skipped++;continue;}
-   const digest=hash([report.repairs,report.sourceUpdatedAt||0]);const marker=hash(key);
+   const digest=hash(report.repairs);const marker=hash(key);
    if(job?.hubReportImports?.[marker]===digest)continue;
    const now=new Date().toISOString();
    if(!job){job={assetId:asset.id,status:'Inspected',technician:'',priority:'Normal',notes:'',parts:[],qc:{},createdAt:now,updatedAt:now};next.jobs[asset.id]=job;}
@@ -25,7 +26,7 @@ function mergeRequirements(document,localAssets,cloudAssets,deleted){
     const name=clip(req.name,160),qty=Number(req.quantity||1);if(!name||!Number.isSafeInteger(qty)||qty<1||qty>999)continue;
     const sourceKey=key+'|'+name.toLowerCase();
     const directKeys=direct.map(e=>'refurbflow:'+e.eventId+':'+name);
-    let part=job.parts.find(p=>p.sourceKey===sourceKey||(Array.isArray(p.hubSourceKeys)?p.hubSourceKeys:[]).includes(sourceKey)||directKeys.includes(p.sourceKey));
+    let part=job.parts.find(p=>p.sourceKey===sourceKey||(Array.isArray(p.hubSourceKeys)?p.hubSourceKeys:[]).includes(sourceKey)||directKeys.includes(p.sourceKey)||(requirements.imported(p)&&requirements.nameKey(p.name)===requirements.nameKey(name))); 
     if(part){
      if(part.sourceKey!==sourceKey&&!(Array.isArray(part.hubSourceKeys)?part.hubSourceKeys:[]).includes(sourceKey)){part.hubSourceKeys=[...(Array.isArray(part.hubSourceKeys)?part.hubSourceKeys:[]),sourceKey];changed=true;}
      if(qty>part.qty){part.qty=qty;updated++;changes++;}

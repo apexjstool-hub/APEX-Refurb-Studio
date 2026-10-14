@@ -209,7 +209,7 @@ async function cloudInventoryCall(method,route,payload){
   if(!current.ok)return current;
   const assets=await cloudInventoryCall('GET','/v1/items',null);
   if(!assets.ok)return assets;
-  const prepared=workflow.apply(structuredClone(current.workflow),assets.items,payload,cloudUserRole||'staff');
+  const prepared=workflow.apply(structuredClone(current.workflow),assets.items,payload,cloudSession?.email||cloudUserRole||'staff');
   if(!prepared.ok)return prepared;
   const saved=await cloudWorkflowWrite(current.revision,prepared.workflow);
   return saved.ok?{...prepared,workflow:saved.workflow}:saved;
