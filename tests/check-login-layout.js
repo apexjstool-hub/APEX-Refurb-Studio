@@ -9,7 +9,7 @@ app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1366,height:900,webPreferences:{contextIsolation:true,nodeIntegration:false}});
   await win.loadFile(path.join(dir,'index.html'));
   await win.webContents.executeJavaScript("var $=id=>document.getElementById(id);var calls={resume:0,cloud:0,local:0};var api={cloudLoginInfo:async()=>({ok:true,configured:true}),cloudRememberedInfo:async()=>({remembered:true,email:'test@example.com'}),cloudResume:async()=>{calls.resume++;return {ok:false,error:'Test only'}},cloudStaffLogin:async c=>{calls.cloud++;return {ok:false,error:'Test only'}},login:async c=>{calls.local++;return {ok:false,error:'Test only'}}};document.documentElement.dataset.theme='light';");
-  const source=fs.readFileSync(path.join(renderer,'app.js'),'utf8'),start=source.indexOf("let apexLoginMode="),end=source.indexOf("$('sidebarUser').onclick",start);
+  const source=fs.readFileSync(path.join(renderer,'app.js'),'utf8'),start=source.indexOf("let apexLoginMode="),end=source.indexOf("document.querySelectorAll('[data-eye]'",start);
   if(start<0||end<0)throw Error('Login source boundaries missing.');
   await win.webContents.executeJavaScript(source.slice(start,end));
   await new Promise(r=>setTimeout(r,100));
