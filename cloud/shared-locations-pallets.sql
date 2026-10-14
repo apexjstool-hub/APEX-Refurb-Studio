@@ -29,7 +29,7 @@ create or replace function public.apex_inventory_location_pallet_action(
 as $$
 declare state public.apex_inventory_meta;
         row_asset public.apex_assets;
-        item jsonb; id text; loc text; pal text; nm text;
+        item jsonb; v_asset_id text; loc text; pal text; nm text;
         ids text[]; expected_revision bigint; cnt integer := 0;
         current_loc text; current_pal text; updated_payload jsonb;
         new_pallet jsonb;
@@ -55,11 +55,11 @@ begin
  elsif p_action='bulkMove' or p_action='undoBulkMove' then
   if jsonb_typeof(p_input->'moves') <> 'array' or jsonb_array_length(p_input->'moves') not between 1 and 300 then raise exception 'Invalid move list'; end if;
   for item in select value from jsonb_array_elements(p_input->'moves') loop
-   id:=item->>'id';
-   if id is null or length(id)>80 then raise exception 'Invalid asset id';end if;
-   if exists(select 1 from unnest(ids) as x where x=id) then raise exception 'Duplicate asset ID';end if;
-   ids:=array_append(ids,id);
-   select * into row_asset from public.apex_assets where public.apex_assets.id=id for update;
+   v_asset_id:=item->>'id';
+   if v_asset_id is null or length(v_asset_id)>80 then raise exception 'Invalid asset id';end if;
+   if exists(select 1 from unnest(ids) as x(asset_id) where x.asset_id=v_asset_id) then raise exception 'Duplicate asset ID';end if;
+   ids:=array_append(ids,v_asset_id);
+   select * into row_asset from public.apex_assets where public.apex_assets.id=v_asset_id for update;
    if not found or row_asset.payload->>'deletedAt' is not null then raise exception 'Asset unavailable';end if;
    expected_revision:=(item->>'revision')::bigint;
    if row_asset.revision is distinct from expected_revision then raise exception 'Asset changed; refresh';end if;
@@ -77,7 +77,7 @@ begin
        then raise exception 'Location not found';end if;
    updated_payload:=jsonb_set(jsonb_set(row_asset.payload,'{location}',to_jsonb(loc),true),'{pallet}',to_jsonb(pal),true);
    updated_payload:=jsonb_set(updated_payload,'{updatedAt}',to_jsonb(now()::text),true);
-   update public.apex_assets set payload=updated_payload where public.apex_assets.id=id;
+   update public.apex_assets set payload=updated_payload where public.apex_assets.id=v_asset_id;
    cnt:=cnt+1;
   end loop;
  elsif p_action='deleteLocation' or p_action='deletePallet' then
