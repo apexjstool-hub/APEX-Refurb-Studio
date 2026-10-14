@@ -33,7 +33,7 @@ input.inventory-row-select{appearance:auto!important;width:16px!important;min-wi
 #inventoryPage .inventory-selection-toolbar{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:nowrap;gap:8px}
 #inventoryPage .inventory-selection-toolbar>button,#inventoryPage .inventory-selection-toolbar .inventory-menu-wrap>button{height:32px;min-height:32px}
 #inventoryPage .inventory-inline-search{flex:0 1 340px;width:340px;min-width:160px}
-#inventoryPage .inventory-inline-search input{height:32px!important;min-height:32px!important;font-size:12px!important;background:var(--panel2)!important;border:1.5px solid #7b9ec3!important}
+#inventoryPage .inventory-inline-search input{height:32px!important;min-height:32px!important;font-size:12px!important;background:var(--panel2)!important;border:2px solid #7b9ec3!important}
 #inventoryPage .inventory-inline-search input::placeholder{color:var(--muted);opacity:1}
 #inventoryPage .inventory-inline-search input:focus{border-color:#176de3!important;outline:2px solid #176de322!important;outline-offset:1px}
 .inventory-inline-results{margin-left:auto;white-space:nowrap;font-size:11px;color:var(--muted)}
