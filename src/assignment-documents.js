@@ -23,7 +23,7 @@
  }
  function labelMarkup(meta,size='2x1',dpi=203){
   const g=barcodeGeometry(meta.name,size,dpi);
-  return '<main class="assignment-label"><div class="label-type">APEX '+(meta.kind==='pallet'?'REFURB PALLET':'LOCATION')+'</div><div class="label-name">'+esc(meta.name)+'</div><div class="label-bars">'+g.svg+'</div><div class="label-date">Created: '+esc(date(meta.createdAt))+'</div>'+(g.h>30&&meta.label?'<div class="label-description">'+esc(meta.label)+'</div>':'')+'</main>';
+  return '<main class="assignment-label"><div class="label-type">APEX '+(meta.kind==='pallet'?'REFURB PALLET':'LOCATION')+'</div><div class="label-name">'+esc(meta.name)+'</div><div class="label-bars">'+g.svg+'</div>'+(meta.kind==='pallet'?'<div class="label-date">Created: '+esc(date(meta.createdAt))+'</div>':'')+(g.h>30&&meta.label?'<div class="label-description">'+esc(meta.label)+'</div>':'')+'</main>';
  }
  function labelDocument(meta,size='2x1',dpi=203){
   const [w,h]=sizes[size]||[];if(!w)throw Error('Invalid label size.');

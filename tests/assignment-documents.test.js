@@ -11,3 +11,11 @@ test('Thermal label geometry preserves integer printer dots and refuses dense na
 test('Empty pallets, missing dates and HTML text are handled literally',()=>{
  const empty={kind:'pallet',name:'PALLET-0002',label:'<script>bad</script>',assets:[]};assert.match(docs.manifestDocument(empty),/This pallet is empty/);assert.match(docs.manifestDocument(empty),/&lt;script&gt;/);assert.match(docs.labelDocument(empty),/Created: Not recorded/);assert.throws(()=>docs.select(data,'pallet','missing'),/no longer exists/);
 });
+
+test('Location labels omit creation text while pallet labels retain recorded dates',()=>{
+ for(const createdAt of ['', '2026-10-14T10:00:00Z']){
+  const markup=docs.labelDocument({kind:'location',name:'LT PARTS',createdAt});
+  assert.match(markup,/LT PARTS/);assert.doesNotMatch(markup,/class="label-date"|Created:|Not recorded/);
+ }
+ assert.match(docs.labelDocument({...data.pallets[0],kind:'pallet'}),/Created: 14 Oct 2026/);
+});
