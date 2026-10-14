@@ -13,7 +13,7 @@
   const filtered=events.filter(e=>filter==='all'||(filter==='review'?(e.outcome==='rejected'||(e.warnings||[]).length):e.outcome===filter));
   el('verificationRows').innerHTML=filtered.length?filtered.slice(0,60).map(e=>{
    const outcome=e.outcome==='rejected'?'Rejected':e.outcome==='unchanged'?'No change':'Saved';
-   const warning=(e.warnings||[]).join(' · '),notes=e.reason||warning||(e.outcome==='unchanged'?'Duplicate or older submission':'Received by hub (cloud sync not verified)');
+   const warning=(e.warnings||[]).join(' · '),notes=e.reason||warning||(e.cloudVerified===true?'Present in cloud inventory':e.cloudVerified===false?'Saved to Hub · not present in cloud inventory':e.outcome==='unchanged'?'Duplicate or older submission':'Received by hub (cloud sync not verified)');
    const canOpen=!!e.assetId&&typeof items!=='undefined'&&items.some(a=>String(a.id).toUpperCase()===String(e.assetId).toUpperCase());
    return `<tr><td>${esc(time(e.at))}</td><td>${esc(e.source)}<br><small>${esc(e.device||'Unknown device')}</small></td><td>${esc(e.assetId||'—')}</td><td><span class="verification-result ${esc(e.outcome)}">${esc(outcome)}</span></td><td>${esc(notes)}</td><td>${canOpen?`<button class="secondary" type="button" data-intake-asset="${esc(e.assetId)}">Open device</button>`:e.outcome==='saved'?`<button class="secondary" type="button" data-intake-check="${esc(e.assetId)}">Check inventory</button>`:''}</td></tr>`;
   }).join(''):`<tr><td colspan="6">${mode==='local'?'Connect Smart Inventory to your Shared Hub to see imported records.':(mode==='shared'||mode==='demo')?'No matching receipts yet.':'Could not retrieve hub receipts.'}</td></tr>`;
@@ -28,10 +28,10 @@
    try{
     if(typeof window.refresh==='function')await window.refresh();
     const match=typeof items!=='undefined'&&items.some(a=>String(a.id).toUpperCase()===String(id).toUpperCase());
-    if(match){if(typeof openAsset==='function')openAsset(id);else button.textContent='Found in inventory';}
+    if(match){const exact=items.find(a=>String(a.id).toUpperCase()===String(id).toUpperCase());if(typeof openAsset==='function')openAsset(exact.id);else button.textContent='Found in inventory';}
     else{
      button.textContent='Not in this inventory';
-     el('verificationFootnote').textContent=`Asset ${id} was saved by the Hub, but is not in this Studio inventory. If you are signed into Cloud Inventory, start/check APEX Cloud Sync on the hub PC under Settings, then refresh Inventory. Do not re-scan or duplicate the asset.`;
+     el('verificationFootnote').textContent=`Asset ${id} was saved by the Hub, but is not in this Studio inventory. If you are signed into Cloud Inventory, open Admin Centre and test/start the trusted hub cloud sync, then refresh Inventory. Do not re-scan or duplicate the asset.`;
     }
    }catch{button.textContent='Unable to check';}
    finally{button.disabled=false;}

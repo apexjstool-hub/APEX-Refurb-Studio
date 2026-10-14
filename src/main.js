@@ -58,6 +58,15 @@ async function hubRequest(method,route,payload,override){const conf=override||hu
   }catch(e){if(attempt===0&&method==='GET'){await new Promise(resolve=>setTimeout(resolve,350));continue;}}
  }
  return {ok:false,error:'Shared hub cannot be reached. Check network and hub service. No write was automatically retried.'};} 
+async function hubAdmin(action,input){
+ const h=hubConfig();if(!h)return {ok:false,error:'Connect to your trusted hub once through Admin Centre → Inventory connection. Use your main administrator account; no account switch is needed.'};
+ try{
+  if(authMode==='cloud'&&!await renewCloudSession())return {ok:false,error:'Sign in again to renew your administrator session.'};
+  const read=['status','users-list'].includes(action);
+  const response=await fetch(h.url+'/v1/admin-centre/'+action,{method:read?'GET':'POST',headers:{Authorization:'Bearer '+h.token,...(authMode==='cloud'?{'X-APEX-Admin-Session':cloudSession.token}:{}),'Content-Type':'application/json'},body:read?undefined:JSON.stringify(input||{}),signal:AbortSignal.timeout(60000)});
+  return await response.json();
+ }catch{return {ok:false,error:'Trusted hub could not complete the request. Check its connection before retrying; a write may already have completed.'};}
+}
 function localList(){const d=loadDB();return {ok:true,items:d.items.filter(a=>!a.deletedAt),locations:d.locations,pallets:palletManagement.listPallets(d),mode:'local'};}
 let cloudRenewal=null;
 async function renewCloudSession(){
@@ -287,9 +296,9 @@ async function startOwnedHub(){
  const dir=path.join(userDir(),'shared-hub');
  const script=path.join(__dirname,'..','hub','server.js');
  fs.mkdirSync(dir,{recursive:true});
- const env={...process.env,APEX_HUB_HOST:'0.0.0.0',APEX_HUB_PORT:'4217',APEX_HUB_DATA_DIR:dir};
+ const env={...process.env,APEX_HUB_HOST:'0.0.0.0',APEX_HUB_PORT:'4217',APEX_HUB_DATA_DIR:dir,APEX_HUB_CLOUD_CONFIG:privateCloudConfig(),APEX_HUB_CLOUD_STATE:privateCloudState()};
  if(process.versions.electron)env.ELECTRON_RUN_AS_NODE='1';
- const child=spawn(process.execPath,[script],{env,windowsHide:true,stdio:['ignore','pipe','pipe']});
+ const child=spawn(process.execPath,[script],{env,windowsHide:true,stdio:['ignore','pipe','pipe','ipc']});
  ownedHub=child;
  let stderr='';child.stderr.on('data',d=>{stderr+=String(d).slice(0,500);});child.on('error',e=>{stderr=e.message;});
  for(let i=0;i<32;i++){
@@ -446,9 +455,9 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:settingsUnlock',secured(password=>accountSecurity.unlock(password)));
  ipcMain.handle('inventory:settingsLock',()=>accountSecurity.lock());
  ipcMain.handle('inventory:settingsAccess',secured(()=>({ok:true,admin:adminOnly(),unlocked:accountSecurity.isUnlocked()})));
- ipcMain.handle('inventory:usersList',secured(()=>accountSecurity.list()));
- ipcMain.handle('inventory:usersCreate',secured(input=>accountSecurity.create(input)));
- ipcMain.handle('inventory:usersUpdate',secured(input=>accountSecurity.update(input)));
+ ipcMain.handle('inventory:usersList',settingsSecured(()=>hubAdmin('users-list')));
+ ipcMain.handle('inventory:usersCreate',settingsSecured(input=>hubAdmin('users-create',input)));
+ ipcMain.handle('inventory:usersUpdate',settingsSecured(input=>hubAdmin('users-update',input)));
  ipcMain.handle('inventory:login',(evt,credentials)=>safe(()=>{
   if(Date.now()<nextAttempt)return {ok:false,error:'Too many login attempts. Try again shortly.'};
   const db=loadDB();const username=checkInput(credentials?.username,100).toLowerCase();const candidate=Buffer.from(hash(String(credentials?.password||''),db.user.salt),'hex');const actual=Buffer.from(db.user.passwordHash,'hex');
@@ -460,10 +469,11 @@ app.whenReady().then(()=>{
  }));
  ipcMain.handle('inventory:cloudLoginInfo',()=>safe(()=>({ok:true,configured:validCloudUrl(publicCloudLogin().url||'')&&validPublishableKey(publicCloudLogin().anonKey||'')})));
  ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{
-  if(!authenticated||authMode!=='local'||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Settings as the local administrator to configure cloud login.'};
+  if(!authenticated||!adminOnly()||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Admin Centre with your administrator password first.'};
   const url=String(input?.url||'').trim().replace(/\/$/,'');
   const anonKey=String(input?.anonKey||'').trim();
   if(!validCloudUrl(url)||!validPublishableKey(anonKey))return {ok:false,error:'Enter a valid Supabase URL and publishable key.'};
+  if(authMode==='cloud'&&url!==cloudSession.url)return {ok:false,error:'Your administrator account can configure this cloud project only.'};
   atomic(cloudLoginPublicFile(),{url,anonKey});
   return {ok:true,configured:true};
  }));
@@ -545,7 +555,18 @@ app.whenReady().then(()=>{
  }));
  ipcMain.handle('inventory:intakeReceipts',secured(async()=>{
   if(!hubConfig())return {ok:true,mode:'local',events:[],message:'Connect to the shared hub to see accepted and rejected device submissions.'};
-  return {...await hubRequest('GET','/v1/intake/receipts'),mode:'shared'};
+  const result=await hubRequest('GET','/v1/intake/receipts');
+  if(!result.ok)return result;
+  if(authMode==='cloud'){
+   const ids=[...new Set((result.events||[]).map(e=>e.assetId).filter(Boolean))];
+   const present=new Set();let verified=true;
+   for(let offset=0;offset<ids.length;offset+=40){
+    const group=ids.slice(offset,offset+40);const found=await cloudRead('apex_assets?select=id,payload&id=in.'+encodeURIComponent('('+group.map(id=>JSON.stringify(String(id))).join(',')+')'));
+    if(!found.ok){verified=false;break;}for(const row of found.rows)if(!row.payload?.deletedAt)present.add(row.id);
+   }
+   return {...result,mode:'shared',inventoryMode:'cloud',events:(result.events||[]).map(e=>({...e,cloudVerified:verified?present.has(e.assetId):null}))};
+  }
+  return {...result,mode:'shared',inventoryMode:'shared'};
  }));
  ipcMain.handle('inventory:deviceHealth',secured(async()=>{
   const h=hubConfig();
@@ -553,12 +574,12 @@ app.whenReady().then(()=>{
   const r=await hubRequest('GET','/v1/connect/devices');
   return {...r,mode:'shared'};
  }));
- ipcMain.handle('inventory:cloudStatus',secured(()=>cloudStatus()));
- ipcMain.handle('inventory:cloudSave',settingsSecured(input=>cloudSave(input)));
- ipcMain.handle('inventory:cloudCheck',settingsSecured(async()=>cloudCheck()));
- ipcMain.handle('inventory:cloudStart',settingsSecured(async(input)=>cloudStart(input)));
- ipcMain.handle('inventory:cloudStop',settingsSecured(()=>cloudStop()));
- ipcMain.handle('inventory:hubStatus',secured(()=>{if(authMode==='cloud')return {ok:true,mode:'cloud'};const h=hubConfig();return {ok:true,mode:h?'shared':'local',url:h?.url||null};}));
+ ipcMain.handle('inventory:cloudStatus',adminSecured(()=>hubAdmin('status')));
+ ipcMain.handle('inventory:cloudSave',settingsSecured(input=>hubAdmin('save',input)));
+ ipcMain.handle('inventory:cloudCheck',settingsSecured(()=>hubAdmin('check')));
+ ipcMain.handle('inventory:cloudStart',settingsSecured(input=>hubAdmin('start',input)));
+ ipcMain.handle('inventory:cloudStop',settingsSecured(()=>hubAdmin('stop')));
+ ipcMain.handle('inventory:hubStatus',secured(()=>{if(authMode==='cloud')return {ok:true,mode:'cloud',adminHubUrl:hubConfig()?.url||null};const h=hubConfig();return {ok:true,mode:h?'shared':'local',url:h?.url||null};}));
  ipcMain.handle('inventory:hubConnect',settingsSecured(async data=>{
   try{const connection=validateHub(data?.url,data?.token);const r=await hubRequest('GET','/v1/items',null,connection);if(!r.ok)return r;atomic(hubPath(),connection);return {ok:true,mode:'shared',url:connection.url};}
   catch(e){return {ok:false,error:e.message||'Invalid hub connection.'};}
@@ -592,7 +613,15 @@ app.whenReady().then(()=>{
  win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
  win.webContents.on('will-navigate',e=>e.preventDefault());
 });
-app.on('before-quit',()=>{cloudStop();if(ownedHub&&!ownedHub.killed)ownedHub.kill();});
+let closingHub=false;
+app.on('before-quit',event=>{
+ cloudStop();if(closingHub||!ownedHub||ownedHub.exitCode!==null)return;
+ event.preventDefault();closingHub=true;const child=ownedHub;
+ let finished=false;const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);app.quit();};
+ const timer=setTimeout(()=>{if(!child.killed)child.kill();finish();},2000);
+ child.once('exit',finish);
+ try{if(child.connected)child.send({type:'apex-shutdown'});else child.kill();}catch{child.kill();}
+});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)app.quit();});
 

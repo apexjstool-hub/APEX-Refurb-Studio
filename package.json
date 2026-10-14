@@ -1,6 +1,6 @@
 {
   "name": "apex-inventory-studio",
-  "version": "4.0.16",
+  "version": "4.0.17",
   "description": "APEX Refurb Management Studio \u2014 inventory, locations, refurb imports and A4 / Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
@@ -31,7 +31,7 @@
     },
     "files": [
       "src/**/*",
-      "hub/server.js",
+      "hub/**/*.js",
       "package.json",
       "node_modules/@zxing/**/*",
       "node_modules/@zxing/browser/**/*",

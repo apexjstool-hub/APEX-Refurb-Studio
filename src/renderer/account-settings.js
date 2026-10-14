@@ -4,7 +4,7 @@
  let unlocking=null;
  function promptSettings(){
   return new Promise(resolve=>{
-   showModal('Unlock Settings','ADMINISTRATOR ACCESS',`<form id="apexUnlockSettings" class="modal-body"><p>Enter the password for your signed-in administrator account.</p><label class="field">Administrator password<input id="apexSettingsPassword" type="password" autocomplete="current-password" maxlength="128" required></label><div id="apexSettingsError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexSettingsCancel" class="secondary" type="button">Cancel</button><button class="primary" type="submit">Unlock Settings</button></div></form>`);
+   showModal('Unlock Admin Centre','ADMINISTRATOR ACCESS',`<form id="apexUnlockSettings" class="modal-body"><p>Enter the password for your signed-in administrator account.</p><label class="field">Administrator password<input id="apexSettingsPassword" type="password" autocomplete="current-password" maxlength="128" required></label><div id="apexSettingsError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexSettingsCancel" class="secondary" type="button">Cancel</button><button class="primary" type="submit">Unlock Admin Centre</button></div></form>`);
    let finished=false;
    const finish=ok=>{if(finished)return;finished=true;$('modalClose').removeEventListener('click',cancel);$('modalLayer').removeEventListener('click',outside);document.removeEventListener('keydown',escape);resolve(ok);};
    const cancel=()=>{closeModal();finish(false);};
@@ -28,7 +28,7 @@
   }
   const result=baseSetPage(page,force);if(!result)return result;
   if(!['settings','users'].includes(page)&&accessReady){accessReady=false;api.settingsLock();}
-  if(page==='users')renderUsers();return result;
+  if(page==='settings'){$('breadPage').textContent='Admin Centre';$('breadSub').textContent='Hub, accounts and sync';}if(page==='users')renderUsers();return result;
  };
  $('apexSharedAccountSignIn').onclick=async()=>{
   await $('sidebarUser').onclick();

@@ -24,11 +24,14 @@ function createAccountSecurity(deps){
   failures=0;unlockedUntil=Date.now()+10*60*1000;return {ok:true};
  }
  function config(){if(!isUnlocked())throw Error('Unlock Settings with your administrator password first.');const c=deps.config();if(!c?.supabaseUrl||!c.serviceRoleKey)throw Error('Manage shared accounts on the trusted hub PC after configuring APEX Cloud Sync.');const session=deps.cloud();if(deps.mode()==='cloud'&&session?.url!==c.supabaseUrl)throw Error('Cloud account and hub configuration must use the same project.');return c;}
+ return {unlock,lock,isUnlocked,...createAccountManager(config,deps.fetch)};
+}
+function createAccountManager(config,fetch){
  async function request(c,route,method='GET',body){
   const headers={apikey:c.serviceRoleKey,'Content-Type':'application/json'};
   if(!c.serviceRoleKey.startsWith('sb_secret_'))headers.Authorization='Bearer '+c.serviceRoleKey;
   if(route.startsWith('/rest/'))headers.Prefer='return=representation';
-  const r=await deps.fetch(c.supabaseUrl+route,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
+  const r=await fetch(c.supabaseUrl+route,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
   if(!r.ok)throw Error('Cloud account operation failed (HTTP '+r.status+'). Check the hub configuration and account details.');
   return r.status===204?null:r.json();
  }
@@ -56,6 +59,6 @@ function createAccountSecurity(deps){
    await request(c,'/rest/v1/apex_staff?user_id=eq.'+input.id,'PATCH',{role:input.role,active:input.active});return {ok:true};
   }catch(e){return {ok:false,error:e.message};}
  }
- return {unlock,lock,isUnlocked,list,create,update};
+ return {list,create,update};
 }
-module.exports={createAccountSecurity};
+module.exports={createAccountSecurity,createAccountManager};

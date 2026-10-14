@@ -155,6 +155,8 @@ function statusPage(res){
 function authorizedAs(req,secret){const incoming=(req.headers.authorization||'').replace(/^Bearer /,'');const a=Buffer.from(incoming);const b=Buffer.from(secret);return a.length===b.length&&crypto.timingSafeEqual(a,b);}
 function authorized(req){return authorizedAs(req,token);}
 async function body(req){let b='';for await(const c of req){b+=c.toString();if(b.length>maxBody)throw Error('Payload too large');}return JSON.parse(b||'{}');}
+const adminCentre=process.env.APEX_HUB_CLOUD_CONFIG?require('./admin-centre').createAdminCentre({configFile:process.env.APEX_HUB_CLOUD_CONFIG,stateFile:process.env.APEX_HUB_CLOUD_STATE,publicConfig:require('../src/cloud-login-distribution.json'),hubUrl:'http://127.0.0.1:'+port,hubToken:token,items:()=>data.items.filter(a=>!a.deletedAt)}):null;
+process.on('exit',()=>adminCentre?.stop());process.on('SIGTERM',()=>{adminCentre?.stop(true);process.exit(0);});
 const server=http.createServer(async(req,res)=>{
   try{
     const pathname=new URL(req.url,'http://localhost').pathname;
@@ -253,6 +255,17 @@ const server=http.createServer(async(req,res)=>{
       data.items=proposedItems;data.operations=proposedOperations;data.version++;save();
       const resolved=conflicts.mark(conflictsPath,prepared.entries,prepared.entry,decision);
       return json(res,200,{ok:true,resolved,assetId:entry.assetId,version:data.version});
+    }
+    if(pathname.startsWith('/v1/admin-centre/')){
+      if(!authorized(req))return json(res,401,{ok:false,error:'Hub administrator connection required.'});
+      if(!adminCentre)return json(res,409,{ok:false,error:'Update and restart APEX on the trusted hub PC, then start its hub through Settings.'});
+      const local=['127.0.0.1','::1','::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
+      const proof=String(req.headers['x-apex-admin-session']||'');
+      if(!await adminCentre.authorize(proof,local))return json(res,403,{ok:false,error:'An active shared administrator account is required.'});
+      const action=pathname.slice('/v1/admin-centre/'.length);
+      if((action==='status'||action==='users-list')?req.method!=='GET':req.method!=='POST')return json(res,405,{ok:false,error:'Method not allowed.'});
+      const result=await adminCentre.handle(action,req.method==='POST'?await body(req):{},local);
+      return json(res,result.ok?200:400,{...result,localControl:local});
     }
     if(pathname==='/v1/intake/receipts'&&req.method==='GET'){
       if(!authorized(req))return json(res,401,{ok:false,error:'Admin permission required.'});

@@ -1,8 +1,8 @@
 'use strict';
 // APEX v3 workspace layer; reuses the existing verified inventory, hub, and repairs logic.
 (function(){
-const groups={dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['parts','Parts needed'],['partsOrdered','Parts ordered'],['locations','Locations'],['completed','Completed']],reports:[['reports','Reports & exports']],settings:[['settings','Preferences'],['users','Users']]};
-const groupNames={dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Settings'};
+const groups={dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['parts','Parts needed'],['partsOrdered','Parts ordered'],['locations','Locations'],['completed','Completed']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
+const groupNames={dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
 const esc=html;
 const getGroup=p=>p==='asset'||p==='scan'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
 const titles={scan:'Scan assets or a saved location to build a batch',dashboard:'Assets, refurbishment and outstanding work',inventory:'Devices, locations and refurb jobs in one place',reports:'A4 reports and simple Excel exports',settings:'Connection and workstation settings'};

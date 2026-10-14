@@ -9,7 +9,7 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Settings'};
+const PAGE_NAMES={dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre'};
 const PAGE_SUBS={dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
@@ -128,6 +128,7 @@ async function refresh(silent=false){
   const useVersion=Boolean(silent&&syncMode==='shared'&&Number.isSafeInteger(lastHubVersion)&&Date.now()-lastFullRefreshAt<60000);
   const r=await api.list(useVersion?lastHubVersion:undefined);
   if(r.ok){
+   if(r.mode==='cloud')syncMode='cloud';
    if(r.unchanged){updateConnection(true);return;}
    if(!Array.isArray(r.items))throw Error('Inventory response is missing asset records.');
    items=r.items.map(core.normalize);
@@ -217,7 +218,7 @@ async function toggleCamera(){if(scanRunning||scannerControls||cameraStream){sto
 }
 function stopCamera(){scanRunning=false;try{scannerControls?.stop();}catch{}scannerControls=null;try{cameraStream?.getTracks().forEach(t=>t.stop());}catch{}cameraStream=null;const v=$('pageCameraVideo');if(v){try{v.pause();v.srcObject=null;}catch{}}$('pageCameraFrame').classList.remove('visible');$('pageCameraToggle').textContent='◎ Open camera scanner';}
 async function pairWizard(){
- const status=await api.hubStatus(),active=status.ok&&status.mode==='shared';
+ const status=await api.hubStatus(),active=status.ok&&(status.mode==='shared'||!!status.adminHubUrl);
  showModal('Automatic device connections','SMART INVENTORY / NETWORK',`<div class="modal-body pair-setup">
   <div class="hub-summary"><b>Smart Inventory · Automatic discovery</b><p>Start sharing on your Inventory PC. APEX Diagnostics and the RefurbFlow Android and APEX Diagnostics can find it on the same private local network. No pairing links.</p></div>
   <div class="pair-step"><span>01</span><div><strong>Shared inventory hub</strong><p>Your hub starts automatically on future launches after you enable it once. This computer must stay powered on for live transfers.</p><button id="pairStart" class="primary" type="button">${active?'✓ Hub connected':'▶ Start sharing on this PC'}</button><button id="pairExisting" class="secondary" type="button">Advanced / existing hub</button></div></div>
@@ -225,7 +226,7 @@ async function pairWizard(){
   <label style="display:flex;align-items:flex-start;gap:10px;margin-top:12px;"><input type="checkbox" id="pairAutoApprove" style="width:18px;min-width:18px;margin-top:2px;" ${active?'':'disabled'}><span><b>Automatically accept new local-network devices</b><br><small>This allows other computers on this network to submit inventory updates. Do not use on guest/public Wi-Fi.</small></span></label>
   <div id="pairDeviceList" style="margin-top:12px"></div><div id="pairRevokedList" style="margin-top:14px"></div><button id="pairRefresh" class="secondary" type="button" ${active?'':'disabled'}>Refresh connected devices</button></div></div>
   <div class="pair-step"><span>03</span><div><strong>Open your other apps</strong><p>Start APEX Diagnostics or direct-sync RefurbFlow Android on the trusted network. Once trusted, devices reconnect without any manual setup.</p></div></div>
-  <p id="pairMessage" class="pair-message" role="status">${active?'Hub connected: '+html(status.url):'Click Start sharing on this PC once to enable discovery.'}</p>
+  <p id="pairMessage" class="pair-message" role="status">${active?'Hub connected: '+html(status.adminHubUrl||status.url):'Click Start sharing on this PC once to enable discovery.'}</p>
   <div class="modal-actions"><button id="pairClose" class="secondary" type="button">Done</button></div></div>`);
  const msg=$('pairMessage');$('pairClose').onclick=closeModal;$('pairExisting').onclick=hubModal;
  const loadDevices=async()=>{
