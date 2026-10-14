@@ -11,7 +11,7 @@ function createDesktopIntakeNotification(owner,onOpen){
  async function show(assets){
   for(const a of assets)pending.set(a.id,a);
   const parent=owner();if(!parent||parent.isDestroyed())return;
-  const area=screen.getDisplayMatching(parent.getBounds()).workArea,width=Math.min(380,area.width-24),height=156;
+  const area=screen.getDisplayMatching(parent.getBounds()).workArea,width=Math.min(380,area.width-24),height=172;
   if(!popup||popup.isDestroyed()){
    popup=new BrowserWindow({width,height,x:area.x+area.width-width-16,y:area.y+area.height-height-16,frame:false,resizable:false,alwaysOnTop:true,skipTaskbar:true,show:false,backgroundColor:'#101b24',title:'APEX - New inventory received',webPreferences:{preload:path.join(__dirname,'notification-preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,backgroundThrottling:false}});
    popup.setAlwaysOnTop(true,'floating');popup.webContents.setWindowOpenHandler(()=>({action:'deny'}));popup.webContents.on('will-navigate',event=>event.preventDefault());
