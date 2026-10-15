@@ -96,6 +96,12 @@ jobs:
         run: |
           npm run pack:windows -- --publish never
           if ($LASTEXITCODE -ne 0) { throw 'NSIS build failed.' }
+      - name: Verify sync worker inside the packaged Windows application
+        run: |
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          & ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" scripts/verify-packaged-sync.js
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged sync worker verification failed. No release will be uploaded.' }
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
       - name: Verify installer and create draft release
         env:
           GH_TOKEN: ${{ github.token }}
