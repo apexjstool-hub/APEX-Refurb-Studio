@@ -98,6 +98,23 @@ function apply(state,assets,cmd,by='Administrator'){
   if(o.status!=='Draft')throw Error('Only unapproved drafts can be removed. Approved orders form part of your purchasing history.');
   s.orders=s.orders.filter(x=>x!==o);history(s,'Draft removed',o.id,'',by);return {ok:true,workflow:s};
  }
+ if(type==='bulkSetPartsBoard'){
+  s.jobs={...s.jobs};s.audit=[...s.audit];
+  if(!['needed','ordered'].includes(cmd.board))throw Error('Choose Parts Needed or Parts Ordered.');
+  if(!Array.isArray(cmd.assetIds)||!cmd.assetIds.length)throw Error('Select at least one laptop.');
+  const ids=[...new Set(cmd.assetIds.map(x=>clip(x,80).toUpperCase()))];
+  const jobs=ids.map(assetId=>{
+   if(!s.jobs[assetId]||!assets.some(a=>a.id===assetId))throw Error('A selected laptop no longer exists. Refresh and try again.');
+   const j=s.jobs[assetId];
+   if(!(j.parts||[]).some(p=>p.fitted<p.qty))throw Error('A selected laptop has no outstanding parts. Refresh and try again.');
+   s.jobs[assetId]={...j};return s.jobs[assetId];
+  });
+  for(const j of jobs){
+   j.partsBoard=cmd.board;j.updatedAt=stamp();
+   history(s,'Parts board changed',cmd.board==='ordered'?'Moved to Parts Ordered':'Moved to Parts Needed',j.assetId,by);
+  }
+  return {ok:true,workflow:s};
+ }
  if(type==='setPartsBoard'){
   if(!['needed','ordered'].includes(cmd.board))throw Error('Choose Parts Needed or Parts Ordered.');
   const j=ensure(s,id,assets);

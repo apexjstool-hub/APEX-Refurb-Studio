@@ -60,6 +60,16 @@ app.whenReady().then(async()=>{
   state.jobs['TEST-TRACKER'].partsBoard='needed';
   state.jobs['TEST-TRACKER'].parts.push({id:'bulk-1',name:'Screen',qty:2,received:1,fitted:1},{id:'bulk-2',name:'Keyboard',qty:1,received:0,fitted:0});
   await win.webContents.executeJavaScript("window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("$('opsMoveSelectedParts').disabled"))throw Error('Bulk move must start disabled.');
+  const orderCountBeforeMove=state.orders.length;
+  await win.webContents.executeJavaScript("$('partsContent').querySelector('.ops-part-check').click();void 0;");
+  if(!await win.webContents.executeJavaScript("!$('opsMoveSelectedParts').disabled&&$('opsMoveSelectedParts').textContent.includes('(1)')&&!$('opsExportRefurbPartsSelected').disabled"))throw Error('Bulk move and export did not share selection.');
+  await win.webContents.executeJavaScript("$('opsMoveSelectedParts').click();void 0;");
+  let boardMoved=false;
+  for(let i=0;i<30;i++){boardMoved=await win.webContents.executeJavaScript("!$('partsContent').querySelector('.ops-part-check')&&$('opsMoveSelectedParts').disabled&&$('partsOrderedContent').textContent.includes('TEST-TRACKER')");if(boardMoved)break;await new Promise(r=>setTimeout(r,100));}
+  if(!boardMoved||state.jobs['TEST-TRACKER'].partsBoard!=='ordered'||state.orders.length!==orderCountBeforeMove)throw Error('Selected board move failed or created a purchase order.');
+  state.jobs['TEST-TRACKER'].partsBoard='needed';
+  await win.webContents.executeJavaScript("window.ApexOps.load();");
   if(!await win.webContents.executeJavaScript("!!$('partsContent').querySelector('[data-op=orderAll]')"))throw Error('Mark all as ordered button is missing.');
   await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-op=orderAll]').click();void 0;");
   if(!await win.webContents.executeJavaScript("$('opsOrderForm').querySelectorAll('input[type=checkbox]:checked').length===2"))throw Error('Order all did not preselect every outstanding part.');
