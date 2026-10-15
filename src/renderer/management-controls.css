@@ -45,3 +45,13 @@ html[data-theme=dark] body.apex-v34 button.apex-delete-button:hover:not(:disable
 .management-delete-form>p.management-delete-note{font-size:12px;color:var(--muted)}
 .management-delete-form .modal-actions{margin-top:24px}
 .management-delete-form .form-error:empty{display:none}
+
+/* Pallet and pallet-location delete confirmations mirror Inventory / Locations. */
+.management-delete-form.v344-location-dialog { padding:38px 38px 36px; }
+.management-delete-form.v344-location-dialog > p { font-size:13px;line-height:1.65;margin:0 0 18px;color:var(--text); }
+.management-delete-form.v344-location-dialog > p.v344-location-warning { font-size:12px;color:var(--muted);margin-bottom:0; }
+.management-delete-form.v344-location-dialog .modal-actions { margin-top:42px;align-items:center;gap:13px; }
+.management-delete-form.v344-location-dialog .modal-actions > button { min-height:42px; }
+.management-delete-form.v344-location-dialog .v344-confirm-delete { display:inline-flex;align-items:center;justify-content:center;gap:9px; }
+.management-delete-form.v344-location-dialog .form-error:not(:empty) { margin-top:15px; }
+@media (max-width:600px) { .management-delete-form.v344-location-dialog {padding:24px 20px;} }
