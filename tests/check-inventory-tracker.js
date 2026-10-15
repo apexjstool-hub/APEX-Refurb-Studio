@@ -56,6 +56,30 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=receive]').click();$('opsDirectReceive').dispatchEvent(new Event('submit',{cancelable:true}));");
   for(let attempt=0;attempt<30;attempt++){result=await win.webContents.executeJavaScript("({fitting:!!$('inventoryTable').querySelector('[data-tracker-act=fit]'),received:$('inventoryTable').querySelector('.inventory-parts-table tbody tr')?.cells[3].textContent==='1'})");if(result.fitting&&result.received)break;await new Promise(r=>setTimeout(r,100));}
   if(!result.fitting||!result.received||state.jobs['TEST-TRACKER'].parts[0].received!==1)throw Error('Inline receipt failed: '+JSON.stringify(result));
+  const beforeBulk=structuredClone(state);
+  state.jobs['TEST-TRACKER'].partsBoard='needed';
+  state.jobs['TEST-TRACKER'].parts.push({id:'bulk-1',name:'Screen',qty:2,received:1,fitted:1},{id:'bulk-2',name:'Keyboard',qty:1,received:0,fitted:0});
+  await win.webContents.executeJavaScript("window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("!!$('partsContent').querySelector('[data-op=orderAll]')"))throw Error('Mark all as ordered button is missing.');
+  await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-op=orderAll]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("$('opsOrderForm').querySelectorAll('input[type=checkbox]:checked').length===2"))throw Error('Order all did not preselect every outstanding part.');
+  await win.webContents.executeJavaScript("$('opsOrderForm').elements.supplier.value='Bulk supplier';$('opsOrderForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  for(let i=0;i<30;i++){if(state.orders.length===2)break;await new Promise(r=>setTimeout(r,100));}
+  if(state.orders.length!==2||state.orders[0].lines.length!==2)throw Error('Order all did not create the selected order lines.');
+  await win.webContents.executeJavaScript("$('deliveriesContent').querySelector('[data-op=receiveOrders]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("$('opsBulkReceiveForm').querySelectorAll('tbody tr').length===2"))throw Error('Receive all orders preview did not list outstanding lines.');
+  await win.webContents.executeJavaScript("$('opsCancel').click();void 0;");
+  if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-1').received!==1)throw Error('Cancel received parts unexpectedly.');
+  await win.webContents.executeJavaScript("$('deliveriesContent').querySelector('[data-op=receiveOrders]').click();$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  for(let i=0;i<30;i++){if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-2').received===1)break;await new Promise(r=>setTimeout(r,100));}
+  if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-1').received!==2||state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-1').fitted!==1||!state.orders[0].lines.every(l=>l.received===l.qty))throw Error('Bulk order receipt did not update outstanding quantities or changed fitting.');
+  state=structuredClone(beforeBulk);state.jobs['TEST-TRACKER'].parts.push({id:'direct-bulk',name:'Lid',qty:2,received:0,fitted:0});
+  await win.webContents.executeJavaScript("window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("!!$('inventoryTable').querySelector('[data-tracker-act=receiveAll]')&&!!$('inventoryTable').querySelector('[data-tracker-act=receive]')"))throw Error('Bulk receipt replaced the individual inventory action.');
+  await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=receiveAll]').click();$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  for(let i=0;i<30;i++){if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received===2)break;await new Promise(r=>setTimeout(r,100));}
+  if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received!==2)throw Error('Per-device Receive all parts failed.');
+  state=beforeBulk;await win.webContents.executeJavaScript("window.ApexOps.load();");
   if(!await win.webContents.executeJavaScript("!!$('editPallet')?.closest('.v34-general')"))throw Error('Pallet field was removed by the Device Overview layout.');
   db.items[0].location='Inspection';db.items[0].pallet='';await win.webContents.executeJavaScript('refresh()');
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'v346-simple-scan.js'),'utf8'));

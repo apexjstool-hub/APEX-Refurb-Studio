@@ -56,6 +56,26 @@ function apply(state,assets,cmd,by='Administrator'){
  const s=init(state);try{
  if(!cmd||typeof cmd!=='object')throw Error('Invalid workflow request.');
  const type=clip(cmd.type,40),id=clip(cmd.assetId,80).toUpperCase();let job;
+ if(type==='receiveParts'){
+  const rows=Array.isArray(cmd.parts)?cmd.parts:[];
+  if(!rows.length||rows.length>1000)throw Error('Choose between 1 and 1000 outstanding parts.');
+  const seen=new Set(),prepared=[];
+  for(const row of rows){
+   const assetId=clip(row.assetId,80).toUpperCase(),key=assetId+'|'+row.partId,j=s.jobs[assetId],p=j?.parts.find(p=>p.id===row.partId);
+   if(seen.has(key))throw Error('A part was selected twice. Refresh and try again.');seen.add(key);
+   if(!p||!assets.some(a=>a.id===assetId&&!a.deletedAt))throw Error('A selected part or device no longer exists. Refresh and try again.');
+   if(['Completed','On Hold'].includes(j.status))throw Error('A selected job is locked. Refresh before receiving parts.');
+   if(p.qty!==row.expectedQty||p.received!==row.expectedReceived)throw Error('Part quantities changed. Refresh before receiving parts.');
+   const onOrder=s.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===assetId&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,l.qty-l.received),0);
+   if(cmd.ordersOnly&&onOrder!==row.expectedOnOrder)throw Error('Order quantities changed. Refresh before receiving deliveries.');
+   const qty=cmd.ordersOnly?Math.min(p.qty-p.received,onOrder):p.qty-p.received;
+   if(qty<=0||row.qty!==qty)throw Error('Only outstanding quantities can be received. Refresh and try again.');
+   prepared.push({type:'receivePart',assetId,partId:p.id,expectedReceived:p.received,qty});
+  }
+  let next=structuredClone(s);
+  for(const receipt of prepared){const result=apply(next,assets,receipt,by);if(!result.ok)throw Error(result.error);next=result.workflow;}
+  return {ok:true,workflow:next};
+ }
  if(type==='approveDraft'){
   const draft=s.orders.find(o=>o.id===cmd.orderId&&o.status==='Draft');if(!draft)throw Error('Draft not found.');
   const supplier=clip(cmd.supplier,120);if(!supplier)throw Error('Choose a supplier before approval.');
