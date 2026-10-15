@@ -9,7 +9,7 @@
  function closeMenus(){document.querySelectorAll('.inventory-action-menu,.inventory-filter-menu').forEach(m=>{if(m.matches(':popover-open'))m.hidePopover();m.hidden=true;});document.querySelectorAll('[data-selection-menu],#inventoryFiltersButton').forEach(b=>b.setAttribute('aria-expanded','false'));}
  function update(kind){
   const host=$('selection-toolbar-'+kind);if(!host)return;
-  const total=host.querySelector('.management-total');if(total)total.textContent=names(kind).length+' '+scopes[kind].label;
+  const total=host.querySelector('.management-total');if(total)total.textContent=names(kind).length+' '+(names(kind).length===1?(kind==='pallet'?'pallet':'location'):scopes[kind].label);
   const n=selected[kind].size;host.querySelector('.inventory-selection-count').textContent=n?n+' '+scopes[kind].label+' selected':kind==='inventory'?'Select '+scopes[kind].label:'';
   host.querySelectorAll('[data-selection-menu]').forEach(b=>b.disabled=!n);
   const table=$(scopes[kind].table)?.querySelector('table');if(!table)return;

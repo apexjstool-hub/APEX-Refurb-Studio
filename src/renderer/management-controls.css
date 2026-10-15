@@ -3,7 +3,7 @@
 .management-toolbar-title{display:flex;align-items:center;gap:10px;margin-right:auto;white-space:nowrap}
 .apex-v34 .management-toolbar-title h3{margin:0;font-size:15px;line-height:1.4}
 .management-total{font-size:12px;color:var(--muted,#66768d);font-weight:400}
-.apex-v34 .management-toolbar .inventory-inline-search{margin-left:auto;flex:0 1 220px}
+.apex-v34 .management-toolbar .inventory-inline-search{margin-left:0;flex:0 1 220px}
 .apex-v34 .management-toolbar .inventory-selection-count{margin:0;font-size:11px}.apex-v34 .management-toolbar .inventory-selection-count:empty{display:none}
 .apex-v34 .management-toolbar>input[type=search]{width:220px;margin-left:auto}
 .apex-v34 .management-toolbar>.primary{white-space:nowrap;min-height:36px}
@@ -28,3 +28,6 @@ html[data-theme=dark] body.apex-v34 button.apex-delete-button:hover:not(:disable
 .apex-v34 .management-toolbar>.primary{background:#146be5!important;color:#fff!important;border:1px solid #146be5!important;border-radius:6px!important;height:36px!important;padding:0 14px!important;text-transform:none!important;font-size:12px!important;font-weight:600!important}
 .apex-v34 .management-toolbar>.primary:hover:not(:disabled){background:#0d5dce!important}
 .apex-v34 .management-toolbar>.primary:disabled{opacity:.5;cursor:not-allowed}
+
+.apex-v34 .management-toolbar input[type=search]{height:36px!important;min-height:36px!important;border:1px solid var(--input-border,var(--line))!important;border-radius:6px!important;padding:0 12px!important;font-size:12px!important;background:var(--field-bg,var(--panel))!important}
+.apex-v34 .management-toolbar .inventory-menu-wrap>button{height:36px;min-height:36px;border-radius:6px;text-transform:none;font-size:12px}

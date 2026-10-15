@@ -1,7 +1,7 @@
 {
   "name": "apex-inventory-studio",
   "version": "4.0.53",
-  "description": "APEX Refurb Management Studio — inventory, device and pallet storage locations, refurb imports and A4 / Excel reports",
+  "description": "APEX Refurb Management Studio — inventory, refurbishment and pallet storage management with A4 / Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
   "license": "MIT",
