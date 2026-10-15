@@ -4,14 +4,14 @@
 const groups={refurbWorkspace:[['refurbWorkspace','Refurbishment']],dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['locations','Locations'],['pallets','Pallets'],['palletLocations','Pallet locations']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
 const groupNames={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
 const esc=html;
-const getGroup=p=>p==='asset'||p==='scan'||p==='palletLocationDetail'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
+const getGroup=p=>p==='asset'||p==='scan'||p==='palletLocationDetail'||p==='containerInventory'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
 const titles={refurbWorkspace:'Manage refurbishment work, parts and final checks',scan:'Scan assets or a saved location to build a batch',dashboard:'Assets, refurbishment and outstanding work',inventory:'Devices, locations and pallets in one place',reports:'A4 reports and simple Excel exports',settings:'Connection and workstation settings'};
 // Preserve existing page IDs and rendering logic, but group routes behind only four main navigation items.
 const parentSetPage=setPage;
 let assetTab='overview',lastGroup='dashboard',reportTab='worksheet';
-function renderTabs(page){const group=getGroup(page),bar=$('v3Tabs');lastGroup=group;$('v3Workspace').textContent=groupNames[group];$('v3WorkspaceSubtitle').textContent=titles[group];
+function renderTabs(page){const group=getGroup(page),bar=$('v3Tabs'),selectedTab=page==='containerInventory'?(window.ApexContainerInventory?.tab()||'pallets'):page==='palletLocationDetail'?'palletLocations':page;lastGroup=group;$('v3Workspace').textContent=groupNames[group];$('v3WorkspaceSubtitle').textContent=titles[group];
 if(page==='asset')$('v3WorkspaceSubtitle').textContent='Specifications, refurb notes and diagnostics in one place';
-bar.innerHTML=(groups[group]||[]).map(([id,label])=>`<button type="button" class="v3-tab ${(id===page||page==='palletLocationDetail'&&id==='palletLocations')?'selected':''}" data-v3tab="${id}" role="tab" aria-selected="${id===page||page==='palletLocationDetail'&&id==='palletLocations'}">${label}</button>`).join('');
+bar.innerHTML=(groups[group]||[]).map(([id,label])=>`<button type="button" class="v3-tab ${id===selectedTab?'selected':''}" data-v3tab="${id}" role="tab" aria-selected="${id===selectedTab}">${label}</button>`).join('');
 bar.querySelectorAll('[data-v3tab]').forEach(b=>b.onclick=()=>setPage(b.dataset.v3tab));
 document.querySelectorAll('.sidebar .menu-item').forEach(b=>b.classList.toggle('active',b.dataset.page===group));
 const tabCount=(groups[group]||[]).length;bar.classList.toggle('v3-single',tabCount===1);

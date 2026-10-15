@@ -35,6 +35,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'v3-ui.js'),'utf8'));
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'refurb-workspace.js'),'utf8'));
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'pallet-locations.js'),'utf8'));
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'container-inventory.js'),'utf8'));
   await win.webContents.executeJavaScript("$('refurbNav').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&!$('refurbWorkspacePage').classList.contains('hidden')&&$('refurbNav').classList.contains('active')&&!$('refurbNavLinks')&&!$('refurbNavToggle')&&$('v3Workspace').textContent==='Refurbishment'"))throw Error('Refurbishment sidebar routing or grouping failed.');
   if(!await win.webContents.executeJavaScript("$('rwQueueTable').querySelectorAll('[data-rw-expand]').length===6&&!$('rwQueueTable').textContent.includes('RW-DONE')"))throw Error('Active queue did not include all active jobs or included completed jobs.');
@@ -125,7 +126,31 @@ app.whenReady().then(async()=>{
   if(!await win.webContents.executeJavaScript("(()=>{const p=$('palletLocationDetailContent'),cards=[...p.querySelectorAll('.pl-pallet-card')];return cards.length===2&&cards.some(c=>c.textContent.includes('PALLET-0001')&&c.querySelector('.pl-pallet-count strong').textContent==='1')&&cards.some(c=>c.textContent.includes('PALLET-0003')&&c.querySelector('.pl-pallet-count strong').textContent==='0')&&!p.textContent.includes('PALLET-0002')&&p.querySelectorAll('.pl-location-summary strong')[1].textContent==='1';})()"))throw Error('Location pallet scope or inventory counts are incorrect.');
   await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/pallet-location-detail.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('locationFilter').value='Inspection';$('gradeFilter').value='D';$('repairFilter').value='hold';$('inventorySearch').value='no match';$('palletLocationDetailContent').querySelector('[data-pl-inventory=PALLET-0001]').click();void 0;");
-  if(!await win.webContents.executeJavaScript("currentPage==='inventory'&&$('palletFilter').value==='PALLET-0001'&&$('inventorySearch').value===''&&$('locationFilter').value===''&&$('gradeFilter').value===''&&$('repairFilter').value===''&&JSON.stringify([...$('inventoryTable').querySelectorAll('[data-asset]')].map(a=>a.dataset.asset).filter((id,i,all)=>all.indexOf(id)===i))===JSON.stringify(['TEST-TRACKER'])"))throw Error('View inventory did not open exactly the selected pallet devices or clear unrelated filters.');
+  if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('inventoryPage').classList.contains('hidden')&&$('inventorySearch').value==='no match'&&$('locationFilter').value==='Inspection'&&$('gradeFilter').value==='D'&&$('repairFilter').value==='hold'&&$('v3Tabs').querySelector('[data-v3tab=palletLocations].selected')&&JSON.stringify([...$('containerInventoryContent').querySelectorAll('[data-ci-asset]')].map(a=>a.dataset.ciAsset).filter((id,i,all)=>all.indexOf(id)===i))===JSON.stringify(['TEST-TRACKER'])"))throw Error('Pallet inventory escaped its contents page, showed other pallets or changed All devices filters.');
+  await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/pallet-contents.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("$('ciSearch').value='nothing matches';$('ciSearch').dispatchEvent(new Event('input'));void 0;");
+  if(!await win.webContents.executeJavaScript("!!$('containerInventoryContent').querySelector('.ci-empty')&&$('inventorySearch').value==='no match'"))throw Error('Contents search changed the All devices search.');
+  await win.webContents.executeJavaScript("$('ciSearch').value='';$('ciSearch').dispatchEvent(new Event('input'));$('containerInventoryContent').querySelector('[data-ci-asset]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&activeAssetId==='TEST-TRACKER'&&!$('ciReturnFromAsset').hidden"))throw Error('Contents device view lacks a return path.');
+  await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('assetBack').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&dirty"))throw Error('Contents return bypassed unsaved device changes.');
+  await win.webContents.executeJavaScript("dirty=false;$('assetBack').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('containerInventoryContent').textContent.includes('PALLET-0001')"))throw Error('Device Back returned to All devices instead of its pallet.');
+  await win.webContents.executeJavaScript("$('ciBack').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&$('palletLocationDetailContent').textContent.includes('Rack B')"))throw Error('Contents Back lost the parent pallet location.');
+  await win.webContents.executeJavaScript("setPage('pallets');$('apexPalletTable').querySelector('[data-pallet-show=PALLET-0002]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('v3Tabs').querySelector('[data-v3tab=pallets].selected')&&$('containerInventoryContent').textContent.includes('OUTSIDE-PALLET')&&!$('containerInventoryContent').textContent.includes('TEST-TRACKER')"))throw Error('Pallets register did not open its own scoped contents page.');
+  await win.webContents.executeJavaScript("$('ciBack').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='pallets'"))throw Error('Pallet contents Back did not return to Pallets.');
+  await win.webContents.executeJavaScript("setPage('locations');$('locationsTable').querySelector('[data-jump-location=Inspection]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('v3Tabs').querySelector('[data-v3tab=locations].selected')&&$('containerInventoryContent').textContent.includes('RW-DELIVERY')&&!$('containerInventoryContent').textContent.includes('OUTSIDE-PALLET')&&!$('containerInventoryContent').textContent.includes('TEST-TRACKER')"))throw Error('Locations did not show exactly the items stored inside the location.');
+  await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/location-contents.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("$('ciBack').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='locations'"))throw Error('Location contents Back did not return to Locations.');
+  await win.webContents.executeJavaScript("setPage('pallets');$('apexPalletTable').querySelector('[data-pallet-show=PALLET-0003]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&!!$('containerInventoryContent').querySelector('.ci-empty')&&!$('containerInventoryContent').querySelector('[data-ci-asset]')"))throw Error('Empty pallet exposed unrelated inventory.');
+  await win.webContents.executeJavaScript("setPage('inventory');$('inventorySearch').value='';$('locationFilter').value='';$('gradeFilter').value='';$('repairFilter').value='';render();void 0;");
+
   await win.webContents.executeJavaScript("window.ApexPalletLocations.open('Rack B');$('palletLocationDetailContent').querySelector('[data-pl-move=PALLET-0003]').click();$('plMoveForm').elements.location.value='Rack A';$('plMoveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
   for(let i=0;i<30;i++){if(await win.webContents.executeJavaScript("$('palletLocationDetailContent').querySelectorAll('.pl-pallet-card').length===1&&!$('plMoveForm')"))break;await new Promise(r=>setTimeout(r,100));}
   if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&$('palletLocationDetailContent').querySelectorAll('.pl-pallet-card').length===1&&!$('palletLocationDetailContent').textContent.includes('PALLET-0003')"))throw Error('Moving a pallet did not refresh its location page.');
@@ -145,6 +170,10 @@ app.whenReady().then(async()=>{
    const locationLayout=await win.webContents.executeJavaScript("(()=>{const root=$('palletLocationDetailPage');return {visible:root.getBoundingClientRect().height>100,contained:root.scrollWidth<=root.clientWidth+2,links:[...root.querySelectorAll('[data-pl-inventory]')].every(a=>a.getBoundingClientRect().width>50)};})()");
    if(!locationLayout.visible||!locationLayout.contained||!locationLayout.links)throw Error('Pallet location page layout regression: '+JSON.stringify(locationLayout));
    fs.writeFileSync(path.resolve('qa-print/pallet-location-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+   await win.webContents.executeJavaScript("$('palletLocationDetailContent').querySelector('[data-pl-inventory=PALLET-0002]').click();void 0;");await new Promise(r=>setTimeout(r,200));
+   if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('containerInventoryContent').scrollWidth<=$('containerInventoryContent').clientWidth+2"))throw Error('Contained inventory layout overflows the page.');
+   fs.writeFileSync(path.resolve('qa-print/contained-inventory-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+
   }
   win.setSize(1440,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';window.ApexRefurbWorkspace.open('queue');void 0;");await new Promise(r=>setTimeout(r,250));
   if(!await win.webContents.executeJavaScript("$('rwQueueSummary').children.length===3&&$('rwQueueSummary').textContent.includes('Active jobs')&&$('rwQueueTable').querySelectorAll('.rw-progress-track').length>0"))throw Error('Work queue overview or progress indicators missing.');

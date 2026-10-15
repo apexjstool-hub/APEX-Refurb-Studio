@@ -9,8 +9,8 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg,kind='info'){$('toast').dataset.kind=kind;$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations'};
-const PAGE_SUBS={refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets'};
+const PAGE_NAMES={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations',containerInventory:'Inventory contents'};
+const PAGE_SUBS={refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',containerInventory:'Contained items'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
  if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
@@ -56,7 +56,7 @@ function render(){
  document.querySelectorAll('[data-asset]').forEach(b=>b.onclick=()=>openAsset(b.dataset.asset));
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
- document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>{if(!setPage('inventory'))return;$('inventorySearch').value='';$('locationFilter').value=b.dataset.location;render();});
+ document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
  renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
 }
 function summarizeLocations(){
@@ -68,7 +68,7 @@ function renderSupplementalPages(){
  const locs=summarizeLocations();
  $('locationCards').innerHTML=`<div class="loc-metric"><span>Active locations</span><strong>${locs.length}</strong><small>Locations with recorded assets</small></div><div class="loc-metric"><span>Assets tracked</span><strong>${items.length}</strong><small>Current inventory</small></div><div class="loc-metric"><span>Processed</span><strong>${items.filter(a=>a.status==='Processed').length}</strong><small>Finished devices</small></div>`;
  $('locationsTable').innerHTML=locs.length?`<table class="asset-table locations-table"><thead><tr><th>Location</th><th>Assets</th><th>Processed</th><th></th></tr></thead><tbody>${locs.map(l=>`<tr><td><b>${html(l.location)}</b></td><td>${l.assets.length}</td><td>${l.assets.filter(a=>a.status==='Processed').length}</td><td class="v344-location-actions"><button class="text-button" data-jump-location="${html(l.location)}">View assets →</button>${l.location.toLowerCase()==='unassigned'?'':`<button class="v344-delete-location" type="button" data-delete-location="${html(l.location)}" aria-label="Delete location ${html(l.location)}" title="Delete location">Delete</button>`}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No inventory locations yet.</div>';
- document.querySelectorAll('[data-jump-location]').forEach(b=>b.onclick=()=>{const loc=b.dataset.jumpLocation;if(!setPage('inventory'))return;$('inventorySearch').value='';$('locationFilter').value=loc;render();});
+ document.querySelectorAll('[data-jump-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.jumpLocation));
  document.querySelectorAll('[data-delete-location]').forEach(b=>b.onclick=()=>confirmDeleteLocation(b.dataset.deleteLocation));
  $('reportTotal').textContent=items.length;$('reportProcessed').textContent=items.filter(a=>a.status==='Processed').length;$('reportAwaiting').textContent=items.filter(a=>a.status==='Awaiting Processing').length;
  $('reportLocationSummary').innerHTML=locs.length?locs.map(l=>`<div class="report-location"><span>${html(l.location)}</span><strong>${l.assets.length} assets</strong></div>`).join(''):'<p class="section-note">No locations yet.</p>';

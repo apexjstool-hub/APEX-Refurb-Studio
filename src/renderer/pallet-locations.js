@@ -1,6 +1,6 @@
 'use strict';
 // Whole-pallet storage is independent of device locations and device membership.
-(function(renderInventory){
+(function(){
  const host=$('palletLocationsContent');if(!host)return;
  let viewed=null,query='';
  const same=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
@@ -32,10 +32,7 @@
  }
  function openInventory(name){
   if(!pallets().some(p=>same(p.name,name))){notify('This pallet no longer exists. Refresh the location.');return;}
-  if(!setPage('inventory'))return;
-  for(const id of ['locationFilter','gradeFilter','repairFilter','inventorySearch'])$(id).value='';
-  $('statusFilter').value='All statuses';$('palletFilter').value=name;inventoryPageIndex=0;
-  renderInventory();
+  window.ApexContainerInventory?.open('pallet',name,{returnPage:'palletLocationDetail'});
  }
  function renderDetail(){
   const detail=$('palletLocationDetailContent');if(!detail)return;
@@ -65,4 +62,4 @@
  window.ApexPalletLocations={render:()=>{render();renderDetail();},move,open:openLocation};
  const previous=setPage;setPage=function(page,force){const ok=previous(page,force);if(ok&&page==='palletLocations')render();if(ok&&page==='palletLocationDetail')renderDetail();return ok;};
  render();renderDetail();
-})(()=>render());
+})();
