@@ -37,3 +37,12 @@ begin
  perform set_config('apex.test_staff','yes',true);
  if jsonb_array_length(public.apex_inventory_meta_get()->'palletLocations')<>2 then raise exception 'Location metadata was lost';end if;
 end $$;
+
+insert into public.apex_assets(id,payload) values('HISTORICAL','{"id":"HISTORICAL","pallet":"OLD-PALLET","location":"Unassigned"}');
+do $$
+declare r jsonb;
+begin
+ r:=public.apex_inventory_location_pallet_action('movePallets','{"names":["OLD-PALLET"],"location":"Rack A","expected":[{"name":"OLD-PALLET","location":""}]}',7);
+ if (select count(*) from jsonb_array_elements(r->'pallets') p where p->>'name'='OLD-PALLET' and p->>'storageLocation'='Rack A')<>1 then raise exception 'Historical pallet registration failed';end if;
+ if (select payload->>'pallet' from public.apex_assets where id='HISTORICAL')<>'OLD-PALLET' then raise exception 'Historical pallet member changed';end if;
+end $$;

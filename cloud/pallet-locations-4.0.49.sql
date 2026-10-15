@@ -1,4 +1,5 @@
--- Run this repeatable migration in the existing Supabase project before using cloud pallet locations.
+-- Repeatable cloud pallet-location migration. Existing assignments and devices are retained.
+begin;
 -- APEX cloud locations/pallets and atomic batch moves. Review before applying.
 create table if not exists public.apex_inventory_meta (
  singleton_id integer primary key default 1 check (singleton_id=1),
@@ -61,7 +62,12 @@ begin
    if selected_name='' or selected_name=any(coalesce(ids,array[]::text[])) then raise exception 'Invalid or duplicate pallet';end if;
    ids:=array_append(ids,selected_name);
    select value into new_pallet from jsonb_array_elements(state.pallets) p(value) where upper(value->>'name')=selected_name;
-   if new_pallet is null then raise exception 'Pallet not found; refresh';end if;
+   if new_pallet is null then
+    select payload->>'pallet' into pal from public.apex_assets where upper(payload->>'pallet')=selected_name and payload->>'deletedAt' is null limit 1;
+    if pal is null then raise exception 'Pallet not found; refresh';end if;
+    new_pallet:=jsonb_build_object('name',pal,'label','','location','','createdAt','','storageLocation','');
+    state.pallets:=state.pallets||jsonb_build_array(new_pallet);
+   end if;
    select value into snapshot from jsonb_array_elements(p_input->'expected') e(value) where upper(btrim(value->>'name'))=selected_name;
    if snapshot is null or lower(coalesce(new_pallet->>'storageLocation','')) is distinct from lower(coalesce(snapshot->>'location','')) then raise exception 'Pallet location changed; refresh';end if;
    new_pallet:=jsonb_set(jsonb_set(new_pallet,'{storageLocation}',to_jsonb(target),true),'{updatedAt}',to_jsonb(now()::text),true);
@@ -129,3 +135,5 @@ begin
 end $$;
 revoke all on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) from public;
 grant execute on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) to authenticated;
+
+commit;
