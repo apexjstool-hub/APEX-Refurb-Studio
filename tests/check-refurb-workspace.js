@@ -60,6 +60,19 @@ app.whenReady().then(async()=>{
    await win.webContents.executeJavaScript("$('rwPurchasingTabs').querySelector('[data-rw-purchase="+name+"]').click();void 0;");
    if(!await win.webContents.executeJavaScript("$("+JSON.stringify(name+'Content')+").parentElement.id==='rwExistingPanel'&&document.querySelectorAll('#"+name+"Content').length===1"))throw Error('Purchasing panel was duplicated or not mounted: '+name);
   }
+  // Purchasing presentation keeps the same live controls, with summary and selection on separate rows.
+  await win.webContents.executeJavaScript("$('rwPurchasingTabs').querySelector('[data-rw-purchase=parts]').click();void 0;");
+  fs.mkdirSync(path.resolve('qa-print'),{recursive:true});
+  for(const width of [1440,1100,760]){
+   win.setSize(width,1000);await new Promise(r=>setTimeout(r,200));
+   const partsLayout=await win.webContents.executeJavaScript("(()=>{const root=$('partsContent'),heading=root.querySelector('.ops-parts-heading').getBoundingClientRect(),bulk=root.querySelector('.ops-part-export-actions').getBoundingClientRect(),move=$('opsMoveSelectedParts'),exportButton=$('opsExportRefurbPartsSelected'),buttons=[move,exportButton,$('opsExportRefurbPartsAll')];return {separated:heading.bottom<=bulk.top+1,controls:buttons.every(b=>b.getBoundingClientRect().width>0),contained:root.scrollWidth<=root.clientWidth+2,unique:buttons.every(b=>document.querySelectorAll('#'+b.id).length===1)};})()");
+   if(!partsLayout.separated||!partsLayout.controls||!partsLayout.contained||!partsLayout.unique)throw Error('Purchasing layout regression at '+width+': '+JSON.stringify(partsLayout));
+   fs.writeFileSync(path.resolve('qa-print/parts-required-'+width+'.png'),(await win.webContents.capturePage()).toPNG());
+  }
+  win.setSize(1440,1000);
+  await win.webContents.executeJavaScript("document.documentElement.dataset.theme='dark';void 0;");await new Promise(r=>setTimeout(r,150));
+  fs.writeFileSync(path.resolve('qa-print/parts-required-dark.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';void 0;");
   await win.webContents.executeJavaScript("setPage('orders');void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('ordersContent').parentElement.id==='rwExistingPanel'"))throw Error('Existing purchase flow navigated out of the new workspace.');
   for(const name of ['qc','completed']){

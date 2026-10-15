@@ -71,3 +71,54 @@ html[data-theme=dark] #refurbWorkspacePage .rw-filters button.selected{color:#a9
 html[data-theme=dark] #refurbWorkspacePage .inventory-stage-fit{color:#a9d4ff}
 html[data-theme=dark] #refurbWorkspacePage .inventory-stage-order,html[data-theme=dark] #refurbWorkspacePage .inventory-stage-delivery{color:#f3c879}
 @media(max-width:760px){.rw-heading{align-items:flex-start}.rw-selection-bar{align-items:flex-start}.rw-selection-actions{width:100%}}
+
+/* v4.0.48: purchasing layout; existing controls and action handlers are retained. */
+#refurbWorkspacePage .rw-view-tabs{gap:6px;padding-bottom:14px;margin-bottom:18px}
+#refurbWorkspacePage .rw-purchasing-tabs{gap:4px;border:0;background:var(--panel2);padding:5px;border-radius:8px;width:fit-content;max-width:100%;margin-bottom:20px}
+#refurbWorkspacePage .rw-purchasing-tabs .v3-tab{border-radius:5px;padding:9px 16px;min-height:36px;font-size:12px}
+#refurbWorkspacePage .rw-purchasing-tabs .v3-tab.selected{background:var(--panel);box-shadow:0 1px 3px #0000000d}
+#refurbWorkspacePage #partsContent{min-width:0}
+#refurbWorkspacePage #partsContent .ops-parts-select-toolbar{display:block;padding:0;margin:0 0 16px;background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:0 1px 2px #00000005;overflow:hidden}
+#refurbWorkspacePage #partsContent .ops-parts-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 22px}
+#refurbWorkspacePage #partsContent .ops-parts-summary{min-width:0}
+#refurbWorkspacePage #partsContent .ops-parts-summary>b{display:block;font-size:15px;font-weight:700;letter-spacing:-.15px;line-height:1.5;color:var(--text)}
+#refurbWorkspacePage #partsContent .ops-parts-summary .section-note{font-size:12px;line-height:1.6;margin-top:4px;color:var(--muted)}
+#refurbWorkspacePage #partsContent .ops-parts-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+#refurbWorkspacePage #partsContent .ops-part-export-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:12px 22px;border-top:1px solid var(--line);background:var(--panel2)}
+#refurbWorkspacePage #partsContent .ops-parts-selection-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#refurbWorkspacePage #partsContent #opsSelectedPartCount{color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap}
+#refurbWorkspacePage #partsContent button{font-size:12px;line-height:1.4;min-height:36px;padding:8px 12px;border-radius:6px;gap:6px}
+#refurbWorkspacePage #partsContent button:disabled{opacity:.45;cursor:not-allowed}
+#refurbWorkspacePage #partsContent button:focus-visible{outline:2px solid #176de3;outline-offset:3px}
+#refurbWorkspacePage #partsContent .ops-table-wrap{border-radius:9px;border:1px solid var(--line);box-shadow:0 1px 2px #00000005;margin:0;overflow-x:auto}
+#refurbWorkspacePage #partsContent .ops-grouped-parts{border-collapse:separate;border-spacing:0;min-width:960px;width:100%;table-layout:auto}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>thead>tr>th{font-size:10px;font-weight:700;letter-spacing:.65px;padding:14px 16px!important;line-height:1.4;background:var(--panel2);color:var(--muted);border-bottom:1px solid var(--line)}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-asset-row>td{font-size:12px;padding:17px 16px!important;line-height:1.5;background:var(--panel);border-bottom:1px solid var(--line);vertical-align:middle}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-asset-row:last-of-type>td{border-bottom:0}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-asset-row:hover>td{background:var(--panel2)}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-selected>td{background:#176de30d}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-selected>td:first-child{box-shadow:inset 3px 0 #176de3}
+#refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-selected:hover>td{background:#176de318}
+#refurbWorkspacePage #partsContent .ops-grouped-parts .ops-select-col{width:46px;padding-left:18px!important;padding-right:12px!important;text-align:center}
+#refurbWorkspacePage #partsContent .ops-part-asset-row>td:nth-child(2){font-variant-numeric:tabular-nums;white-space:nowrap}
+#refurbWorkspacePage #partsContent .ops-part-asset-row>td:nth-child(3){min-width:190px}
+#refurbWorkspacePage #partsContent .ops-part-asset-row>td:nth-child(4){font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+#refurbWorkspacePage #partsContent .ops-part-count{display:inline-block;background:var(--panel2);border:1px solid var(--line);padding:4px 8px;border-radius:5px;font-size:11px;color:var(--text);white-space:nowrap}
+#refurbWorkspacePage #partsContent .ops-part-buttons{min-width:390px;text-align:right;white-space:nowrap}
+#refurbWorkspacePage #partsContent .ops-part-buttons button{margin:0 0 0 6px;min-height:32px;padding:7px 10px;font-size:11px}
+#refurbWorkspacePage #partsContent .ops-part-buttons button:first-child{margin-left:0}
+#refurbWorkspacePage #partsContent .ops-part-details-row>td{padding:0!important}
+#refurbWorkspacePage #partsContent .ops-expanded-parts{padding:18px 22px;background:var(--panel2)}
+html[data-theme=dark] #refurbWorkspacePage #partsContent .ops-grouped-parts>tbody>.ops-part-selected>td{background:#176de326}
+@media(max-width:1050px){
+ #refurbWorkspacePage #partsContent .ops-parts-heading{align-items:flex-start;flex-direction:column;gap:14px}
+ #refurbWorkspacePage #partsContent .ops-parts-tools{justify-content:flex-start}
+}
+@media(max-width:620px){
+ #refurbWorkspacePage #partsContent .ops-parts-heading{padding:16px}
+ #refurbWorkspacePage #partsContent .ops-part-export-actions{padding:12px 16px;align-items:flex-start}
+ #refurbWorkspacePage #partsContent .ops-parts-selection-actions{width:100%}
+ #refurbWorkspacePage #partsContent .ops-parts-selection-actions button{flex:1;white-space:normal;min-width:140px}
+ #refurbWorkspacePage .rw-purchasing-tabs{width:100%}
+ #refurbWorkspacePage .rw-purchasing-tabs .v3-tab{flex:1;padding:9px 10px}
+}
