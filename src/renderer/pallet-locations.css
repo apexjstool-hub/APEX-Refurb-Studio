@@ -34,55 +34,45 @@
 #plMoveForm input[type=checkbox]{appearance:auto;width:16px;height:16px;min-width:16px;accent-color:#176de3}
 @media(max-width:650px){#palletLocationsPage .pl-create{align-items:stretch}#palletLocationsPage .pl-create>label{width:100%}#palletLocationsPage #plName{flex:1}#palletLocationsPage .pl-list-heading{align-items:stretch}#palletLocationsPage #plSearch{width:100%}}
 
-/* A dedicated page for the pallets held at one storage location. */
+/* Location contents share the compact register layout. */
 #palletLocationDetailPage{color:var(--text);min-width:0}
-#palletLocationDetailPage .pl-back{display:inline-flex;align-items:center;background:none;border:0;color:#176de3;font-size:12px;font-weight:600;padding:0;margin:0 0 20px;cursor:pointer}
+#palletLocationDetailPage .pl-back{display:inline-flex;align-items:center;background:none;border:0;color:#176de3;font-size:12px;font-weight:600;padding:0;margin:0 0 14px;cursor:pointer}
 #palletLocationDetailPage .pl-back:hover{text-decoration:underline}
-#palletLocationDetailPage .pl-location-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
-#palletLocationDetailPage .pl-eyebrow{display:block;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:7px}
-#palletLocationDetailPage h1{font-size:25px;letter-spacing:-.5px;margin:0 0 7px;line-height:1.3;overflow-wrap:anywhere}
+#palletLocationDetailPage .pl-location-table-panel{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;max-height:none!important}
+#palletLocationDetailPage .pl-detail-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px}
+#palletLocationDetailPage .pl-location-heading{min-width:0}
+#palletLocationDetailPage .pl-eyebrow{display:block;font-size:10px;font-weight:650;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+#palletLocationDetailPage h1{font-size:20px;letter-spacing:-.3px;margin:0;line-height:1.4;overflow-wrap:anywhere}
+#palletLocationDetailPage .pl-detail-toolbar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 #palletLocationDetailPage p{font-size:12px;color:var(--muted);line-height:1.6;margin:0}
-#palletLocationDetailPage button.secondary{font-size:12px;min-height:34px;padding:8px 12px;border-radius:6px;gap:6px}
-#palletLocationDetailPage .pl-location-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0 0 24px;max-width:640px}
-#palletLocationDetailPage .pl-location-summary>div{padding:18px 20px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
-#palletLocationDetailPage .pl-location-summary small{font-size:12px;color:var(--muted);display:block}
-#palletLocationDetailPage .pl-location-summary strong{font-size:28px;line-height:1.2;font-weight:700;display:block;margin-top:8px;font-variant-numeric:tabular-nums;color:var(--text)}
-#palletLocationDetailPage .pl-location-pallets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-#palletLocationDetailPage .pl-pallet-card{border:1px solid var(--line);border-radius:9px;background:var(--panel);overflow:hidden;min-width:0}
-#palletLocationDetailPage .pl-pallet-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:20px}
-#palletLocationDetailPage .pl-pallet-card h2{font-size:15px;line-height:1.4;font-weight:700;margin:0 0 5px;color:var(--text);overflow-wrap:anywhere}
-#palletLocationDetailPage .pl-pallet-count{display:block;flex-shrink:0;text-align:right;font-size:11px;color:var(--muted)}
-#palletLocationDetailPage .pl-pallet-count strong{font-size:24px;line-height:1.2;color:var(--text);display:block;font-variant-numeric:tabular-nums;margin-bottom:4px}
-#palletLocationDetailPage .pl-pallet-card-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--line);background:var(--panel2)}
-#palletLocationDetailPage [data-pl-inventory]{font-size:12px;font-weight:650;color:#176de3;text-decoration:none;display:inline-flex;align-items:center;gap:10px;padding:6px 0}
-#palletLocationDetailPage [data-pl-inventory]:hover{text-decoration:underline}
-#palletLocationDetailPage [data-pl-inventory]:focus-visible,#palletLocationDetailPage .pl-back:focus-visible{outline:2px solid #176de3;outline-offset:4px}
-#palletLocationDetailPage .pl-location-empty{grid-column:1/-1;padding:36px 24px;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:8px}
-#palletLocationDetailPage .pl-location-empty h2{font-size:16px;margin:0 0 8px;color:var(--text)}
-html[data-theme=dark] #palletLocationDetailPage [data-pl-inventory],html[data-theme=dark] #palletLocationDetailPage .pl-back{color:#9ac9ff}
-@media(max-width:1000px){#palletLocationDetailPage .pl-location-pallets{grid-template-columns:1fr}}
-@media(max-width:600px){#palletLocationDetailPage .pl-location-heading{align-items:flex-start}#palletLocationDetailPage .pl-location-summary>div{padding:14px}#palletLocationDetailPage .pl-pallet-card-top{padding:16px}#palletLocationDetailPage .pl-pallet-card-actions{padding:12px 16px}}
-
-/* Pallets within a location use the same row-based layout as the Pallets register. */
-#palletLocationDetailPage .pl-location-pallets.pl-location-table-panel{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#palletLocationDetailPage button.secondary,#palletLocationDetailPage button.primary{font-size:12px;min-height:36px;padding:8px 12px;border-radius:6px;gap:6px}
+#palletLocationDetailPage .pl-location-summary{display:flex;align-items:center;gap:22px;padding:13px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel2)}
+#palletLocationDetailPage .pl-location-summary>div{display:flex;align-items:center;gap:9px;white-space:nowrap}
+#palletLocationDetailPage .pl-location-summary small{font-size:12px;color:var(--muted)}
+#palletLocationDetailPage .pl-location-summary strong{font-size:15px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--text)}
+#palletLocationDetailPage .pl-location-summary p{margin-left:auto;font-size:11px}
 #palletLocationDetailPage .pl-location-table-scroll{overflow-x:auto}
 #palletLocationDetailPage .asset-table{width:100%;min-width:900px}
 #palletLocationDetailPage .asset-table th{background:var(--panel2);color:var(--muted);font-size:10px;letter-spacing:.5px;white-space:nowrap;padding:14px 18px}
-#palletLocationDetailPage .asset-table td{padding:17px 18px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--line);background:var(--panel);vertical-align:middle}
+#palletLocationDetailPage .asset-table td{padding:16px 18px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--line);background:var(--panel);vertical-align:middle}
+#palletLocationDetailPage .asset-table tr:last-child td{border-bottom:0}
 #palletLocationDetailPage .asset-table td strong{color:var(--text)!important;font-size:12px;font-weight:650}
 #palletLocationDetailPage .asset-table td:first-child{min-width:150px}
 #palletLocationDetailPage .asset-table td:nth-child(2){min-width:130px}
 #palletLocationDetailPage .asset-table td:nth-child(3){white-space:nowrap}
-#palletLocationDetailPage .asset-table td:last-child{white-space:nowrap;text-align:right}
-#palletLocationDetailPage .asset-table .pl-pallet-count{display:table-cell;text-align:left;color:var(--text)}
-#palletLocationDetailPage .asset-table .pl-pallet-count strong{display:inline;margin:0;font-variant-numeric:tabular-nums}
-#palletLocationDetailPage .pl-pallet-row-actions>a{font-size:12px;display:inline-flex;align-items:center;font-weight:650;margin-right:12px}
-#palletLocationDetailPage .pl-pallet-row-actions>button{margin-left:6px}
-#palletLocationDetailPage button.pl-delete-pallet{padding:7px;min-width:34px;color:#dc3545;background:#dc354508;border-color:#dc354538;vertical-align:middle}
-#palletLocationDetailPage button.pl-delete-pallet svg{width:18px;height:18px;display:block}
-#palletLocationsPage .pl-delete-location{color:#c53e4e}
-#palletLocationDetailPage .asset-table .pl-location-empty{padding:30px 20px;text-align:center;white-space:normal}
-#palletLocationDetailPage .asset-table .pl-location-empty h2{font-size:15px}
+#palletLocationDetailPage .pl-pallet-count strong{font-variant-numeric:tabular-nums}
+#palletLocationDetailPage [data-pl-inventory]{font-size:12px;font-weight:600;color:#176de3;text-decoration:none;display:inline-flex;align-items:center;min-height:34px}
+#palletLocationDetailPage [data-pl-inventory]:hover{text-decoration:underline}
+#palletLocationDetailPage [data-pl-inventory]:focus-visible,#palletLocationDetailPage .pl-back:focus-visible{outline:2px solid #176de3;outline-offset:4px}
+#palletLocationDetailPage .pl-location-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:46px 24px;text-align:center;background:var(--panel)}
+#palletLocationDetailPage .pl-location-empty h2{font-size:16px;font-weight:650;margin:0;color:var(--text)}
+#palletLocationDetailPage .pl-location-empty p{max-width:420px}
+#palletLocationDetailPage .pl-location-empty button{margin-top:6px}
+#palletLocationDetailPage .pl-empty-icon{display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--muted);margin-bottom:2px}
+#palletLocationDetailPage .pl-empty-icon svg{width:24px;height:24px}
+html[data-theme=dark] #palletLocationDetailPage [data-pl-inventory],html[data-theme=dark] #palletLocationDetailPage .pl-back{color:#9ac9ff}
+@media(max-width:900px){#palletLocationDetailPage .pl-location-summary{flex-wrap:wrap;gap:12px 22px}#palletLocationDetailPage .pl-location-summary p{flex-basis:100%;margin-left:0}}
+@media(max-width:600px){#palletLocationDetailPage .pl-detail-toolbar{align-items:flex-start;flex-wrap:wrap;padding:16px}#palletLocationDetailPage .pl-location-summary{padding:12px 16px}#palletLocationDetailPage .pl-location-empty{padding:36px 18px}}
 .pallet-creation-facts .pallet-name-field{margin:0;font-size:12px}
 .pallet-creation-facts .pallet-name-field input{margin:8px 0;width:100%;font-size:14px}
 .pallet-creation-facts .pallet-name-field small{font-weight:400;font-size:11px;line-height:1.5}

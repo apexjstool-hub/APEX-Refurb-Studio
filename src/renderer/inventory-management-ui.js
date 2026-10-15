@@ -16,6 +16,21 @@
    finally{if(button.isConnected)button.disabled=false;}
   };
  }
+ function confirmDelete({kind,name,remove}){
+  const pallet=kind==='pallet',noun=pallet?'pallet':'pallet location',title=pallet?'Delete pallet?':'Delete pallet location?';
+  showModal(title,pallet?'INVENTORY / PALLETS':'INVENTORY / PALLET LOCATIONS',`<form id="managementDeleteForm" class="modal-body management-delete-form"><div class="management-delete-target"><span>${pallet?'PALLET':'PALLET LOCATION'}</span><strong>${html(name)}</strong></div><p>${pallet?'This removes the empty pallet from your register.':'This removes the empty storage location from your list.'}</p><p class="management-delete-note">${pallet?'Device records will not be deleted. Pallets containing devices cannot be deleted.':'Pallets and device records will not be deleted. Move all pallets out before deleting a location.'}</p><div id="managementDeleteError" class="form-error" role="alert"></div><div class="modal-actions"><button type="button" class="secondary" id="managementDeleteCancel">Cancel</button><button type="submit" id="managementDeleteConfirm">Delete ${noun}</button></div></form>`);
+  const form=$('managementDeleteForm'),cancel=$('managementDeleteCancel'),button=$('managementDeleteConfirm'),error=$('managementDeleteError');let pending=false;
+  window.ApexDeleteControls.decorate(form);cancel.onclick=closeModal;cancel.focus();
+  form.onsubmit=async e=>{
+   e.preventDefault();if(pending)return;pending=true;form.setAttribute('aria-busy','true');button.querySelector('span').textContent='Deleting…';button.disabled=true;cancel.disabled=true;$('modalClose').classList.add('hidden');error.textContent='';
+   try{
+    const result=await remove();
+    if(!result.ok){if(error.isConnected)error.textContent=result.error||'Could not delete this '+noun+'.';return;}
+    if(form.isConnected)closeModal();await refresh();notify(pallet?'Pallet deleted':'Pallet location deleted');
+   }catch{if(error.isConnected)error.textContent='Unable to confirm deletion. Refresh before trying again.';}
+   finally{pending=false;if(form.isConnected){form.setAttribute('aria-busy','false');button.querySelector('span').textContent='Delete '+noun;button.disabled=false;cancel.disabled=false;$('modalClose').classList.remove('hidden');}}
+  };
+ }
  $('apexAddLocation').onclick=()=>createLocation();
- window.ApexManagementUI={createLocation};
+ window.ApexManagementUI={createLocation,confirmDelete};
 })();

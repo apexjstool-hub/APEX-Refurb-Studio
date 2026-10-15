@@ -36,11 +36,7 @@
  }
  async function removePallet(name,button){
   if(items.some(a=>!a.deletedAt&&String(a.pallet||'').toUpperCase()===String(name).toUpperCase())){notify('Move the devices off this pallet before deleting it.');return;}
-  if(!confirm('Delete empty pallet '+name+'?'))return;
-  if(button)button.disabled=true;
-  try{const r=await api.deletePallet({name});if(!r.ok)notify(r.error);else await refresh();}
-  catch{notify('Could not delete this pallet. Refresh and try again.');}
-  finally{if(button?.isConnected)button.disabled=false;}
+  window.ApexManagementUI.confirmDelete({kind:'pallet',name,remove:()=>api.deletePallet({name})});
  }
  function createPallet(onCreated){
   const next=window.ApexPalletManagement.nextPalletId({items,pallets:managedPallets}),openedAt=new Date();
