@@ -1,30 +1,73 @@
-/* Additive workspace, using the current application palette and controls. */
-#refurbWorkspacePage [hidden],#rwReturnToQueue[hidden],#refurbNavLinks[hidden]{display:none!important}
-.rw-menu-head{position:relative}.rw-menu-head #refurbNav{padding-right:32px!important}
-#refurbNavToggle{position:absolute;right:3px;top:6px;width:28px;height:28px;display:grid;place-items:center;border:0;background:transparent;color:inherit;border-radius:5px}
-#refurbNavToggle[aria-expanded=true]{transform:rotate(180deg)}
-.rw-nav-links{display:grid;gap:2px;margin:3px 0 8px 25px;border-left:1px solid var(--line);padding-left:8px}
-.rw-nav-links button{padding:8px 6px;font-size:11px;text-align:left;border:0;background:transparent;color:var(--muted);border-radius:4px}
-.rw-nav-links button:hover,.rw-nav-links button.selected{background:var(--panel2);color:var(--text)}
-body.apex-nav-collapsed #refurbNavToggle,body.apex-nav-collapsed #refurbNavLinks{display:none!important}
-body.apex-nav-collapsed .rw-menu-head #refurbNav{padding-right:4px!important}
-#refurbWorkspacePage{color:var(--text)}.rw-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 15px}.rw-heading h2{font-size:22px;letter-spacing:-.4px;margin:4px 0 6px}.rw-heading p{color:var(--muted);font-size:12px;margin:0}.rw-eyebrow{font-size:9px;letter-spacing:1.2px;color:var(--muted);font-weight:750}
-.rw-view-tabs,.rw-purchasing-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:9px}
-.rw-view-tabs button,.rw-purchasing-tabs button,.rw-filters button{color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:8px 11px;font-size:12px}
-.rw-view-tabs button.selected,.rw-purchasing-tabs button.selected,.rw-filters button.selected{color:var(--text);border-color:var(--violet,#9070df);background:var(--panel2);box-shadow:inset 0 -2px 0 var(--violet,#9070df)}
-.rw-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}.rw-filters button{font-size:11px;padding:7px 9px}.rw-filters span{display:inline-block;margin-left:5px;font-weight:800}
-.rw-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.rw-toolbar input{flex:1 1 240px;min-width:200px;border:2px solid var(--input-border,#7895b0);border-radius:5px;background:var(--field-bg,var(--panel));color:var(--text);height:36px;padding:7px 10px}.rw-toolbar button{font-size:11px;padding:8px 10px}.rw-toolbar #rwSelected{font-size:11px;color:var(--muted);white-space:nowrap}
-.rw-table-scroll{overflow-x:auto}.rw-work-table{min-width:900px}.rw-work-table td{vertical-align:top}.rw-work-table td small,.rw-device-name{display:block;margin-top:5px;max-width:250px;overflow-wrap:anywhere}.rw-work-table td small{color:var(--muted);font-size:10px;line-height:1.5}.rw-work-table td:first-child{width:32px}.rw-work-table td:last-child{min-width:160px}.rw-work-table .rw-tag{display:block;font-size:11px;margin-bottom:5px}.rw-device-name{font-size:12px}.rw-detail{padding:17px;background:var(--panel2);border-top:1px solid var(--line)}.rw-detail-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:12px}.rw-detail-top p,.rw-last{color:var(--muted);font-size:11px}.rw-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.rw-detail button{font-size:11px;padding:7px 9px;margin:2px}.rw-part-kind{display:block;color:var(--muted);font-size:10px;margin-top:4px}.rw-last{padding-top:12px;line-height:1.6}.rw-notes{white-space:pre-wrap;font-size:12px;line-height:1.6}.rw-pagebar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}.rw-pagebar button{font-size:11px;margin-left:6px}
-html[data-apex-page=refurbWorkspace] #v3Tabs{display:none!important}#rwReturnToQueue{margin-left:8px}
-@media(max-width:760px){#refurbNavToggle,#refurbNavLinks{display:none!important}.rw-menu-head #refurbNav{padding-right:3px!important}.rw-detail-top{flex-direction:column}.rw-actions{justify-content:flex-start}.rw-heading{align-items:flex-start}}
-
-#refurbWorkspacePage #rwQueueTable{max-height:none!important;overflow:visible!important}
-#refurbWorkspacePage .rw-work-table{width:100%;min-width:700px;table-layout:fixed}
-#refurbWorkspacePage .rw-work-table th:first-child{width:34px}
-#refurbWorkspacePage .rw-work-table th:nth-child(2){width:26%}
-#refurbWorkspacePage .rw-work-table th:nth-child(3){width:18%}
-#refurbWorkspacePage .rw-work-table th:nth-child(4){width:12%}
-#refurbWorkspacePage .rw-work-table th:nth-child(5){width:12%}
-#refurbWorkspacePage .rw-work-table td:last-child{min-width:0}
-#refurbWorkspacePage .rw-work-table th,#refurbWorkspacePage .rw-work-table td{padding:10px!important;overflow-wrap:anywhere}
-#refurbWorkspacePage .rw-work-table b,#refurbWorkspacePage .rw-detail b{color:var(--text)!important}
+/* Refurbishment presentation uses the existing APEX tabs, buttons and selection controls. */
+#refurbWorkspacePage [hidden],#rwReturnToQueue[hidden]{display:none!important}
+#refurbWorkspacePage{color:var(--text)}
+#refurbWorkspacePage .rw-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 16px}
+#refurbWorkspacePage .rw-heading h2{font-size:20px;line-height:1.3;letter-spacing:-.3px;margin:0 0 5px}
+#refurbWorkspacePage .rw-heading p{color:var(--muted);font-size:12px;line-height:1.5;margin:0}
+#refurbWorkspacePage .rw-eyebrow{display:none}
+.rw-view-tabs,.rw-purchasing-tabs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:0 0 10px;margin:0 0 16px;border-bottom:1px solid var(--line)}
+#refurbWorkspacePage button{white-space:nowrap;word-break:normal;overflow-wrap:normal;writing-mode:horizontal-tb;flex-shrink:0}
+#refurbWorkspacePage button.secondary{min-height:32px;padding:7px 12px;font-size:11px;line-height:1.4;border-radius:4px;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#refurbWorkspacePage button:disabled{opacity:.45;cursor:default}
+.rw-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+#refurbWorkspacePage .rw-filters button{font-weight:500}
+#refurbWorkspacePage .rw-filters button.selected{border-color:#176de3;color:#086bd7;background:var(--panel2)}
+.rw-filters span{display:inline-flex;align-items:center;justify-content:center;min-width:21px;padding:1px 5px;border-radius:4px;background:var(--panel2);font-weight:750;color:var(--text)}
+.rw-toolbar{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+#refurbWorkspacePage #rwSearch{width:100%;max-width:540px;min-width:0;height:36px;min-height:36px;padding:7px 10px;border:2px solid #7b9ec3;border-radius:4px;background:var(--panel2);color:var(--text);font-size:12px;box-shadow:none}
+#refurbWorkspacePage #rwSearch:focus{border-color:#176de3;outline:2px solid #176de322;outline-offset:1px}
+.rw-selection-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+.rw-selection-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#rwSelected{color:var(--muted);font-size:12px;white-space:nowrap}
+#refurbWorkspacePage #rwQueueTable{max-height:none!important;overflow:visible!important;border-radius:5px}
+.rw-table-scroll{width:100%;max-width:100%;overflow-x:auto}
+#refurbWorkspacePage .rw-work-table{width:100%;min-width:690px;table-layout:fixed}
+#refurbWorkspacePage .rw-work-table>thead>tr>th:first-child{width:42px}
+#refurbWorkspacePage .rw-work-table>thead>tr>th:nth-child(2){width:42%}
+#refurbWorkspacePage .rw-work-table>thead>tr>th:nth-child(3){width:30%}
+#refurbWorkspacePage .rw-work-table>thead>tr>th:last-child{width:auto}
+#refurbWorkspacePage .rw-work-table>thead>tr>th{font-size:10px;white-space:nowrap;padding:12px!important}
+#refurbWorkspacePage .rw-work-table>tbody>tr>td{padding:14px 12px!important;vertical-align:top;word-break:normal!important;overflow-wrap:normal!important;line-height:1.5}
+#refurbWorkspacePage .rw-work-table .inventory-selection-cell{padding:17px 10px 14px 14px!important}
+#refurbWorkspacePage input[type=checkbox]{appearance:auto!important;width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;min-height:16px!important;max-height:16px!important;flex:none!important;padding:0!important;margin:0!important;vertical-align:middle;accent-color:#176de3;cursor:pointer;box-shadow:none!important}
+#refurbWorkspacePage .rw-device-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:12px;font-weight:700;color:var(--text)!important;line-height:1.55;margin:5px 0 7px;word-break:normal;overflow-wrap:normal}
+.rw-device-meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rw-device-meta>span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:11px}
+.rw-device-meta small{display:inline-block;min-width:48px;color:var(--muted);font-size:10px;margin-right:5px}
+.rw-task-tags{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 5px}
+.rw-tag{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:10px;line-height:1.5;color:var(--muted);white-space:nowrap}
+#refurbWorkspacePage .inventory-stage{max-width:100%;white-space:nowrap;font-size:11px;padding:5px 8px;line-height:1.4}
+.rw-completion,.rw-next-description{display:block;font-size:11px;color:var(--muted);line-height:1.6;margin-top:6px;white-space:normal;word-break:normal;overflow-wrap:normal}
+#refurbWorkspacePage .rw-next-cell>button{width:auto;max-width:100%}
+.rw-detail{padding:16px;background:var(--panel2);border-top:1px solid var(--line)}
+.rw-detail-top{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.rw-detail-top strong{font-size:12px;line-height:1.5;color:var(--text)}
+.rw-detail-top p{font-size:11px;color:var(--muted);line-height:1.6;margin:5px 0 0}
+.rw-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#refurbWorkspacePage .rw-detail .inventory-parts-table{width:100%;min-width:640px;table-layout:auto;border-collapse:collapse}
+#refurbWorkspacePage .rw-detail .inventory-parts-table th{font-size:10px;white-space:nowrap;padding:10px 9px;background:var(--panel)}
+#refurbWorkspacePage .rw-detail .inventory-parts-table td{font-size:11px;white-space:normal;word-break:normal;overflow-wrap:normal;padding:11px 9px!important}
+#refurbWorkspacePage .rw-detail .inventory-parts-table th:first-child{min-width:150px}
+#refurbWorkspacePage .rw-detail .inventory-parts-table th:last-child{min-width:160px}
+#refurbWorkspacePage .rw-detail .inventory-parts-table td:last-child{white-space:nowrap}
+#refurbWorkspacePage .rw-detail b{color:var(--text)!important}
+.rw-part-kind{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.rw-last{padding-top:12px;font-size:11px;line-height:1.6;color:var(--muted)}
+.rw-notes{white-space:pre-wrap;font-size:12px;line-height:1.65}
+.rw-pagebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 15px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+.rw-pagebar>div{display:flex;gap:7px}
+#refurbWorkspacePage #rwExistingPanel .ops-table-wrap{max-height:none;overflow-x:auto}
+#refurbWorkspacePage #rwExistingPanel .asset-table{table-layout:auto;min-width:900px}
+#refurbWorkspacePage #rwExistingPanel .asset-table th{white-space:nowrap}
+#refurbWorkspacePage #rwExistingPanel .asset-table td{word-break:normal;overflow-wrap:normal;line-height:1.5}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons{min-width:310px}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons button{margin:3px}
+#refurbWorkspacePage #rwExistingPanel .ops-part-progress-table{min-width:690px}
+#refurbWorkspacePage #rwExistingPanel .ops-part-progress-table th{white-space:nowrap}
+#refurbWorkspacePage #rwExistingPanel .ops-part-export-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+html[data-apex-page=refurbWorkspace] #v3Tabs{display:none!important}
+#rwReturnToQueue{margin-left:8px}
+html[data-theme=dark] #refurbWorkspacePage .rw-filters button.selected{color:#a9d4ff;border-color:#85bdff}
+html[data-theme=dark] #refurbWorkspacePage .inventory-stage-fit{color:#a9d4ff}
+html[data-theme=dark] #refurbWorkspacePage .inventory-stage-order,html[data-theme=dark] #refurbWorkspacePage .inventory-stage-delivery{color:#f3c879}
+@media(max-width:760px){.rw-heading{align-items:flex-start}.rw-selection-bar{align-items:flex-start}.rw-selection-actions{width:100%}}

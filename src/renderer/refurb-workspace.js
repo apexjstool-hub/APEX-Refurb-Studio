@@ -32,7 +32,7 @@
   return s.key===value;
  }
  function selectionState(){
-  $('rwSelected').textContent=selected.size+' selected';
+  $('rwSelected').textContent=selected.size+' selected';$('rwSelectionBar').hidden=!selected.size;
   for(const id of ['rwOrderSelected','rwReceiveSelected','rwPrintSelected','rwClearSelection'])$(id).disabled=!selected.size;
  }
  function detail(row){
@@ -44,16 +44,17 @@
  function drawQueue(){
   const rows=entries(),valid=new Set(rows.map(r=>r.job.assetId));for(const id of selected)if(!valid.has(id))selected.delete(id);
   for(const id of expanded)if(!valid.has(id))expanded.delete(id);
-  $('rwFilters').innerHTML=Object.entries(filterNames).map(([key,name])=>'<button type="button" class="'+(filter===key?'selected':'')+'" data-rw-filter="'+key+'" aria-pressed="'+(filter===key)+'">'+name+' <span>'+rows.filter(r=>matches(r,key)).length+'</span></button>').join('');
+  $('rwFilters').innerHTML=Object.entries(filterNames).map(([key,name])=>'<button type="button" class="secondary '+(filter===key?'selected':'')+'" data-rw-filter="'+key+'" aria-pressed="'+(filter===key)+'">'+name+' <span>'+rows.filter(r=>matches(r,key)).length+'</span></button>').join('');
   const q=query.trim().toLowerCase(),list=rows.filter(r=>matches(r,filter)&&(!q||[r.asset.id,deviceName(r.asset),r.asset.serial,r.asset.location,r.asset.pallet,r.job.technician,...r.summary.parts.map(p=>p.name)].some(v=>String(v||'').toLowerCase().includes(q))));
   const pages=Math.max(1,Math.ceil(list.length/50));page=Math.max(0,Math.min(page,pages-1));const visible=list.slice(page*50,page*50+50);
   const loaded=!!snapshot();
-  $('rwQueueTable').innerHTML=visible.length?'<div class="rw-table-scroll"><table class="asset-table rw-work-table"><thead><tr><th><input id="rwSelectVisible" type="checkbox" aria-label="Select visible refurbishment jobs"></th><th>Device</th><th>Progress</th><th>Work required</th><th>Location / pallet</th><th>Next action</th></tr></thead><tbody>'+visible.map((r,i)=>{
+  $('rwQueueTable').innerHTML=visible.length?'<div class="rw-table-scroll"><table class="asset-table rw-work-table"><thead><tr><th><input id="rwSelectVisible" class="inventory-row-select" type="checkbox" aria-label="Select visible refurbishment jobs"></th><th>Device &amp; assignment</th><th>Refurbishment progress</th><th>Action</th></tr></thead><tbody>'+visible.map((r,i)=>{
    const id=r.job.assetId,s=r.summary,process=window.ApexDeviceSummary.process(r.asset,snapshot()),open=expanded.has(id);
-   return '<tr><td><input type="checkbox" data-rw-select="'+esc(id)+'" aria-label="Select '+esc(id)+'" '+(selected.has(id)?'checked':'')+'></td><td><button type="button" class="asset-link" data-rw-action="device" data-rw-id="'+esc(id)+'">'+esc(id)+'</button><b class="rw-device-name">'+esc(deviceName(r.asset))+'</b><small>'+esc(r.asset.serial||'Serial not recorded')+'</small></td><td><span class="inventory-stage inventory-stage-'+s.key+'">'+esc(s.stage)+'</span><small>'+s.fitted+' / '+s.required+' units completed</small></td><td>'+process.labels.map(label=>'<span class="rw-tag">'+esc(label)+'</span>').join('')+'</td><td>'+esc(r.asset.pallet||r.asset.location||'Unassigned')+'</td><td><button type="button" class="secondary" data-rw-expand="'+esc(id)+'" aria-expanded="'+open+'" aria-controls="rw-detail-'+i+'">'+(open?'Hide details':'Work on device')+'</button><small>'+esc(s.next)+'</small></td></tr><tr id="rw-detail-'+i+'" '+(open?'':'hidden')+'><td colspan="6">'+detail(r)+'</td></tr>';
+   const assignment=r.asset.pallet||r.asset.location||'Unassigned',assignmentType=r.asset.pallet?'Pallet':'Location';
+   return '<tr class="'+(selected.has(id)?'inventory-row-selected':'')+'"><td class="inventory-selection-cell"><input type="checkbox" class="inventory-row-select" data-rw-select="'+esc(id)+'" aria-label="Select '+esc(id)+'" '+(selected.has(id)?'checked':'')+'></td><td><button type="button" class="asset-link" data-rw-action="device" data-rw-id="'+esc(id)+'">'+esc(id)+'</button><b class="rw-device-name" title="'+esc(deviceName(r.asset))+'">'+esc(deviceName(r.asset))+'</b><div class="rw-device-meta"><span title="'+esc(r.asset.serial||'Not recorded')+'"><small>Serial</small> '+esc(r.asset.serial||'Not recorded')+'</span><span title="'+esc(assignment)+'"><small>'+assignmentType+'</small> '+esc(assignment)+'</span></div></td><td><span class="inventory-stage inventory-stage-'+s.key+'">'+esc(s.stage)+'</span><div class="rw-task-tags">'+process.labels.map(label=>'<span class="rw-tag">'+esc(label)+'</span>').join('')+'</div><small class="rw-completion">'+s.fitted+' of '+s.required+' units completed</small></td><td class="rw-next-cell"><button type="button" class="secondary" data-rw-expand="'+esc(id)+'" aria-expanded="'+open+'" aria-controls="rw-detail-'+i+'">'+(open?'Hide details':'Work on device')+'</button><small class="rw-next-description">'+esc(s.next)+'</small></td></tr><tr id="rw-detail-'+i+'" '+(open?'':'hidden')+'><td colspan="4">'+detail(r)+'</td></tr>';
   }).join('')+'</tbody></table></div><div class="rw-pagebar"><span>'+list.length+' jobs · Page '+(page+1)+' of '+pages+'</span><div><button type="button" class="secondary" data-rw-page="-1" '+(page===0?'disabled':'')+'>Previous</button><button type="button" class="secondary" data-rw-page="1" '+(page>=pages-1?'disabled':'')+'>Next</button></div></div>':'<div class="empty"><strong>'+(loaded?'No matching refurbishment jobs':'Loading refurbishment records…')+'</strong>'+(loaded?'Try another filter or open a device to create its refurbishment job.':'Use Refresh if the connection is unavailable.')+'</div>';
   $('rwQueueTable').querySelectorAll('[data-rw-expand]').forEach(b=>b.onclick=()=>{const id=b.dataset.rwExpand;if(expanded.has(id))expanded.delete(id);else expanded.add(id);drawQueue();});
-  $('rwQueueTable').querySelectorAll('[data-rw-select]').forEach(c=>c.onchange=()=>{if(c.checked)selected.add(c.dataset.rwSelect);else selected.delete(c.dataset.rwSelect);selectionState();syncSelectAll();});
+  $('rwQueueTable').querySelectorAll('[data-rw-select]').forEach(c=>c.onchange=()=>{if(c.checked)selected.add(c.dataset.rwSelect);else selected.delete(c.dataset.rwSelect);c.closest('tr').classList.toggle('inventory-row-selected',c.checked);selectionState();syncSelectAll();});
   const all=$('rwSelectVisible');if(all)all.onchange=()=>{for(const r of visible){if(all.checked)selected.add(r.job.assetId);else selected.delete(r.job.assetId);}drawQueue();};
   $('rwQueueTable').querySelectorAll('[data-rw-page]').forEach(b=>b.onclick=()=>{page+=Number(b.dataset.rwPage);drawQueue();});
   $('rwFilters').querySelectorAll('[data-rw-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.rwFilter;page=0;drawQueue();});
@@ -79,7 +80,6 @@
   $('breadSub').textContent=views[view][0];
   if(view==='queue'){restorePanels();drawQueue();}else mount((view==='purchasing'?purchase:view)+'Content');
  }
- function expandNav(open){$('refurbNavLinks').hidden=!open;$('refurbNavToggle').setAttribute('aria-expanded',String(open));$('refurbNavToggle').setAttribute('aria-label',(open?'Collapse':'Expand')+' refurbishment menu');}
  function openView(next){if(!views[next])return;const previous=view;view=next;if(!setPage('refurbWorkspace'))view=previous;}
  const parentPage=setPage;
  const routeViews={refurbJobs:['queue'],parts:['purchasing','parts'],partsOrdered:['purchasing','partsOrdered'],orders:['purchasing','orders'],deliveries:['purchasing','deliveries'],qc:['qc'],completed:['completed']};
@@ -87,12 +87,11 @@
   if(active()&&routeViews[target]){const route=routeViews[target];view=route[0];if(route[1])purchase=route[1];target='refurbWorkspace';}
   const restoreScroll=returnToQueue&&currentPage==='asset'&&target==='refurbWorkspace';
   const ok=parentPage(target,force);if(!ok)return false;
-  if(target==='refurbWorkspace'){expandNav(true);draw();window.ApexOps.load(true);}else restorePanels();
+  if(target==='refurbWorkspace'){draw();window.ApexOps.load(true);}else restorePanels();
   updateReturn();if(restoreScroll)requestAnimationFrame(()=>{document.querySelector('.main').scrollTop=queueScroll;});return ok;
  };
  const parentRender=render;render=function(...args){const result=parentRender(...args);draw();return result;};
  window.addEventListener('apex:workflow-updated',draw);
- $('refurbNavToggle').onclick=()=>expandNav($('refurbNavLinks').hidden);
  document.querySelectorAll('[data-rw-view]').forEach(b=>b.onclick=()=>openView(b.dataset.rwView));
  document.querySelectorAll('[data-rw-purchase]').forEach(b=>b.onclick=()=>{purchase=b.dataset.rwPurchase;draw();});
  $('rwRefresh').onclick=async()=>{const b=$('rwRefresh');b.disabled=true;try{await refresh();await window.ApexOps.load();}finally{b.disabled=false;}};
