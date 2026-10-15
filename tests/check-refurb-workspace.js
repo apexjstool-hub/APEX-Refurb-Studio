@@ -71,10 +71,13 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('v3Tabs').querySelector('[data-v3tab=parts]').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='parts'&&!$('partsPage').classList.contains('hidden')&&$('partsContent').parentElement.id==='partsPage'"))throw Error('Original Inventory parts page is unavailable.');
   await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open('queue');$('rwSearch').value='';$('rwSearch').dispatchEvent(new Event('input'));void 0;");
-  const layout=await win.webContents.executeJavaScript("(()=>{const r=$('refurbWorkspacePage').getBoundingClientRect();return {width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth+2};})()");
-  if(layout.width<700||layout.height<200||layout.overflow)throw Error('New workspace layout failed: '+JSON.stringify(layout));
+  const layout=await win.webContents.executeJavaScript("(()=>{const r=$('refurbWorkspacePage').getBoundingClientRect();return {width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth+2,tableFits:$('rwQueueTable').querySelector('.rw-table-scroll').scrollWidth<=$('rwQueueTable').querySelector('.rw-table-scroll').clientWidth+2};})()");
+  if(layout.width<700||layout.height<200||layout.overflow||!layout.tableFits)throw Error('New workspace layout failed: '+JSON.stringify(layout));
+  await win.webContents.executeJavaScript("document.querySelectorAll('img[src]').forEach(img=>{const src=img.getAttribute('src');if(src&&!/^(data:|https?:|file:)/.test(src))img.src=new URL(src,window.ApexPreviewBase).href;});void 0;");
   win.show();await new Promise(r=>setTimeout(r,300));
   fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/refurb-workspace.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("document.documentElement.dataset.theme='dark';void 0;");await new Promise(r=>setTimeout(r,150));
+  fs.writeFileSync(path.resolve('qa-print/refurb-workspace-dark.png'),(await win.webContents.capturePage()).toPNG());
   console.log('PASS: new Refurbishment workspace routes, filters, selection, writes and original Inventory views verified.');
   win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(1);}

@@ -17,3 +17,14 @@ body.apex-nav-collapsed .rw-menu-head #refurbNav{padding-right:4px!important}
 .rw-table-scroll{overflow-x:auto}.rw-work-table{min-width:900px}.rw-work-table td{vertical-align:top}.rw-work-table td small,.rw-device-name{display:block;margin-top:5px;max-width:250px;overflow-wrap:anywhere}.rw-work-table td small{color:var(--muted);font-size:10px;line-height:1.5}.rw-work-table td:first-child{width:32px}.rw-work-table td:last-child{min-width:160px}.rw-work-table .rw-tag{display:block;font-size:11px;margin-bottom:5px}.rw-device-name{font-size:12px}.rw-detail{padding:17px;background:var(--panel2);border-top:1px solid var(--line)}.rw-detail-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:12px}.rw-detail-top p,.rw-last{color:var(--muted);font-size:11px}.rw-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.rw-detail button{font-size:11px;padding:7px 9px;margin:2px}.rw-part-kind{display:block;color:var(--muted);font-size:10px;margin-top:4px}.rw-last{padding-top:12px;line-height:1.6}.rw-notes{white-space:pre-wrap;font-size:12px;line-height:1.6}.rw-pagebar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}.rw-pagebar button{font-size:11px;margin-left:6px}
 html[data-apex-page=refurbWorkspace] #v3Tabs{display:none!important}#rwReturnToQueue{margin-left:8px}
 @media(max-width:760px){#refurbNavToggle,#refurbNavLinks{display:none!important}.rw-menu-head #refurbNav{padding-right:3px!important}.rw-detail-top{flex-direction:column}.rw-actions{justify-content:flex-start}.rw-heading{align-items:flex-start}}
+
+#refurbWorkspacePage #rwQueueTable{max-height:none!important;overflow:visible!important}
+#refurbWorkspacePage .rw-work-table{width:100%;min-width:700px;table-layout:fixed}
+#refurbWorkspacePage .rw-work-table th:first-child{width:34px}
+#refurbWorkspacePage .rw-work-table th:nth-child(2){width:26%}
+#refurbWorkspacePage .rw-work-table th:nth-child(3){width:18%}
+#refurbWorkspacePage .rw-work-table th:nth-child(4){width:12%}
+#refurbWorkspacePage .rw-work-table th:nth-child(5){width:12%}
+#refurbWorkspacePage .rw-work-table td:last-child{min-width:0}
+#refurbWorkspacePage .rw-work-table th,#refurbWorkspacePage .rw-work-table td{padding:10px!important;overflow-wrap:anywhere}
+#refurbWorkspacePage .rw-work-table b,#refurbWorkspacePage .rw-detail b{color:var(--text)!important}
