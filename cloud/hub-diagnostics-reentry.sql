@@ -300,7 +300,7 @@ grant execute on function public.apex_hard_delete_asset(text,bigint) to authenti
 -- Paired testing laptops never receive that key or a general inventory write key.
 create or replace function public.apex_receive_hub_diagnostics(
  p_event_id text,p_asset_id text,p_report jsonb,p_received_at timestamptz
-) returns jsonb language plpgsql security definer set search_path='' as $
+) returns jsonb language plpgsql security definer set search_path='' as $$
 declare asset_tag text;deleted_time timestamptz;
 begin
  if auth.role() is distinct from 'service_role' then
@@ -316,7 +316,7 @@ begin
   raise exception 'This hub Diagnostics receipt predates deletion. Send a new Diagnostics report.' using errcode='22023';
  end if;
  return public.apex_receive_device_intake('diagnostics',p_event_id,asset_tag,p_report);
-end $;
+end $$;
 revoke all on function public.apex_receive_hub_diagnostics(text,text,jsonb,timestamptz) from public,anon,authenticated;
 grant execute on function public.apex_receive_hub_diagnostics(text,text,jsonb,timestamptz) to service_role;
 

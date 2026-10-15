@@ -7,9 +7,9 @@ create table auth.users(id uuid primary key);
 create function auth.uid() returns uuid language sql stable as $$
  select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
 $$;
-create function auth.role() returns text language sql stable as $
+create function auth.role() returns text language sql stable as $$
  select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),'authenticated');
-$;
+$$;
 grant usage on schema auth,public to anon,authenticated,service_role;
 grant execute on function auth.uid() to public;
 \ir ../cloud/supabase.sql
