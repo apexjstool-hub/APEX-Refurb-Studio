@@ -1,0 +1,46 @@
+name: Verify automatic Diagnostics re-entry
+on:
+  push:
+    branches: [main]
+    paths:
+      - cloud/automatic-diagnostics-reentry.sql
+      - cloud/device-cloud-intake.sql
+      - cloud/cloud-permanent-delete.sql
+      - tests/cloud-reentry-*.sql
+      - .github/workflows/test-cloud-reentry.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: apex-isolated-test
+          POSTGRES_DB: apex_reentry_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: apex-isolated-test
+      PGDATABASE: apex_reentry_test
+    steps:
+      - uses: actions/checkout@v5
+      - name: Create isolated Supabase-compatible fixtures
+        run: psql -v ON_ERROR_STOP=1 -f tests/cloud-reentry-bootstrap.sql
+      - name: Apply database patch twice to verify repeatable installation
+        run: |
+          psql -v ON_ERROR_STOP=1 -f cloud/automatic-diagnostics-reentry.sql
+          psql -v ON_ERROR_STOP=1 -f cloud/automatic-diagnostics-reentry.sql
+      - name: Verify registration, deletion, new intake, replays and rollback
+        run: psql -v ON_ERROR_STOP=1 -f tests/cloud-reentry-regression.sql

@@ -1,31 +1,54 @@
--- Step 6.2: run this entire SQL file once in the Supabase SQL Editor.
--- Keep the existing cloud-permanent-delete.sql function and add authoritative tombstones.
--- Back up your Supabase database first. This does not delete any existing devices.
-create table if not exists public.apex_deleted_assets (
- id text primary key,
- deleted_at timestamptz not null default now(),
- deleted_by uuid
-);
+-- Permanent cloud deletion, with new Diagnostics re-entry supported.
+-- Existing installations: run automatic-diagnostics-reentry.sql once.
+begin;
+create table if not exists public.apex_deleted_assets(id text primary key,deleted_at timestamptz not null default now(),deleted_by uuid);
 alter table public.apex_deleted_assets enable row level security;
 revoke all on public.apex_deleted_assets from public,anon,authenticated;
--- Only the server-side bridge's secret/service-role credential can read tombstones.
--- Stop stale API writes (including the Hub sync bridge) from recreating deleted IDs.
+alter table public.apex_deleted_assets
+ add column if not exists deleted_revision bigint,
+ add column if not exists re_registered_at timestamptz,
+ add column if not exists reentry_event_id text;
+
+-- A transaction-scoped permit, issued only by the validated Diagnostics RPC.
+-- Application clients and sync bridges cannot create or read these permits.
+create table if not exists public.apex_diagnostic_reentry_permits (
+ asset_id text not null,
+ transaction_id bigint not null,
+ actor uuid not null,
+ primary key(asset_id,transaction_id)
+);
+alter table public.apex_diagnostic_reentry_permits enable row level security;
+revoke all on public.apex_diagnostic_reentry_permits from public,anon,authenticated;
+
 create or replace function public.apex_block_recreated_deleted_asset()
 returns trigger language plpgsql security definer set search_path='' as $$
+declare deletion public.apex_deleted_assets;
+ authorised_id text;
+ last_revision bigint;
 begin
- if exists(select 1 from public.apex_deleted_assets where id=upper(btrim(new.id))) then
-  raise exception 'This asset was permanently deleted and cannot be recreated through intake or sync' using errcode='23505';
+ perform pg_advisory_xact_lock(hashtextextended('apex-intake-asset:'||upper(btrim(new.id)),0));
+ select * into deletion from public.apex_deleted_assets where id=upper(btrim(new.id));
+ if found then
+  delete from public.apex_diagnostic_reentry_permits
+   where asset_id=upper(btrim(new.id))
+    and transaction_id=txid_current() and actor=auth.uid()
+   returning asset_id into authorised_id;
+  if authorised_id is null then
+   raise exception 'This asset was deleted. Submit a new Diagnostics report to register it again.' using errcode='23505';
+  end if;
+  -- Keep revisions above the previous device incarnation. Stale Studio updates
+  -- cannot match a newly registered device merely because it has the same tag.
+  select coalesce(max(revision),0) into last_revision
+   from public.apex_audit where asset_id=upper(btrim(new.id));
+  new.revision:=greatest(last_revision,coalesce(deletion.deleted_revision,0))+1;
  end if;
  return new;
 end $$;
+-- This name sorts after apex_asset_change, which initializes normal new revisions.
 drop trigger if exists apex_prevent_deleted_recreate on public.apex_assets;
 create trigger apex_prevent_deleted_recreate before insert on public.apex_assets
 for each row execute function public.apex_block_recreated_deleted_asset();
 
--- APEX Patch 05: administrator-only permanent cloud asset deletion.
--- Run once in Supabase SQL Editor AFTER making a database backup.
--- Deletes only the requested asset and its linked refurbishment job/order lines.
--- Audit trail and intake receipts are intentionally retained.
 create or replace function public.apex_hard_delete_asset(p_id text,p_expected_revision bigint)
 returns jsonb language plpgsql security definer set search_path=''
 as $$
@@ -47,6 +70,8 @@ begin
  if asset_id='' or p_expected_revision is null then
   raise exception 'Asset ID and expected revision are required' using errcode='22023';
  end if;
+ -- Serialise deletion with first-time intake and re-registration of the same tag.
+ perform pg_advisory_xact_lock(hashtextextended('apex-intake-asset:'||asset_id,0));
  -- Lock the asset before the workflow, matching device intake's lock order.
  select * into asset_row from public.apex_assets where id=asset_id for update;
  if not found then raise exception 'Laptop not found. Refresh inventory.' using errcode='P0002'; end if;
@@ -85,10 +110,14 @@ begin
   where singleton_id=1;
  -- Write a permanent deletion marker in the same database transaction.
  -- If the transaction fails, neither operation is committed.
- insert into public.apex_deleted_assets(id,deleted_at,deleted_by)
- values(asset_id,now(),auth.uid()) on conflict(id) do nothing;
+ insert into public.apex_deleted_assets(id,deleted_at,deleted_by,deleted_revision,re_registered_at,reentry_event_id)
+ values(asset_id,clock_timestamp(),auth.uid(),asset_row.revision,null,null)
+ on conflict(id) do update set deleted_at=excluded.deleted_at,deleted_by=excluded.deleted_by,
+  deleted_revision=excluded.deleted_revision,re_registered_at=null,reentry_event_id=null;
  delete from public.apex_assets where id=asset_id;
  return jsonb_build_object('ok',true,'deleted',asset_id);
 end $$;
 revoke all on function public.apex_hard_delete_asset(text,bigint) from public,anon;
 grant execute on function public.apex_hard_delete_asset(text,bigint) to authenticated;
+
+commit;

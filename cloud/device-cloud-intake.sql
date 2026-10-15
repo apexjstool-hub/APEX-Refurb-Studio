@@ -12,6 +12,7 @@ create table if not exists public.apex_device_intake_receipts (
 alter table public.apex_device_intake_receipts enable row level security;
 revoke all on public.apex_device_intake_receipts from anon, authenticated;
 
+-- For existing installations apply automatic-diagnostics-reentry.sql once.
 create or replace function public.apex_receive_device_intake(
  p_source text,p_event_id text,p_asset_id text,p_report jsonb
 ) returns jsonb language plpgsql security definer set search_path=''
@@ -37,10 +38,11 @@ declare rec public.apex_assets;
  part_key text;
  workflow_doc jsonb;
  created boolean:=false;
+ reentry boolean:=false;
 begin
  if not public.apex_is_staff() then raise exception 'Staff authorisation required' using errcode='42501';end if;
  asset_tag:=upper(btrim(coalesce(p_asset_id,'')));
- if p_source not in ('diagnostics','refurbflow') or p_event_id is null
+ if p_source is null or p_source not in ('diagnostics','refurbflow') or p_event_id is null
   or length(p_event_id) not between 12 and 120 or p_event_id !~ '^[A-Za-z0-9_.:-]+$'
   or length(asset_tag) not between 2 and 80 or asset_tag !~ '^[A-Z0-9][A-Z0-9 _./:-]*$'
   or p_report is null or jsonb_typeof(p_report)<>'object'
@@ -74,7 +76,22 @@ begin
    'location','Unassigned','pallet','',
    'createdAt',now(),'updatedAt',now(),
    'history',jsonb_build_array(jsonb_build_object('type','Intake','detail','Automatically registered from '||p_source,'at',now())));
+  -- A new, staff-authorised Diagnostics event can re-register this tag.
+  -- Previously accepted events return above and never get a re-entry permit.
+  if exists(select 1 from public.apex_deleted_assets where id=asset_tag) then
+   insert into public.apex_diagnostic_reentry_permits(asset_id,transaction_id,actor)
+    values(asset_tag,txid_current(),auth.uid());
+   reentry:=true;
+   next_payload:=jsonb_set(next_payload,'{history}',
+    next_payload->'history'||jsonb_build_array(jsonb_build_object(
+     'type','Re-registered','detail','Registered again from a new Diagnostics submission after deletion.',
+     'at',now())),true);
+  end if;
   insert into public.apex_assets(id,payload) values(asset_tag,next_payload) returning * into rec;
+  if reentry then
+   update public.apex_deleted_assets
+    set re_registered_at=clock_timestamp(),reentry_event_id=p_event_id where id=asset_tag;
+  end if;
   created:=true;
  else
   if rec.payload->>'deletedAt' is not null then raise exception 'Archived laptop cannot accept reports' using errcode='22023';end if;
@@ -149,7 +166,8 @@ begin
  end if;
  insert into public.apex_device_intake_receipts(source,event_id,asset_id,actor)
  values(p_source,p_event_id,asset_tag,auth.uid());
- return jsonb_build_object('ok',true,'duplicate',false,'created',created,'assetId',asset_tag);
+ return jsonb_build_object('ok',true,'duplicate',false,'created',created,'reRegistered',reentry,'assetId',asset_tag);
 end $$;
 revoke all on function public.apex_receive_device_intake(text,text,text,jsonb) from public;
 grant execute on function public.apex_receive_device_intake(text,text,text,jsonb) to authenticated;
+
