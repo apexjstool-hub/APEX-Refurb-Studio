@@ -23,6 +23,10 @@ return true;};
 // Existing app.js installed navigation handlers with late-binding setPage(); no event replacement needed.
 $('v3Settings').onclick=()=>setPage('settings');
 // The asset summary stays present while only one compact detail pane is shown.
+// The Overview is a focused summary. Advanced checks and the audit trail live in History & checks.
+const assetOverviewStyle=document.createElement('style');
+assetOverviewStyle.textContent='#assetPage[data-section="overview"] #assetAdvanced,#assetPage[data-section="overview"] #assetAdvancedToggle{display:none!important}';
+document.head.appendChild(assetOverviewStyle);
 const assetSection=$('assetPage'),tabs=document.createElement('div');tabs.id='v3AssetTabs';tabs.className='v3-asset-tabs';
 assetSection.querySelector('.asset-summary')?.after(tabs);
 function updateAssetTabs(){if(currentPage!=='asset')return;assetSection.dataset.section=assetTab;
@@ -45,11 +49,15 @@ function renderHistoryWorkspace(){
   toolbar.querySelector('#v63HistoryFilter').addEventListener('change',filterHistoryWorkspace);
  }
  activity.classList.add('v63-history-timeline');
- // app.js creates .asset-event from trusted saved history on each asset opening.
- for(const node of activity.querySelectorAll('.asset-event')){
-  node.classList.add('v63-history-event');
-  node.dataset.category=historyCategory(node.querySelector('b')?.textContent);
- }
+ // Combine saved inventory history and the separate refurbishment audit for this asset.
+ // Keep source records immutable and sort by their original timestamps.
+ const asset=items.find(a=>a.id===activeAssetId);
+ const inventory=Array.isArray(asset?.history)?asset.history.map((e,i)=>({...e,_key:'i'+i})):[];
+ const workflow=Array.isArray(window.ApexWorkflowSnapshot?.audit)?window.ApexWorkflowSnapshot.audit.filter(e=>e.assetId===activeAssetId).map((e,i)=>({...e,_key:'w'+(e.id||i)})):[];
+ const events=[...inventory,...workflow].sort((a,b)=>(Date.parse(b.at)||0)-(Date.parse(a.at)||0));
+ activity.innerHTML=events.length?events.map(e=>'<div class="asset-event v63-history-event"><time>'+esc(shortDate(e.at))+'</time><b>'+esc(e.type||'Activity')+'</b><span>'+esc(e.detail||'')+(e.by?' · By '+esc(e.by):'')+'</span></div>').join(''):'<p class="section-note">No recorded activity for this asset yet.</p>';
+ for(const node of activity.querySelectorAll('.asset-event'))node.dataset.category=historyCategory(node.querySelector('b')?.textContent);
+
  filterHistoryWorkspace();
 }
 function filterHistoryWorkspace(){
@@ -127,7 +135,7 @@ const tiles=[['Registered laptops',items.length,'inventory'],['Refurb jobs',jobs
 host.innerHTML=tiles.map(([t,n,id])=>`<button type="button" class="v3-today-tile" data-go="${id}"><small>${t}</small><strong>${n}</strong><span>Open →</span></button>`).join('');host.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setPage(b.dataset.go));}
 const dashboard=$('dashboardPage');const today=document.createElement('div');today.id='v3Today';today.className='v3-today';dashboard.querySelector('.metrics')?.before(today);
 // Reapply action indicators when the hub refreshes or workflow changes.
-window.addEventListener('apex:workflow-updated',()=>{attention();if(currentPage==='reports')renderReports();});
+window.addEventListener('apex:workflow-updated',()=>{attention();if(currentPage==='reports')renderReports();if(currentPage==='asset'&&assetTab==='history')renderHistoryWorkspace();});
 const savedRender=render;render=function(...args){const v=savedRender(...args);attention();return v;};
 renderTabs(currentPage);attention();
 })();
