@@ -149,7 +149,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Adds Pallet locations, whole-pallet storage moves and counts, and consistent Refurbishment page styling. Per-device Move to Parts Ordered buttons are removed; bulk moves remain. For cloud storage, apply the attached pallet-locations-4.0.49.sql migration first. Shared hubs must also run the updated hub source. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Refreshed Work queue with clearer status, progress and selection controls. View pallets now opens a dedicated location page showing pallet cards, inventory counts and View inventory links. Existing pallet storage and device assignments are retained. Cloud users upgrading from v4.0.49 need no database update; earlier cloud deployments can use the attached pallet-locations-4.0.49.sql migration. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

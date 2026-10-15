@@ -1,6 +1,6 @@
 'use strict';
 // Whole-pallet storage is independent of device locations and device membership.
-(function(){
+(function(renderInventory){
  const host=$('palletLocationsContent');if(!host)return;
  let viewed=null,query='';
  const same=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
@@ -10,20 +10,42 @@
  const at=name=>pallets().filter(p=>same(p.storageLocation,name));
  const ready=()=>data().available&&!!api.createPalletLocation&&!!api.movePallets;
  function render(){
-  const locations=names().filter(n=>n.toLowerCase().includes(query.toLowerCase())),selected=viewed!==null?at(viewed):[];
-  host.innerHTML=`${ready()?'':'<div class="pl-notice" role="status">Pallet storage is not enabled on this connection yet. Update the shared hub, or apply the pallet-locations cloud migration.</div>'}<div class="pl-heading"><div><h2>Storage overview</h2><p>${names().length} location${names().length===1?'':'s'} · ${pallets().length} pallets · ${at('').length} unassigned</p></div><button type="button" class="primary" id="plMove" ${!ready()||!pallets().length?'disabled':''}>Move pallets</button></div><form id="plCreateForm" class="pl-create"><label for="plName">New pallet location</label><input id="plName" name="name" maxlength="90" placeholder="e.g. Warehouse A — Rack 2" required ${!ready()?'disabled':''}><button type="submit" class="secondary" ${!ready()?'disabled':''}>Add location</button><span id="plCreateError" role="alert"></span></form><div class="section-panel pl-list"><div class="pl-list-heading"><h3>Pallet locations</h3><input type="search" id="plSearch" aria-label="Search pallet locations" placeholder="Search locations…" value="${html(query)}"></div><div class="pl-scroll"><table class="asset-table"><thead><tr><th>Location name</th><th>Pallets</th><th>Actions</th></tr></thead><tbody>${locations.map(n=>`<tr><td><strong>${html(n)}</strong></td><td><span class="pl-count">${at(n).length}</span></td><td><button type="button" class="secondary" data-pl-view="${html(n)}">View pallets</button> <button type="button" class="secondary" data-pl-assign="${html(n)}" ${!ready()||!pallets().length?'disabled':''}>Move pallets here</button></td></tr>`).join('')||'<tr><td colspan="3" class="pl-empty">No pallet locations found. Add a location above to get started.</td></tr>'}<tr><td>Unassigned pallets</td><td><span class="pl-count">${at('').length}</span></td><td><button type="button" class="secondary" data-pl-view="">View pallets</button></td></tr></tbody></table></div></div>${viewed===null?'':`<div class="section-panel pl-detail"><div class="pl-list-heading"><div><h3>${html(viewed||'Unassigned pallets')}</h3><p>${selected.length} pallet${selected.length===1?'':'s'}</p></div><button type="button" class="secondary" id="plCloseDetail">Close</button></div><div class="pl-scroll"><table class="asset-table"><thead><tr><th>Pallet</th><th>Description</th><th>Devices</th><th></th></tr></thead><tbody>${selected.map(p=>`<tr><td><strong>${html(p.name)}</strong></td><td>${html(p.label||'—')}</td><td>${Number(p.assets)||items.filter(a=>same(a.pallet,p.name)).length}</td><td><button type="button" class="secondary" data-pl-move="${html(p.name)}" ${!ready()?'disabled':''}>Move pallet</button></td></tr>`).join('')||'<tr><td colspan="4" class="pl-empty">No pallets in this location.</td></tr>'}</tbody></table></div></div>`}`;
+  const locations=names().filter(n=>n.toLowerCase().includes(query.toLowerCase()));
+  host.innerHTML=`${ready()?'':'<div class="pl-notice" role="status">Pallet storage is not enabled on this connection yet. Update the shared hub, or apply the pallet-locations cloud migration.</div>'}<div class="pl-heading"><div><h2>Storage overview</h2><p>${names().length} location${names().length===1?'':'s'} · ${pallets().length} pallet${pallets().length===1?'':'s'} · ${at('').length} unassigned</p></div><button type="button" class="primary" id="plMove" ${!ready()||!pallets().length?'disabled':''}>Move pallets</button></div><form id="plCreateForm" class="pl-create"><label for="plName">New pallet location</label><input id="plName" name="name" maxlength="90" placeholder="e.g. Warehouse A — Rack 2" required ${!ready()?'disabled':''}><button type="submit" class="secondary" ${!ready()?'disabled':''}>Add location</button><span id="plCreateError" role="alert"></span></form><div class="section-panel pl-list"><div class="pl-list-heading"><h3>Pallet locations</h3><input type="search" id="plSearch" aria-label="Search pallet locations" placeholder="Search locations…" value="${html(query)}"></div><div class="pl-scroll"><table class="asset-table"><thead><tr><th>Location name</th><th>Pallets</th><th>Actions</th></tr></thead><tbody>${locations.map(n=>`<tr><td><strong>${html(n)}</strong></td><td><span class="pl-count">${at(n).length}</span></td><td><button type="button" class="secondary" data-pl-view="${html(n)}">View pallets</button> <button type="button" class="secondary" data-pl-assign="${html(n)}" ${!ready()||!pallets().length?'disabled':''}>Move pallets here</button></td></tr>`).join('')||'<tr><td colspan="3" class="pl-empty">No pallet locations found. Add a location above to get started.</td></tr>'}<tr><td>Unassigned pallets</td><td><span class="pl-count">${at('').length}</span></td><td><button type="button" class="secondary" data-pl-view="">View pallets</button></td></tr></tbody></table></div></div>`;
   $('plSearch').oninput=e=>{const pos=e.target.selectionStart;query=e.target.value;render();$('plSearch').focus();if(pos!==null)$('plSearch').setSelectionRange(pos,pos);};
   $('plMove').onclick=()=>move();
-  host.querySelectorAll('[data-pl-view]').forEach(b=>b.onclick=()=>{viewed=b.dataset.plView;render();});
+  host.querySelectorAll('[data-pl-view]').forEach(b=>b.onclick=()=>openLocation(b.dataset.plView));
   host.querySelectorAll('[data-pl-assign]').forEach(b=>b.onclick=()=>move([],b.dataset.plAssign));
-  host.querySelectorAll('[data-pl-move]').forEach(b=>b.onclick=()=>move([b.dataset.plMove]));
-  if($('plCloseDetail'))$('plCloseDetail').onclick=()=>{viewed=null;render();};
+
   $('plCreateForm').onsubmit=async e=>{
    e.preventDefault();const form=e.currentTarget,button=form.querySelector('button'),name=form.elements.name.value.trim();if(!name||!ready())return;
    button.disabled=true;
    try{const r=await api.createPalletLocation({name});if(!r.ok){$('plCreateError').textContent=r.error||'Could not create location.';return;}await refresh();notify('Pallet location created');}
    catch{$('plCreateError').textContent='Unable to save. Refresh and try again.';}finally{if(button.isConnected)button.disabled=false;}
   };
+ }
+ function countInventory(pallet){return items.filter(a=>!a.deletedAt&&same(a.pallet,pallet.name)).length;}
+ function openLocation(name){
+  const before=viewed;viewed=name;
+  if(!setPage('palletLocationDetail')){viewed=before;return false;}
+  return true;
+ }
+ function openInventory(name){
+  if(!pallets().some(p=>same(p.name,name))){notify('This pallet no longer exists. Refresh the location.');return;}
+  if(!setPage('inventory'))return;
+  for(const id of ['locationFilter','gradeFilter','repairFilter','inventorySearch'])$(id).value='';
+  $('statusFilter').value='All statuses';$('palletFilter').value=name;inventoryPageIndex=0;
+  renderInventory();
+ }
+ function renderDetail(){
+  const detail=$('palletLocationDetailContent');if(!detail)return;
+  const list=viewed===null?[]:at(viewed),total=list.reduce((n,p)=>n+countInventory(p),0);
+  detail.innerHTML=`<button type="button" class="pl-back" id="plBackToLocations">← Pallet locations</button><div class="pl-location-heading"><div><span class="pl-eyebrow">PALLET LOCATION</span><h1>${html(viewed===null?'Choose a location':viewed||'Unassigned pallets')}</h1><p>Pallets stored here remain available in the main Pallets register.</p></div><button type="button" class="secondary" id="plLocationRefresh">Refresh</button></div><div class="pl-location-summary"><div><small>Pallets in this location</small><strong>${list.length}</strong></div><div><small>Total inventory</small><strong>${total}</strong></div></div><div class="pl-location-pallets">${list.map(p=>`<section class="pl-pallet-card"><div class="pl-pallet-card-top"><div><h2>${html(p.name)}</h2><p>${html(p.label||'No description')}</p></div><span class="pl-pallet-count"><strong>${countInventory(p)}</strong> inventory</span></div><div class="pl-pallet-card-actions"><a href="#inventory" data-pl-inventory="${html(p.name)}">View inventory <span aria-hidden="true">→</span></a><button type="button" class="secondary" data-pl-move="${html(p.name)}" ${!ready()?'disabled':''}>Move pallet</button></div></section>`).join('')||'<div class="pl-location-empty"><h2>No pallets here yet</h2><p>Return to Pallet locations and use Move pallets here to add pallets to this location.</p></div>'}</div>`;
+  $('plBackToLocations').onclick=()=>setPage('palletLocations');
+  $('plLocationRefresh').onclick=async()=>{const b=$('plLocationRefresh');b.disabled=true;try{await refresh();renderDetail();}finally{if(b.isConnected)b.disabled=false;}};
+  detail.querySelectorAll('[data-pl-inventory]').forEach(a=>a.onclick=e=>{e.preventDefault();openInventory(a.dataset.plInventory);});
+  detail.querySelectorAll('[data-pl-move]').forEach(b=>b.onclick=()=>move([b.dataset.plMove]));
+  if(currentPage==='palletLocationDetail')$('breadSub').textContent=viewed||'Unassigned pallets';
  }
  function move(initial=[],target=''){
   if(!ready()){notify('Enable pallet locations on your shared connection first.');return;}
@@ -40,7 +62,7 @@
    catch{if($('plMoveError'))$('plMoveError').textContent='Unable to save. Refresh before trying again.';}finally{if(button.isConnected)sync();}
   };
  }
- window.ApexPalletLocations={render,move};
- const previous=setPage;setPage=function(page,force){const ok=previous(page,force);if(ok&&page==='palletLocations')render();return ok;};
- render();
-})();
+ window.ApexPalletLocations={render:()=>{render();renderDetail();},move,open:openLocation};
+ const previous=setPage;setPage=function(page,force){const ok=previous(page,force);if(ok&&page==='palletLocations')render();if(ok&&page==='palletLocationDetail')renderDetail();return ok;};
+ render();renderDetail();
+})(()=>render());

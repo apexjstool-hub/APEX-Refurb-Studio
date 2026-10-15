@@ -115,13 +115,39 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.resolve('qa-print/pallet-locations.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('plMove').click();$('plCancel').click();void 0;");
   if(db.pallets[0].storageLocation!=='Rack B')throw Error('Cancelling changed pallet location.');
+  // Location → pallets → inventory, with a neighbouring location and an empty pallet.
+  db.pallets.push({name:'PALLET-0002',label:'Different location',storageLocation:'Rack A'},{name:'PALLET-0003',label:'Empty pallet',storageLocation:'Rack B'});
+  db.items.push(core.normalize({id:'OUTSIDE-PALLET',model:'Other laptop',serial:'OUTSIDE-SERIAL',pallet:'PALLET-0002',location:'Unassigned',status:'Awaiting Processing'}));
+  await win.webContents.executeJavaScript("refresh();void 0;");
+  for(let i=0;i<30;i++){if(await win.webContents.executeJavaScript("managedPallets.length===3"))break;await new Promise(r=>setTimeout(r,100));}
+  await win.webContents.executeJavaScript("document.querySelector('[data-pl-view=\"Rack B\"]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&!$('palletLocationDetailPage').classList.contains('hidden')&&$('palletLocationsPage').classList.contains('hidden')&&$('v3Tabs').querySelector('[data-v3tab=palletLocations]').classList.contains('selected')"))throw Error('View pallets did not open its dedicated page.');
+  if(!await win.webContents.executeJavaScript("(()=>{const p=$('palletLocationDetailContent'),cards=[...p.querySelectorAll('.pl-pallet-card')];return cards.length===2&&cards.some(c=>c.textContent.includes('PALLET-0001')&&c.querySelector('.pl-pallet-count strong').textContent==='1')&&cards.some(c=>c.textContent.includes('PALLET-0003')&&c.querySelector('.pl-pallet-count strong').textContent==='0')&&!p.textContent.includes('PALLET-0002')&&p.querySelectorAll('.pl-location-summary strong')[1].textContent==='1';})()"))throw Error('Location pallet scope or inventory counts are incorrect.');
+  await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/pallet-location-detail.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("$('locationFilter').value='Inspection';$('gradeFilter').value='D';$('repairFilter').value='hold';$('inventorySearch').value='no match';$('palletLocationDetailContent').querySelector('[data-pl-inventory=PALLET-0001]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='inventory'&&$('palletFilter').value==='PALLET-0001'&&$('inventorySearch').value===''&&$('locationFilter').value===''&&$('gradeFilter').value===''&&$('repairFilter').value===''&&JSON.stringify([...$('inventoryTable').querySelectorAll('[data-asset]')].map(a=>a.dataset.asset).filter((id,i,all)=>all.indexOf(id)===i))===JSON.stringify(['TEST-TRACKER'])"))throw Error('View inventory did not open exactly the selected pallet devices or clear unrelated filters.');
+  await win.webContents.executeJavaScript("window.ApexPalletLocations.open('Rack B');$('palletLocationDetailContent').querySelector('[data-pl-move=PALLET-0003]').click();$('plMoveForm').elements.location.value='Rack A';$('plMoveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  for(let i=0;i<30;i++){if(await win.webContents.executeJavaScript("$('palletLocationDetailContent').querySelectorAll('.pl-pallet-card').length===1&&!$('plMoveForm')"))break;await new Promise(r=>setTimeout(r,100));}
+  if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&$('palletLocationDetailContent').querySelectorAll('.pl-pallet-card').length===1&&!$('palletLocationDetailContent').textContent.includes('PALLET-0003')"))throw Error('Moving a pallet did not refresh its location page.');
+  await win.webContents.executeJavaScript("$('plBackToLocations').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='palletLocations'&&!$('palletLocationsPage').classList.contains('hidden')"))throw Error('Back to Pallet locations failed.');
+  await win.webContents.executeJavaScript("document.querySelector('[data-pl-view=\"\"]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&!!$('palletLocationDetailContent').querySelector('.pl-location-empty')&&!$('palletLocationDetailContent').querySelector('.pl-pallet-card')"))throw Error('Empty unassigned pallet location did not show its empty state.');
+  await win.webContents.executeJavaScript("setPage('inventory');$('palletFilter').value='';render();void 0;");
   for(const target of ['parts','partsOrdered','orders','deliveries','qc','completed']){
    await win.webContents.executeJavaScript("setPage("+JSON.stringify(target)+");void 0;");
    if(!await win.webContents.executeJavaScript("!$('partsContent').querySelector('[data-op=boardOrdered]')&&!!$('opsMoveSelectedParts')"))throw Error('Per-device order moves remain, or bulk move was removed.');
    await new Promise(r=>setTimeout(r,250));
    fs.writeFileSync(path.resolve('qa-print/refurb-'+target+'.png'),(await win.webContents.capturePage()).toPNG());
   }
-  await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open('queue');void 0;");
+  for(const [width,theme] of [[1440,'light'],[1100,'light'],[760,'light'],[1440,'dark']]){
+   win.setSize(width,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";window.ApexPalletLocations.open('Rack A');void 0;");await new Promise(r=>setTimeout(r,250));
+   const locationLayout=await win.webContents.executeJavaScript("(()=>{const root=$('palletLocationDetailPage');return {visible:root.getBoundingClientRect().height>100,contained:root.scrollWidth<=root.clientWidth+2,links:[...root.querySelectorAll('[data-pl-inventory]')].every(a=>a.getBoundingClientRect().width>50)};})()");
+   if(!locationLayout.visible||!locationLayout.contained||!locationLayout.links)throw Error('Pallet location page layout regression: '+JSON.stringify(locationLayout));
+   fs.writeFileSync(path.resolve('qa-print/pallet-location-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+  }
+  win.setSize(1440,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';window.ApexRefurbWorkspace.open('queue');void 0;");await new Promise(r=>setTimeout(r,250));
+  if(!await win.webContents.executeJavaScript("$('rwQueueSummary').children.length===3&&$('rwQueueSummary').textContent.includes('Active jobs')&&$('rwQueueTable').querySelectorAll('.rw-progress-track').length>0"))throw Error('Work queue overview or progress indicators missing.');
   const layout=await win.webContents.executeJavaScript("(()=>{const r=$('refurbWorkspacePage').getBoundingClientRect();return {width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth+2,tableFits:$('rwQueueTable').querySelector('.rw-table-scroll').scrollWidth<=$('rwQueueTable').querySelector('.rw-table-scroll').clientWidth+2};})()");
   if(layout.width<700||layout.height<200||layout.overflow||!layout.tableFits)throw Error('New workspace layout failed: '+JSON.stringify(layout));
   const readability=await win.webContents.executeJavaScript("(()=>{const table=$('rwQueueTable').querySelector('.rw-work-table'),row=table.tBodies[0].rows[0],box=row.querySelector('[data-rw-select]'),cb=box.getBoundingClientRect(),style=getComputedStyle(box),name=row.querySelector('.rw-device-name'),action=row.querySelector('[data-rw-expand]'),range=document.createRange();range.selectNodeContents(action);const lines=[...range.getClientRects()];return {columns:table.tHead.rows[0].cells.length,checkbox:cb.width===16&&cb.height===16&&style.appearance==='auto'&&box.classList.contains('inventory-row-select'),nameWidth:name.getBoundingClientRect().width,nameWrap:getComputedStyle(name).overflowWrap,buttonLines:lines.length,buttonHeight:action.getBoundingClientRect().height,selectionBar:!$('rwSelectionBar').hidden,tabs:[...document.querySelectorAll('#refurbWorkspacePage [data-rw-view]')].every(b=>b.classList.contains('v3-tab'))};})()");
