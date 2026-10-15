@@ -9,3 +9,5 @@
 .asset-history-footer button{min-height:34px;font-size:12px}
 .asset-history-footer button[hidden]{display:none!important}
 @media(max-width:800px){#assetPage[data-section="history"] .asset-history-footer{align-items:flex-start;flex-direction:column}}
+/* The summary card's original theme has a stronger display rule. */
+body.apex-v34 #assetPage[data-section="history"] #assetSummary.mock-summary{display:none!important}
