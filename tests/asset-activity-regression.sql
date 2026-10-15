@@ -26,5 +26,5 @@ begin
  begin perform public.apex_get_asset_activity('AUDIT-ONLY');raise exception 'EXPECTED_AUDIT_DENIAL';exception when others then if sqlerrm='EXPECTED_AUDIT_DENIAL' then raise;end if;end;
  perform set_config('apex.test_staff','yes',true);
  delete from public.apex_assets where id='AUDIT-ONLY';
- if exists(select 1 from public.apex_asset_activity where asset_id='AUDIT-ONLY') then raise exception 'Permanently deleted asset retained its linked archive';end if;
+ if not exists(select 1 from public.apex_asset_activity where asset_id='AUDIT-ONLY' and event->>'id'='fitted-1') or not exists(select 1 from public.apex_asset_activity where asset_id='AUDIT-ONLY' and event->>'type'='Asset permanently deleted') then raise exception 'Asset removal erased or failed to record its audit trail';end if;
 end $$;

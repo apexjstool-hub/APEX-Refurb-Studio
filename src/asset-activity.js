@@ -5,8 +5,9 @@ const eventKey=e=>e.id?String(e.id):crypto.createHash('md5').update(JSON.stringi
 function capture(db){
  const active=new Set((db.items||[]).map(a=>a.id));
  if(!db.assetActivity||typeof db.assetActivity!=='object'||Array.isArray(db.assetActivity))db.assetActivity={};
- for(const id of Object.keys(db.assetActivity))if(!active.has(id))delete db.assetActivity[id];
- const add=(id,e)=>{if(!active.has(id)||!e||!e.type||!Number.isFinite(Date.parse(e.at)))return;const entries=db.assetActivity[id]||(db.assetActivity[id]={});const key=eventKey(e);if(!entries[key])entries[key]=structuredClone(e);};
+ for(const id of active)if(!db.assetActivity[id])db.assetActivity[id]={};
+ const known=new Set([...active,...Object.keys(db.assetActivity)]);
+ const add=(id,e)=>{if(!known.has(id)||!e||!e.type||!Number.isFinite(Date.parse(e.at)))return;const entries=db.assetActivity[id]||(db.assetActivity[id]={});const key=eventKey(e);if(!entries[key])entries[key]=structuredClone(e);};
  for(const a of db.items||[])for(const e of a.history||[])add(a.id,e);
  for(const e of db.operations?.audit||[]){
   if(e.assetId)add(e.assetId,e);

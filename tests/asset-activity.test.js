@@ -22,3 +22,6 @@ test('purchasing, fitting, delivery tracking and QC are archived for only their 
  act({type:'qc',assetId:'A',check:W.QC[0],passed:true});
  const types=A.page(db,{id:'A'}).events.map(e=>e.type);for(const type of ['Part required','Part ordered','Order updated','Delivery received','Part fitted','Quality control'])assert(types.includes(type),type);assert.equal(A.page(db,{id:'B'}).events.length,0);
 });
+test('removing an asset does not erase its previously saved audit records',()=>{
+ const db={items:[{id:'A',history:[event(1)]}],operations:{audit:[]}};A.capture(db);db.items=[];db.operations.audit.push({...event(2,'Asset permanently deleted'),id:'deleted',assetId:'A'});A.capture(db);assert.equal(Object.keys(db.assetActivity.A).length,2);assert(Object.values(db.assetActivity.A).some(e=>e.type==='Asset permanently deleted'));
+});

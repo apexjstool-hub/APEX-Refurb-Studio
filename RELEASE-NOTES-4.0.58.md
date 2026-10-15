@@ -7,3 +7,5 @@ History & checks combines saved inventory activity with refurbishment events, or
 A durable per-asset archive retains new activity beyond the recent-log windows in local workspaces, shared hubs and cloud. It covers asset edits, notes, status/condition, Diagnostics and RefurbFlow imports, part requirements/orders/deliveries/fitting/QC, and transfers between locations, pallets and pallet locations. Existing available history is copied into the archive; previously discarded details cannot be reconstructed.
 
 The release includes repeatable cloud deployment scripts for the saved archive and pallet transfer logging. Cloud functions retain the approved-staff checks. No current pallet assignments or device specifications are changed by deployment.
+
+Saved audit records are retained when a device is removed from the register; the activity archive does not erase earlier records.

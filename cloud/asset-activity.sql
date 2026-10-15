@@ -28,8 +28,8 @@ returns trigger language plpgsql security definer set search_path=''
 as $$
 declare e jsonb; has_new boolean:=false; fields text; actor text; previous jsonb;
 begin
- if TG_OP='DELETE' then delete from public.apex_asset_activity where asset_id=OLD.id;return OLD;end if;
  actor:=coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'email',nullif(current_setting('request.jwt.claim.sub',true),''),'Staff');
+ if TG_OP='DELETE' then perform public.apex_capture_asset_activity(OLD.id,jsonb_build_object('id',gen_random_uuid(),'type','Asset permanently deleted','detail','Asset removed from the register; saved audit history retained.','at',clock_timestamp(),'by',actor));return OLD;end if;
  previous:=case when TG_OP='UPDATE' then coalesce(OLD.payload,'{}'::jsonb) else '{}'::jsonb end;
  for e in select value from jsonb_array_elements(case when jsonb_typeof(NEW.payload->'history')='array' then NEW.payload->'history' else '[]'::jsonb end) loop
   if not (case when jsonb_typeof(previous->'history')='array' then previous->'history' else '[]'::jsonb end @> jsonb_build_array(e)) then has_new:=true;end if;
@@ -48,7 +48,9 @@ begin
 end $$;
 revoke all on function public.apex_archive_asset_activity() from public,anon,authenticated;
 drop trigger if exists apex_archive_asset_activity on public.apex_assets;
-create trigger apex_archive_asset_activity after insert or update of payload or delete on public.apex_assets for each row execute function public.apex_archive_asset_activity();
+create trigger apex_archive_asset_activity after insert or update of payload on public.apex_assets for each row execute function public.apex_archive_asset_activity();
+drop trigger if exists apex_record_asset_removal on public.apex_assets;
+create trigger apex_record_asset_removal before delete on public.apex_assets for each row execute function public.apex_archive_asset_activity();
 
 create or replace function public.apex_archive_workflow_activity()
 returns trigger language plpgsql security definer set search_path=''
