@@ -2,7 +2,15 @@ name: Build APEX Windows Update
 on:
   push:
     branches: [main]
-    paths: [package.json]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'cloud/**'
+      - 'hub/**'
+      - '.github/workflows/build-windows.yml'
   workflow_dispatch:
 permissions:
   contents: write
