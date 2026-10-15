@@ -110,7 +110,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("setPage('palletLocations');refresh();void 0;");
   for(let i=0;i<30;i++){if(await win.webContents.executeJavaScript("document.querySelector('[data-pl-view=\"Rack B\"]')?.closest('tr').querySelector('.pl-count').textContent==='1'"))break;await new Promise(r=>setTimeout(r,100));}
   if(!await win.webContents.executeJavaScript("document.querySelector('[data-pl-view=\"Rack A\"]').closest('tr').querySelector('.pl-count').textContent==='0'&&document.querySelector('[data-pl-view=\"Rack B\"]').closest('tr').querySelector('.pl-count').textContent==='1'"))throw Error('Pallet counts did not follow the move after refresh.');
-  await new Promise(r=>setTimeout(r,250));
+  win.show();await new Promise(r=>setTimeout(r,400));
   if(!await win.webContents.executeJavaScript("currentPage==='palletLocations'&&!$('palletLocationsPage').classList.contains('hidden')&&$('palletLocationsPage').getBoundingClientRect().height>200"))throw Error('Pallet locations page is not visible.');
   fs.writeFileSync(path.resolve('qa-print/pallet-locations.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('plMove').click();$('plCancel').click();void 0;");

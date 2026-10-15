@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
+    "test:pallet-locations": "node --test tests/pallet-locations.test.js",
     "pack:windows": "electron-builder --win nsis",
     "pack:portable": "electron-builder --win portable --config.win.artifactName=APEX-Refurb-Studio-Portable-${version}.${ext}",
     "prepack:windows": "node scripts/configure-distribution-login.js --check",
