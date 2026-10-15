@@ -13,6 +13,8 @@ create function public.test_fail_receipt() returns trigger language plpgsql as $
 begin if new.event_id='diag-rollback-trigger' then raise exception 'Intentional transaction rollback';end if;return new;end $$;
 create trigger test_fail_receipt after insert on public.apex_device_intake_receipts for each row execute function public.test_fail_receipt();
 
+select public.test_assert(exists(select 1 from public.apex_assets where id='UPGRADE-KEEP' and payload->>'model'='Keep this existing inventory'),'Patch preserves pre-existing inventory');
+select public.test_assert(exists(select 1 from public.apex_deleted_assets where id='UPGRADE-MARKER'),'Patch preserves pre-existing deletion markers');
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 set role authenticated;
 select public.test_assert(not has_table_privilege('authenticated','public.apex_diagnostic_reentry_permits','INSERT'),'Clients cannot issue re-entry permits');

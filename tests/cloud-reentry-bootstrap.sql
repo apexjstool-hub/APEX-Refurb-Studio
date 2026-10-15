@@ -22,3 +22,22 @@ insert into public.apex_staff(user_id,active,role) values
  ('10000000-0000-0000-0000-000000000001',true,'admin'),
  ('10000000-0000-0000-0000-000000000002',true,'staff'),
  ('10000000-0000-0000-0000-000000000003',false,'staff');
+
+-- Recreate the currently deployed, pre-patch marker schema, including existing data.
+insert into public.apex_assets(id,payload) values('UPGRADE-KEEP','{"id":"UPGRADE-KEEP","model":"Keep this existing inventory"}');
+drop table public.apex_diagnostic_reentry_permits;
+alter table public.apex_deleted_assets drop column deleted_revision,drop column re_registered_at,drop column reentry_event_id;
+create or replace function public.apex_block_recreated_deleted_asset()
+returns trigger language plpgsql security definer set search_path='' as $$
+begin
+ if exists(select 1 from public.apex_deleted_assets where id=upper(btrim(new.id))) then
+  raise exception 'This asset was permanently deleted and cannot be recreated through intake or sync' using errcode='23505';
+ end if;
+ return new;
+end $$;
+drop trigger if exists apex_prevent_deleted_recreate on public.apex_assets;
+create trigger apex_prevent_deleted_recreate before insert on public.apex_assets
+for each row execute function public.apex_block_recreated_deleted_asset();
+
+
+insert into public.apex_deleted_assets(id) values('UPGRADE-MARKER');
