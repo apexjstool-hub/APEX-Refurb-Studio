@@ -1,5 +1,4 @@
--- Permanent cloud deletion, with new Diagnostics re-entry supported.
--- Existing installations: run automatic-diagnostics-reentry.sql once.
+-- Permanent cloud deletion. Existing installations should run hub-diagnostics-reentry.sql once.
 begin;
 create table if not exists public.apex_deleted_assets(id text primary key,deleted_at timestamptz not null default now(),deleted_by uuid);
 alter table public.apex_deleted_assets enable row level security;
@@ -19,6 +18,8 @@ create table if not exists public.apex_diagnostic_reentry_permits (
 );
 alter table public.apex_diagnostic_reentry_permits enable row level security;
 revoke all on public.apex_diagnostic_reentry_permits from public,anon,authenticated;
+alter table public.apex_diagnostic_reentry_permits alter column actor drop not null;
+alter table public.apex_device_intake_receipts alter column actor drop not null;
 
 create or replace function public.apex_block_recreated_deleted_asset()
 returns trigger language plpgsql security definer set search_path='' as $$
@@ -31,7 +32,7 @@ begin
  if found then
   delete from public.apex_diagnostic_reentry_permits
    where asset_id=upper(btrim(new.id))
-    and transaction_id=txid_current() and actor=auth.uid()
+    and transaction_id=txid_current() and actor is not distinct from auth.uid()
    returning asset_id into authorised_id;
   if authorised_id is null then
    raise exception 'This asset was deleted. Submit a new Diagnostics report to register it again.' using errcode='23505';

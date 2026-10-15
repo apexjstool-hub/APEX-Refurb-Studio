@@ -39,8 +39,11 @@ declare rec public.apex_assets;
  workflow_doc jsonb;
  created boolean:=false;
  reentry boolean:=false;
+ test_name text;
+ test_status text;
+ test_doc jsonb;
 begin
- if not public.apex_is_staff() then raise exception 'Staff authorisation required' using errcode='42501';end if;
+ if not public.apex_is_staff() and not (p_source='diagnostics' and coalesce(auth.role(),'')='service_role') then raise exception 'Staff authorisation required' using errcode='42501';end if;
  asset_tag:=upper(btrim(coalesce(p_asset_id,'')));
  if p_source is null or p_source not in ('diagnostics','refurbflow') or p_event_id is null
   or length(p_event_id) not between 12 and 120 or p_event_id !~ '^[A-Za-z0-9_.:-]+$'
@@ -112,6 +115,18 @@ begin
     end if;
    end if;
   end loop;
+ end if;
+ if p_source='diagnostics' and jsonb_typeof(p_report->'tests')='object' then
+  test_doc:='{}'::jsonb;
+  for test_name in select unnest(array['display','touchscreen','keyboard','pointer','audio','microphone','camera','wifi','bluetooth','battery','physical','system','hardware','health','gauntlet','advanced']) loop
+   test_status:=lower(coalesce(p_report->'tests'->test_name->>'status',p_report->'tests'->>test_name,''));
+   if test_status in ('pass','fail') then
+    test_doc:=test_doc||jsonb_build_object(test_name,jsonb_build_object('status',test_status,'source','APEX Diagnostics'));
+   end if;
+  end loop;
+  if test_doc<>'{}'::jsonb then
+   next_payload:=jsonb_set(next_payload,'{diagnosticTests}',coalesce(next_payload->'diagnosticTests','{}'::jsonb)||test_doc,true);
+  end if;
  end if;
  report_key:=case when p_source='diagnostics' then 'diagnosticsIntake' else 'refurbflowIntake' end;
  lookup:=case when jsonb_typeof(next_payload->report_key)='array' then next_payload->report_key else '[]'::jsonb end;

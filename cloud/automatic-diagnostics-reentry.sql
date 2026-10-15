@@ -1,6 +1,7 @@
--- APEX: automatically re-register deleted assets from NEW Diagnostics submissions.
+-- APEX: Diagnostics re-entry through both direct cloud and the trusted hub.
+-- Run this complete file once. Requires the Management Studio hub update v4.0.44 or later.
 -- Run this complete file ONCE in Supabase > SQL Editor.
--- No installer update is required for direct cloud Diagnostics intake.
+-- Direct cloud re-entry remains supported. No per-device unblocking is needed.
 -- Existing inventory, staff accounts, reports and deletion markers are preserved.
 begin;
 
@@ -19,6 +20,8 @@ create table if not exists public.apex_diagnostic_reentry_permits (
 );
 alter table public.apex_diagnostic_reentry_permits enable row level security;
 revoke all on public.apex_diagnostic_reentry_permits from public,anon,authenticated;
+alter table public.apex_diagnostic_reentry_permits alter column actor drop not null;
+alter table public.apex_device_intake_receipts alter column actor drop not null;
 
 create or replace function public.apex_block_recreated_deleted_asset()
 returns trigger language plpgsql security definer set search_path='' as $$
@@ -31,7 +34,7 @@ begin
  if found then
   delete from public.apex_diagnostic_reentry_permits
    where asset_id=upper(btrim(new.id))
-    and transaction_id=txid_current() and actor=auth.uid()
+    and transaction_id=txid_current() and actor is not distinct from auth.uid()
    returning asset_id into authorised_id;
   if authorised_id is null then
    raise exception 'This asset was deleted. Submit a new Diagnostics report to register it again.' using errcode='23505';
@@ -75,8 +78,11 @@ declare rec public.apex_assets;
  workflow_doc jsonb;
  created boolean:=false;
  reentry boolean:=false;
+ test_name text;
+ test_status text;
+ test_doc jsonb;
 begin
- if not public.apex_is_staff() then raise exception 'Staff authorisation required' using errcode='42501';end if;
+ if not public.apex_is_staff() and not (p_source='diagnostics' and coalesce(auth.role(),'')='service_role') then raise exception 'Staff authorisation required' using errcode='42501';end if;
  asset_tag:=upper(btrim(coalesce(p_asset_id,'')));
  if p_source is null or p_source not in ('diagnostics','refurbflow') or p_event_id is null
   or length(p_event_id) not between 12 and 120 or p_event_id !~ '^[A-Za-z0-9_.:-]+$'
@@ -148,6 +154,18 @@ begin
     end if;
    end if;
   end loop;
+ end if;
+ if p_source='diagnostics' and jsonb_typeof(p_report->'tests')='object' then
+  test_doc:='{}'::jsonb;
+  for test_name in select unnest(array['display','touchscreen','keyboard','pointer','audio','microphone','camera','wifi','bluetooth','battery','physical','system','hardware','health','gauntlet','advanced']) loop
+   test_status:=lower(coalesce(p_report->'tests'->test_name->>'status',p_report->'tests'->>test_name,''));
+   if test_status in ('pass','fail') then
+    test_doc:=test_doc||jsonb_build_object(test_name,jsonb_build_object('status',test_status,'source','APEX Diagnostics'));
+   end if;
+  end loop;
+  if test_doc<>'{}'::jsonb then
+   next_payload:=jsonb_set(next_payload,'{diagnosticTests}',coalesce(next_payload->'diagnosticTests','{}'::jsonb)||test_doc,true);
+  end if;
  end if;
  report_key:=case when p_source='diagnostics' then 'diagnosticsIntake' else 'refurbflowIntake' end;
  lookup:=case when jsonb_typeof(next_payload->report_key)='array' then next_payload->report_key else '[]'::jsonb end;
@@ -277,5 +295,29 @@ begin
 end $$;
 revoke all on function public.apex_hard_delete_asset(text,bigint) from public,anon;
 grant execute on function public.apex_hard_delete_asset(text,bigint) to authenticated;
+
+-- Only the trusted hub's server-side service key can call this endpoint.
+-- Paired testing laptops never receive that key or a general inventory write key.
+create or replace function public.apex_receive_hub_diagnostics(
+ p_event_id text,p_asset_id text,p_report jsonb,p_received_at timestamptz
+) returns jsonb language plpgsql security definer set search_path='' as $
+declare asset_tag text;deleted_time timestamptz;
+begin
+ if auth.role() is distinct from 'service_role' then
+  raise exception 'Trusted hub service authorisation required' using errcode='42501';
+ end if;
+ asset_tag:=upper(btrim(coalesce(p_asset_id,'')));
+ if p_received_at is null or p_received_at>clock_timestamp()+interval '2 minutes' then
+  raise exception 'Invalid hub Diagnostics receipt time. Check the hub PC clock.' using errcode='22023';
+ end if;
+ perform pg_advisory_xact_lock(hashtextextended('apex-intake-asset:'||asset_tag,0));
+ select deleted_at into deleted_time from public.apex_deleted_assets where id=asset_tag;
+ if found and p_received_at<=deleted_time then
+  raise exception 'This hub Diagnostics receipt predates deletion. Send a new Diagnostics report.' using errcode='22023';
+ end if;
+ return public.apex_receive_device_intake('diagnostics',p_event_id,asset_tag,p_report);
+end $;
+revoke all on function public.apex_receive_hub_diagnostics(text,text,jsonb,timestamptz) from public,anon,authenticated;
+grant execute on function public.apex_receive_hub_diagnostics(text,text,jsonb,timestamptz) to service_role;
 
 commit;

@@ -85,3 +85,33 @@ reset role;
 select public.test_error($q$insert into public.apex_assets(id,payload) values('LEGACY-TAG','{"id":"LEGACY-TAG","model":"STALE BRIDGE"}')$q$,'23505');
 select public.test_assert(exists(select 1 from public.apex_deleted_assets where id='LEGACY-TAG'),'Stale sync protection remains installed');
 select 'PASS: automatic Diagnostics re-entry, repeat deletions, replay protection, stale revisions, RLS and transactional rollback';
+
+-- Trusted hub re-entry uses the private service key, never a device-held key.
+reset role;
+insert into public.apex_deleted_assets(id,deleted_at,deleted_revision)
+ values('HUB-RETEST',clock_timestamp()-interval '1 minute',12);
+select set_config('request.jwt.claim.sub','',false);
+select set_config('request.jwt.claim.role','service_role',false);
+set role service_role;
+select public.test_error($q$select public.apex_receive_hub_diagnostics('hub-diagnostics:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','HUB-RETEST','{"assetId":"HUB-RETEST","model":"Stale"}',clock_timestamp()-interval '2 minutes')$q$,'22023');
+select public.test_assert((public.apex_receive_hub_diagnostics('hub-diagnostics:bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','HUB-RETEST','{"assetId":"HUB-RETEST","model":"Retested laptop","serial":"NEW-HUB-SERIAL","tests":{"keyboard":"pass","touchscreen":"untested"}}',clock_timestamp())->>'reRegistered')::boolean,'Private hub can forward a new Diagnostics receipt');
+select public.test_assert((public.apex_receive_hub_diagnostics('hub-diagnostics:bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','HUB-RETEST','{"assetId":"HUB-RETEST","model":"Retried"}',clock_timestamp())->>'duplicate')::boolean,'Hub retries do not duplicate the report');
+reset role;
+select public.test_assert((select revision>12 and payload->>'model'='Retested laptop' and payload->'diagnosticTests'->'keyboard'->>'status'='pass' and not(payload->'diagnosticTests' ? 'touchscreen') from public.apex_assets where id='HUB-RETEST'),'Hub re-entry preserves only recorded test results and resets identity correctly');
+select public.test_assert(not exists(select 1 from public.apex_diagnostic_reentry_permits),'Service permits are consumed');
+select public.test_assert(not has_function_privilege('authenticated','public.apex_receive_hub_diagnostics(text,text,jsonb,timestamp with time zone)','EXECUTE'),'Staff clients cannot invoke the private hub endpoint');
+select public.test_assert(not has_function_privilege('anon','public.apex_receive_hub_diagnostics(text,text,jsonb,timestamp with time zone)','EXECUTE'),'Anonymous clients cannot invoke the private hub endpoint');
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+select set_config('request.jwt.claim.role','authenticated',false);
+set role authenticated;
+select public.test_error($q$select public.apex_receive_hub_diagnostics('hub-diagnostics:cccccccc-cccc-cccc-cccc-cccccccccccc','HUB-RETEST','{"assetId":"HUB-RETEST","model":"Forged hub"}',clock_timestamp())$q$,'42501');
+select public.apex_hard_delete_asset('HUB-RETEST',(select revision from public.apex_assets where id='HUB-RETEST'));
+reset role;
+select set_config('request.jwt.claim.sub','',false);
+select set_config('request.jwt.claim.role','service_role',false);
+set role service_role;
+select public.test_error($q$select public.apex_receive_hub_diagnostics('hub-diagnostics:bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','HUB-RETEST','{"assetId":"HUB-RETEST","model":"Old report"}',clock_timestamp()-interval '1 minute')$q$,'22023');
+select public.apex_receive_hub_diagnostics('hub-diagnostics:dddddddd-dddd-dddd-dddd-dddddddddddd','HUB-RETEST','{"assetId":"HUB-RETEST","model":"New test after second deletion"}',clock_timestamp());
+reset role;
+select public.test_assert((select payload->>'model'='New test after second deletion' from public.apex_assets where id='HUB-RETEST'),'Repeated hub delete and retest works');
+select 'PASS: trusted hub forwarding, restricted RPC, test results, replays and repeated re-entry';

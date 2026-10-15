@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - cloud/automatic-diagnostics-reentry.sql
+      - cloud/hub-diagnostics-reentry.sql
       - cloud/device-cloud-intake.sql
       - cloud/cloud-permanent-delete.sql
       - tests/cloud-reentry-*.sql

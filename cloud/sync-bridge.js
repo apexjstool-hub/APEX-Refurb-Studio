@@ -2,6 +2,7 @@
 /* Runs only on an administrator-controlled computer. Never embed service-role keys in Electron renderer. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {syncRequirements}=require('./refurb-parts-bridge');
+const {forwardDeletedDiagnostics}=require('./hub-diagnostics-reentry');
 const envFile=process.env.APEX_CLOUD_BRIDGE_CONFIG || path.join(__dirname,'cloud-bridge.local.json');
 if(!fs.existsSync(envFile)){console.error('Create cloud-bridge.local.json from example first.');process.exit(1);}
 const config=JSON.parse(fs.readFileSync(envFile,'utf8'));
@@ -41,15 +42,26 @@ try{
  const [local,remote]=await Promise.all([hub('GET','/v1/items'),cloud('GET','?select=id,payload,revision&limit=10000')]);
  // Permanent deletion markers are authoritative. Never recreate a deleted asset
  // from a stale Shared Hub copy, even if the previous sync state still has it.
- const deletedRows=await fetchJson(config.supabaseUrl+'/rest/v1/apex_deleted_assets?select=id&limit=10000',
+ const deletedRows=await fetchJson(config.supabaseUrl+'/rest/v1/apex_deleted_assets?select=id,deleted_at&limit=10000',
   {headers});
  const permanentlyDeleted=new Set(deletedRows.map(row=>row.id));
  const rem=new Map(remote.map(x=>[x.id,x]));let added=0,pushed=0,pulled=0,conflicts=0,blocked=0;
+ let reentry={forwarded:0,errors:[]};
+ if(deletedRows.some(m=>local.items.some(a=>a.id===m.id))){
+  try{
+   const history=await hub('GET','/v1/intake/receipts');
+   reentry=await forwardDeletedDiagnostics({assets:local.items,markers:deletedRows,receipts:history.events||[],remote:rem,state,
+    receive:args=>fetchJson(config.supabaseUrl+'/rest/v1/rpc/apex_receive_hub_diagnostics',{method:'POST',headers,body:JSON.stringify(args)}),
+    read:async id=>(await cloud('GET','?id=eq.'+encodeURIComponent(id)+'&select=id,payload,revision'))[0]
+   });
+   for(const failure of reentry.errors)console.error('[DIAGNOSTICS RE-ENTRY]',failure.id,failure.message,'Apply cloud/hub-diagnostics-reentry.sql if its RPC is missing.');
+  }catch(e){console.error('[DIAGNOSTICS RE-ENTRY]',e.message);}
+ }
  for(const a of local.items){if(!a.id)continue;
  const id=a.id;
  if(permanentlyDeleted.has(id)){
   // Retain the tombstone; do not seed or push a deleted asset.
-  delete state[id];blocked++;continue;
+  if(!state[id]?.lastHubDiagnosticEvent)delete state[id];blocked++;continue;
  }
  const r=rem.get(id),h=hash(shape(a)),s=state[id];
  if(!r){ // Seed only new assets; never silently remove remote data.
@@ -82,6 +94,6 @@ try{
    write:async(revision,document)=>{const rows=await fetchJson(route+'?singleton_id=eq.1&revision=eq.'+revision+'&select=revision',{method:'PATCH',headers:{...headers,Prefer:'return=representation'},body:JSON.stringify({document,revision:revision+1,updated_at:new Date().toISOString(),updated_by:null})});return rows.length===1;}
   });parts='added='+merged.added+', updated='+merged.updated+', review-skipped='+merged.skipped;
  }catch(e){parts='ERROR: '+e.message;}
- persist();console.log(new Date().toISOString(),`Synced: seeded=${added}, local→cloud=${pushed}, cloud→local=${pulled}, permanently-deleted-skipped=${blocked}, conflicts=${conflicts}; refurb-parts ${parts}`);
+ persist();console.log(new Date().toISOString(),`Synced: seeded=${added}, local→cloud=${pushed}, cloud→local=${pulled}, permanently-deleted-skipped=${blocked}, diagnostics-reentered=${reentry.forwarded}, conflicts=${conflicts}; refurb-parts ${parts}`);
 }catch(e){console.error('[SYNC ERROR]',e.message);}finally{busy=false;}}
 cycle();setInterval(cycle,Number(config.intervalSeconds||15)*1000);

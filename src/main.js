@@ -62,12 +62,17 @@ async function hubRequest(method,route,payload,override){const conf=override||hu
  return {ok:false,error:'Shared hub cannot be reached. Check network and hub service. No write was automatically retried.'};} 
 async function hubAdmin(action,input){
  const h=hubConfig();if(!h)return {ok:false,error:'Connect to your trusted hub once through Admin Centre → Inventory connection. Use your main administrator account; no account switch is needed.'};
+ const read=['status','users-list'].includes(action);
+ if(authMode==='cloud'){try{await renewCloudSession();}catch{return {ok:false,error:'Your cloud administrator session could not be renewed. Sign out and sign in again before controlling the hub.'};}}
  try{
-  if(authMode==='cloud'&&!await renewCloudSession())return {ok:false,error:'Sign in again to renew your administrator session.'};
-  const read=['status','users-list'].includes(action);
   const response=await fetch(h.url+'/v1/admin-centre/'+action,{method:read?'GET':'POST',headers:{Authorization:'Bearer '+h.token,...(authMode==='cloud'?{'X-APEX-Admin-Session':cloudSession.token}:{}),'Content-Type':'application/json'},body:read?undefined:JSON.stringify(input||{}),signal:AbortSignal.timeout(60000)});
-  return await response.json();
- }catch{return {ok:false,error:'Trusted hub could not complete the request. Check its connection before retrying; a write may already have completed.'};}
+  const result=await response.json().catch(()=>null);
+  if(!result||typeof result!=='object')return {ok:false,error:'Trusted hub returned an unreadable response (HTTP '+response.status+'). Check that the configured address belongs to the APEX hub.'+(read?'':' A write may already have completed; check inventory before retrying.')};
+  return result;
+ }catch(e){
+  const timedOut=['TimeoutError','AbortError'].includes(e?.name);
+  return {ok:false,error:(timedOut?'Trusted hub did not respond within 60 seconds.':'Trusted hub cannot be reached at '+h.url+'.')+' Start Shared Hub on that PC and check its connection.'+(read?'':' A write may already have completed; check inventory before retrying.')};
+ }
 }
 function localList(){const d=loadDB();return {ok:true,items:d.items.filter(a=>!a.deletedAt),locations:d.locations,pallets:palletManagement.listPallets(d),mode:'local'};}
 let cloudRenewal=null;
