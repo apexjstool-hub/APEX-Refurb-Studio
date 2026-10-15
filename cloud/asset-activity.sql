@@ -53,8 +53,9 @@ create trigger apex_archive_asset_activity after insert or update of payload or 
 create or replace function public.apex_archive_workflow_activity()
 returns trigger language plpgsql security definer set search_path=''
 as $$
-declare e jsonb; asset text; ord jsonb; line jsonb;
+declare e jsonb; asset text; ord jsonb; line jsonb; job_entry record; job jsonb; previous_job jsonb; previous_doc jsonb; changes text; part_details text;
 begin
+ previous_doc:=case when TG_OP='UPDATE' then OLD.document else '{}'::jsonb end;
  for e in select value from jsonb_array_elements(case when jsonb_typeof(NEW.document->'audit')='array' then NEW.document->'audit' else '[]'::jsonb end) loop
   asset:=nullif(e->>'assetId','');
   if asset is not null then perform public.apex_capture_asset_activity(asset,e);
@@ -67,6 +68,15 @@ begin
     end if;
    end loop;
   end if;
+ end loop;
+ -- Direct RefurbFlow imports can change jobs without creating a recent audit entry.
+ for job_entry in select key from jsonb_each(coalesce(NEW.document->'jobs','{}'::jsonb)||coalesce(previous_doc->'jobs','{}'::jsonb)) loop
+  job:=NEW.document->'jobs'->job_entry.key;previous_job:=previous_doc->'jobs'->job_entry.key;
+  if (job-'updatedAt') is not distinct from (previous_job-'updatedAt') then continue;end if;
+  if exists(select 1 from jsonb_array_elements(coalesce(NEW.document->'audit','[]'::jsonb)) a(value) where value->>'assetId'=job_entry.key and not (coalesce(previous_doc->'audit','[]'::jsonb) @> jsonb_build_array(value))) then continue;end if;
+  select string_agg(k,', ' order by k) into changes from jsonb_object_keys(coalesce(job,'{}'::jsonb)||coalesce(previous_job,'{}'::jsonb)) fields(k) where k<>'updatedAt' and job->k is distinct from previous_job->k;
+  select string_agg(coalesce(value->>'name','Part')||' × '||coalesce(value->>'qty','0')||' (received '||coalesce(value->>'received','0')||', fitted '||coalesce(value->>'fitted','0')||')','; ') into part_details from jsonb_array_elements(coalesce(job->'parts','[]'::jsonb)) p(value) where not (coalesce(previous_job->'parts','[]'::jsonb) @> jsonb_build_array(value));
+  perform public.apex_capture_asset_activity(job_entry.key,jsonb_build_object('id',gen_random_uuid(),'type','Refurbishment updated','detail',left(case when job is null then 'Repair job removed' else 'Changed: '||coalesce(changes,'repair job')||case when part_details is null then '' else ' · '||part_details end end,2000),'at',clock_timestamp(),'by',coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'email',nullif(current_setting('request.jwt.claim.sub',true),''),'Staff')));
  end loop;
  return NEW;
 end $$;

@@ -20,6 +20,8 @@ begin
  if (select count(*) from public.apex_asset_activity where asset_id='AUDIT-ONLY')<>count_before then raise exception 'Repeated events were duplicated';end if;
  if has_table_privilege('anon','public.apex_asset_activity','SELECT') or has_table_privilege('authenticated','public.apex_asset_activity','SELECT') then raise exception 'Direct audit access is exposed';end if;
  if has_function_privilege('anon','public.apex_get_asset_activity(text,timestamptz,text,integer)','EXECUTE') or has_function_privilege('authenticated','public.apex_capture_asset_activity(text,jsonb)','EXECUTE') then raise exception 'Audit function permissions are too broad';end if;
+ update public.apex_refurb_workflow set document=jsonb_set(document,'{jobs}', '{"AUDIT-ONLY":{"assetId":"AUDIT-ONLY","parts":[{"id":"new","name":"Battery","qty":1,"received":0,"fitted":0}],"status":"Awaiting Parts","qc":{}}}'::jsonb) where singleton_id=1;
+ if not exists(select 1 from public.apex_asset_activity where asset_id='AUDIT-ONLY' and event->>'type'='Refurbishment updated' and event->>'detail' like '%Battery%') then raise exception 'Direct RefurbFlow job changes missing';end if;
  perform set_config('apex.test_staff','no',true);
  begin perform public.apex_get_asset_activity('AUDIT-ONLY');raise exception 'EXPECTED_AUDIT_DENIAL';exception when others then if sqlerrm='EXPECTED_AUDIT_DENIAL' then raise;end if;end;
  perform set_config('apex.test_staff','yes',true);
