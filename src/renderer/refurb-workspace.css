@@ -146,3 +146,8 @@ html[data-theme=dark] #refurbWorkspacePage #partsContent .ops-grouped-parts>tbod
 #refurbWorkspacePage #partsContent .ops-grouped-parts{min-width:780px}
 #refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>tr>td{padding:16px 14px!important}
 #refurbWorkspacePage #rwQueueTable .rw-detail{border-bottom:1px solid var(--line);border-radius:0 0 6px 6px}
+/* Keep identifiers readable in both themes, including the purchase-order table. */
+#refurbWorkspacePage #rwExistingPanel .asset-table b{color:var(--text)!important}
+#refurbWorkspacePage #partsOrderedContent .ops-grouped-parts>tbody>.ops-part-asset-row>td:first-child{min-width:95px;white-space:nowrap}
+#refurbWorkspacePage #partsOrderedContent .ops-grouped-parts>tbody>.ops-part-asset-row>td:nth-child(2){min-width:200px}
+#refurbWorkspacePage #partsOrderedContent .ops-grouped-parts>tbody>.ops-part-asset-row>td:nth-child(3){min-width:125px;white-space:nowrap}
