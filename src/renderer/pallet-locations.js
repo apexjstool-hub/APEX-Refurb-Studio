@@ -11,20 +11,18 @@
  const ready=()=>data().available&&!!api.createPalletLocation&&!!api.movePallets;
  function render(){
   const locations=names().filter(n=>n.toLowerCase().includes(query.toLowerCase()));
-  host.innerHTML=`${ready()?'':'<div class="pl-notice" role="status">Pallet storage is not enabled on this connection yet. Update the shared hub, or apply the pallet-locations cloud migration.</div>'}<div class="pl-heading"><div><h2>Storage overview</h2><p>${names().length} location${names().length===1?'':'s'} · ${pallets().length} pallet${pallets().length===1?'':'s'} · ${at('').length} unassigned</p></div><button type="button" class="primary" id="plMove" ${!ready()||!pallets().length?'disabled':''}>Move pallets</button></div><form id="plCreateForm" class="pl-create"><label for="plName">New pallet location</label><input id="plName" name="name" maxlength="90" placeholder="e.g. Warehouse A — Rack 2" required ${!ready()?'disabled':''}><button type="submit" class="secondary" ${!ready()?'disabled':''}>Add location</button><span id="plCreateError" role="alert"></span></form><div class="section-panel pl-list"><div class="pl-list-heading"><h3>Pallet locations</h3><input type="search" id="plSearch" aria-label="Search pallet locations" placeholder="Search locations…" value="${html(query)}"></div><div class="pl-scroll"><table class="asset-table"><thead><tr><th>Location name</th><th>Pallets</th><th>Actions</th></tr></thead><tbody>${locations.map(n=>`<tr><td><strong>${html(n)}</strong></td><td><span class="pl-count">${at(n).length}</span></td><td><button type="button" class="secondary" data-pl-view="${html(n)}">View pallets</button> <button type="button" class="secondary" data-pl-assign="${html(n)}" ${!ready()||!pallets().length?'disabled':''}>Move pallets here</button> <button type="button" class="secondary pl-delete-location" data-pl-delete="${html(n)}" ${!ready()||at(n).length?'disabled':''} title="${at(n).length?'Move the pallets out before deleting this location.':'Delete this empty pallet location'}">Delete location</button></td></tr>`).join('')||'<tr><td colspan="3" class="pl-empty">No pallet locations found. Add a location above to get started.</td></tr>'}<tr><td>Unassigned pallets</td><td><span class="pl-count">${at('').length}</span></td><td><button type="button" class="secondary" data-pl-view="">View pallets</button></td></tr></tbody></table></div></div>`;
+  host.innerHTML=`${ready()?'':'<div class="pl-notice" role="status">Pallet storage is not enabled on this connection yet. Update the shared hub, or apply the pallet-locations cloud migration.</div>'}<div class="section-panel pl-list"><div class="pl-list-heading management-toolbar"><div class="management-toolbar-title"><h3>Pallet locations</h3><span class="management-total">${names().length} locations</span></div><input type="search" id="plSearch" aria-label="Search pallet locations" placeholder="Search locations…" value="${html(query)}"><button type="button" class="primary" id="plAddLocation" ${!ready()?'disabled':''}>＋ Add pallet location</button><button type="button" class="secondary" id="plMove" ${!ready()||!pallets().length?'disabled':''}>Move pallets</button></div><div class="pl-scroll"><table class="asset-table"><thead><tr><th>Location name</th><th>Pallets</th><th>Actions</th></tr></thead><tbody>${locations.map(n=>`<tr><td><strong>${html(n)}</strong></td><td><span class="pl-count">${at(n).length}</span></td><td><button type="button" class="secondary" data-pl-view="${html(n)}">View pallets</button> <button type="button" class="secondary" data-pl-assign="${html(n)}" ${!ready()||!pallets().length?'disabled':''}>Move pallets here</button> <button type="button" class="secondary pl-delete-location" data-pl-delete="${html(n)}" ${!ready()||at(n).length?'disabled':''} title="${at(n).length?'Move the pallets out before deleting this location.':'Delete this empty pallet location'}">Delete location</button></td></tr>`).join('')||'<tr><td colspan="3" class="pl-empty">No pallet locations found. Use Add pallet location to get started.</td></tr>'}<tr><td>Unassigned pallets</td><td><span class="pl-count">${at('').length}</span></td><td><button type="button" class="secondary" data-pl-view="">View pallets</button></td></tr></tbody></table></div></div>`;
   $('plSearch').oninput=e=>{const pos=e.target.selectionStart;query=e.target.value;render();$('plSearch').focus();if(pos!==null)$('plSearch').setSelectionRange(pos,pos);};
   $('plMove').onclick=()=>move();
   host.querySelectorAll('[data-pl-view]').forEach(b=>b.onclick=()=>openLocation(b.dataset.plView));
   host.querySelectorAll('[data-pl-assign]').forEach(b=>b.onclick=()=>move([],b.dataset.plAssign));
   host.querySelectorAll('[data-pl-delete]').forEach(b=>b.onclick=()=>removeLocation(b.dataset.plDelete,b));
 
-  $('plCreateForm').onsubmit=async e=>{
-   e.preventDefault();const form=e.currentTarget,button=form.querySelector('button'),name=form.elements.name.value.trim();if(!name||!ready())return;
-   button.disabled=true;
-   try{const r=await api.createPalletLocation({name});if(!r.ok){$('plCreateError').textContent=r.error||'Could not create location.';return;}await refresh();notify('Pallet location created');}
-   catch{$('plCreateError').textContent='Unable to save. Refresh and try again.';}finally{if(button.isConnected)button.disabled=false;}
-  };
+  $('plAddLocation').onclick=createLocation;
+  window.ApexDeleteControls?.decorate(host);
  }
+ function createLocation(){window.ApexManagementUI.createLocation('pallet');}
+
  async function removeLocation(name,button){
   if(at(name).length){notify('Move the pallets out before deleting this location.');return;}
   if(!api.deletePalletLocation){notify('Update this connection to enable pallet-location deletion.');return;}
@@ -52,6 +50,7 @@
   detail.querySelectorAll('[data-pl-inventory]').forEach(a=>a.onclick=e=>{e.preventDefault();openInventory(a.dataset.plInventory);});
   detail.querySelectorAll('[data-pl-move]').forEach(b=>b.onclick=()=>move([b.dataset.plMove]));
   detail.querySelectorAll('[data-pl-remove-pallet]').forEach(b=>b.onclick=()=>window.ApexPalletPage.remove(b.dataset.plRemovePallet,b));
+  window.ApexDeleteControls?.decorate(detail);
   if(currentPage==='palletLocationDetail')$('breadSub').textContent=viewed||'Unassigned pallets';
  }
  function move(initial=[],target=''){

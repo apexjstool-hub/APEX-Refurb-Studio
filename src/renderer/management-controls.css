@@ -1,0 +1,30 @@
+/* Shared creation toolbars and destructive controls. */
+.apex-v34 .management-toolbar{display:flex!important;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 18px!important;border-bottom:1px solid var(--line,#d8e2ee);background:transparent}
+.management-toolbar-title{display:flex;align-items:center;gap:10px;margin-right:auto;white-space:nowrap}
+.apex-v34 .management-toolbar-title h3{margin:0;font-size:15px;line-height:1.4}
+.management-total{font-size:12px;color:var(--muted,#66768d);font-weight:400}
+.apex-v34 .management-toolbar .inventory-inline-search{margin-left:auto;flex:0 1 220px}
+.apex-v34 .management-toolbar .inventory-selection-count{margin:0;font-size:11px}.apex-v34 .management-toolbar .inventory-selection-count:empty{display:none}
+.apex-v34 .management-toolbar>input[type=search]{width:220px;margin-left:auto}
+.apex-v34 .management-toolbar>.primary{white-space:nowrap;min-height:36px}
+.apex-v34 .management-toolbar .inventory-selection-scan{display:none}
+.apex-v34 .management-create-form>p{margin:0 0 20px;color:var(--muted,#66768d);line-height:1.6}
+.apex-v34 .management-create-form .field{display:grid;gap:8px}
+.apex-v34 .management-create-form input{width:100%;box-sizing:border-box}
+.apex-v34 .management-create-form .modal-actions{margin-top:24px}
+/* High specificity keeps every existing table/theme from changing the bin geometry. */
+body.apex-v34 button.apex-delete-button,body.apex-v34 .asset-table button.apex-delete-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle;width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;margin:0!important;padding:7px!important;gap:7px!important;flex:0 0 auto!important;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;color:#ca4050!important;box-shadow:none!important;line-height:1!important;cursor:pointer}
+body.apex-v34 button.apex-delete-button svg{display:block!important;width:16px!important;min-width:16px!important;height:16px!important;flex-shrink:0;pointer-events:none}
+body.apex-v34 button.apex-delete-button:hover:not(:disabled){background:#cf405012!important;border-color:#cf40502e!important;color:#b8273c!important}
+body.apex-v34 button.apex-delete-button:focus-visible{outline:2px solid #cf4050!important;outline-offset:2px!important}
+body.apex-v34 button.apex-delete-button:disabled{opacity:.35!important;cursor:not-allowed!important}
+body.apex-v34 button.apex-delete-button.apex-delete-labelled{width:auto!important;min-width:32px!important;max-width:none!important;padding:8px 12px!important;height:auto!important;min-height:36px!important;border-color:#cf405033!important}
+html[data-theme=dark] body.apex-v34 button.apex-delete-button{color:#ff8693!important}
+html[data-theme=dark] body.apex-v34 button.apex-delete-button:hover:not(:disabled){color:#ffa3ae!important;background:#ff869318!important}
+.apex-v34 #apexPalletTable{overflow-x:auto}
+.apex-v34 .pl-pallet-row-actions{gap:8px}
+@media(max-width:900px){.apex-v34 .management-toolbar{gap:10px}.management-toolbar-title{width:100%;margin-right:0}.apex-v34 .management-toolbar .inventory-inline-search{flex:1;min-width:140px}.apex-v34 .management-toolbar>input[type=search]{flex:1;min-width:140px;width:auto;margin-left:0}}
+
+.apex-v34 .management-toolbar>.primary{background:#146be5!important;color:#fff!important;border:1px solid #146be5!important;border-radius:6px!important;height:36px!important;padding:0 14px!important;text-transform:none!important;font-size:12px!important;font-weight:600!important}
+.apex-v34 .management-toolbar>.primary:hover:not(:disabled){background:#0d5dce!important}
+.apex-v34 .management-toolbar>.primary:disabled{opacity:.5;cursor:not-allowed}

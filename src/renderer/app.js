@@ -296,7 +296,6 @@ $('applySuggested').onclick=()=>{const suggestion=core.assess(readAsset().inspec
 $('inlineScanForm').onsubmit=e=>{e.preventDefault();resolveScan($('inlineScanInput').value);};$('pageCameraToggle').onclick=toggleCamera;
 $('assetAdvancedToggle').onclick=()=>{const opening=$('assetAdvanced').classList.contains('hidden');$('assetAdvanced').classList.toggle('hidden',!opening);$('assetAdvancedToggle').setAttribute('aria-expanded',String(opening));$('assetAdvancedToggle').textContent=opening?'Hide inspection & history ↑':'Advanced inspection & history ↓';};
 $('locScan').onclick=openScan;
- $('v33AddLocationForm').onsubmit=async e=>{e.preventDefault();const field=$('v33LocationName'),name=field.value.trim();if(!name)return;if(name.toLowerCase()==='unassigned'){$('v33LocationMessage').textContent='Unassigned is used automatically when a device has no location.';return;}const result=await api.addLocation(name);$('v33LocationMessage').textContent=result.ok?'Location added. Select it on any asset and save to move the device.':(result.error||'Could not add location');if(result.ok){field.value='';await refresh();}};
 $('reportExport').onclick=exportInventory;$('settingsExport').onclick=exportInventory;
 $('reportPrint').onclick=printInventory;
 $('userChangePassword').onclick=adminPasswordModal;

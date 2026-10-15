@@ -149,7 +149,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Pallet locations can be deleted when empty; occupied locations must have their pallets moved first. Create pallet now has an editable name/number, with an optional automatic suggestion and duplicate protection. Pallets inside a location use a table matching the main Pallets page, with inventory counts and view/move/delete actions. Includes the updated cloud pallet-management SQL. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Compact Locations, Pallets and Pallet locations toolbars with search, counts and Add/Create buttons. Location creation opens a popup with Cancel/Create actions and inline validation. Delete controls throughout the app use the same clean bin icon and styling, retaining existing safeguards. Existing pallet names, contents pages and data are preserved. No cloud migration is needed. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

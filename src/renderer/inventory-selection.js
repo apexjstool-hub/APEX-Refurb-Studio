@@ -2,14 +2,15 @@
 (function(){
  const selected={inventory:new Set(),location:new Set(),pallet:new Set()};
  const scopes={inventory:{page:'inventoryPage',table:'inventoryTable',label:'devices'},location:{page:'locationsPage',table:'locationsTable',label:'locations'},pallet:{page:'palletsPage',table:'apexPalletTable',label:'pallets'}};
- const bin='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
+
  function names(kind){return kind==='inventory'?items.map(a=>a.id):kind==='location'?summarizeLocations().map(l=>l.location):managedPallets.map(p=>p.name);}
  function devices(kind){const values=new Set([...selected[kind]].map(value=>String(value).trim().toUpperCase())),has=value=>values.has(String(value||'').trim().toUpperCase());return kind==='inventory'?items.filter(a=>has(a.id)):kind==='pallet'?items.filter(a=>has(a.pallet)):items.filter(a=>!a.pallet&&has(a.location));}
  function ids(kind){return devices(kind).map(a=>a.id);}
  function closeMenus(){document.querySelectorAll('.inventory-action-menu,.inventory-filter-menu').forEach(m=>{if(m.matches(':popover-open'))m.hidePopover();m.hidden=true;});document.querySelectorAll('[data-selection-menu],#inventoryFiltersButton').forEach(b=>b.setAttribute('aria-expanded','false'));}
  function update(kind){
   const host=$('selection-toolbar-'+kind);if(!host)return;
-  const n=selected[kind].size;host.querySelector('.inventory-selection-count').textContent=n?n+' '+scopes[kind].label+' selected':'Select '+scopes[kind].label;
+  const total=host.querySelector('.management-total');if(total)total.textContent=names(kind).length+' '+scopes[kind].label;
+  const n=selected[kind].size;host.querySelector('.inventory-selection-count').textContent=n?n+' '+scopes[kind].label+' selected':kind==='inventory'?'Select '+scopes[kind].label:'';
   host.querySelectorAll('[data-selection-menu]').forEach(b=>b.disabled=!n);
   const table=$(scopes[kind].table)?.querySelector('table');if(!table)return;
   const allBoxes=[...table.querySelectorAll('tbody input[data-select-row]')],boxes=allBoxes.filter(b=>!b.closest('tr').hidden);
@@ -27,6 +28,12 @@
   const labels=kind==='inventory'?'<button type="button" data-selection-action="asset">Asset barcode</button><button type="button" data-selection-action="refurb">QR Refurb</button>':'<button type="button" data-selection-action="assignment">'+(kind==='pallet'?'Pallet':'Location')+' barcode</button>';
   bar.innerHTML='<button type="button" class="secondary inventory-selection-scan"><span aria-hidden="true">▦</span> Scan</button><div class="inventory-menu-wrap"><button type="button" class="secondary" data-selection-menu="actions" aria-expanded="false" aria-controls="selection-actions-'+kind+'" disabled>Actions <span aria-hidden="true">↓</span></button><div id="selection-actions-'+kind+'" class="inventory-action-menu" popover="manual" hidden><div data-menu-level="root"><button type="button" data-selection-group="labels">Labels <span aria-hidden="true">›</span></button><button type="button" data-selection-group="reports">Reports <span aria-hidden="true">›</span></button><button type="button" data-selection-action="clear">Clear selection</button></div><div data-menu-level="labels" hidden><button type="button" class="inventory-menu-back">‹ Labels</button>'+labels+'</div><div data-menu-level="reports" hidden><button type="button" class="inventory-menu-back">‹ Reports</button>'+(kind==='pallet'?'<button type="button" data-selection-action="manifest">A4 pallet manifest</button>':'')+'<button type="button" data-selection-action="inventory">Inventory report</button><button type="button" data-selection-action="worksheet">Refurbishment worksheets</button><button type="button" data-selection-action="diagnostics">Diagnostics reports</button><button type="button" data-selection-action="qc">Quality control reports</button><button type="button" data-selection-action="parts">Parts required report</button></div></div></div><div class="inventory-inline-search"></div><span class="inventory-selection-count">Select '+scope.label+'</span>';
   host.before(bar);
+  if(kind!=='inventory'){
+   bar.classList.add('management-toolbar');
+   const heading=document.createElement('div');heading.className='management-toolbar-title';heading.innerHTML='<h3>'+(kind==='pallet'?'Pallets':'Locations')+'</h3><span class="management-total" aria-live="polite"></span>';bar.prepend(heading);
+   const create=$(kind==='pallet'?'apexCreatePallet':'apexAddLocation');if(create)bar.appendChild(create);
+   if(kind==='location')$(scope.page).querySelector('.section-panel-head')?.remove();
+  }
   const search=kind==='inventory'?$('inventorySearch'):document.createElement('input'),old=search.closest('.table-search');
   search.type='search';search.placeholder='Search...';search.setAttribute('aria-label','Search '+scope.label);if(kind!=='inventory'){search.id='selectionSearch-'+kind;search.oninput=()=>filter(kind);}
   bar.querySelector('.inventory-inline-search').appendChild(search);old?.remove();
@@ -85,7 +92,7 @@
     head.querySelector('input').onchange=e=>{for(const input of [...table.querySelectorAll('tbody input[data-select-row]')].filter(b=>!b.closest('tr').hidden)){if(e.target.checked)selected[kind].add(input.dataset.selectRow);else selected[kind].delete(input.dataset.selectRow);}update(kind);};
    }
    table.querySelectorAll('[data-print-asset],[data-assignment-label]').forEach(b=>b.remove());
-   table.querySelectorAll('[data-delete-asset],[data-delete-location],[data-pallet-delete]').forEach(b=>{b.classList.add('inventory-bin-delete');b.innerHTML=bin;const value=b.dataset.deleteAsset||b.dataset.deleteLocation||b.dataset.palletDelete;b.title='Delete '+value;b.setAttribute('aria-label','Delete '+value);});
+   window.ApexDeleteControls?.decorate(table);
    filter(kind);update(kind);
   }
   setupFilters();filterBadge();
