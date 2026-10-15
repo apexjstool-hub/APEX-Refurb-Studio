@@ -5,6 +5,7 @@ create table if not exists public.apex_inventory_meta (
  pallets jsonb not null default '[]'::jsonb,
  revision bigint not null default 0
 );
+alter table public.apex_inventory_meta add column if not exists pallet_locations jsonb not null default '[]'::jsonb;
 alter table public.apex_inventory_meta enable row level security;
 revoke all on public.apex_inventory_meta from anon, authenticated;
 insert into public.apex_inventory_meta(singleton_id) values(1)
@@ -17,7 +18,7 @@ declare state public.apex_inventory_meta;
 begin
  if not public.apex_is_staff() then raise exception 'Not an approved staff member';end if;
  select * into state from public.apex_inventory_meta where singleton_id=1;
- return jsonb_build_object('locations',state.locations,'pallets',state.pallets,'revision',state.revision);
+ return jsonb_build_object('locations',state.locations,'pallets',state.pallets,'palletLocations',state.pallet_locations,'revision',state.revision);
 end $$;
 revoke all on function public.apex_inventory_meta_get() from public;
 grant execute on function public.apex_inventory_meta_get() to authenticated;
@@ -32,15 +33,41 @@ declare state public.apex_inventory_meta;
         item jsonb; v_asset_id text; loc text; pal text; nm text;
         ids text[]; expected_revision bigint; cnt integer := 0;
         current_loc text; current_pal text; updated_payload jsonb;
-        new_pallet jsonb;
+        new_pallet jsonb; selected_name text; target text; current_storage text; snapshot jsonb;
 begin
  if not public.apex_is_staff() then raise exception 'Not an approved staff member';end if;
- if p_action not in ('addLocation','deleteLocation','createPallet','deletePallet','bulkMove','undoBulkMove')
+ if p_action not in ('addLocation','deleteLocation','createPallet','deletePallet','bulkMove','undoBulkMove','createPalletLocation','movePallets')
  then raise exception 'Unsupported cloud inventory operation'; end if;
  select * into state from public.apex_inventory_meta where singleton_id=1 for update;
  if not found then raise exception 'Cloud locations/pallets are not initialised';end if;
  if state.revision is distinct from p_meta_revision then raise exception 'Locations/pallets changed; refresh';end if;
- if p_action='addLocation' then
+ if p_action='createPalletLocation' then
+  nm:=regexp_replace(btrim(p_input->>'name'),'\s+',' ','g');
+  if nm is null or length(nm)<1 or length(nm)>90 or nm ~ '[<>[:cntrl:]]' then raise exception 'Invalid pallet location';end if;
+  if exists(select 1 from jsonb_array_elements_text(state.pallet_locations) l(value) where lower(value)=lower(nm))
+   or exists(select 1 from jsonb_array_elements(state.pallets) p(value) where lower(value->>'storageLocation')=lower(nm)) then raise exception 'Pallet location already exists';end if;
+  state.pallet_locations:=state.pallet_locations||to_jsonb(nm);
+ elsif p_action='movePallets' then
+  if jsonb_typeof(p_input->'names') is distinct from 'array' or jsonb_array_length(p_input->'names') not between 1 and 300 then raise exception 'Select 1 to 300 pallets';end if;
+  if jsonb_typeof(p_input->'expected') is distinct from 'array' or jsonb_array_length(p_input->'expected')<>jsonb_array_length(p_input->'names') then raise exception 'Refresh the pallets before moving';end if;
+  target:=coalesce(btrim(p_input->>'location'),'');
+  if target<>'' then
+   select value into loc from jsonb_array_elements_text(state.pallet_locations) l(value) where lower(value)=lower(target);
+   if loc is null then raise exception 'Pallet location not found';end if;
+   target:=loc;
+  end if;
+  for selected_name in select upper(btrim(value)) from jsonb_array_elements_text(p_input->'names') n(value) loop
+   if selected_name='' or selected_name=any(coalesce(ids,array[]::text[])) then raise exception 'Invalid or duplicate pallet';end if;
+   ids:=array_append(ids,selected_name);
+   select value into new_pallet from jsonb_array_elements(state.pallets) p(value) where upper(value->>'name')=selected_name;
+   if new_pallet is null then raise exception 'Pallet not found; refresh';end if;
+   select value into snapshot from jsonb_array_elements(p_input->'expected') e(value) where upper(btrim(value->>'name'))=selected_name;
+   if snapshot is null or lower(coalesce(new_pallet->>'storageLocation','')) is distinct from lower(coalesce(snapshot->>'location','')) then raise exception 'Pallet location changed; refresh';end if;
+   new_pallet:=jsonb_set(jsonb_set(new_pallet,'{storageLocation}',to_jsonb(target),true),'{updatedAt}',to_jsonb(now()::text),true);
+   state.pallets:=(select jsonb_agg(case when upper(value->>'name')=selected_name then new_pallet else value end) from jsonb_array_elements(state.pallets) p(value));
+   cnt:=cnt+1;
+  end loop;
+ elsif p_action='addLocation' then
   nm:=btrim(p_input->>'name');
   if nm is null or length(nm)<1 or length(nm)>90 or nm ~ '[<>[:cntrl:]]' then raise exception 'Invalid location';end if;
   if exists(select 1 from jsonb_array_elements_text(state.locations) as l(value) where lower(l.value)=lower(nm)) then raise exception 'Location exists';end if;
@@ -95,9 +122,9 @@ begin
    state.pallets:=(select coalesce(jsonb_agg(value),'[]'::jsonb) from jsonb_array_elements(state.pallets) p(value) where value->>'name'<>nm);
   end if;
  end if;
- update public.apex_inventory_meta set locations=state.locations,pallets=state.pallets,
+ update public.apex_inventory_meta set locations=state.locations,pallets=state.pallets,pallet_locations=state.pallet_locations,
     revision=revision+1 where singleton_id=1;
- return jsonb_build_object('ok',true,'locations',state.locations,'pallets',state.pallets,'moved',cnt,'revision',state.revision+1);
+ return jsonb_build_object('ok',true,'locations',state.locations,'pallets',state.pallets,'palletLocations',state.pallet_locations,'moved',cnt,'revision',state.revision+1);
 end $$;
 revoke all on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) from public;
 grant execute on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) to authenticated;

@@ -6,9 +6,40 @@
  const equal = (a,b) => key(a)===key(b);
  function listPallets(db) {
   const active=(db.items||[]).filter(x=>!x.deletedAt);
-  const saved=(Array.isArray(db.pallets)?db.pallets:[]).filter(p=>p&&clean(p.name)).map(p=>({name:p.name,label:p.label||'',location:p.location||'',managed:true,createdAt:p.createdAt||''}));
-  for(const item of active) if(clean(item.pallet)&&!saved.some(p=>equal(p.name,item.pallet))) saved.push({name:item.pallet,label:'',location:'',managed:false,createdAt:''});
+  const saved=(Array.isArray(db.pallets)?db.pallets:[]).filter(p=>p&&clean(p.name)).map(p=>({name:p.name,label:p.label||'',location:p.location||'',storageLocation:p.storageLocation||'',managed:true,createdAt:p.createdAt||''}));
+  for(const item of active) if(clean(item.pallet)&&!saved.some(p=>equal(p.name,item.pallet))) saved.push({name:item.pallet,label:'',location:'',storageLocation:'',managed:false,createdAt:''});
   return saved.map(p=>({...p,assets:active.filter(a=>equal(a.pallet,p.name)).length})).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+ }
+ function palletLocations(db){
+  const names=Array.isArray(db.palletLocations)?db.palletLocations.filter(n=>typeof n==='string'&&clean(n)):[];
+  const pallets=listPallets(db),out=[];
+  for(const name of [...names,...pallets.map(p=>p.storageLocation||'')]){
+   if(!clean(name)||out.some(n=>equal(n,name)))continue;
+   out.push(clean(name));
+  }
+  return out.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+ }
+ function createPalletLocation(db,input={}){
+  const name=clean(input.name);
+  if(!name||name.length>90||/[<>\r\n\x00-\x1f]/.test(name))return {ok:false,error:'Enter a pallet location name of 1–90 characters.'};
+  if(palletLocations(db).some(n=>equal(n,name)))return {ok:false,error:'That pallet location already exists.'};
+  db.palletLocations=[...(db.palletLocations||[]),name];
+  return {ok:true,palletLocations:palletLocations(db)};
+ }
+ function movePallets(db,input={}){
+  const names=Array.isArray(input.names)?input.names.map(key):[];
+  if(!names.length||names.length>300||names.some(n=>!n)||new Set(names).size!==names.length)return {ok:false,error:'Select between 1 and 300 different pallets.'};
+  const target=clean(input.location),location=target?palletLocations(db).find(n=>equal(n,target)):'';
+  if(target&&!location)return {ok:false,error:'Choose an existing pallet location.'};
+  const all=listPallets(db),selected=names.map(n=>all.find(p=>equal(p.name,n)));
+  if(selected.some(p=>!p))return {ok:false,error:'A pallet no longer exists. Refresh and try again.'};
+  if(!Array.isArray(input.expected)||input.expected.length!==names.length)return {ok:false,error:'Refresh the pallets before moving them.'};
+  const expected=new Map(input.expected.map(p=>[key(p.name),p]));
+  if(expected.size!==names.length||selected.some(p=>!expected.has(key(p.name))||!equal(p.storageLocation,expected.get(key(p.name)).location)))return {ok:false,error:'A pallet changed location. Refresh and try again.'};
+  const next=(db.pallets||[]).map(p=>({...p}));
+  for(const p of selected){let saved=next.find(x=>equal(x.name,p.name));if(!saved){saved={name:p.name,label:p.label||'',location:p.location||'',createdAt:p.createdAt||''};next.push(saved);}saved.storageLocation=location||'';saved.updatedAt=new Date().toISOString();}
+  db.pallets=next;
+  return {ok:true,moved:names.length,pallets:listPallets(db),palletLocations:palletLocations(db)};
  }
  function nextPalletId(db) {
   const registered=new Set(listPallets(db).map(p=>key(p.name)));
@@ -104,7 +135,7 @@
   db.pallets=(db.pallets||[]).filter(p=>!equal(p.name,current.name));
   return {ok:true,removed:current.name,unassigned:next.length};
  }
- const api={listPallets,nextPalletId,createPallet,moveBatch,restoreBatch,deletePallet};
+ const api={palletLocations,createPalletLocation,movePallets,listPallets,nextPalletId,createPallet,moveBatch,restoreBatch,deletePallet};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(typeof window!=='undefined')window.ApexPalletManagement=api;
 })();

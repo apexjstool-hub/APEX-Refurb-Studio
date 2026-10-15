@@ -122,3 +122,27 @@ html[data-theme=dark] #refurbWorkspacePage #partsContent .ops-grouped-parts>tbod
  #refurbWorkspacePage .rw-purchasing-tabs{width:100%}
  #refurbWorkspacePage .rw-purchasing-tabs .v3-tab{flex:1;padding:9px 10px}
 }
+
+/* Shared presentation for every refurbishment view: actions retain their IDs and handlers. */
+#refurbWorkspacePage .rw-heading{padding:0 0 14px;margin-bottom:10px}
+#refurbWorkspacePage .rw-heading h2{font-size:19px;letter-spacing:-.3px}
+#refurbWorkspacePage #rwExistingPanel>.ops-page-content{min-width:0}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar:not(.ops-parts-select-toolbar){display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px 18px;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar>div:first-child>b{display:block;font-size:14px;line-height:1.5;color:var(--text)}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar .section-note{font-size:12px;line-height:1.6;margin-top:4px;max-width:640px}
+#refurbWorkspacePage #rwExistingPanel .section-panel{border-radius:8px;border:1px solid var(--line);box-shadow:0 1px 2px #00000005}
+#refurbWorkspacePage #rwExistingPanel .asset-table>thead>tr>th{padding:13px 16px;font-size:10px;letter-spacing:.5px;line-height:1.4;background:var(--panel2);color:var(--muted)}
+#refurbWorkspacePage #rwExistingPanel .asset-table>tbody>tr>td{padding:15px 16px;font-size:12px;line-height:1.6;vertical-align:middle}
+#refurbWorkspacePage #rwExistingPanel button{font-size:12px;line-height:1.4;min-height:34px;padding:8px 12px;border-radius:6px;gap:6px}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons{min-width:270px;text-align:right}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons button{margin:3px 0 3px 6px}
+#refurbWorkspacePage #rwExistingPanel .ops-expanded-parts{padding:18px 20px;background:var(--panel2)}
+#refurbWorkspacePage #rwExistingPanel .ops-expanded-parts h4{font-size:13px;margin:0 0 12px;color:var(--text)}
+#refurbWorkspacePage #rwExistingPanel .ops-stage{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:4px 8px;font-size:11px;line-height:1.5;background:var(--panel2);white-space:nowrap}
+#refurbWorkspacePage #rwExistingPanel .ops-empty{padding:32px 24px;border:1px dashed var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font-size:13px;text-align:center;line-height:1.7}
+#refurbWorkspacePage #rwExistingPanel .ops-part-details-row>td{padding:0}
+#refurbWorkspacePage #partsContent .ops-part-buttons{min-width:210px}
+#refurbWorkspacePage #partsContent .ops-part-buttons button{margin:0 0 0 6px}
+#refurbWorkspacePage #partsContent .ops-grouped-parts{min-width:780px}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>tr>td{padding:16px 14px!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail{border-bottom:1px solid var(--line);border-radius:0 0 6px 6px}

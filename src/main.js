@@ -74,7 +74,7 @@ async function hubAdmin(action,input){
   return {ok:false,error:(timedOut?'Trusted hub did not respond within 60 seconds.':'Trusted hub cannot be reached at '+h.url+'.')+' Start Shared Hub on that PC and check its connection.'+(read?'':' A write may already have completed; check inventory before retrying.')};
  }
 }
-function localList(){const d=loadDB();return {ok:true,items:d.items.filter(a=>!a.deletedAt),locations:d.locations,pallets:palletManagement.listPallets(d),mode:'local'};}
+function localList(){const d=loadDB();return {ok:true,items:d.items.filter(a=>!a.deletedAt),locations:d.locations,palletLocations:palletManagement.palletLocations(d),pallets:palletManagement.listPallets(d),mode:'local'};}
 let cloudRenewal=null;
 async function renewCloudSession(){
  const original=cloudSession;
@@ -205,6 +205,8 @@ async function cloudInventoryCall(method,route,payload){
  }
  if(method==='POST'&&route==='/v1/locations')return cloudMetaAction('addLocation',payload);
  if(method==='DELETE'&&route.startsWith('/v1/locations/'))return cloudMetaAction('deleteLocation',{name:decodeURIComponent(route.slice('/v1/locations/'.length)),moveTo:payload?.moveTo||''});
+ if(method==='POST'&&route==='/v1/pallet-locations')return cloudMetaAction('createPalletLocation',payload);
+ if(method==='POST'&&route==='/v1/pallets/move')return cloudMetaAction('movePallets',payload);
  if(method==='POST'&&route==='/v1/pallets')return cloudMetaAction('createPallet',payload);
  if(method==='POST'&&route==='/v1/pallets/delete')return cloudMetaAction('deletePallet',payload);
  if(method==='GET'&&route==='/v1/operations'){
@@ -284,7 +286,7 @@ async function cloudInventoryCall(method,route,payload){
   for(const [id,revision] of nextRevisions)cloudSeenRevisions.set(id,revision);
   const locations=[...new Set([...(meta.data.locations||[]),...items.map(x=>x.location).filter(Boolean)])];
   const pallets=palletManagement.listPallets({items,locations,pallets:meta.data.pallets||[]});
-  return {ok:true,items:items.filter(x=>!x.deletedAt),locations,pallets,mode:'cloud'};
+  return {ok:true,items:items.filter(x=>!x.deletedAt),locations,pallets,palletLocations:palletManagement.palletLocations({pallets,palletLocations:meta.data.palletLocations||[]}),palletLocationsAvailable:Array.isArray(meta.data.palletLocations),mode:'cloud'};
  }catch{return {ok:false,error:'Cloud inventory cannot be reached. No local data shown.'};}
 }
 function arrivalWorkspace(){return authMode==='cloud'?'cloud:'+cloudSession?.url+':'+cloudSession?.userId:'hub:'+(hubConfig()?.url||'local');}
@@ -508,6 +510,8 @@ app.whenReady().then(()=>{
  }));
  ipcMain.handle('inventory:addLocation',secured(input=>inventoryCall('POST','/v1/locations',{name:input},()=>{const db=loadDB();const name=String(input||'').trim().replace(/\s+/g,' ').slice(0,90);if(!name||/[<>\r\n]/.test(name))return {ok:false,error:'Enter a valid location name.'};if(db.locations.some(n=>n.toLowerCase()===name.toLowerCase()))return {ok:false,error:'Location already exists.'};db.locations.push(name);atomic(dbPath(),db);return {ok:true,locations:db.locations};})));
  ipcMain.handle('inventory:deleteLocation',secured(input=>inventoryCall('DELETE','/v1/locations/'+encodeURIComponent(String(input?.name||'')),{moveTo:input?.moveTo||''},()=>{const db=loadDB();const result=locationManagement.deleteLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+ ipcMain.handle('inventory:createPalletLocation',secured(input=>inventoryCall('POST','/v1/pallet-locations',input,()=>{const db=loadDB();const result=palletManagement.createPalletLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+ ipcMain.handle('inventory:movePallets',secured(input=>inventoryCall('POST','/v1/pallets/move',input,()=>{const db=loadDB();const result=palletManagement.movePallets(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:createPallet',secured(input=>inventoryCall('POST','/v1/pallets',input,()=>{const db=loadDB();const result=palletManagement.createPallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:deletePallet',secured(input=>inventoryCall('POST','/v1/pallets/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:bulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-move',input,()=>{const db=loadDB();const result=palletManagement.moveBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;})));

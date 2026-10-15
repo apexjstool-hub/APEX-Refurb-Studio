@@ -9,8 +9,8 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg,kind='info'){$('toast').dataset.kind=kind;$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets'};
-const PAGE_SUBS={refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register'};
+const PAGE_NAMES={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations'};
+const PAGE_SUBS={refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
  if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
@@ -57,7 +57,7 @@ function render(){
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>{if(!setPage('inventory'))return;$('inventorySearch').value='';$('locationFilter').value=b.dataset.location;render();});
- renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexPalletPage?.render();
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
 }
 function summarizeLocations(){
  const map=new Map(managedLocations.filter(name=>String(name).trim().toLowerCase()!=='unassigned').map(name=>[name,[]]));
@@ -140,6 +140,7 @@ async function refresh(silent=false){
    items=r.items.map(core.normalize);
    managedLocations=Array.isArray(r.locations)?r.locations:[];
    managedPallets=Array.isArray(r.pallets)?r.pallets:[];
+   window.ApexPalletLocationData={names:Array.isArray(r.palletLocations)?r.palletLocations:[],available:r.mode==='local'||Array.isArray(r.palletLocations)&&r.palletLocationsAvailable!==false};
    lastHubVersion=Number.isSafeInteger(r.version)?r.version:null;
    lastFullRefreshAt=Date.now();
    if(syncMode==='cloud'){cloudRefreshFailed=false;cloudLastRefresh=Date.now();}

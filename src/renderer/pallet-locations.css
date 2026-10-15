@@ -1,0 +1,35 @@
+#palletLocationsPage{color:var(--text);min-width:0}
+#palletLocationsPage .page-intro{margin-bottom:18px}
+#palletLocationsPage .page-intro h1{font-size:24px;letter-spacing:-.5px}
+#palletLocationsPage .pl-heading,#palletLocationsPage .pl-list-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#palletLocationsPage .pl-heading{margin-bottom:18px}
+#palletLocationsPage h2{font-size:18px;margin:0 0 5px}
+#palletLocationsPage h3{font-size:14px;margin:0}
+#palletLocationsPage p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+#palletLocationsPage button{min-height:34px;font-size:12px;padding:8px 12px;border-radius:6px;gap:6px}
+#palletLocationsPage button:disabled{opacity:.45;cursor:not-allowed}
+#palletLocationsPage .pl-create{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 20px;margin-bottom:20px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+#palletLocationsPage .pl-create>label{font-size:12px;font-weight:650}
+#palletLocationsPage input{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:9px 11px;font-size:12px;min-width:0;max-width:100%}
+#palletLocationsPage #plName{width:280px}
+#palletLocationsPage #plCreateError{font-size:12px;color:#dc5060;flex-basis:100%}
+#palletLocationsPage #plCreateError:empty{display:none}
+#palletLocationsPage .pl-list,#palletLocationsPage .pl-detail{border:1px solid var(--line);border-radius:8px;background:var(--panel);margin-bottom:20px;overflow:hidden;max-height:none!important}
+#palletLocationsPage .pl-list-heading{padding:17px 20px;border-bottom:1px solid var(--line)}
+#palletLocationsPage .pl-scroll{overflow-x:auto}
+#palletLocationsPage .asset-table{width:100%;min-width:570px}
+#palletLocationsPage .asset-table th{font-size:10px;letter-spacing:.5px;background:var(--panel2);color:var(--muted);padding:13px 20px}
+#palletLocationsPage .asset-table td{font-size:12px;padding:16px 20px;background:var(--panel);border-bottom:1px solid var(--line)}
+#palletLocationsPage .asset-table td:last-child{text-align:right;white-space:nowrap}
+#palletLocationsPage .pl-count{display:inline-flex;min-width:30px;justify-content:center;padding:4px 8px;border:1px solid var(--line);border-radius:5px;font-variant-numeric:tabular-nums;background:var(--panel2)}
+#palletLocationsPage .pl-empty{text-align:left!important;color:var(--muted);padding:28px 20px!important}
+#palletLocationsPage .pl-notice{padding:12px 16px;border:1px solid var(--line);border-left:3px solid #d6a041;background:var(--panel);border-radius:6px;font-size:12px;line-height:1.6;margin-bottom:18px}
+.pl-select-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;margin:14px 0 10px;color:var(--text)}
+.pl-select-heading label{display:flex;align-items:center;gap:8px}
+.pl-pick-list{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:6px}
+.pl-pick-list>label{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.pl-pick-list>label:last-child{border-bottom:0}
+.pl-pick-list strong{display:block;font-size:12px;color:var(--text)}
+.pl-pick-list small{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+#plMoveForm input[type=checkbox]{appearance:auto;width:16px;height:16px;min-width:16px;accent-color:#176de3}
+@media(max-width:650px){#palletLocationsPage .pl-create{align-items:stretch}#palletLocationsPage .pl-create>label{width:100%}#palletLocationsPage #plName{flex:1}#palletLocationsPage .pl-list-heading{align-items:stretch}#palletLocationsPage #plSearch{width:100%}}
