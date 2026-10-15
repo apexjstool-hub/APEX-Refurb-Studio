@@ -32,24 +32,33 @@
  function renderPallets(){const list=pals(),counts=new Map();for(const a of items){const key=String(a.pallet||'').toUpperCase();counts.set(key,(counts.get(key)||0)+1);}$('apexPalletTable').innerHTML=list.length?`<table class="asset-table"><thead><tr><th>Pallet number</th><th>Description</th><th>Created</th><th>Pallet location</th><th>Devices</th><th>Actions</th></tr></thead><tbody>${list.map(p=>`<tr><td><strong>${html(p.name)}</strong></td><td>${html(p.label||'—')}</td><td>${html(p.createdAt?new Date(p.createdAt).toLocaleDateString():'—')}</td><td>${html(p.storageLocation||'Unassigned')}</td><td>${counts.get(p.name.toUpperCase())||0}</td><td><button class="secondary" type="button" data-pallet-show="${html(p.name)}">View devices</button> <button class="secondary" type="button" data-pallet-location="${html(p.name)}">Move pallet</button> <button class="secondary" type="button" data-pallet-delete="${html(p.name)}">Delete empty pallet</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty"><strong>No pallets yet</strong>Create a pallet, then assign devices from their Overview page.</div>';
   $('apexPalletTable').querySelectorAll('[data-pallet-location]').forEach(b=>b.onclick=()=>window.ApexPalletLocations?.move([b.dataset.palletLocation]));
   $('apexPalletTable').querySelectorAll('[data-pallet-show]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('pallet',b.dataset.palletShow));
-  $('apexPalletTable').querySelectorAll('[data-pallet-delete]').forEach(b=>b.onclick=async()=>{const name=b.dataset.palletDelete;if(items.some(a=>String(a.pallet).toUpperCase()===name.toUpperCase())){notify('Move the devices off this pallet before deleting it.');return;}if(!confirm('Delete empty pallet '+name+'?'))return;b.disabled=true;const r=await api.deletePallet({name});if(!r.ok)notify(r.error);else await refresh();});
+  $('apexPalletTable').querySelectorAll('[data-pallet-delete]').forEach(b=>b.onclick=()=>removePallet(b.dataset.palletDelete,b));
+ }
+ async function removePallet(name,button){
+  if(items.some(a=>!a.deletedAt&&String(a.pallet||'').toUpperCase()===String(name).toUpperCase())){notify('Move the devices off this pallet before deleting it.');return;}
+  if(!confirm('Delete empty pallet '+name+'?'))return;
+  if(button)button.disabled=true;
+  try{const r=await api.deletePallet({name});if(!r.ok)notify(r.error);else await refresh();}
+  catch{notify('Could not delete this pallet. Refresh and try again.');}
+  finally{if(button?.isConnected)button.disabled=false;}
  }
  function createPallet(onCreated){
   const next=window.ApexPalletManagement.nextPalletId({items,pallets:managedPallets}),openedAt=new Date();
-  showModal('Create refurbishment pallet','INVENTORY / PALLETS',`<form id="apexPalletForm" class="modal-body"><div class="pallet-creation-facts"><div><small>Refurb pallet number</small><strong id="apexPalletNumber">${html(next)}</strong></div><div><small>Creation date</small><strong>${html(openedAt.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}))}</strong></div></div><label class="field">Description<input name="label" maxlength="90" placeholder="Optional pallet description"></label><div id="apexPalletError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexPalletCancel" type="button" class="secondary">Cancel</button><button type="submit" class="primary">Create pallet</button></div></form>`);
+  showModal('Create refurbishment pallet','INVENTORY / PALLETS',`<form id="apexPalletForm" class="modal-body"><div class="pallet-creation-facts"><label class="field pallet-name-field">Pallet name or number<input id="apexPalletNumber" name="name" type="text" maxlength="80" value="${html(next)}" required autocomplete="off"><small>Use your own name or keep the suggested number.</small></label><div><small>Creation date</small><strong>${html(openedAt.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}))}</strong></div></div><label class="field">Description<input name="label" maxlength="90" placeholder="Optional pallet description"></label><div id="apexPalletError" class="form-error" role="alert"></div><div class="modal-actions"><button id="apexPalletCancel" type="button" class="secondary">Cancel</button><button type="submit" class="primary">Create pallet</button></div></form>`);
   $('apexPalletCancel').onclick=closeModal;
   $('apexPalletForm').onsubmit=async e=>{
    e.preventDefault();const form=e.currentTarget,button=form.querySelector('[type="submit"]');button.disabled=true;
    try{
-    const r=await api.createPallet({name:next,label:form.elements.label.value});
+    const name=form.elements.name.value.trim().replace(/\s+/g,' ');
+    const r=await api.createPallet({name,label:form.elements.label.value});
     if(!r.ok){$('apexPalletError').textContent=r.error||'Could not create pallet.';return;}
-    const created=r.pallet||{name:next};closeModal();await refresh();if(onCreated)onCreated(created);else notify('Pallet created');
+    const created=r.pallet||{name};closeModal();await refresh();if(onCreated)onCreated(created);else notify('Pallet created');
    }catch{if($('apexPalletError'))$('apexPalletError').textContent='Could not confirm pallet creation. Refresh before retrying.';}
    finally{button.disabled=false;}
   };
  }
  $('apexCreatePallet').onclick=()=>createPallet();
- window.ApexPalletPage={render:renderPallets,create:createPallet};
+ window.ApexPalletPage={render:renderPallets,create:createPallet,remove:removePallet};
  $('editPallet').addEventListener('change',()=>{if($('editPallet').value)$('editLocation').value='Unassigned';dirty=true;updateAssetOverview();});
  $('editLocation').addEventListener('change',()=>{if($('editLocation').value!=='Unassigned')$('editPallet').value='';dirty=true;updateAssetOverview();});
  decorate();renderPallets();

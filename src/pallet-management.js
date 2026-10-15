@@ -26,6 +26,14 @@
   db.palletLocations=[...(db.palletLocations||[]),name];
   return {ok:true,palletLocations:palletLocations(db)};
  }
+ function deletePalletLocation(db,input={}){
+  const name=palletLocations(db).find(n=>equal(n,input.name));
+  if(!name)return {ok:false,error:'Pallet location not found.'};
+  const count=listPallets(db).filter(p=>equal(p.storageLocation,name)).length;
+  if(count)return {ok:false,error:`This location contains ${count} pallet(s). Move them out before deleting it.`,palletCount:count};
+  db.palletLocations=(Array.isArray(db.palletLocations)?db.palletLocations:[]).filter(n=>!equal(n,name));
+  return {ok:true,removed:name,palletLocations:palletLocations(db)};
+ }
  function movePallets(db,input={}){
   const names=Array.isArray(input.names)?input.names.map(key):[];
   if(!names.length||names.length>300||names.some(n=>!n)||new Set(names).size!==names.length)return {ok:false,error:'Select between 1 and 300 different pallets.'};
@@ -109,11 +117,11 @@
  // Can optionally create the pallet and assign a scanned batch as ONE transaction.
  function createPallet(db,input={}) {
   if(!Array.isArray(db.pallets))db.pallets=[];
-  const name=key(input.name)||nextPalletId(db);
+  const name=clean(input.name)||nextPalletId(db);
   const label=clean(input.label);
-  if(name.length>80||!/^[A-Z0-9][A-Z0-9 _.-]*$/.test(name))return {ok:false,error:'Invalid pallet number.'};
+  if(!name||name.length>80||/[<>\x00-\x1f\x7f]/.test(name))return {ok:false,error:'Enter a pallet name or number of 1–80 characters, without < or >.'};
   if(label.length>90||/[<>\r\n]/.test(label))return {ok:false,error:'Pallet name must be 90 characters or fewer.'};
-  if(listPallets(db).some(p=>equal(p.name,name)))return {ok:false,error:'That pallet number already exists. Reopen Create Pallet for the next number.'};
+  if(listPallets(db).some(p=>equal(p.name,name)))return {ok:false,error:'That pallet name or number already exists. Choose a different one.'};
   const proposed={name,label,location:'',createdAt:new Date().toISOString()};
   const ids=Array.isArray(input.ids)?input.ids:[];
   if(ids.length){
@@ -135,7 +143,7 @@
   db.pallets=(db.pallets||[]).filter(p=>!equal(p.name,current.name));
   return {ok:true,removed:current.name,unassigned:next.length};
  }
- const api={palletLocations,createPalletLocation,movePallets,listPallets,nextPalletId,createPallet,moveBatch,restoreBatch,deletePallet};
+ const api={palletLocations,createPalletLocation,deletePalletLocation,movePallets,listPallets,nextPalletId,createPallet,moveBatch,restoreBatch,deletePallet};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(typeof window!=='undefined')window.ApexPalletManagement=api;
 })();

@@ -28,3 +28,20 @@ test('historical inferred pallets can be assigned without changing or losing the
  assert.equal(P.movePallets(db,{names:['OLD-PALLET'],location:'Rack A',expected:[{name:'OLD-PALLET',location:''}]}).ok,true);
  assert.equal(P.listPallets(db).length,3);assert.equal(P.listPallets(db).find(p=>p.name==='OLD-PALLET').assets,1);
 });
+
+test('only empty pallet locations can be deleted and no pallet/device records are removed',()=>{
+ const db=fixture();P.createPalletLocation(db,{name:'Empty rack'});P.createPalletLocation(db,{name:'Full rack'});
+ P.movePallets(db,{names:['PALLET-0002'],location:'Full rack',expected:[{name:'PALLET-0002',location:''}]});
+ const before=JSON.stringify(db);assert.equal(P.deletePalletLocation(db,{name:'Full rack'}).ok,false);assert.equal(JSON.stringify(db),before);
+ const palletsBefore=JSON.stringify(db.pallets),itemsBefore=JSON.stringify(db.items);
+ assert.equal(P.deletePalletLocation(db,{name:'empty RACK'}).ok,true);assert.deepEqual(P.palletLocations(db),['Full rack']);assert.equal(JSON.stringify(db.pallets),palletsBefore);assert.equal(JSON.stringify(db.items),itemsBefore);
+ assert.equal(P.deletePalletLocation(db,{name:'Missing'}).ok,false);
+});
+test('custom pallet names preserve case, support punctuation, stay unique and work for assignments',()=>{
+ const db=fixture(),name="John's returns / Batch #3";
+ const created=P.createPallet(db,{name,label:'Custom batch'});assert.equal(created.ok,true);assert.equal(created.pallet.name,name);
+ assert.equal(P.createPallet(db,{name:name.toUpperCase()}).ok,false);
+ assert.equal(P.createPallet(db,{name:'<bad>'}).ok,false);assert.equal(P.createPallet(db,{name:'x'.repeat(81)}).ok,false);
+ assert.equal(P.moveBatch(db,{ids:['A'],pallet:name}).ok,true);assert.equal(db.items[0].pallet,name);assert.equal(P.listPallets(db).find(p=>p.name===name).assets,1);
+ assert.equal(P.deletePallet(db,{name}).ok,false);
+});

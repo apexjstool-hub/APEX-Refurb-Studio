@@ -62,3 +62,27 @@
 html[data-theme=dark] #palletLocationDetailPage [data-pl-inventory],html[data-theme=dark] #palletLocationDetailPage .pl-back{color:#9ac9ff}
 @media(max-width:1000px){#palletLocationDetailPage .pl-location-pallets{grid-template-columns:1fr}}
 @media(max-width:600px){#palletLocationDetailPage .pl-location-heading{align-items:flex-start}#palletLocationDetailPage .pl-location-summary>div{padding:14px}#palletLocationDetailPage .pl-pallet-card-top{padding:16px}#palletLocationDetailPage .pl-pallet-card-actions{padding:12px 16px}}
+
+/* Pallets within a location use the same row-based layout as the Pallets register. */
+#palletLocationDetailPage .pl-location-pallets.pl-location-table-panel{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#palletLocationDetailPage .pl-location-table-scroll{overflow-x:auto}
+#palletLocationDetailPage .asset-table{width:100%;min-width:900px}
+#palletLocationDetailPage .asset-table th{background:var(--panel2);color:var(--muted);font-size:10px;letter-spacing:.5px;white-space:nowrap;padding:14px 18px}
+#palletLocationDetailPage .asset-table td{padding:17px 18px;font-size:12px;line-height:1.6;border-bottom:1px solid var(--line);background:var(--panel);vertical-align:middle}
+#palletLocationDetailPage .asset-table td strong{color:var(--text)!important;font-size:12px;font-weight:650}
+#palletLocationDetailPage .asset-table td:first-child{min-width:150px}
+#palletLocationDetailPage .asset-table td:nth-child(2){min-width:130px}
+#palletLocationDetailPage .asset-table td:nth-child(3){white-space:nowrap}
+#palletLocationDetailPage .asset-table td:last-child{white-space:nowrap;text-align:right}
+#palletLocationDetailPage .asset-table .pl-pallet-count{display:table-cell;text-align:left;color:var(--text)}
+#palletLocationDetailPage .asset-table .pl-pallet-count strong{display:inline;margin:0;font-variant-numeric:tabular-nums}
+#palletLocationDetailPage .pl-pallet-row-actions>a{font-size:12px;display:inline-flex;align-items:center;font-weight:650;margin-right:12px}
+#palletLocationDetailPage .pl-pallet-row-actions>button{margin-left:6px}
+#palletLocationDetailPage button.pl-delete-pallet{padding:7px;min-width:34px;color:#dc3545;background:#dc354508;border-color:#dc354538;vertical-align:middle}
+#palletLocationDetailPage button.pl-delete-pallet svg{width:18px;height:18px;display:block}
+#palletLocationsPage .pl-delete-location{color:#c53e4e}
+#palletLocationDetailPage .asset-table .pl-location-empty{padding:30px 20px;text-align:center;white-space:normal}
+#palletLocationDetailPage .asset-table .pl-location-empty h2{font-size:15px}
+.pallet-creation-facts .pallet-name-field{margin:0;font-size:12px}
+.pallet-creation-facts .pallet-name-field input{margin:8px 0;width:100%;font-size:14px}
+.pallet-creation-facts .pallet-name-field small{font-weight:400;font-size:11px;line-height:1.5}

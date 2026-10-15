@@ -1,4 +1,4 @@
--- Repeatable cloud pallet-location migration. Existing assignments and devices are retained.
+-- Repeatable pallet storage deployment, updated for custom names and empty-location deletion in 4.0.52.
 begin;
 -- APEX cloud locations/pallets and atomic batch moves. Review before applying.
 create table if not exists public.apex_inventory_meta (
@@ -38,7 +38,7 @@ declare state public.apex_inventory_meta;
         new_pallet jsonb; selected_name text; target text; current_storage text; snapshot jsonb;
 begin
  if not public.apex_is_staff() then raise exception 'Not an approved staff member';end if;
- if p_action not in ('addLocation','deleteLocation','createPallet','deletePallet','bulkMove','undoBulkMove','createPalletLocation','movePallets')
+ if p_action not in ('addLocation','deleteLocation','createPallet','deletePallet','bulkMove','undoBulkMove','createPalletLocation','movePallets','deletePalletLocation')
  then raise exception 'Unsupported cloud inventory operation'; end if;
  select * into state from public.apex_inventory_meta where singleton_id=1 for update;
  if not found then raise exception 'Cloud locations/pallets are not initialised';end if;
@@ -49,6 +49,11 @@ begin
   if exists(select 1 from jsonb_array_elements_text(state.pallet_locations) l(value) where lower(value)=lower(nm))
    or exists(select 1 from jsonb_array_elements(state.pallets) p(value) where lower(value->>'storageLocation')=lower(nm)) then raise exception 'Pallet location already exists';end if;
   state.pallet_locations:=state.pallet_locations||to_jsonb(nm);
+ elsif p_action='deletePalletLocation' then
+  select value into nm from jsonb_array_elements_text(state.pallet_locations) l(value) where lower(value)=lower(btrim(p_input->>'name'));
+  if nm is null then raise exception 'Pallet location not found';end if;
+  if exists(select 1 from jsonb_array_elements(state.pallets) p(value) where lower(value->>'storageLocation')=lower(nm)) then raise exception 'Move the pallets out before deleting this location';end if;
+  state.pallet_locations:=(select coalesce(jsonb_agg(value),'[]'::jsonb) from jsonb_array_elements_text(state.pallet_locations) l(value) where lower(value)<>lower(nm));
  elsif p_action='movePallets' then
   if jsonb_typeof(p_input->'names') is distinct from 'array' or jsonb_array_length(p_input->'names') not between 1 and 300 then raise exception 'Select 1 to 300 pallets';end if;
   if jsonb_typeof(p_input->'expected') is distinct from 'array' or jsonb_array_length(p_input->'expected')<>jsonb_array_length(p_input->'names') then raise exception 'Refresh the pallets before moving';end if;
@@ -80,8 +85,8 @@ begin
   if exists(select 1 from jsonb_array_elements_text(state.locations) as l(value) where lower(l.value)=lower(nm)) then raise exception 'Location exists';end if;
   state.locations:=state.locations||to_jsonb(nm);
  elsif p_action='createPallet' then
-  nm:=upper(btrim(p_input->>'name'));if nm is null or nm !~ '^[A-Z0-9][A-Z0-9 _.-]{0,79}$' then raise exception 'Invalid pallet';end if;
-  if exists(select 1 from jsonb_array_elements(state.pallets) as p(value) where upper(p.value->>'name')=nm) then raise exception 'Pallet exists';end if;
+  nm:=regexp_replace(btrim(p_input->>'name'),'\s+',' ','g');if nm is null or length(nm)<1 or length(nm)>80 or nm ~ '[<>[:cntrl:]]' then raise exception 'Enter a pallet name or number of 1–80 characters';end if;
+  if exists(select 1 from jsonb_array_elements(state.pallets) as p(value) where upper(p.value->>'name')=upper(nm)) or exists(select 1 from public.apex_assets where upper(payload->>'pallet')=upper(nm) and payload->>'deletedAt' is null) then raise exception 'Pallet name or number already exists';end if;
   if length(coalesce(p_input->>'label',''))>90 or coalesce(p_input->>'label','') ~ '[<>[:cntrl:]]' then raise exception 'Invalid pallet label';end if;
   if jsonb_typeof(p_input->'ids')='array' and jsonb_array_length(p_input->'ids')>0 then raise exception 'Use a separate bulk move to assign laptops to a new pallet';end if;
   new_pallet:=jsonb_build_object('name',nm,'label',coalesce(p_input->>'label',''),'location','','createdAt',now()::text);

@@ -205,6 +205,7 @@ async function cloudInventoryCall(method,route,payload){
  }
  if(method==='POST'&&route==='/v1/locations')return cloudMetaAction('addLocation',payload);
  if(method==='DELETE'&&route.startsWith('/v1/locations/'))return cloudMetaAction('deleteLocation',{name:decodeURIComponent(route.slice('/v1/locations/'.length)),moveTo:payload?.moveTo||''});
+ if(method==='POST'&&route==='/v1/pallet-locations/delete')return cloudMetaAction('deletePalletLocation',payload);
  if(method==='POST'&&route==='/v1/pallet-locations')return cloudMetaAction('createPalletLocation',payload);
  if(method==='POST'&&route==='/v1/pallets/move')return cloudMetaAction('movePallets',payload);
  if(method==='POST'&&route==='/v1/pallets')return cloudMetaAction('createPallet',payload);
@@ -510,6 +511,7 @@ app.whenReady().then(()=>{
  }));
  ipcMain.handle('inventory:addLocation',secured(input=>inventoryCall('POST','/v1/locations',{name:input},()=>{const db=loadDB();const name=String(input||'').trim().replace(/\s+/g,' ').slice(0,90);if(!name||/[<>\r\n]/.test(name))return {ok:false,error:'Enter a valid location name.'};if(db.locations.some(n=>n.toLowerCase()===name.toLowerCase()))return {ok:false,error:'Location already exists.'};db.locations.push(name);atomic(dbPath(),db);return {ok:true,locations:db.locations};})));
  ipcMain.handle('inventory:deleteLocation',secured(input=>inventoryCall('DELETE','/v1/locations/'+encodeURIComponent(String(input?.name||'')),{moveTo:input?.moveTo||''},()=>{const db=loadDB();const result=locationManagement.deleteLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+ ipcMain.handle('inventory:deletePalletLocation',secured(input=>inventoryCall('POST','/v1/pallet-locations/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePalletLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:createPalletLocation',secured(input=>inventoryCall('POST','/v1/pallet-locations',input,()=>{const db=loadDB();const result=palletManagement.createPalletLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:movePallets',secured(input=>inventoryCall('POST','/v1/pallets/move',input,()=>{const db=loadDB();const result=palletManagement.movePallets(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:createPallet',secured(input=>inventoryCall('POST','/v1/pallets',input,()=>{const db=loadDB();const result=palletManagement.createPallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
