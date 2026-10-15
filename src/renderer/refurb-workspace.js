@@ -84,7 +84,7 @@
  const parentPage=setPage;
  const routeViews={refurbJobs:['queue'],parts:['purchasing','parts'],partsOrdered:['purchasing','partsOrdered'],orders:['purchasing','orders'],deliveries:['purchasing','deliveries'],qc:['qc'],completed:['completed']};
  setPage=function(target,force){
-  if(active()&&routeViews[target]){const route=routeViews[target];view=route[0];if(route[1])purchase=route[1];target='refurbWorkspace';}
+  if(routeViews[target]){const route=routeViews[target];view=route[0];if(route[1])purchase=route[1];target='refurbWorkspace';}
   const restoreScroll=returnToQueue&&currentPage==='asset'&&target==='refurbWorkspace';
   const ok=parentPage(target,force);if(!ok)return false;
   if(target==='refurbWorkspace'){draw();window.ApexOps.load(true);}else restorePanels();

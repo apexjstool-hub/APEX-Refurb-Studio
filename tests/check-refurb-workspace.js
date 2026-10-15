@@ -67,9 +67,15 @@ app.whenReady().then(async()=>{
    if(!await win.webContents.executeJavaScript("$("+JSON.stringify(name+'Content')+").parentElement.id==='rwExistingPanel'&&$('rwExistingPanel').textContent.includes("+JSON.stringify(name==='qc'?'RW-QC':'RW-DONE')+")"))throw Error('QC/completed route failed: '+name);
   }
   await win.webContents.executeJavaScript("setPage('inventory');void 0;");
-  if(!await win.webContents.executeJavaScript("['parts','partsOrdered','orders','deliveries','qc','completed'].every(id=>$(id+'Content').parentElement.id===id+'Page')&&!!$('inventoryTable').querySelector('[data-tracker-toggle]')&&!!$('v3Tabs').querySelector('[data-v3tab=parts]')"))throw Error('Existing inventory refurbishment sections were not preserved.');
-  await win.webContents.executeJavaScript("$('v3Tabs').querySelector('[data-v3tab=parts]').click();void 0;");
-  if(!await win.webContents.executeJavaScript("currentPage==='parts'&&!$('partsPage').classList.contains('hidden')&&$('partsContent').parentElement.id==='partsPage'"))throw Error('Original Inventory parts page is unavailable.');
+  if(!await win.webContents.executeJavaScript("['parts','partsOrdered','orders','deliveries','qc','completed'].every(id=>$(id+'Content').parentElement.id===id+'Page')&&!!$('inventoryTable').querySelector('[data-tracker-toggle]')&&JSON.stringify([...$('v3Tabs').querySelectorAll('[data-v3tab]')].map(b=>b.dataset.v3tab))===JSON.stringify(['inventory','locations','pallets'])"))throw Error('Inventory must retain its repair details and only All devices, Locations and Pallets tabs.');
+  for(const name of ['locations','pallets','inventory']){
+   await win.webContents.executeJavaScript("$('v3Tabs').querySelector('[data-v3tab="+name+"]').click();void 0;");
+   if(!await win.webContents.executeJavaScript("currentPage==="+JSON.stringify(name)))throw Error('Inventory navigation failed: '+name);
+  }
+  for(const [target,content] of [['parts','partsContent'],['partsOrdered','partsOrderedContent'],['completed','completedContent']]){
+   await win.webContents.executeJavaScript("setPage('inventory');setPage("+JSON.stringify(target)+");void 0;");
+   if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$("+JSON.stringify(content)+").parentElement.id==='rwExistingPanel'&&$('refurbNav').classList.contains('active')"))throw Error('Existing refurbishment shortcut did not route to the new workspace: '+target);
+  }
   await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open('queue');$('rwSearch').value='';$('rwSearch').dispatchEvent(new Event('input'));void 0;");
   const layout=await win.webContents.executeJavaScript("(()=>{const r=$('refurbWorkspacePage').getBoundingClientRect();return {width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth+2,tableFits:$('rwQueueTable').querySelector('.rw-table-scroll').scrollWidth<=$('rwQueueTable').querySelector('.rw-table-scroll').clientWidth+2};})()");
   if(layout.width<700||layout.height<200||layout.overflow||!layout.tableFits)throw Error('New workspace layout failed: '+JSON.stringify(layout));
