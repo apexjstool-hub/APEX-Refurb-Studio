@@ -99,8 +99,8 @@ jobs:
       - name: Verify sync worker inside the packaged Windows application
         run: |
           $env:ELECTRON_RUN_AS_NODE = '1'
-          & ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" scripts/verify-packaged-sync.js
-          if ($LASTEXITCODE -ne 0) { throw 'Packaged sync worker verification failed. No release will be uploaded.' }
+          $verification = Start-Process -FilePath ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" -ArgumentList @("scripts/verify-packaged-sync.js") -NoNewWindow -Wait -PassThru
+          if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed (exit $($verification.ExitCode)). No release will be uploaded." }
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
       - name: Verify installer and create draft release
         env:
