@@ -105,6 +105,9 @@ app.whenReady().then(async()=>{
    for(let i=0;i<30;i++){if((db.palletLocations||[]).includes(name)&&await win.webContents.executeJavaScript("!!document.querySelector('[data-pl-view=\""+name+"\"]')"))break;await new Promise(r=>setTimeout(r,100));}
    if(!(db.palletLocations||[]).includes(name))throw Error('Pallet location creation did not persist.');
   }
+  await win.webContents.executeJavaScript("(()=>{const button=document.createElement('button');button.id='testDeleteRetry';button.textContent='Delete test item';button.onclick=()=>window.testDeleteClickCount=(window.testDeleteClickCount||0)+1;$('modalContent').appendChild(button);window.ApexDeleteControls.decorate(button);button.textContent='Delete test item';})()" );
+  await new Promise(r=>setTimeout(r,50));
+  if(!await win.webContents.executeJavaScript("(()=>{const button=$('testDeleteRetry');const ok=!!button.querySelector('svg')&&!!button.getAttribute('aria-label');button.click();button.remove();return ok&&window.testDeleteClickCount===1;})()"))throw Error('Delete icon was lost after a retry label change or its handler was replaced.');
   if(!await win.webContents.executeJavaScript("[...document.querySelectorAll('[data-pl-delete]')].every(b=>b.classList.contains('apex-delete-button')&&!!b.querySelector('svg')&&b.getAttribute('aria-label')&&!b.textContent.trim())"))throw Error('Pallet location bins are inconsistent or unlabelled.');
   await win.webContents.executeJavaScript("window.confirm=()=>false;document.querySelector('[data-pl-delete=\"Delete me\"]').click();void 0;");
   if(!db.palletLocations.includes('Delete me'))throw Error('Cancelled location deletion removed it.');

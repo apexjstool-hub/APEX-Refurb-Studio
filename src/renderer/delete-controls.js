@@ -5,8 +5,8 @@
  function decorate(root=document){
   const buttons=[...(root.matches?.('button')?[root]:[]),...root.querySelectorAll('button')];
   for(const b of buttons){
-   if(b.dataset.apexDelete)continue;
-   const text=b.textContent.trim(),known=b.matches('[data-delete-asset],[data-delete-location],[data-pallet-delete],[data-pl-delete],[data-pl-remove-pallet],[data-op="deleteOrder"],#v3DeleteAsset,#v32DeleteAll,#v32ConfirmDelete,#v344ConfirmDeleteLocation');
+   if(b.dataset.apexDelete&&b.querySelector('svg'))continue;
+   const text=b.textContent.trim(),known=b.dataset.apexDelete||b.matches('[data-delete-asset],[data-delete-location],[data-pallet-delete],[data-pl-delete],[data-pl-remove-pallet],[data-op="deleteOrder"],#v3DeleteAsset,#v32DeleteAll,#v32ConfirmDelete,#v344ConfirmDeleteLocation');
    if(!known&&!/\bdelete\b/i.test(text))continue;
    const entity=b.dataset.deleteAsset||b.dataset.deleteLocation||b.dataset.palletDelete||b.dataset.plDelete||b.dataset.plRemovePallet||b.dataset.id;
    const label=b.getAttribute('aria-label')||(entity?'Delete '+entity:text)||'Delete';
@@ -18,5 +18,5 @@
   }
  }
  window.ApexDeleteControls={decorate};decorate();
- new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1)decorate(node);}).observe(document.body,{childList:true,subtree:true});
+ new MutationObserver(records=>{for(const record of records){const button=record.target.closest?.('button[data-apex-delete]');if(button&&!button.querySelector('svg'))decorate(button);for(const node of record.addedNodes)if(node.nodeType===1)decorate(node);}}).observe(document.body,{childList:true,subtree:true});
 })();
