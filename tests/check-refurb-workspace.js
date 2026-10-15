@@ -133,10 +133,16 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("setPage('locations');void 0;");await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/location-toolbar.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('apexAddLocation').click();void 0;");await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/create-location.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('managementLocationCancel').click();setPage('palletLocations');void 0;");
-  for(const [width,theme] of [[760,'light'],[1440,'dark']]){
-   win.setSize(width,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";setPage('palletLocations');void 0;");await new Promise(r=>setTimeout(r,250));fs.writeFileSync(path.resolve('qa-print/storage-toolbar-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+  for(const [width,theme,zoom] of [[1440,'light',1],[760,'light',1],[1440,'dark',1],[1440,'light',1.25]]){
+   win.setSize(width,1000);win.webContents.setZoomFactor(zoom);
+   for(const page of ['pallets','palletLocations']){
+    await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";setPage("+JSON.stringify(page)+");void 0;");await new Promise(r=>setTimeout(r,250));
+    const alignment=await win.webContents.executeJavaScript("(()=>{const root=$(currentPage==='pallets'?'palletsPage':'palletLocationsPage'),groups=[...root.querySelectorAll('.storage-row-actions')];return {count:groups.length,contained:root.scrollWidth<=root.clientWidth+2,aligned:groups.every(group=>{const rects=[...group.querySelectorAll('button')].map(b=>b.getBoundingClientRect());return rects.every(r=>Math.abs(r.top+r.height/2-(rects[0].top+rects[0].height/2))<1)&&rects.slice(1).every((r,i)=>Math.abs(r.left-rects[i].right-8)<1);})};})()");
+    if(!alignment.count||!alignment.contained||!alignment.aligned)throw Error('Storage action alignment failed: '+JSON.stringify({page,width,theme,zoom,...alignment}));
+    fs.writeFileSync(path.resolve('qa-print/storage-actions-'+page+'-'+width+'-'+theme+'-'+zoom+'.png'),(await win.webContents.capturePage()).toPNG());
+   }
   }
-  win.setSize(1440,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';void 0;");
+  win.webContents.setZoomFactor(1);win.setSize(1440,1000);await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';setPage('palletLocations');void 0;");
   if(!await win.webContents.executeJavaScript("(()=>{const buttons=[...document.querySelectorAll('[data-pl-delete],[data-pallet-delete],[data-delete-location]')];return buttons.length>2&&buttons.every(b=>b.querySelector('svg path')?.getAttribute('d')===buttons[0].querySelector('svg path')?.getAttribute('d')&&getComputedStyle(b).width==='32px'&&getComputedStyle(b).height==='32px');})()"))throw Error('Delete icons or button dimensions differ between storage pages.');
 
 

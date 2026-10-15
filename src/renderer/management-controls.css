@@ -31,3 +31,9 @@ html[data-theme=dark] body.apex-v34 button.apex-delete-button:hover:not(:disable
 
 .apex-v34 .management-toolbar input[type=search]{height:36px!important;min-height:36px!important;border:1px solid var(--input-border,var(--line))!important;border-radius:6px!important;padding:0 12px!important;font-size:12px!important;background:var(--field-bg,var(--panel))!important}
 .apex-v34 .management-toolbar .inventory-menu-wrap>button{height:36px;min-height:36px;border-radius:6px;text-transform:none;font-size:12px}
+
+/* Keep storage actions on one centre line instead of independent text baselines. */
+.apex-v34 .storage-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap;white-space:nowrap}
+.apex-v34 .storage-row-actions>button{margin:0!important;flex-shrink:0;vertical-align:middle}
+.apex-v34 .asset-table .storage-actions-cell{vertical-align:middle!important}
+.apex-v34 .asset-table .storage-actions-heading{text-align:right!important}
