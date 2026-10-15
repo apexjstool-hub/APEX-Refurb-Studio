@@ -20,7 +20,7 @@ begin
  select * into state from public.apex_inventory_meta where singleton_id=1;
  return jsonb_build_object('locations',state.locations,'pallets',state.pallets,'palletLocations',state.pallet_locations,'revision',state.revision);
 end $$;
-revoke all on function public.apex_inventory_meta_get() from public;
+revoke all on function public.apex_inventory_meta_get() from public, anon;
 grant execute on function public.apex_inventory_meta_get() to authenticated;
 
 -- Single SQL transaction for metadata updates and device transfers.
@@ -131,5 +131,5 @@ begin
     revision=revision+1 where singleton_id=1;
  return jsonb_build_object('ok',true,'locations',state.locations,'pallets',state.pallets,'palletLocations',state.pallet_locations,'moved',cnt,'revision',state.revision+1);
 end $$;
-revoke all on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) from public;
+revoke all on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) from public, anon;
 grant execute on function public.apex_inventory_location_pallet_action(text,jsonb,bigint,jsonb) to authenticated;
