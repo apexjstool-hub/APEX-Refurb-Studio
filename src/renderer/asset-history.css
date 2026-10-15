@@ -1,0 +1,11 @@
+/* History is confined to its own tab; Overview retains all editable device fields. */
+#assetPage[data-section="overview"] #assetAdvanced,#assetPage[data-section="overview"] #assetAdvancedToggle{display:none!important}
+#assetPage[data-section="history"] .v63-history-tools,#assetPage[data-section="history"] .v63-history-timeline{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important}
+#assetPage[data-section="history"] .v63-history-intro h3,#assetPage[data-section="history"] .v63-history-event b{color:var(--text)!important}
+#assetPage[data-section="history"] .v63-history-event span,#assetPage[data-section="history"] .v63-history-event time{color:var(--muted)!important}
+#assetPage[data-section="history"] .v63-history-controls input,#assetPage[data-section="history"] .v63-history-controls select{background:var(--field-bg,var(--panel))!important;color:var(--text)!important;border-color:var(--line)!important}
+#assetPage[data-section="history"] .asset-history-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;font-size:11px;color:var(--muted)}
+.asset-history-footer>div{display:flex;gap:8px;flex-shrink:0}
+.asset-history-footer button{min-height:34px;font-size:12px}
+.asset-history-footer button[hidden]{display:none!important}
+@media(max-width:800px){#assetPage[data-section="history"] .asset-history-footer{align-items:flex-start;flex-direction:column}}

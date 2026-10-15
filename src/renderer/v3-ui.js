@@ -35,7 +35,15 @@ tabs.innerHTML=choices.map(([k,n])=>`<button type="button" class="v3-tab ${asset
 tabs.querySelectorAll('[data-asset-tab]').forEach(b=>b.onclick=()=>{assetTab=b.dataset.assetTab;updateAssetTabs();});
 if(assetTab==='history'){$('assetAdvanced').classList.remove('hidden');$('assetAdvancedToggle').setAttribute('aria-expanded','true');renderHistoryWorkspace();}
 }
-// History-only redesign. Keeps the saved inventory audit entries as the sole source of truth.
+// Unified, persisted asset trail. Keep record sources immutable and retain original timestamps.
+const savedHistory=new Map();
+function historyState(id){const asset=items.find(a=>a.id===id),key=id+':'+(asset?.createdAt||'');if(!savedHistory.has(key))savedHistory.set(key,{events:[],cursor:null,loaded:false,busy:false,error:''});return savedHistory.get(key);}
+async function loadSavedHistory(id,state,append=false){
+ if(state.busy||!api.assetActivity)return;state.busy=true;state.error='';renderHistoryWorkspace();
+ try{const result=await api.assetActivity({id,cursor:append?state.cursor:null,limit:100});if(!result.ok)throw Error(result.error||'Saved trail unavailable.');state.events=window.ApexAssetTimeline.merge(append?state.events:[],result.events||[]);state.cursor=result.nextCursor||null;}
+ catch(e){state.error=e.message||'Saved trail unavailable.';}
+ finally{state.loaded=true;state.busy=false;if(currentPage==='asset'&&assetTab==='history'&&activeAssetId===id)renderHistoryWorkspace();}
+}
 function historyCategory(value){const v=String(value||'').toLowerCase();if(/test|check|diagnos|inspect|quality|battery/.test(v))return 'checks';if(/repair|refurb|part|order|respray/.test(v))return 'repair';return 'inventory';}
 function renderHistoryWorkspace(){
  const host=$('assetAdvanced'),activity=$('assetActivity');if(!host||!activity)return;
@@ -45,27 +53,34 @@ function renderHistoryWorkspace(){
   toolbar=document.createElement('div');toolbar.id='v63HistoryTools';toolbar.className='v63-history-tools';
   const heading=host.querySelector('.history-heading');heading?.before(toolbar);
   toolbar.innerHTML='<div class="v63-history-intro"><div><span class="v63-history-eyebrow">DEVICE AUDIT TRAIL</span><h3>History &amp; checks</h3><p>Recorded inventory changes, diagnostics and refurbishment activity for this asset.</p></div><strong id="v63HistoryCount" aria-live="polite"></strong></div><div class="v63-history-controls"><label>Search activity<input id="v63HistoryQuery" type="search" placeholder="Search recorded events" autocomplete="off"></label><label>Event type<select id="v63HistoryFilter"><option value="all">All events</option><option value="inventory">Inventory</option><option value="checks">Checks</option><option value="repair">Repairs</option></select></label></div>';
+  const footer=document.createElement('div');footer.className='asset-history-footer';footer.innerHTML='<span id="assetHistoryStatus" role="status"></span><div><button type="button" class="secondary" id="assetHistoryOlder">Load older events</button><button type="button" class="secondary" id="assetHistoryRefresh">Refresh trail</button></div>';toolbar.appendChild(footer);
+  $('assetHistoryOlder').onclick=()=>loadSavedHistory(activeAssetId,historyState(activeAssetId),true);
+  $('assetHistoryRefresh').onclick=()=>loadSavedHistory(activeAssetId,historyState(activeAssetId));
   toolbar.querySelector('#v63HistoryQuery').addEventListener('input',filterHistoryWorkspace);
   toolbar.querySelector('#v63HistoryFilter').addEventListener('change',filterHistoryWorkspace);
  }
  activity.classList.add('v63-history-timeline');
  // Combine saved inventory history and the separate refurbishment audit for this asset.
  // Keep source records immutable and sort by their original timestamps.
- const asset=items.find(a=>a.id===activeAssetId);
- const inventory=Array.isArray(asset?.history)?asset.history.map((e,i)=>({...e,_key:'i'+i})):[];
- const workflow=Array.isArray(window.ApexWorkflowSnapshot?.audit)?window.ApexWorkflowSnapshot.audit.filter(e=>e.assetId===activeAssetId).map((e,i)=>({...e,_key:'w'+(e.id||i)})):[];
- const events=[...inventory,...workflow].sort((a,b)=>(Date.parse(b.at)||0)-(Date.parse(a.at)||0));
+ const asset=items.find(a=>a.id===activeAssetId),saved=historyState(activeAssetId);
+ if(host.dataset.historyAsset!==activeAssetId){host.dataset.historyAsset=activeAssetId;$('v63HistoryQuery').value='';$('v63HistoryFilter').value='all';}
+ const inventory=Array.isArray(asset?.history)?asset.history:[];
+ const workflow=Array.isArray(window.ApexWorkflowSnapshot?.audit)?window.ApexWorkflowSnapshot.audit.filter(e=>e.assetId===activeAssetId):[];
+ const events=window.ApexAssetTimeline.merge(inventory,workflow,saved.events);
+ $('assetHistoryStatus').textContent=saved.busy?'Loading saved activity…':saved.error?'Saved trail unavailable: '+saved.error:api.assetActivity?'Recorded changes for this asset.':'Showing recent activity from this connection.';
+ $('assetHistoryOlder').hidden=!saved.cursor;$('assetHistoryOlder').disabled=saved.busy;$('assetHistoryRefresh').disabled=saved.busy||!api.assetActivity;
  activity.innerHTML=events.length?events.map(e=>'<div class="asset-event v63-history-event"><time>'+esc(shortDate(e.at))+'</time><b>'+esc(e.type||'Activity')+'</b><span>'+esc(e.detail||'')+(e.by?' · By '+esc(e.by):'')+'</span></div>').join(''):'<p class="section-note">No recorded activity for this asset yet.</p>';
  for(const node of activity.querySelectorAll('.asset-event'))node.dataset.category=historyCategory(node.querySelector('b')?.textContent);
 
  filterHistoryWorkspace();
+ if(!saved.loaded&&!saved.busy&&api.assetActivity)void loadSavedHistory(activeAssetId,saved);
 }
 function filterHistoryWorkspace(){
  const host=$('assetAdvanced');if(!host)return;
  const activity=$('assetActivity'),filter=host.querySelector('#v63HistoryFilter')?.value||'all',query=(host.querySelector('#v63HistoryQuery')?.value||'').trim().toLowerCase();
  const nodes=[...activity.querySelectorAll('.asset-event')];let visible=0;
  for(const node of nodes){const show=(filter==='all'||node.dataset.category===filter)&&(!query||node.textContent.toLowerCase().includes(query));node.hidden=!show;if(show)visible++;}
- const count=host.querySelector('#v63HistoryCount');if(count)count.textContent=visible+' of '+nodes.length+' recent events';
+ const count=host.querySelector('#v63HistoryCount');if(count)count.textContent=visible+' of '+nodes.length+' loaded events';
  let empty=activity.querySelector('.v63-history-empty');if(!empty){empty=document.createElement('p');empty.className='v63-history-empty';empty.textContent='No activity matches this filter.';activity.append(empty);}
  empty.hidden=Boolean(visible)||!nodes.length;
 }
@@ -136,6 +151,6 @@ host.innerHTML=tiles.map(([t,n,id])=>`<button type="button" class="v3-today-tile
 const dashboard=$('dashboardPage');const today=document.createElement('div');today.id='v3Today';today.className='v3-today';dashboard.querySelector('.metrics')?.before(today);
 // Reapply action indicators when the hub refreshes or workflow changes.
 window.addEventListener('apex:workflow-updated',()=>{attention();if(currentPage==='reports')renderReports();if(currentPage==='asset'&&assetTab==='history')renderHistoryWorkspace();});
-const savedRender=render;render=function(...args){const v=savedRender(...args);attention();return v;};
+const savedRender=render;render=function(...args){const v=savedRender(...args);attention();if(currentPage==='asset'&&assetTab==='history')renderHistoryWorkspace();return v;};
 renderTabs(currentPage);attention();
 })();

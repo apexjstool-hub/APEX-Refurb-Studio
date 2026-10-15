@@ -52,6 +52,7 @@
    const fields={manufacturer:90,model:140,serial:90,processor:140,gpu:140,ram:70,storage:140,operatingSystem:140,location:90,pallet:80,sku:90,notes:500};
    for(const [key,max] of Object.entries(fields))if(patch?.[key]!==undefined){const value=trim(patch[key],max);if(['model','location'].includes(key)&&!value)return {ok:false,error:`${key==='model'?'Model':'Location'} is required.`};if(!stringEq(i[key],value)){
      if(key==='location')events.push({type:'Transfer',detail:`${i.location} → ${value}`});
+     else if(key==='pallet')events.push({type:'Pallet assignment',detail:`${i.pallet||'No pallet'} → ${value||'No pallet'}`});
      else if(key!=='notes')events.push({type:'Specification',detail:`${key}: ${value||'—'}`});
      else events.push({type:'Notes',detail:'Notes updated'});i[key]=value;
    }}

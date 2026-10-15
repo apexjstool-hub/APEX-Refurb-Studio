@@ -50,7 +50,7 @@ function mutate(db,command){
  }
  if(kind==='restoreAsset'){
   if(!item||!item.deletedAt)return fail('Asset not in Recycle Bin.');
-  delete item.deletedAt;delete item.deletedReason;restoreLinks(db,id);return {ok:true,kind};
+  delete item.deletedAt;delete item.deletedReason;item.history=(item.history||[]).concat([{type:'Restored',detail:'Asset restored from the recycle bin',at:stamp()}]);restoreLinks(db,id);return {ok:true,kind};
  }
  if(kind==='permanentDeleteAsset'){
   if(!item||!item.deletedAt)return fail('Move this asset to Recycle Bin first.');
@@ -71,6 +71,7 @@ function mutate(db,command){
  if(kind==='clearTests'){
   if(!item||item.deletedAt)return fail('Active asset not found.');
   delete item.diagnosticTests;delete item.diagnosticsUpdatedAt;
+  item.history=(item.history||[]).concat([{type:'Checks cleared',detail:'Administrator cleared imported Diagnostics results',at:stamp()}]);
   item.updatedAt=stamp();return {ok:true,kind};
  }
  if(kind==='deleteOrder'){
@@ -81,7 +82,7 @@ function mutate(db,command){
    if(part){part.received=Math.max(part.fitted,part.received-(Number(l.received)||0));}}
   s.orders=s.orders.filter(o=>o!==order);
   if(order.status==='Draft')s.draftSuppressed=true;
-  s.audit.unshift({id:require('node:crypto').randomUUID(),type:'Order deleted',at:stamp(),assetId:'',detail:`Administrator deleted ${oid} (including ${order.lines.length} lines).`,by:'Administrator'});
+  for(const assetId of new Set(order.lines.map(l=>l.assetId)))s.audit.unshift({id:require('node:crypto').randomUUID(),type:'Order deleted',at:stamp(),assetId,detail:`Administrator deleted ${oid} (including ${order.lines.length} lines).`,by:'Administrator'});
   workflow.autoDraft(s);return {ok:true,kind};
  }
  return fail('Unknown deletion action.');

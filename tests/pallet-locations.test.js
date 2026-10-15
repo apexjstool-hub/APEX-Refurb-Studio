@@ -6,9 +6,9 @@ test('pallet locations are separate, case-insensitive and retain empty locations
  assert.deepEqual(db.locations,['Repair room']);assert.deepEqual(P.palletLocations(db),['Rack A']);
 });
 test('whole-pallet moves persist, retain every pallet and never alter device membership',()=>{
- const db=fixture();P.createPalletLocation(db,{name:'Rack A'});P.createPalletLocation(db,{name:'Rack B'});const before=JSON.stringify(db.items);
+ const db=fixture();P.createPalletLocation(db,{name:'Rack A'});P.createPalletLocation(db,{name:'Rack B'});const assignments=items=>items.map(({history,updatedAt,...a})=>a);const before=JSON.stringify(assignments(db.items));
  let result=P.movePallets(db,{names:['PALLET-0001','PALLET-0002'],location:'Rack A',expected:[{name:'PALLET-0001',location:''},{name:'PALLET-0002',location:''}]});
- assert.equal(result.ok,true);assert.equal(result.moved,2);assert.equal(result.pallets.length,2);assert.equal(result.pallets.filter(p=>p.storageLocation==='Rack A').length,2);assert.equal(JSON.stringify(db.items),before);assert.equal(db.pallets[0].location,'Legacy warehouse');
+ assert.equal(result.ok,true);assert.equal(result.moved,2);assert.equal(result.pallets.length,2);assert.equal(result.pallets.filter(p=>p.storageLocation==='Rack A').length,2);assert.equal(JSON.stringify(assignments(db.items)),before);assert(db.items.every(a=>a.history.length===1&&a.history[0].type==='Pallet location'&&a.history[0].detail.includes('Unassigned → Rack A')));assert.equal(db.pallets[0].location,'Legacy warehouse');
  const reloaded=JSON.parse(JSON.stringify(db));result=P.movePallets(reloaded,{names:['PALLET-0001'],location:'Rack B',expected:[{name:'PALLET-0001',location:'Rack A'}]});assert.equal(result.ok,true);
  assert.equal(result.pallets.filter(p=>p.storageLocation==='Rack A').length,1);assert.equal(result.pallets.filter(p=>p.storageLocation==='Rack B').length,1);assert.equal(result.pallets[0].assets,2);
  result=P.movePallets(reloaded,{names:['PALLET-0001'],location:'',expected:[{name:'PALLET-0001',location:'Rack B'}]});assert.equal(result.ok,true);assert.equal(P.listPallets(reloaded).length,2);assert.deepEqual(P.palletLocations(reloaded),['Rack A','Rack B']);

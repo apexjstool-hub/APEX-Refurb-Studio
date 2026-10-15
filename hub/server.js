@@ -8,6 +8,7 @@ const os=require('node:os');
 const dgram=require('node:dgram');
 const core=require('../src/inventory-core');
 const workflow=require('../src/refurb-workflow');
+const assetActivity=require('../src/asset-activity');
 const {importDiagnostic}=require('../src/diagnostic-intake');
 const {importRefurb}=require('../src/refurb-intake');
 const maintenance=require('../src/record-maintenance');
@@ -101,7 +102,7 @@ function recordDeviceError(req,scope,error){
 let data=fs.existsSync(dbPath)?JSON.parse(fs.readFileSync(dbPath,'utf8')):{items:[],version:0};
 if(!Array.isArray(data.items))throw Error('Hub data is invalid');
 data.removedLinks=data.removedLinks||{};
-data.items=data.items.map(core.normalize);
+assetActivity.capture(data);data.items=data.items.map(core.normalize);
 // Reconcile saved locations against active assets. Device intake may create a laptop
 // in 'Inspection' without going through the manual location-creation endpoint.
 const storedLocations=Array.isArray(data.locations)?data.locations:[];
@@ -115,7 +116,7 @@ function registerIncomingLocation(item){
  if(name&&name!=='Unassigned'&&!data.locations.some(x=>x.toLowerCase()===name.toLowerCase()))data.locations.push(name);
 }
 data.operations=workflow.init(data.operations);data.pallets=Array.isArray(data.pallets)?data.pallets:[];data.version=Number.isSafeInteger(data.version)?data.version:0;
-function save(){const temp=dbPath+'.tmp';fs.writeFileSync(temp,JSON.stringify(data),{mode:0o600});fs.renameSync(temp,dbPath);}
+function save(){assetActivity.capture(data);const temp=dbPath+'.tmp';fs.writeFileSync(temp,JSON.stringify(data),{mode:0o600});fs.renameSync(temp,dbPath);}
 function hubBackupFiles(){return [
  {name:'inventory.json',path:dbPath},
  {name:'trusted-devices.json',path:devicesPath,required:false},
@@ -315,6 +316,7 @@ const server=http.createServer(async(req,res)=>{
       return json(res,200,{ok:true,code,expiresAt:pairing.expiresAt});
     }
     if(!authorized(req))return json(res,401,{ok:false,error:'Invalid hub access token.'});
+    if(pathname==='/v1/asset-activity'&&req.method==='POST'){const result=assetActivity.page(data,await body(req));return json(res,result.ok?200:404,result);}
     if(pathname==='/v1/operations'&&req.method==='GET')return json(res,200,{ok:true,workflow:data.operations,version:data.version});
     if(pathname==='/v1/operations/action'&&req.method==='POST'){
       const draft=structuredClone(data.operations);const result=workflow.apply(draft,data.items.filter(a=>!a.deletedAt),await body(req));

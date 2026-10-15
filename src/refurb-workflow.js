@@ -86,7 +86,7 @@ function apply(state,assets,cmd,by='Administrator'){
  }
  if(type==='discardDraft'){
   const draft=s.orders.find(o=>o.id===cmd.orderId&&o.status==='Draft');if(!draft)throw Error('Draft not found.');
-  s.orders=s.orders.filter(o=>o!==draft);s.draftSuppressed=true;history(s,'Draft cleared','Draft cleared by administrator','',by);return {ok:true,workflow:s};
+  s.orders=s.orders.filter(o=>o!==draft);s.draftSuppressed=true;for(const assetId of new Set(draft.lines.map(l=>l.assetId)))history(s,'Draft cleared',draft.id+' draft cleared by administrator',assetId,by);return {ok:true,workflow:s};
  }
  if(type==='removePart'){
   const j=ensure(s,id,assets),p=j.parts.find(p=>p.id===cmd.partId);if(!p)throw Error('Part not found.');
@@ -96,7 +96,7 @@ function apply(state,assets,cmd,by='Administrator'){
  if(type==='removeOrder'){
   const o=s.orders.find(o=>o.id===cmd.orderId);if(!o)throw Error('Order not found.');
   if(o.status!=='Draft')throw Error('Only unapproved drafts can be removed. Approved orders form part of your purchasing history.');
-  s.orders=s.orders.filter(x=>x!==o);history(s,'Draft removed',o.id,'',by);return {ok:true,workflow:s};
+  s.orders=s.orders.filter(x=>x!==o);for(const assetId of new Set(o.lines.map(l=>l.assetId)))history(s,'Draft removed',o.id,assetId,by);return {ok:true,workflow:s};
  }
  if(type==='bulkSetPartsBoard'){
   s.jobs={...s.jobs};s.audit=[...s.audit];
@@ -137,7 +137,7 @@ function apply(state,assets,cmd,by='Administrator'){
   const status=clip(cmd.status,50);if(!STATUSES.includes(status))throw Error('Choose a valid refurbishment stage.');
   if(status==='Completed')validateCompletion(job);
   job.status=status;job.technician=clip(cmd.technician,90);job.notes=clip(cmd.notes,2500);job.priority=['Low','Normal','High','Urgent'].includes(cmd.priority)?cmd.priority:'Normal';
-  history(s,'Job updated',`Stage ${status}; technician ${job.technician||'Unassigned'}`,id,by);
+  history(s,'Job updated',`Stage ${status}; technician ${job.technician||'Unassigned'}; priority ${job.priority}; repair notes ${job.notes||'empty'}`,id,by);
  }else if(type==='addPart'){
   const name=clip(cmd.name,160);if(!name)throw Error('Part name is required.');
   const qty=asQty(cmd.qty,1);job.parts.push({id:uid(),name,qty,received:0,fitted:0,sourceKey:'',notes:clip(cmd.notes,200),createdAt:stamp()});
@@ -192,7 +192,7 @@ function apply(state,assets,cmd,by='Administrator'){
   if(j.parts.every(x=>x.received>=x.qty)&&j.status==='Awaiting Parts')j.status='Ready for Repair';
   history(s,'Delivery received',`${p.name} × ${qty} · ${order.id}`,id,by);
  }else if(type==='orderTracking'){
-  const o=s.orders.find(x=>x.id===cmd.orderId);if(!o)throw Error('Order not found.');o.tracking=clip(cmd.tracking,120);o.expectedAt=checkDate(cmd.expectedAt);o.updatedAt=stamp();history(s,'Order updated',`${o.id} delivery details updated`);
+  const o=s.orders.find(x=>x.id===cmd.orderId);if(!o)throw Error('Order not found.');o.tracking=clip(cmd.tracking,120);o.expectedAt=checkDate(cmd.expectedAt);o.updatedAt=stamp();for(const assetId of new Set(o.lines.map(l=>l.assetId)))history(s,'Order updated',`${o.id} · tracking ${o.tracking||'not set'} · expected ${o.expectedAt||'not set'}`,assetId,by);
  }else throw Error('Unknown workflow action.');
  if(job)job.updatedAt=stamp();if(['addPart','receiveOrder'].includes(type))autoDraft(s);return {ok:true,workflow:s};
  }catch(e){return {ok:false,error:e.message};}

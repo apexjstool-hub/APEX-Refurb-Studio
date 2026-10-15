@@ -55,7 +55,7 @@
    for(const asset of db.items||[]){
     if(asset.deletedAt||!equal(asset.pallet,p.name))continue;
     const old=clean(p.storageLocation)||'Unassigned',destination=location||'Unassigned';
-    asset.history=[...(Array.isArray(asset.history)?asset.history:[]),{type:'Pallet location',detail:`Pallet ${p.name} moved: ${old} → ${destination}`,at:now}].slice(-120);
+    asset.history=[...(Array.isArray(asset.history)?asset.history:[]),{id:'move-'+now+'-'+Math.random().toString(36).slice(2),type:'Pallet location',detail:`Pallet ${p.name} moved: ${old} → ${destination}`,at:now}].slice(-120);
     asset.updatedAt=now;
    }
   }

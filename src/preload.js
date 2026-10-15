@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  deletePallet:input=>ipcRenderer.invoke('inventory:deletePallet',input),
  bulkMove:input=>ipcRenderer.invoke('inventory:bulkMove',input),
  undoBulkMove:input=>ipcRenderer.invoke('inventory:undoBulkMove',input),
+ assetActivity:input=>ipcRenderer.invoke('inventory:assetActivity',input),
  workflow:()=>ipcRenderer.invoke('inventory:workflow'),
  workflowAction:command=>ipcRenderer.invoke('inventory:workflowAction',command),
  exportCsv:csv=>ipcRenderer.invoke('inventory:exportCsv',csv),

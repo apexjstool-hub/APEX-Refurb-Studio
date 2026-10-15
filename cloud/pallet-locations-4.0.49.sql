@@ -1,4 +1,4 @@
--- Repeatable pallet storage deployment, updated for custom names and empty-location deletion in 4.0.52.
+-- Repeatable pallet storage deployment, updated for asset move history in 4.0.58.
 begin;
 -- APEX cloud locations/pallets and atomic batch moves. Review before applying.
 create table if not exists public.apex_inventory_meta (
@@ -75,6 +75,14 @@ begin
    end if;
    select value into snapshot from jsonb_array_elements(p_input->'expected') e(value) where upper(btrim(value->>'name'))=selected_name;
    if snapshot is null or lower(coalesce(new_pallet->>'storageLocation','')) is distinct from lower(coalesce(snapshot->>'location','')) then raise exception 'Pallet location changed; refresh';end if;
+   current_storage:=coalesce(new_pallet->>'storageLocation','');
+   if lower(current_storage) is distinct from lower(target) then
+    for row_asset in select * from public.apex_assets where upper(payload->>'pallet')=selected_name and payload->>'deletedAt' is null order by id for update loop
+     updated_payload:=jsonb_set(row_asset.payload,'{history}',coalesce(row_asset.payload->'history','[]'::jsonb)||jsonb_build_array(jsonb_build_object('id',gen_random_uuid(),'type','Pallet location','detail','Pallet '||(new_pallet->>'name')||' moved: '||coalesce(nullif(current_storage,''),'Unassigned')||' → '||coalesce(nullif(target,''),'Unassigned'),'at',now(),'by',coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'email',nullif(current_setting('request.jwt.claim.sub',true),''),'Staff'))),true);
+     updated_payload:=jsonb_set(updated_payload,'{updatedAt}',to_jsonb(now()::text),true);
+     update public.apex_assets set payload=updated_payload where id=row_asset.id;
+    end loop;
+   end if;
    new_pallet:=jsonb_set(jsonb_set(new_pallet,'{storageLocation}',to_jsonb(target),true),'{updatedAt}',to_jsonb(now()::text),true);
    state.pallets:=(select jsonb_agg(case when upper(value->>'name')=selected_name then new_pallet else value end) from jsonb_array_elements(state.pallets) p(value));
    cnt:=cnt+1;
@@ -115,6 +123,9 @@ begin
    elsif loc<>'Unassigned' and not exists(select 1 from jsonb_array_elements_text(state.locations) as l(value) where l.value=loc)
        then raise exception 'Location not found';end if;
    updated_payload:=jsonb_set(jsonb_set(row_asset.payload,'{location}',to_jsonb(loc),true),'{pallet}',to_jsonb(pal),true);
+   if current_loc is distinct from loc or current_pal is distinct from pal then
+    updated_payload:=jsonb_set(updated_payload,'{history}',coalesce(row_asset.payload->'history','[]'::jsonb)||jsonb_build_array(jsonb_build_object('id',gen_random_uuid(),'type','Transfer','detail','Location '||current_loc||' → '||loc||'; pallet '||coalesce(nullif(current_pal,''),'none')||' → '||coalesce(nullif(pal,''),'none'),'at',now(),'by',coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'email',nullif(current_setting('request.jwt.claim.sub',true),''),'Staff'))),true);
+   end if;
    updated_payload:=jsonb_set(updated_payload,'{updatedAt}',to_jsonb(now()::text),true);
    update public.apex_assets set payload=updated_payload where public.apex_assets.id=v_asset_id;
    cnt:=cnt+1;

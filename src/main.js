@@ -7,6 +7,7 @@ const os=require('node:os');
 const {spawn}=require('node:child_process');
 const core=require('./inventory-core');
 const workflow=require('./refurb-workflow');
+const assetActivity=require('./asset-activity');
 const maintenance=require('./record-maintenance');
 const locationManagement=require('./location-management');
 const palletManagement=require('./pallet-management');
@@ -32,9 +33,9 @@ const demoItems=[
  {id:'APX-10485',manufacturer:'Dell',model:'Precision 3581',serial:'DP3581-U28Q',productType:'Laptop',processor:'Intel Core i7-13700H',gpu:'NVIDIA RTX A500',ram:'32 GB',ramType:'DDR5',pallet:'PALLET-14',sku:'DELL-3581',status:'Processed',condition:'B',location:'Warehouse B',inspection:{cosmetic:'Good',functional:'Pass',battery:'Not applicable'},createdAt:'2026-10-06T13:00:00Z'}
 ].map(core.normalize);
 const hash=(p,s)=>crypto.scryptSync(p,s,64).toString('hex');
-function atomic(file,obj){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(obj,null,2),{mode:0o600});fs.renameSync(tmp,file);}
+function atomic(file,obj){if(Array.isArray(obj?.items))assetActivity.capture(obj);fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(obj,null,2),{mode:0o600});fs.renameSync(tmp,file);}
 function loadDB(){if(!fs.existsSync(dbPath())){const salt=crypto.randomBytes(24).toString('hex');atomic(dbPath(),{user:{username:'admin',salt,passwordHash:hash('Admin123!',salt),mustChangePassword:true},items:demoItems});}
- const db=JSON.parse(fs.readFileSync(dbPath(),'utf8'));if(!db.user?.passwordHash||!Array.isArray(db.items))throw Error('Invalid inventory database');db.items=db.items.map(core.normalize);db.locations=Array.isArray(db.locations)?db.locations:[...new Set(db.items.map(a=>a.location).filter(Boolean))];db.operations=workflow.init(db.operations);db.pallets=Array.isArray(db.pallets)?db.pallets:[];return db;}
+ const db=JSON.parse(fs.readFileSync(dbPath(),'utf8'));if(!db.user?.passwordHash||!Array.isArray(db.items))throw Error('Invalid inventory database');assetActivity.capture(db);db.items=db.items.map(core.normalize);db.locations=Array.isArray(db.locations)?db.locations:[...new Set(db.items.map(a=>a.location).filter(Boolean))];db.operations=workflow.init(db.operations);db.pallets=Array.isArray(db.pallets)?db.pallets:[];return db;}
 function checkInput(v,max){return String(v??'').trim().slice(0,max);}
 const safe=fn=>{try{return fn();}catch(e){console.error(e);return {ok:false,error:'Unable to complete the operation. Check the application log.'};}};
 const adminOnly=()=>authMode==='local'||(authMode==='cloud'&&cloudUserRole==='admin');
@@ -210,6 +211,10 @@ async function cloudInventoryCall(method,route,payload){
  if(method==='POST'&&route==='/v1/pallets/move')return cloudMetaAction('movePallets',payload);
  if(method==='POST'&&route==='/v1/pallets')return cloudMetaAction('createPallet',payload);
  if(method==='POST'&&route==='/v1/pallets/delete')return cloudMetaAction('deletePallet',payload);
+ if(method==='POST'&&route==='/v1/asset-activity'){
+  try{const response=await cloudFetch('/rest/v1/rpc/apex_get_asset_activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_asset_id:payload.id,p_before_at:payload.cursor?.at||null,p_before_key:payload.cursor?.key||null,p_limit:payload.limit||100}),signal:AbortSignal.timeout(12000)});const value=await response.json();return response.ok?{ok:true,...value}:{ok:false,error:'Could not load the saved asset trail. Refresh and retry.'};}
+  catch{return {ok:false,error:'Could not reach the saved asset trail. Refresh and retry.'};}
+ }
  if(method==='GET'&&route==='/v1/operations'){
   const response=await cloudWorkflowGet();
   return response.ok?{ok:true,workflow:response.workflow}:response;
@@ -498,6 +503,7 @@ app.whenReady().then(()=>{
   if(typeof newPass!=='string'||newPass.length<8||newPass.length>128)return {ok:false,error:'Choose a password of 8–128 characters.'};
   db.user.salt=crypto.randomBytes(24).toString('hex');db.user.passwordHash=hash(newPass,db.user.salt);db.user.mustChangePassword=false;atomic(dbPath(),db);return {ok:true};
  }));
+ ipcMain.handle('inventory:assetActivity',secured(input=>inventoryCall('POST','/v1/asset-activity',input,()=>assetActivity.page(loadDB(),input))));
  ipcMain.handle('inventory:workflow',secured(()=>inventoryCall('GET','/v1/operations',null,()=>({ok:true,workflow:loadDB().operations}))));
  ipcMain.handle('inventory:workflowAction',secured(command=>inventoryCall('POST','/v1/operations/action',command,()=>{
   const db=loadDB();const cloned=structuredClone(db.operations);const r=workflow.apply(cloned,db.items,command);
