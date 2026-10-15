@@ -28,7 +28,7 @@ function importRefurb(items,payload){
  if(prev&&record.sourceUpdatedAt<Number(prev.sourceUpdatedAt||0))return {ok:true,action:'ignored',item,reason:'Older refurbishment report.'};
  if(prev){
   const comparable=r=>JSON.stringify([r.notes,r.status,r.cosmeticIssues,r.functionalityResults,r.parts,r.repairs]);
-  if(comparable(prev)===comparable(record))return {ok:true,action:'unchanged',item};
+  if(comparable(prev)===comparable(record)&&record.sourceUpdatedAt<=Number(prev.sourceUpdatedAt||0))return {ok:true,action:'unchanged',item};
  }
  if(!item){
   item=core.normalize({id,manufacturer:clip(payload.manufacturer,90),model,serial,productType:'Laptop',

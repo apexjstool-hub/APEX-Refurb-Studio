@@ -4,15 +4,24 @@ const crypto=require('node:crypto');
 const hash=x=>crypto.createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const clip=(x,n)=>String(x??'').trim().slice(0,n);
 // Import requirements only. Cloud purchasing/fitting/QC remain authoritative.
-function mergeRequirements(document,localAssets,cloudAssets,deleted){
+function mergeRequirements(document,localAssets,cloudAssets,deleted,deletionMarkers=new Map()){
  if(!document||typeof document.jobs!=='object'||Array.isArray(document.jobs)||!Array.isArray(document.orders)||!Array.isArray(document.audit))throw Error('Cloud refurbishment workflow is invalid.');
  const next=structuredClone(document);let changed=false,added=0,updated=0,skipped=0;
  for(const asset of localAssets){
-  if(!asset.id||deleted.has(asset.id)||asset.deletedAt)continue;const remote=cloudAssets.get(asset.id);if(!remote||remote.payload?.deletedAt)continue;
+  if(!asset.id||asset.deletedAt)continue;const remote=cloudAssets.get(asset.id);if(!remote||remote.payload?.deletedAt)continue;
+  // A retained tombstone can belong to a live, freshly registered asset.
+  // Only a fresh cloud generation and reports produced AND received after deletion qualify.
+  let cutoff=null;
+  if(deleted.has(asset.id)){
+   cutoff=Date.parse(deletionMarkers.get(asset.id)?.deleted_at);
+   const created=Date.parse(remote.payload?.createdAt);
+   if(!Number.isFinite(cutoff)||!Number.isFinite(created)||created<=cutoff)continue;
+  }
   const a=clip(asset.serial,100).toLowerCase(),b=clip(remote.payload?.serial,100).toLowerCase();if(a&&b&&a!==b){skipped++;continue;}
   const ref=asset.refurbishment;if(!ref)continue;
   const reports=Array.isArray(ref.reports)&&ref.reports.length?ref.reports:[{...ref,key:ref.latestKey}];
   for(const report of reports){
+   if(cutoff!==null){const received=Date.parse(report.receivedAt),produced=Number(report.sourceUpdatedAt);if(!Number.isFinite(received)||received<=cutoff||!Number.isFinite(produced)||produced<=cutoff)continue;}
    const key=clip(report.key,140);if(!key||!Array.isArray(report.repairs)||!report.repairs.length)continue;
    let job=next.jobs[asset.id];if(job&&['Completed','On Hold'].includes(job.status)){skipped++;continue;}
    const digest=hash(report.repairs);const marker=hash(key);
@@ -42,10 +51,10 @@ function mergeRequirements(document,localAssets,cloudAssets,deleted){
  if(Object.values(next.jobs).some(job=>!Array.isArray(job.parts)||job.parts.length>1000)||Buffer.byteLength(JSON.stringify(next))>10485760)throw Error('Cloud refurbishment limit exceeded. No partial requirements were saved.');
  return {document:next,changed,added,updated,skipped};
 }
-async function syncRequirements({localAssets,cloudAssets,deleted,read,write}){
+async function syncRequirements({localAssets,cloudAssets,deleted,deletionMarkers,read,write}){
  for(let attempt=0;attempt<3;attempt++){
   const row=await read();if(!row||!Number.isSafeInteger(row.revision))throw Error('Cloud refurbishment workflow is not installed. Run the existing shared-refurb-workflow.sql setup.');
-  const merged=mergeRequirements(row.document,localAssets,cloudAssets,deleted);if(!merged.changed)return merged;
+  const merged=mergeRequirements(row.document,localAssets,cloudAssets,deleted,deletionMarkers);if(!merged.changed)return merged;
   if(await write(row.revision,merged.document))return merged;
  }
  throw Error('Cloud refurbishment changed during sync; parts will retry next cycle.');

@@ -89,7 +89,7 @@ try{
  let parts='not checked';
  try{
   const route=config.supabaseUrl+'/rest/v1/apex_refurb_workflow';
-  const merged=await syncRequirements({localAssets:local.items,cloudAssets:rem,deleted:permanentlyDeleted,
+  const merged=await syncRequirements({localAssets:local.items,cloudAssets:rem,deleted:permanentlyDeleted,deletionMarkers:new Map(deletedRows.map(row=>[row.id,row])),
    read:async()=>{const rows=await fetchJson(route+'?singleton_id=eq.1&select=document,revision',{headers});return rows[0];},
    write:async(revision,document)=>{const rows=await fetchJson(route+'?singleton_id=eq.1&revision=eq.'+revision+'&select=revision',{method:'PATCH',headers:{...headers,Prefer:'return=representation'},body:JSON.stringify({document,revision:revision+1,updated_at:new Date().toISOString(),updated_by:null})});return rows.length===1;}
   });parts='added='+merged.added+', updated='+merged.updated+', review-skipped='+merged.skipped;
