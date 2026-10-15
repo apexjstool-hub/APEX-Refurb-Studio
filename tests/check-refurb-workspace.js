@@ -1,0 +1,81 @@
+'use strict';
+const {app,BrowserWindow,ipcMain}=require('electron'),path=require('node:path'),fs=require('node:fs'),os=require('node:os'),{pathToFileURL}=require('node:url');const wf=require('../src/refurb-workflow'),core=require('../src/inventory-core'),pallets=require('../src/pallet-management');
+app.whenReady().then(async()=>{
+ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'apex-tracker-'));let win;
+ try{
+  const renderer=path.resolve(__dirname,'../src/renderer');let html=fs.readFileSync(path.join(renderer,'index.html'),'utf8').replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,'').replace(/href="([^"]+\.css)"/g,(_,p)=>'href="'+pathToFileURL(path.join(renderer,p)).href+'"');
+  const assets=[core.normalize({id:'TEST-TRACKER',model:'HP ZBook Studio 16 inch G10 Mobile Workstation PC',manufacturer:'HP',serial:'TEST-SERIAL',location:'Unassigned',pallet:'PALLET-0001',status:'Awaiting Processing'})];let state=wf.init({jobs:{'TEST-TRACKER':{assetId:'TEST-TRACKER',status:'Awaiting Parts',priority:'Normal',partsBoard:'ordered',parts:[{id:'p',name:'Battery',qty:1,received:0,fitted:0,sourceKey:'test|battery'}],qc:{}}},orders:[],audit:[]});
+  const db={items:assets,locations:['Unassigned','Inspection'],pallets:[{name:'PALLET-0001',label:'Batch'}]};
+  ipcMain.handle('test:pallet',(_e,c)=>pallets.createPallet(db,c));ipcMain.handle('test:move',(_e,c)=>pallets.moveBatch(db,c));ipcMain.handle('test:assets',()=>({items:db.items,pallets:pallets.listPallets(db)}));
+  ipcMain.handle('test:workflow',()=>({ok:true,workflow:state}));ipcMain.handle('test:action',(_e,c)=>{const r=wf.apply(structuredClone(state),assets,c,'Test operator');if(r.ok)state=r.workflow;return r;});
+  fs.writeFileSync(path.join(folder,'preload.js'),"const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('testTracker',{workflow:()=>ipcRenderer.invoke('test:workflow'),workflowAction:c=>ipcRenderer.invoke('test:action',c),createPallet:c=>ipcRenderer.invoke('test:pallet',c),bulkMove:c=>ipcRenderer.invoke('test:move',c),testAssets:()=>ipcRenderer.invoke('test:assets')});");fs.writeFileSync(path.join(folder,'index.html'),html);
+  win=new BrowserWindow({show:false,width:1440,height:1000,webPreferences:{preload:path.join(folder,'preload.js'),contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});await win.loadFile(path.join(folder,'index.html'));
+  await win.webContents.executeJavaScript("var api=window.testTracker;var $=id=>document.getElementById(id);var PAGE_NAMES={},PAGE_SUBS={},items="+JSON.stringify(assets)+",managedLocations=['Unassigned','Inspection'],managedPallets=[{name:'PALLET-0001',label:'Batch'}],syncMode='local',currentPage='inventory',activeAssetId=null,inventoryPageIndex=0,dirty=false;function html(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]))};function shortDate(s){return s};var toastTimer;function notify(){};function inventoryLookupFeedback(){};function setPage(p){currentPage=p;render();return true};function openAsset(){};async function refresh(){const d=await api.testAssets();items=d.items;managedPallets=d.pallets;render()};function showModal(t,e,c){$('modalContent').innerHTML=c;$('modalLayer').classList.remove('hidden')};function closeModal(){$('modalLayer').classList.add('hidden');$('modalContent').innerHTML=''};function renderSupplementalPages(){};function deviceName(a){return a.model||a.id};function grade(g){return g};function state(s){return s};function updateAssetOverview(){};document.documentElement.dataset.theme='light';document.body.classList.add('apex-v34');$('loginPage').classList.add('hidden');$('appPage').classList.remove('hidden');$('inventoryPage').classList.remove('hidden');$('dashboardPage').classList.add('hidden');");
+  for(const name of ['inventory-core','pallet-management','part-requirements','inventory-workflow','refurb-export'])await win.webContents.executeJavaScript(fs.readFileSync(path.resolve(__dirname,'../src/'+name+'.js'),'utf8'));
+  const source=fs.readFileSync(path.join(renderer,'app.js'),'utf8');await win.webContents.executeJavaScript(source.slice(source.indexOf('function notify('),source.indexOf('const PAGE_NAMES')));await win.webContents.executeJavaScript(source.slice(source.indexOf('function inventoryLookupFeedback('),source.indexOf('async function toggleCamera'))+';void 0;');await win.webContents.executeJavaScript('function stopCamera(){};var lookupOpened=null;openAsset=id=>{lookupOpened=id};resolveScan("MISSING-ASSET");void 0;');if(!await win.webContents.executeJavaScript("lookupOpened===null&&$('toast').textContent==='Inventory not found'&&getComputedStyle($('toast')).position==='fixed'"))throw Error('Missing inventory scan opened a new asset or lacked the toast.');await win.webContents.executeJavaScript('resolveScan("TEST-TRACKER");void 0;');if(!await win.webContents.executeJavaScript("lookupOpened==='TEST-TRACKER'&&$('toast').textContent==='Inventory found'"))throw Error('Existing scan lacked the success toast.');await win.webContents.executeJavaScript(source.slice(source.indexOf('function rows('),source.indexOf('function summarizeLocations')));await win.webContents.executeJavaScript(source.slice(source.indexOf('function summarizeLocations()'),source.indexOf('function confirmDeleteLocation(')));
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'refurb-ui.js'),'utf8'));await win.webContents.executeJavaScript('window.ApexOps.load()');await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'v34-reference-ui.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'inventory-workflow-ui.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'dashboard-visuals.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'asset-label-barcode.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.resolve(renderer,'../report-brand.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.resolve(renderer,'../assignment-documents.js'),'utf8'));await win.webContents.executeJavaScript('api={...api,list:async()=>({ok:true,items,locations:managedLocations,pallets:managedPallets})};void 0;');await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'assignment-print-ui.js'),'utf8'));await win.webContents.executeJavaScript('window.ApexPreviewBase='+JSON.stringify(pathToFileURL(renderer+path.sep).href)+';void 0;');await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'selection-previews.js'),'utf8'));await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'inventory-selection.js'),'utf8'));await win.webContents.executeJavaScript('render();');
+
+  const addJob=(id,status,parts,extra={})=>{assets.push(core.normalize({id,manufacturer:'Dell',model:'Latitude 5420',serial:'SERIAL-'+id,location:'Inspection',pallet:'',status:'Awaiting Processing'}));state.jobs[id]={assetId:id,status,parts,qc:{},updatedAt:'2026-10-15T10:00:00Z',...extra};};
+  addJob('RW-DELIVERY','Awaiting Parts',[{id:'delivery',name:'Keyboard',qty:2,received:0,fitted:0}]);
+  addJob('RW-FIT','Ready for Repair',[{id:'fit',name:'LCD',qty:2,received:2,fitted:1}],{technician:'Alex'});
+  addJob('RW-SPRAY','Repair In Progress',[{id:'spray',name:'Lid respray',qty:1,received:1,fitted:0}]);
+  addJob('RW-QC','Quality Control',[{id:'qc',name:'Battery',qty:1,received:1,fitted:1}]);
+  addJob('RW-DONE','Completed',[{id:'done',name:'Keyboard',qty:1,received:1,fitted:1}]);
+  addJob('RW-HOLD','On Hold',[{id:'hold',name:'LCD',qty:1,received:0,fitted:0}]);
+  state.orders.push({id:'PO-DELIVERY',supplier:'Test supplier',lines:[{assetId:'RW-DELIVERY',partId:'delivery',name:'Keyboard',qty:2,received:0}]});
+  await win.webContents.executeJavaScript("refresh();");
+  await win.webContents.executeJavaScript(fs.readFileSync(path.resolve(renderer,'../device-summary.js'),'utf8'));
+  for(const name of ['PAGE_NAMES','PAGE_SUBS']){
+   const literal=source.slice(source.indexOf('const '+name+'=')+('const '+name+'=').length).split(';')[0];
+   await win.webContents.executeJavaScript('Object.assign('+name+','+literal+');void 0;');
+  }
+  await win.webContents.executeJavaScript(source.slice(source.indexOf('function setPage('),source.indexOf('function rows('))+';void 0;');
+  await win.webContents.executeJavaScript("openAsset=id=>{activeAssetId=id;setPage('asset');};void 0;");
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'v3-ui.js'),'utf8'));
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'refurb-workspace.js'),'utf8'));
+  await win.webContents.executeJavaScript("$('refurbNav').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&!$('refurbWorkspacePage').classList.contains('hidden')&&$('refurbNav').classList.contains('active')&&!$('refurbNavLinks').hidden&&$('v3Workspace').textContent==='Refurbishment'"))throw Error('Refurbishment sidebar routing or grouping failed.');
+  if(!await win.webContents.executeJavaScript("$('rwQueueTable').querySelectorAll('[data-rw-expand]').length===6&&!$('rwQueueTable').textContent.includes('RW-DONE')"))throw Error('Active queue did not include all active jobs or included completed jobs.');
+  for(const [key,id] of [['delivery','RW-DELIVERY'],['fit','RW-FIT'],['respray','RW-SPRAY'],['qc','RW-QC'],['hold','RW-HOLD']]){
+   await win.webContents.executeJavaScript("$('rwFilters').querySelector('[data-rw-filter="+key+"]').click();void 0;");
+   if(!await win.webContents.executeJavaScript("$('rwQueueTable').textContent.includes("+JSON.stringify(id)+")"))throw Error('Queue filter failed: '+key);
+  }
+  await win.webContents.executeJavaScript("$('rwFilters').querySelector('[data-rw-filter=all]').click();$('rwSearch').value='Alex';$('rwSearch').dispatchEvent(new Event('input'));void 0;");
+  if(!await win.webContents.executeJavaScript("$('rwQueueTable').querySelectorAll('[data-rw-expand]').length===1&&$('rwQueueTable').textContent.includes('RW-FIT')"))throw Error('Technician search failed.');
+  await win.webContents.executeJavaScript("$('rwSearch').value='TEST-TRACKER';$('rwSearch').dispatchEvent(new Event('input'));$('rwQueueTable').querySelector('[data-rw-expand]').click();$('rwQueueTable').querySelector('[data-rw-select]').click();$('rwOrderSelected').click();void 0;");
+  if(!await win.webContents.executeJavaScript("$('opsOrderForm').querySelectorAll('input[type=checkbox]:checked').length===1&&$('opsOrderForm').textContent.includes('TEST-TRACKER')&&!$('opsOrderForm').textContent.includes('RW-HOLD')"))throw Error('Selected queue ordering affected other devices.');
+  await win.webContents.executeJavaScript("$('opsCancel').click();$('rwReceiveSelected').click();void 0;");
+  if(!await win.webContents.executeJavaScript("$('opsBulkReceiveForm').querySelectorAll('tbody tr').length===1&&$('opsBulkReceiveForm').textContent.includes('TEST-TRACKER')"))throw Error('Selected receipt scope was not preserved.');
+  await win.webContents.executeJavaScript("$('opsCancel').click();$('rwQueueTable').querySelector('[data-rw-action=device]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&!$('rwReturnToQueue').hidden"))throw Error('Device details lack Return to Refurbishment.');
+  await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('rwReturnToQueue').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&dirty"))throw Error('New workspace bypassed unsaved device changes.');
+  await win.webContents.executeJavaScript("dirty=false;$('rwReturnToQueue').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('rwSearch').value==='TEST-TRACKER'&&$('rwSelected').textContent==='1 selected'&&$('rwQueueTable').querySelector('[data-rw-expand]').getAttribute('aria-expanded')==='true'"))throw Error('Returning lost queue search, selection or expanded device.');
+  await win.webContents.executeJavaScript("$('rwQueueTable').querySelector('[data-rw-action=receiveAll]').click();$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  for(let i=0;i<30;i++){if(state.jobs['TEST-TRACKER'].parts[0].received===1)break;await new Promise(r=>setTimeout(r,100));}
+  if(state.jobs['TEST-TRACKER'].parts[0].received!==1||!await win.webContents.executeJavaScript("$('rwQueueTable').textContent.includes('Ready to fit')&&currentPage==='refurbWorkspace'"))throw Error('Work queue receipt failed to persist and refresh in place.');
+  await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open('purchasing');void 0;");
+  for(const name of ['parts','partsOrdered','orders','deliveries']){
+   await win.webContents.executeJavaScript("$('rwPurchasingTabs').querySelector('[data-rw-purchase="+name+"]').click();void 0;");
+   if(!await win.webContents.executeJavaScript("$("+JSON.stringify(name+'Content')+").parentElement.id==='rwExistingPanel'&&document.querySelectorAll('#"+name+"Content').length===1"))throw Error('Purchasing panel was duplicated or not mounted: '+name);
+  }
+  await win.webContents.executeJavaScript("setPage('orders');void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('ordersContent').parentElement.id==='rwExistingPanel'"))throw Error('Existing purchase flow navigated out of the new workspace.');
+  for(const name of ['qc','completed']){
+   await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open("+JSON.stringify(name)+");void 0;");
+   if(!await win.webContents.executeJavaScript("$("+JSON.stringify(name+'Content')+").parentElement.id==='rwExistingPanel'&&$('rwExistingPanel').textContent.includes("+JSON.stringify(name==='qc'?'RW-QC':'RW-DONE')+")"))throw Error('QC/completed route failed: '+name);
+  }
+  await win.webContents.executeJavaScript("setPage('inventory');void 0;");
+  if(!await win.webContents.executeJavaScript("['parts','partsOrdered','orders','deliveries','qc','completed'].every(id=>$(id+'Content').parentElement.id===id+'Page')&&!!$('inventoryTable').querySelector('[data-tracker-toggle]')&&!!$('v3Tabs').querySelector('[data-v3tab=parts]')"))throw Error('Existing inventory refurbishment sections were not preserved.');
+  await win.webContents.executeJavaScript("$('v3Tabs').querySelector('[data-v3tab=parts]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='parts'&&!$('partsPage').classList.contains('hidden')&&$('partsContent').parentElement.id==='partsPage'"))throw Error('Original Inventory parts page is unavailable.');
+  await win.webContents.executeJavaScript("window.ApexRefurbWorkspace.open('queue');$('rwSearch').value='';$('rwSearch').dispatchEvent(new Event('input'));void 0;");
+  const layout=await win.webContents.executeJavaScript("(()=>{const r=$('refurbWorkspacePage').getBoundingClientRect();return {width:r.width,height:r.height,overflow:document.documentElement.scrollWidth>innerWidth+2};})()");
+  if(layout.width<700||layout.height<200||layout.overflow)throw Error('New workspace layout failed: '+JSON.stringify(layout));
+  win.show();await new Promise(r=>setTimeout(r,300));
+  fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/refurb-workspace.png'),(await win.webContents.capturePage()).toPNG());
+  console.log('PASS: new Refurbishment workspace routes, filters, selection, writes and original Inventory views verified.');
+  win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
+ }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(1);}
+});

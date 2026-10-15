@@ -64,6 +64,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-inventory-tracker.js
           if ($LASTEXITCODE -ne 0) { throw 'Inventory workflow UI checks failed.' }
+      - name: Verify additive Refurbishment workspace and original Inventory views
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\\node_modules\\.bin\\electron.cmd tests/check-refurb-workspace.js
+          if ($LASTEXITCODE -ne 0) { throw 'Refurbishment workspace checks failed.' }
       - name: Verify sign-in layout and manual saved login
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
