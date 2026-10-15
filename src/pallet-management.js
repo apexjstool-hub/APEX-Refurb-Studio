@@ -47,6 +47,18 @@
   const next=(db.pallets||[]).map(p=>({...p}));
   for(const p of selected){let saved=next.find(x=>equal(x.name,p.name));if(!saved){saved={name:p.name,label:p.label||'',location:p.location||'',createdAt:p.createdAt||''};next.push(saved);}saved.storageLocation=location||'';saved.updatedAt=new Date().toISOString();}
   db.pallets=next;
+  // Pallet location changes leave the asset's direct Location field unchanged.
+  // Add a dated asset history entry so the move appears in History & checks.
+  const now=new Date().toISOString();
+  for(const p of selected){
+   if(equal(p.storageLocation,location))continue;
+   for(const asset of db.items||[]){
+    if(asset.deletedAt||!equal(asset.pallet,p.name))continue;
+    const old=clean(p.storageLocation)||'Unassigned',destination=location||'Unassigned';
+    asset.history=[...(Array.isArray(asset.history)?asset.history:[]),{type:'Pallet location',detail:`Pallet ${p.name} moved: ${old} → ${destination}`,at:now}].slice(-120);
+    asset.updatedAt=now;
+   }
+  }
   return {ok:true,moved:names.length,pallets:listPallets(db),palletLocations:palletLocations(db)};
  }
  function nextPalletId(db) {
