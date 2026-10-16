@@ -92,6 +92,7 @@
   const value=clean(raw);if(!value)return;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
   const asset=items.find(a=>!a.deletedAt&&a.id===decoded);
+  if(asset&&pallets().some(p=>upper(p.name)===upper(value))){showStatus(`This name matches both a device and a pallet. Use PALLET: ${value} to load the whole pallet.`,true);return;}
   if(asset){inventoryLookupFeedback(true);if(batch.includes(asset.id)){showStatus(`${asset.id} already scanned — not added twice.`,true);return;}
    if(batch.length>=300){showStatus('Maximum 300 devices per move.',true);return;}
    batch.push(asset.id);showStatus(`${asset.id} added. ${batch.length} device(s) in your list.`);drawScan();return;}

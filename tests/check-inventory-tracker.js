@@ -145,8 +145,9 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("refresh();setPage('pallets');window.ApexPalletPage.render();document.querySelector('[data-pallet-rename=PALLET-0002]').click();$('renamePalletForm').elements.newName.value='Repair batch A';$('renamePalletForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
   for(let i=0;i<40;i++){if(db.items[0].pallet==='Repair batch A')break;await new Promise(r=>setTimeout(r,50));}
   if(db.items.filter(a=>a.pallet==='Repair batch A').length!==2||!db.pallets.some(p=>p.name==='Repair batch A'&&p.label==='Test refurbishment batch'))throw Error('Rename popup did not update all device assignments or retained metadata.');
+  await win.webContents.executeJavaScript("refresh();");
   await win.webContents.executeJavaScript("setPage('bulk');$('v346Clear').click();$('v346ScanInput').value='repair batch a';$('v346ScanForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
-  if(!await win.webContents.executeJavaScript("$('v346DeviceList').querySelectorAll('[data-remove-id]').length===2&&$('v346DeviceList').textContent.includes('PALLET-MEMBER-2')"))throw Error('Pallet-name scan did not load all devices.');
+  if(!await win.webContents.executeJavaScript("$('v346DeviceList').querySelectorAll('[data-remove-id]').length===2&&$('v346DeviceList').textContent.includes('PALLET-MEMBER-2')"))throw Error('Pallet-name scan did not load all devices: '+await win.webContents.executeJavaScript("JSON.stringify({text:$('v346DeviceList').textContent,items:items.map(a=>({id:a.id,pallet:a.pallet})),pallets:managedPallets})"));
   await win.webContents.executeJavaScript("$('v346ScanInput').value='PALLET: Repair batch A';$('v346ScanForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
   if(!await win.webContents.executeJavaScript("$('v346DeviceList').querySelectorAll('[data-remove-id]').length===2"))throw Error('Repeated pallet scan duplicated devices.');
   await win.webContents.executeJavaScript("$('v346Destination').value='PALLET-0001';$('v346MoveLocation').click();$('v360ConfirmMove').click();void 0;");
