@@ -90,6 +90,19 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=receiveAll]').click();$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
   for(let i=0;i<30;i++){if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received===2)break;await new Promise(r=>setTimeout(r,100));}
   if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received!==2)throw Error('Per-device Receive all parts failed.');
+  state=structuredClone(beforeBulk);state.jobs['TEST-TRACKER'].parts.push({id:'mark-screen',name:'Screen purchased',qty:2,received:0,fitted:0},{id:'leave-keyboard',name:'Keyboard still needed',qty:1,received:0,fitted:0});
+  await win.webContents.executeJavaScript("window.ApexOps.load();");
+  await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-part-toggle]').click();$('partsContent').querySelector('[data-op=markPartOrdered][data-id=\"TEST-TRACKER|mark-screen\"]').click();void 0;");
+  for(let i=0;i<30;i++){if(state.orders.some(o=>o.lines.some(l=>l.partId==='mark-screen')))break;await new Promise(r=>setTimeout(r,50));}
+  const individual=await win.webContents.executeJavaScript("(()=>{const r=window.ApexRefurbExport.templatePartsRows(items,window.ApexWorkflowSnapshot),part=$('partsContent'),ordered=$('partsOrderedContent');return {exported:JSON.stringify(r),needed:part.textContent,ordered:ordered.textContent};})()");
+  if(individual.exported.includes('Screen purchased')||!individual.exported.includes('Keyboard still needed')||individual.needed.includes('Screen purchased')||!individual.needed.includes('Keyboard still needed')||!individual.ordered.includes('Screen purchased')||state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='mark-screen').received!==0||!state.audit.some(e=>e.type==='Part ordered'&&e.assetId==='TEST-TRACKER'&&e.detail.includes('Screen purchased')))throw Error('Individual part ordering or export scope failed: '+JSON.stringify(individual));
+  await win.webContents.executeJavaScript("api={...api,exportXlsx:async rows=>{window.testPartsExcel=rows;return {ok:true}}};$('opsExportRefurbPartsAll').click();void 0;");
+  if(!await win.webContents.executeJavaScript("JSON.stringify(window.testPartsExcel).includes('Keyboard still needed')&&!JSON.stringify(window.testPartsExcel).includes('Screen purchased')"))throw Error('Export all retained an ordered part.');
+  await win.webContents.executeJavaScript("window.testPartsExcel=null;$('partsContent').querySelector('.ops-part-check').click();$('opsExportRefurbPartsSelected').click();void 0;");
+  if(!await win.webContents.executeJavaScript("JSON.stringify(window.testPartsExcel).includes('Keyboard still needed')&&!JSON.stringify(window.testPartsExcel).includes('Screen purchased')"))throw Error('Selected export retained an ordered part.');
+  await win.webContents.executeJavaScript("activeAssetId='TEST-TRACKER';window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("!!$('assetJobProgress').querySelector('[data-op=markPartOrdered][data-id=\"TEST-TRACKER|leave-keyboard\"]')"))throw Error('Individual order action missing inside device.');
+  await win.webContents.executeJavaScript("activeAssetId=null;void 0;");
   state=beforeBulk;await win.webContents.executeJavaScript("window.ApexOps.load();");
   if(!await win.webContents.executeJavaScript("!!$('editPallet')?.closest('.v34-general')"))throw Error('Pallet field was removed by the Device Overview layout.');
   db.items[0].location='Inspection';db.items[0].pallet='';await win.webContents.executeJavaScript('refresh()');

@@ -38,7 +38,7 @@
  function detail(row){
   const j=row.job,s=row.summary,e=row.activity;
   const actions=(!locked(j)&&s.toOrder?button('Order parts','order',j.assetId):'')+(!locked(j)&&s.parts.some(p=>p.received<p.required)?button('Receive all parts','receiveAll',j.assetId):'')+button('Edit job','job',j.assetId)+button('QC checklist','qc',j.assetId)+button('Print worksheet','print',j.assetId);
-  const parts=s.parts.map(p=>'<tr><td><b>'+esc(p.name)+'</b><small class="rw-part-kind">'+(spray(p)?'Respray':'Replacement part')+'</small></td><td>'+p.required+'</td><td>'+p.ordered+'</td><td>'+p.received+'</td><td>'+p.fitted+'</td><td>'+(!locked(j)&&p.received<p.required?button('Mark received','receive',j.assetId,p.id):'')+(!locked(j)&&p.toFit?button(spray(p)?'Record progress':'Record fitted','fit',j.assetId,p.id):'')+(p.fitted>=p.required?'Complete':locked(j)?'Job is locked':'')+'</td></tr>').join('');
+  const parts=s.parts.map(p=>'<tr><td><b>'+esc(p.name)+'</b><small class="rw-part-kind">'+(spray(p)?'Respray':'Replacement part')+'</small></td><td>'+p.required+'</td><td>'+p.ordered+'</td><td>'+p.received+'</td><td>'+p.fitted+'</td><td>'+(!locked(j)&&p.toOrder?button('Mark as ordered','markPartOrdered',j.assetId,p.id):'')+(!locked(j)&&p.received<p.required?button('Mark received','receive',j.assetId,p.id):'')+(!locked(j)&&p.toFit?button(spray(p)?'Record progress':'Record fitted','fit',j.assetId,p.id):'')+(p.fitted>=p.required?'Complete':locked(j)?'Job is locked':'')+'</td></tr>').join('');
   return '<div class="rw-detail"><div class="rw-detail-top"><div><strong>Next: '+esc(s.next)+'</strong><p>Technician: '+esc(j.technician||'Unassigned')+' · Recorded stage: '+esc(j.status)+'</p></div><div class="rw-actions">'+actions+'</div></div><div class="rw-table-scroll"><table class="inventory-parts-table"><thead><tr><th>Part / respray task</th><th>Required</th><th>Ordered</th><th>Received</th><th>Fitted / done</th><th>Action</th></tr></thead><tbody>'+ (parts||'<tr><td colspan="6">No parts or respray requirements recorded. Review the job and QC checklist.</td></tr>')+'</tbody></table></div>'+(j.notes?'<p class="rw-notes">'+esc(j.notes)+'</p>':'')+'<div class="rw-last">'+(e?'Last activity: '+esc(new Date(e.at).toLocaleString())+' · '+esc(e.by||'Recorded activity')+' · '+esc(e.text):'No recorded refurbishment activity yet.')+'</div></div>';
  }
  function drawQueue(){
@@ -66,7 +66,7 @@
  function syncSelectAll(){const all=$('rwSelectVisible');if(!all)return;const checks=[...$('rwQueueTable').querySelectorAll('[data-rw-select]')],count=checks.filter(c=>c.checked).length;all.checked=!!checks.length&&count===checks.length;all.indeterminate=count>0&&count<checks.length;}
  function runAction(kind,id,part){
   const ops=window.ApexOps;if(kind==='device'){queueScroll=document.querySelector('.main').scrollTop;returnToQueue=true;openAsset(id);updateReturn();return;}
-  if(kind==='order')ops.orderParts(id);if(kind==='receiveAll')ops.receiveParts(id);if(kind==='receive')ops.receivePart(id+'|'+part);if(kind==='fit')ops.fitPart(id+'|'+part);
+  if(kind==='markPartOrdered')ops.markPartOrdered(id+'|'+part);if(kind==='order')ops.orderParts(id);if(kind==='receiveAll')ops.receiveParts(id);if(kind==='receive')ops.receivePart(id+'|'+part);if(kind==='fit')ops.fitPart(id+'|'+part);
   if(kind==='job')ops.openJob(id);if(kind==='qc')ops.quality(id);if(kind==='print')ops.printWorksheet(id);
  }
  function updateReturn(){

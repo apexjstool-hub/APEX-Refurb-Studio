@@ -56,6 +56,16 @@ function apply(state,assets,cmd,by='Administrator'){
  const s=init(state);try{
  if(!cmd||typeof cmd!=='object')throw Error('Invalid workflow request.');
  const type=clip(cmd.type,40),id=clip(cmd.assetId,80).toUpperCase();let job;
+ if(type==='markPartOrdered'){
+  const j=s.jobs[id],p=j?.parts?.find(p=>p.id===cmd.partId);
+  if(!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('This part or asset no longer exists. Refresh and try again.');
+  if(['Completed','On Hold'].includes(j.status))throw Error('Change this job stage before marking parts as ordered.');
+  const pending=s.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,l.qty-l.received),0);
+  if(cmd.expectedQty!==p.qty||cmd.expectedReceived!==p.received||cmd.expectedOnOrder!==pending)throw Error('Part quantities or orders changed. Refresh before marking as ordered.');
+  const qty=p.qty-p.received-pending;
+  if(qty<=0)throw Error('This part is already ordered or received.');
+  return apply(s,assets,{type:'createOrder',supplier:'Supplier not recorded',notes:'Manually marked as ordered in APEX. Records an existing order; no purchase is sent to a supplier.',lines:[{assetId:id,partId:p.id,qty}]},by);
+ }
  if(type==='receiveParts'){
   const rows=Array.isArray(cmd.parts)?cmd.parts:[];
   if(!rows.length||rows.length>1000)throw Error('Choose between 1 and 1000 outstanding parts.');

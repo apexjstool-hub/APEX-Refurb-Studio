@@ -13,3 +13,33 @@ test('Long descriptions receive wrapped styles, wider columns and content-sized 
  assert.ok(styles.includes('wrapText="1"'));assert.ok(entries.has('xl/media/apex-brand.png'));assert.ok(entries.has('xl/drawings/apex-brand.xml'));
  assert.ok(sheet.includes('APEX - Refurb Parts Required'));assert.ok(sheet.includes('ySplit="3"'));
 });
+
+test('Mark one part ordered excludes only that requirement from all and selected Excel exports',()=>{
+ const W=require('../src/refurb-workflow'),I=require('../src/inventory-workflow');
+ const assets=[{...asset,id:'A'},{...asset,id:'B'}];
+ const original={jobs:{A:{assetId:'A',status:'Awaiting Parts',parts:[{id:'screen',name:'Screen',qty:3,received:1,fitted:0},{id:'keyboard',name:'Keyboard',qty:2,received:0,fitted:0}]},B:{assetId:'B',status:'Awaiting Parts',parts:[{id:'screen',name:'Other screen',qty:1,received:0,fitted:0}]}},orders:[],audit:[]};
+ const cmd={type:'markPartOrdered',assetId:'A',partId:'screen',expectedQty:3,expectedReceived:1,expectedOnOrder:0};
+ const r=W.apply(structuredClone(original),assets,cmd,'Jacob');assert.equal(r.ok,true);
+ assert.equal(r.order.lines.length,1);assert.equal(r.order.lines[0].qty,2);assert.equal(r.order.lines[0].received,0);
+ assert.deepEqual(r.workflow.jobs.A.parts,original.jobs.A.parts);assert.deepEqual(r.workflow.jobs.B,original.jobs.B);
+ assert.ok(r.workflow.audit.some(e=>e.type==='Part ordered'&&e.assetId==='A'&&e.by==='Jacob'&&e.detail.includes('Screen')));
+ const rows=exporter.templatePartsRows(assets,r.workflow);assert.equal(rows.length,3);assert.equal(rows[1][6],'Keyboard × 2');assert.equal(rows[2][6],'Other screen');
+ assert.deepEqual(exporter.templatePartsRows(assets,r.workflow,['A']).map(r=>r[6]).slice(1),['Keyboard × 2']);
+ assert.deepEqual(exporter.requiredPartsRows(assets,r.workflow,['A']).slice(1).map(r=>r[3]),['Keyboard']);
+ assert.equal(I.summarize(r.workflow.jobs.A,r.workflow.orders).awaiting,2);
+ const before=JSON.stringify(r.workflow);assert.equal(W.apply(r.workflow,assets,cmd).ok,false);assert.equal(JSON.stringify(r.workflow),before);
+ const received=W.apply(structuredClone(r.workflow),assets,{type:'receivePart',assetId:'A',partId:'screen',expectedReceived:1,qty:2});assert.equal(received.ok,true);assert.equal(received.workflow.orders[0].lines[0].received,2);assert.equal(received.workflow.jobs.A.parts[0].fitted,0);
+ assert.equal(exporter.templatePartsRows(assets,received.workflow,['A'])[1][6],'Keyboard × 2');
+ const roundtrip=W.init(JSON.parse(JSON.stringify(r.workflow)));assert.equal(exporter.templatePartsRows(assets,roundtrip,['A'])[1][6],'Keyboard × 2');
+ for(const status of ['Completed','On Hold']){const locked=structuredClone(original);locked.jobs.A.status=status;const before=JSON.stringify(locked);assert.equal(W.apply(locked,assets,cmd).ok,false);assert.equal(JSON.stringify(locked),before);}
+ const stale=structuredClone(original);stale.jobs.A.parts[0].qty=4;assert.equal(W.apply(stale,assets,cmd).ok,false);
+ assert.equal(W.apply(structuredClone(original),assets.map(a=>({...a,deletedAt:'today'})),cmd).ok,false);
+});
+
+test('Excel includes only remaining unordered quantities and never resurrects removed requirements',()=>{
+ const assets=[{...asset,id:'A',refurbishment:{repairs:[{name:'Old removed requirement',quantity:1}]}}];
+ const workflow={jobs:{A:{assetId:'A',parts:[{id:'a',name:'Battery',qty:5,received:1,fitted:1},{id:'b',name:'Fitted keyboard',qty:1,received:1,fitted:1}]}},orders:[{status:'Draft',lines:[{assetId:'A',partId:'a',qty:20,received:0}]},{status:'Ordered',lines:[{assetId:'A',partId:'a',qty:3,received:1}]}]};
+ assert.equal(exporter.templatePartsRows(assets,workflow)[1][6],'Battery × 2');
+ workflow.jobs.A.partsBoard='ordered';assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
+ workflow.jobs.A.parts=[];delete workflow.jobs.A.partsBoard;assert.equal(exporter.requiredPartsRows(assets,workflow).length,1);assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
+});

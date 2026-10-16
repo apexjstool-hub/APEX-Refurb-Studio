@@ -1,14 +1,26 @@
 "use strict";
 (function(factory){const mod=factory();if(typeof module!=="undefined"&&module.exports)module.exports=mod;if(typeof window!=="undefined")window.ApexRefurbExport=mod;})(function(){
 const fullName=a=>{const maker=String(a?.manufacturer||'').trim(),model=String(a?.model||'').trim();return model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:[maker,model].filter(Boolean).join(' ');};
+const count=v=>Math.max(0,Number(v)||0);
+function partsToOrder(asset,workflow){
+ const job=workflow?.jobs?.[asset.id];
+ if(job?.partsBoard==='ordered')return [];
+ let parts=Array.isArray(job?.parts)?job.parts:[];
+ if(!job){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=Array.isArray(latest?.repairs)?latest.repairs:[];}
+ return parts.flatMap(p=>{
+  if(!String(p?.name||'').trim()||['Ordered','Received','Fitted'].includes(p.status))return [];
+  const pending=p.id?(workflow?.orders||[]).filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===asset.id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,count(l.qty)-count(l.received)),0):0;
+  const qty=Math.max(0,count(p.qty??p.quantity??1)-Math.max(count(p.received),count(p.fitted))-pending);
+  return qty>0?[{...p,qty}]:[];
+ });
+}
 function requiredPartsRows(assets,workflow,selectedAssetIds){
  // Omitting the third argument exports every asset; an empty selection exports none.
  const allowed=selectedAssetIds===undefined?null:new Set(selectedAssetIds);
  const rows=[['Asset ID','Full Manufacturer and Model','Serial Number','Part Needed']];
  for(const asset of (assets||[])){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
-  const job=workflow?.jobs?.[asset.id];let parts=Array.isArray(job?.parts)?job.parts:[];
-  if(!parts.length){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=latest?.repairs||[];}
+  const parts=partsToOrder(asset,workflow);
   for(const part of parts){const name=String(part?.name||'').trim();if(name)rows.push([String(asset.id),fullName(asset),String(asset.serial||''),name]);}
  }
  return rows;
@@ -18,9 +30,7 @@ function templatePartsRows(assets,workflow,selectedAssetIds){
  const rows=[['Item ID','Make/Model','CPU','RAM','Storage','Serial Number','Part #1','Part #1 Cost','Part #2','Part #2 Cost','Part #3','Part #3 Cost','Part #4','Part #4 Cost','Parts Total']];
  for(const asset of assets||[]){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
-  const job=workflow?.jobs?.[asset.id];let parts=Array.isArray(job?.parts)?job.parts:[];
-  if(!job){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=latest?.repairs||[];}
-  parts=parts.filter(p=>String(p?.name||'').trim());if(!parts.length)continue;
+  const parts=partsToOrder(asset,workflow);if(!parts.length)continue;
   for(let start=0;start<parts.length;start+=4){
    const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
    for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?String(p.name).trim()+(qty>1?' × '+qty:''):'',null);}row.push(null);rows.push(row);
@@ -28,5 +38,5 @@ function templatePartsRows(assets,workflow,selectedAssetIds){
  }
  return rows;
 }
-return {requiredPartsRows,templatePartsRows,fullName};
+return {requiredPartsRows,templatePartsRows,fullName,partsToOrder};
 });
