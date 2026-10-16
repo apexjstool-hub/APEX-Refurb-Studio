@@ -10,7 +10,6 @@ const titles={refurbWorkspace:'Manage refurbishment work, parts and final checks
 const parentSetPage=setPage;
 let assetTab='overview',lastGroup='dashboard',reportTab='worksheet';
 function renderTabs(page){const group=getGroup(page),bar=$('v3Tabs'),selectedTab=page==='containerInventory'?(window.ApexContainerInventory?.tab()||'pallets'):page==='palletLocationDetail'?'palletLocations':page;lastGroup=group;$('v3Workspace').textContent=groupNames[group];$('v3WorkspaceSubtitle').textContent=titles[group];
-if(page!=='asset')window.ApexAssetPrices?.hide();
 if(page==='asset')$('v3WorkspaceSubtitle').textContent='Specifications, refurb notes and diagnostics in one place';
 bar.innerHTML=(groups[group]||[]).map(([id,label])=>`<button type="button" class="v3-tab ${id===selectedTab?'selected':''}" data-v3tab="${id}" role="tab" aria-selected="${id===selectedTab}">${label}</button>`).join('');
 bar.querySelectorAll('[data-v3tab]').forEach(b=>b.onclick=()=>setPage(b.dataset.v3tab));
@@ -31,11 +30,10 @@ document.head.appendChild(assetOverviewStyle);
 const assetSection=$('assetPage'),tabs=document.createElement('div');tabs.id='v3AssetTabs';tabs.className='v3-asset-tabs';
 assetSection.querySelector('.asset-summary')?.after(tabs);
 function updateAssetTabs(){if(currentPage!=='asset')return;assetSection.dataset.section=assetTab;
-const choices=[['overview','Overview'],['refurb','Refurb notes'],['parts','Parts & repair'],['prices','Prices'],['tests','Hardware tests'],['history','History & checks']];
+const choices=[['overview','Overview'],['refurb','Refurb notes'],['parts','Parts & repair'],['tests','Hardware tests'],['history','History & checks']];
 tabs.innerHTML=choices.map(([k,n])=>`<button type="button" class="v3-tab ${assetTab===k?'selected':''}" data-asset-tab="${k}">${n}</button>`).join('');
 tabs.querySelectorAll('[data-asset-tab]').forEach(b=>b.onclick=()=>{assetTab=b.dataset.assetTab;updateAssetTabs();});
 if(assetTab==='history'){$('assetAdvanced').classList.remove('hidden');$('assetAdvancedToggle').setAttribute('aria-expanded','true');renderHistoryWorkspace();}
-if(assetTab==='prices')void window.ApexAssetPrices?.open(activeAssetId);else window.ApexAssetPrices?.hide();
 }
 // Unified, persisted asset trail. Keep record sources immutable and retain original timestamps.
 const savedHistory=new Map();

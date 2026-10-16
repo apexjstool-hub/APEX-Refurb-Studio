@@ -1,14 +1,6 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
- pricesContext:input=>ipcRenderer.invoke('inventory:pricesContext',input),
- pricesState:input=>ipcRenderer.invoke('inventory:pricesState',input),
- pricesStart:input=>ipcRenderer.invoke('inventory:pricesStart',input),
- pricesCancel:()=>ipcRenderer.invoke('inventory:pricesCancel'),
- pricesSaveToken:token=>ipcRenderer.invoke('inventory:pricesSaveToken',token),
- pricesForgetToken:()=>ipcRenderer.invoke('inventory:pricesForgetToken'),
- pricesOpenLink:url=>ipcRenderer.invoke('inventory:pricesOpenLink',url),
- pricesOpenConsole:()=>ipcRenderer.invoke('inventory:pricesOpenConsole'),
  onInventoryArrived:callback=>{if(typeof callback!=='function')return;const listener=(_event,value)=>callback(value);ipcRenderer.on('apex:inventory-arrived',listener);return()=>ipcRenderer.removeListener('apex:inventory-arrived',listener);},
  printAssetBatch:input=>ipcRenderer.invoke('inventory:printAssetBatch',input),
  microdreamPreview:input=>ipcRenderer.invoke('inventory:microdreamPreview',input),
