@@ -1,5 +1,6 @@
 'use strict';
 const {app}=require('electron'),assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs'),output=require('../src/microdream-output'),docs=require('../src/microdream-documents');
+app.on('window-all-closed',()=>{});
 app.whenReady().then(async()=>{let rendered;try{
  const folder=path.resolve('qa-print');fs.mkdirSync(folder,{recursive:true});
  const data={pallets:[{name:'MD-1',storageLocation:'MICRODREAM'},{name:'MD-2',storageLocation:'MICRODREAM'}],items:[...Array.from({length:9},(_,i)=>({id:'D'+i,manufacturer:'Dell',model:'Latitude 5420',pallet:i<5?'MD-1':'MD-2'})),...Array.from({length:3},(_,i)=>({id:'H'+i,manufacturer:'HP',model:'EliteBook 840 G8',pallet:'MD-2'}))]};
