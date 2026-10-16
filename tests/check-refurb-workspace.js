@@ -233,6 +233,16 @@ app.whenReady().then(async()=>{
   fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/refurb-workspace.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("document.documentElement.dataset.theme='dark';void 0;");await new Promise(r=>setTimeout(r,150));
   fs.writeFileSync(path.resolve('qa-print/refurb-workspace-dark.png'),(await win.webContents.capturePage()).toPNG());
+  for(const [width,theme,zoom] of [[1440,'light',1],[1100,'light',1],[760,'light',1],[1440,'dark',1],[1440,'light',1.25]]){
+   win.setSize(width,1000);win.webContents.setZoomFactor(zoom);
+   await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";window.ApexRefurbWorkspace.open('queue');void 0;");
+   await new Promise(r=>setTimeout(r,200));
+   const queue=await win.webContents.executeJavaScript("(()=>{const bars=[...document.querySelectorAll('#rwQueueTable .rw-progress-track')];return {overflow:document.documentElement.scrollWidth>innerWidth+2,progress:bars.every(b=>Math.abs(b.firstElementChild.getBoundingClientRect().width-b.clientWidth*Number(b.getAttribute('aria-valuenow'))/100)<1.5),results:$('rwResults').textContent,search:$('rwSearch').getBoundingClientRect().width};})()");
+   if(queue.overflow||!queue.progress||!queue.results.includes('jobs')||queue.search<150)throw Error('Work queue controls or progress layout failed: '+JSON.stringify({width,theme,zoom,...queue}));
+   fs.writeFileSync(path.resolve('qa-print/work-queue-'+width+'-'+theme+'-'+zoom+'.png'),(await win.webContents.capturePage()).toPNG());
+  }
+  win.setSize(1440,1000);win.webContents.setZoomFactor(1);
+
   db.pallets.push({name:'Delete test pallet',label:'Confirmation fixture'});
   const devicesBeforeDelete=JSON.stringify(db.items);
   await win.webContents.executeJavaScript("refresh();void 0;");

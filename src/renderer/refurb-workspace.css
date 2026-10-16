@@ -235,3 +235,56 @@ html[data-theme=dark] #refurbWorkspacePage #rwQueueTable .rw-job-row.inventory-r
 #refurbWorkspacePage #rwQueueTable .rw-pagebar{padding:9px 12px}
 @media(max-width:850px){#refurbWorkspacePage .rw-queue-summary>div{padding:10px 12px}#refurbWorkspacePage #rwQueueTable .rw-work-table{min-width:690px}}
 @media(max-width:620px){#refurbWorkspacePage .rw-heading{align-items:flex-start}#refurbWorkspacePage #partsContent .ops-parts-heading{padding:12px}#refurbWorkspacePage #partsContent .ops-part-export-actions{padding:10px 12px}}
+
+/* Work queue: one control surface and a consistent row hierarchy. */
+#refurbWorkspacePage #rwQueue{min-width:0}
+#refurbWorkspacePage .rw-queue-summary{gap:12px;margin:4px 0 18px}
+#refurbWorkspacePage .rw-queue-summary>div{position:relative;justify-content:flex-start;gap:14px;padding:17px 20px;border-radius:10px;overflow:hidden}
+#refurbWorkspacePage .rw-queue-summary>div:before{content:'';width:4px;align-self:stretch;background:#176de3;border-radius:4px}
+#refurbWorkspacePage .rw-queue-summary>div:nth-child(2):before{background:#d59b32}
+#refurbWorkspacePage .rw-queue-summary>div:nth-child(3):before{background:#279575}
+#refurbWorkspacePage .rw-queue-summary span{font-size:12px;font-weight:500}
+#refurbWorkspacePage .rw-queue-summary strong{margin-left:auto;font-size:26px;letter-spacing:-.5px}
+#refurbWorkspacePage .rw-queue-controls{border:1px solid var(--line);background:var(--panel);border-radius:10px;margin:0 0 16px;overflow:hidden}
+#refurbWorkspacePage .rw-queue-controls .rw-toolbar{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;margin:0;border:0;border-radius:0;background:transparent}
+#refurbWorkspacePage .rw-search-field{display:flex;align-items:center;gap:9px;flex:1;max-width:560px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:0 12px;color:var(--muted)}
+#refurbWorkspacePage .rw-search-field svg{flex:none}
+#refurbWorkspacePage .rw-search-field:focus-within{border-color:#176de3;outline:2px solid #176de326;outline-offset:1px}
+#refurbWorkspacePage .rw-search-field #rwSearch{height:38px;min-height:38px;max-width:none;border:0;border-radius:0;padding:0;background:transparent;outline:none;box-shadow:none}
+#refurbWorkspacePage #rwResults{font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+#refurbWorkspacePage .rw-queue-controls #rwFilters{padding:0 16px 14px;margin:0;gap:6px}
+#refurbWorkspacePage #rwFilters button{min-height:32px;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:500;color:var(--muted)}
+#refurbWorkspacePage #rwFilters button:hover{background:var(--panel2);color:var(--text)}
+#refurbWorkspacePage #rwFilters button.selected{background:#176de30d;border-color:#176de366;color:#176de3;font-weight:650}
+#refurbWorkspacePage #rwFilters button>span{font-size:10px;min-width:20px;padding:1px 5px;border-radius:4px;background:var(--panel2);font-variant-numeric:tabular-nums}
+#refurbWorkspacePage #rwFilters button.selected>span{color:inherit;background:#176de31a}
+#refurbWorkspacePage .rw-queue-controls .rw-selection-bar{margin:0;padding:12px 16px;border:0;border-top:1px solid var(--line);border-radius:0}
+#refurbWorkspacePage #rwQueueTable{border-radius:10px;overflow:hidden!important;margin:0}
+#refurbWorkspacePage #rwQueueTable .rw-work-table{border-collapse:separate;border-spacing:0;min-width:720px}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th{padding:12px 18px!important;font-size:10px;font-weight:650;letter-spacing:.55px}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th:first-child{width:46px;padding-right:0!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th:nth-child(2){width:40%}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th:nth-child(3){width:34%}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>.rw-job-row>td{padding:16px 18px!important;vertical-align:middle;border-bottom:1px solid var(--line)}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>.rw-job-row>.inventory-selection-cell{padding-left:18px!important;padding-right:0!important}
+#refurbWorkspacePage #rwQueueTable .asset-link{font-size:12px;font-weight:700;color:#176de3!important}
+#refurbWorkspacePage #rwQueueTable .rw-device-name{font-size:13px;font-weight:650;line-height:1.4;margin:3px 0 7px}
+#refurbWorkspacePage #rwQueueTable .rw-device-meta{gap:3px 14px}
+#refurbWorkspacePage #rwQueueTable .rw-device-meta>span{font-size:10px;line-height:1.5}
+#refurbWorkspacePage #rwQueueTable .inventory-stage{display:inline-flex;align-items:center;border-radius:5px;font-size:10px;font-weight:650;line-height:1.4;padding:4px 8px}
+#refurbWorkspacePage #rwQueueTable .rw-task-tags{gap:5px;margin:7px 0}
+#refurbWorkspacePage #rwQueueTable .rw-tag{font-size:10px;line-height:1.4;padding:2px 6px;border-color:var(--line);background:transparent}
+#refurbWorkspacePage #rwQueueTable .rw-progress-track{display:block;width:180px;max-width:100%;height:5px;min-height:0;padding:0;margin:8px 0 0;background:var(--line);border:0;border-radius:4px;overflow:hidden}
+#refurbWorkspacePage #rwQueueTable .rw-progress-track>span{display:block;min-width:0!important;max-width:100%;height:5px;min-height:0;margin:0;padding:0;border:0;border-radius:4px;background:#176de3;box-sizing:border-box}
+#refurbWorkspacePage #rwQueueTable .rw-completion{font-size:10px;line-height:1.4;margin-top:5px}
+#refurbWorkspacePage #rwQueueTable .rw-next-cell>[data-rw-expand]{min-height:34px;border-radius:6px;padding:7px 12px;font-size:11px;font-weight:650}
+#refurbWorkspacePage #rwQueueTable .rw-next-description{font-size:10px;line-height:1.5;margin-top:6px}
+#refurbWorkspacePage #rwQueueTable .rw-detail{padding:18px;background:var(--panel2)}
+#refurbWorkspacePage #rwQueueTable .rw-detail-top{gap:14px;margin-bottom:16px}
+#refurbWorkspacePage #rwQueueTable .rw-detail .inventory-parts-table{background:var(--panel);border:1px solid var(--line);border-radius:7px}
+#refurbWorkspacePage #rwQueueTable .rw-pagebar{padding:12px 18px}
+#refurbWorkspacePage #rwQueue button:focus-visible{outline:2px solid #176de3;outline-offset:2px}
+html[data-theme=dark] #refurbWorkspacePage #rwFilters button.selected{color:#9ac9ff;border-color:#176de399;background:#176de326}
+html[data-theme=dark] #refurbWorkspacePage #rwQueueTable .asset-link{color:#9ac9ff!important}
+@media(max-width:850px){#refurbWorkspacePage .rw-queue-summary>div{flex-direction:row;align-items:center;padding:13px 14px;gap:8px}#refurbWorkspacePage .rw-queue-summary strong{font-size:23px}#refurbWorkspacePage .rw-queue-summary span{font-size:11px}}
+@media(max-width:620px){#refurbWorkspacePage .rw-queue-summary{gap:7px}#refurbWorkspacePage .rw-queue-summary>div{flex-direction:column;align-items:flex-start;padding:12px;gap:6px}#refurbWorkspacePage .rw-queue-summary>div:before{display:none}#refurbWorkspacePage .rw-queue-summary strong{margin-left:0}#refurbWorkspacePage .rw-queue-controls .rw-toolbar{gap:10px;flex-wrap:wrap;padding:12px}#refurbWorkspacePage .rw-search-field{flex-basis:100%;max-width:none}#refurbWorkspacePage .rw-queue-controls #rwFilters{padding:0 12px 12px}#refurbWorkspacePage .rw-queue-controls .rw-selection-bar{padding:12px}}
