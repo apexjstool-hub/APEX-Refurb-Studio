@@ -3,6 +3,7 @@ const {app,BrowserWindow,ipcMain}=require('electron'),path=require('node:path'),
 app.whenReady().then(async()=>{
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'apex-tracker-'));let win,microdreamOutput=null;
  try{
+  const vaultModule=require('../src/backmarket-prices'),nativeVault=new vaultModule.TokenVault(()=>folder,require('electron').safeStorage);nativeVault.save('native-vault-test-not-a-real-token');if(nativeVault.read()!=='native-vault-test-not-a-real-token'||fs.readFileSync(nativeVault.file(),'utf8').includes('native-vault-test-not-a-real-token'))throw Error('Native Windows price token encryption failed.');nativeVault.forget();
   const renderer=path.resolve(__dirname,'../src/renderer');let html=fs.readFileSync(path.join(renderer,'index.html'),'utf8').replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,'').replace(/href="([^"]+\.css)"/g,(_,p)=>'href="'+pathToFileURL(path.join(renderer,p)).href+'"');
   const assets=[core.normalize({id:'TEST-TRACKER',model:'HP ZBook Studio 16 inch G10 Mobile Workstation PC',manufacturer:'HP',serial:'TEST-SERIAL',location:'Unassigned',pallet:'PALLET-0001',status:'Awaiting Processing'})];let state=wf.init({jobs:{'TEST-TRACKER':{assetId:'TEST-TRACKER',status:'Awaiting Parts',priority:'Normal',partsBoard:'ordered',parts:[{id:'p',name:'Battery',qty:1,received:0,fitted:0,sourceKey:'test|battery'}],qc:{}}},orders:[],audit:[]});
   const db={items:assets,locations:['Unassigned','Inspection'],pallets:[{name:'PALLET-0001',label:'Batch'}]};
@@ -350,7 +351,7 @@ app.whenReady().then(async()=>{
   if(!await win.webContents.executeJavaScript("$('assetPriceToken').value===''&&priceTest.starts===0"))throw Error('Token input was retained or save started a paid run.');
   await win.webContents.executeJavaScript("$('assetPricesSection').querySelector('details').open=false;$('assetPriceFetch').click();void 0;");
   for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("$('assetPriceResults').querySelectorAll('.price-listing').length===1"))break;await new Promise(r=>setTimeout(r,50));}
-  if(!await win.webContents.executeJavaScript("priceTest.starts===1&&$('assetPriceResults').textContent.includes('£350.00')&&$('assetPriceResults').textContent.includes('£399.00')&&$('assetPriceResults').textContent.includes('Not available')&&$('assetPriceResults').textContent.includes('QWERTY - English')&&$('assetPriceStatus').textContent.includes('Last fetched')"))throw Error('Prices did not display the returned GBP values, unavailable condition or specs.');
+  if(!await win.webContents.executeJavaScript("priceTest.starts===1&&getComputedStyle($('assetPriceCancel')).display==='none'&&$('assetPriceResults').textContent.includes('£350.00')&&$('assetPriceResults').textContent.includes('£399.00')&&$('assetPriceResults').textContent.includes('Not available')&&$('assetPriceResults').textContent.includes('QWERTY - English')&&$('assetPriceStatus').textContent.includes('Last fetched')"))throw Error('Prices did not display the returned GBP values, unavailable condition or specs, or showed idle Cancel.');
   for(const width of [1440,760]){
    win.setSize(width,1000);
    for(const theme of ['light','dark']){
