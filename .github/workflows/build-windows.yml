@@ -93,7 +93,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
@@ -125,6 +125,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-assignment-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Pallet label/manifest verification failed.' }
+      - name: Verify Microdream template grouping and landscape PDF pagination
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-microdream-print.js
+          if ($LASTEXITCODE -ne 0) { throw 'Microdream job request print checks failed.' }
       - name: Verify branded desktop notification and report layouts
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
@@ -164,7 +169,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. First cleanup: main Inventory keeps a repair progress badge and clickable asset ID without duplicate repair dropdowns. Remove redundant device-opening buttons beside clickable IDs in Inventory, parts purchasing and pallet/location contents. Device details show one contextual Back control; the duplicate bottom link is removed. Parts, ordering, receipt, fitting, filters, Excel and unsaved-change safeguards are retained. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Select pallets inside Microdream and Create purchase order to preview and print the supplied Microdream Job Details / Delivery Note template. Identical device models are grouped once in Type, QTY Sent counts devices, Language is UK and Comment is Full respray. Includes optional Job Ref, Save PDF, multi-page model lists and stale-selection validation. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

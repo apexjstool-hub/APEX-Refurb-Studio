@@ -544,6 +544,8 @@ app.whenReady().then(()=>{
   if(records.some(a=>!a))return {ok:false,error:'A selected device no longer exists. Refresh inventory and select it again.'};
   return require('./label-output').outputLabel({records,type:input.type,size:'2x1',dpi:Number(input.dpi)||203},win,input.mode);
  }));
+ ipcMain.handle('inventory:microdreamPreview',secured(async input=>{try{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return {ok:true,document:require('./microdream-documents').select(data,input)};}catch(e){return {ok:false,error:e.message};}}));
+ ipcMain.handle('inventory:printMicrodreamRequest',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./microdream-output').output(input,win,data);}));
  ipcMain.handle('inventory:printAssignment',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./assignment-output').output(input,win,data);}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
