@@ -288,3 +288,9 @@ html[data-theme=dark] #refurbWorkspacePage #rwFilters button.selected{color:#9ac
 html[data-theme=dark] #refurbWorkspacePage #rwQueueTable .asset-link{color:#9ac9ff!important}
 @media(max-width:850px){#refurbWorkspacePage .rw-queue-summary>div{flex-direction:row;align-items:center;padding:13px 14px;gap:8px}#refurbWorkspacePage .rw-queue-summary strong{font-size:23px}#refurbWorkspacePage .rw-queue-summary span{font-size:11px}}
 @media(max-width:620px){#refurbWorkspacePage .rw-queue-summary{gap:7px}#refurbWorkspacePage .rw-queue-summary>div{flex-direction:column;align-items:flex-start;padding:12px;gap:6px}#refurbWorkspacePage .rw-queue-summary>div:before{display:none}#refurbWorkspacePage .rw-queue-summary strong{margin-left:0}#refurbWorkspacePage .rw-queue-controls .rw-toolbar{gap:10px;flex-wrap:wrap;padding:12px}#refurbWorkspacePage .rw-search-field{flex-basis:100%;max-width:none}#refurbWorkspacePage .rw-queue-controls #rwFilters{padding:0 12px 12px}#refurbWorkspacePage .rw-queue-controls .rw-selection-bar{padding:12px}}
+
+/* Make purchasing asset navigation recognisable as a link. */
+#refurbWorkspacePage #rwExistingPanel .asset-table .asset-link[data-op=open]{display:inline!important;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#176de3!important;font:inherit;font-weight:650;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#refurbWorkspacePage #rwExistingPanel .asset-table .asset-link[data-op=open]:hover{text-decoration-thickness:2px}
+#refurbWorkspacePage #rwExistingPanel .asset-table .asset-link[data-op=open]:focus-visible{outline:2px solid #176de3;outline-offset:4px}
+html[data-theme=dark] #refurbWorkspacePage #rwExistingPanel .asset-table .asset-link[data-op=open]{color:#9ac9ff!important}
