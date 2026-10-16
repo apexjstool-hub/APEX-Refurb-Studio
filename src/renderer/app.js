@@ -166,8 +166,8 @@ function renderRefurbishment(asset){
  if(!box||!status)return;
  const r=asset.refurbishment;
  if(!r||!Array.isArray(r.reports)||!r.reports.length){
-  status.textContent='● No refurbishment received';status.className='refurb-sync-state waiting';
-  box.innerHTML='<div class="refurb-empty"><div class="refurb-empty-icon">▤</div><div><strong>No refurbishment notes received</strong><p>Send this laptop directly from RefurbFlow Android to APEX Smart Inventory on the same private network. Approve the phone once in Settings; the Office Receiver is not required.</p></div></div>';return;
+  status.textContent='● No RefurbFlow report';status.className='refurb-sync-state waiting';
+  box.innerHTML='<div class="refurb-empty"><div class="refurb-empty-icon">▤</div><div><strong>No RefurbFlow report received</strong><p>Send this laptop directly from RefurbFlow Android to APEX Smart Inventory on the same private network. Approve the phone once in Settings; the Office Receiver is not required.</p></div></div>';return;
  }
  status.textContent='● Received from RefurbFlow';status.className='refurb-sync-state synced';
  const records=[...r.reports].sort((a,b)=>Number(b.sourceUpdatedAt||0)-Number(a.sourceUpdatedAt||0));
