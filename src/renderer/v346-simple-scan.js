@@ -43,15 +43,14 @@
   const value=clean(raw);
   if(!value)return false;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
-  const matchingAsset=items.some(a=>a.id===decoded);
+  const matchingAsset=items.some(a=>!a.deletedAt&&a.id===decoded);
   if(matchingAsset){
    // Avoid auto-adding a shorter ID that prefixes another registered Asset ID.
    return !items.some(a=>a.id!==decoded&&a.id.startsWith(decoded));
   }
-  const loc=clean(value.replace(/^(LOCATION|LOC)\s*[:#]\s*/i,'' )).toLowerCase();
-  const all=locations();
-  return all.some(name=>name.toLowerCase()===loc) &&
-   !all.some(name=>name.toLowerCase()!==loc&&name.toLowerCase().startsWith(loc));
+  const lookup=upper(value.replace(/^(PALLET|LOCATION|LOC)\s*[:#]\s*/i,(_,kind)=>kind.toUpperCase()+':'));
+  const names=[...pallets().flatMap(p=>[upper(p.name),'PALLET:'+upper(p.name)]),...locations().flatMap(n=>[upper(n),'LOC:'+upper(n),'LOCATION:'+upper(n)]),...items.filter(a=>!a.deletedAt).map(a=>upper(a.id))];
+  return names.includes(lookup)&&!names.some(n=>n!==lookup&&n.startsWith(lookup));
  }
  function submitScan(){
   stopAutoScan();resetKeys();
@@ -74,6 +73,7 @@
   },IDLE_SUBMIT_MS);
  }
 
+ function pallets(){return window.ApexPalletManagement.listPallets({items,pallets:managedPallets});}
  function locations(){return [...new Set([...managedLocations,...items.map(a=>a.location).filter(x=>x&&x!=='Unassigned')])].sort((a,b)=>a.localeCompare(b));}
  function showStatus(text,error=false){const node=el('v346ScanStatus');node.textContent=text;node.classList.toggle('v346-error',error);node.classList.toggle('v348-success',!error && (/added|moved|cleared|found|undone|restored/.test(text.toLowerCase())));if(error||/added|found/.test(text.toLowerCase()))feedbackTone(error);}
  function drawScan(){
@@ -84,24 +84,31 @@
   el('v346BatchContent').classList.remove('hidden');
   el('v346Clear').disabled=active.length===0;
   el('v346MoveLocation').disabled=active.length===0||transferBusy;el('scanCreatePallet').disabled=transferBusy;
-  el('v346DeviceList').innerHTML=`<table class="asset-table v346-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Current assignment</th><th><span class="v352-actions-col">Action</span></th></tr></thead><tbody>${active.length?active.map(a=>`<tr><td><b>${html(a.id)}</b></td><td>${html(deviceName(a))}<small>${html(a.serial||'')}</small></td><td>${html(a.pallet||a.location||'Unassigned')}</td><td class="v346-remove-cell"><button class="v346-remove" type="button" data-remove-id="${html(a.id)}" aria-label="Remove ${html(a.id)} from scan list">Remove</button></td></tr>`).join(''):'<tr class="v352-empty-row"><td colspan="4">No devices scanned yet. Scan an Asset ID or a saved location above.</td></tr>'}</tbody></table>`;
+  el('v346DeviceList').innerHTML=`<table class="asset-table v346-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Current assignment</th><th><span class="v352-actions-col">Action</span></th></tr></thead><tbody>${active.length?active.map(a=>`<tr><td><b>${html(a.id)}</b></td><td>${html(deviceName(a))}<small>${html(a.serial||'')}</small></td><td>${html(a.pallet||a.location||'Unassigned')}</td><td class="v346-remove-cell"><button class="v346-remove" type="button" data-remove-id="${html(a.id)}" aria-label="Remove ${html(a.id)} from scan list">Remove</button></td></tr>`).join(''):'<tr class="v352-empty-row"><td colspan="4">No devices scanned yet. Scan an Asset ID, pallet name or saved location above.</td></tr>'}</tbody></table>`;
   el('v346DeviceList').querySelectorAll('[data-remove-id]').forEach(b=>b.onclick=()=>{batch=batch.filter(id=>id!==b.dataset.removeId);drawScan();showStatus(`${b.dataset.removeId} removed from the scan list. No asset was moved.`);el('v346ScanInput').focus();});
   el('v346Destinations').innerHTML=[...new Set([...locations(),...managedPallets.map(p=>p.name)])].map(name=>`<option value="${html(name)}"></option>`).join('');
  }
  function scan(raw){
   const value=clean(raw);if(!value)return;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
-  const asset=items.find(a=>a.id===decoded);
+  const asset=items.find(a=>!a.deletedAt&&a.id===decoded);
   if(asset){inventoryLookupFeedback(true);if(batch.includes(asset.id)){showStatus(`${asset.id} already scanned — not added twice.`,true);return;}
    if(batch.length>=300){showStatus('Maximum 300 devices per move.',true);return;}
    batch.push(asset.id);showStatus(`${asset.id} added. ${batch.length} device(s) in your list.`);drawScan();return;}
+  const palletName=clean(value.replace(/^PALLET\s*[:#]\s*/i,''));
+  const pallet=!/^(LOCATION|LOC)\s*[:#]/i.test(value)&&pallets().find(p=>upper(p.name)===upper(palletName));
+  if(pallet){
+   const matches=items.filter(a=>!a.deletedAt&&upper(a.pallet)===upper(pallet.name)),fresh=matches.filter(a=>!batch.includes(a.id));
+   if(batch.length+fresh.length>300){showStatus(`${pallet.name} contains ${matches.length} device(s). Adding all would exceed the 300-device move limit. Clear the list or move a smaller batch; no devices were added.`,true);return;}
+   batch.push(...fresh.map(a=>a.id));inventoryLookupFeedback(true);showStatus(`${pallet.name}: ${matches.length} device(s) found, ${fresh.length} added. Choose the destination pallet and review the move.`);drawScan();return;
+  }
   const scannedLocation=clean(value.replace(/^(LOCATION|LOC)\s*[:#]\s*/i,''));
   const found=locations().find(name=>name.toLowerCase()===scannedLocation.toLowerCase());
   if(found){const matches=items.filter(a=>a.location.toLowerCase()===found.toLowerCase());let added=0;
    for(const a of matches){if(batch.length>=300)break;if(!batch.includes(a.id)){batch.push(a.id);added++;}}
    showStatus(`${found}: ${matches.length} device(s) found, ${added} added${batch.length>=300?' (300-device limit)':''}.`);
    drawScan();return;}
-  inventoryLookupFeedback(false);showStatus(`“${value}” isn't an existing Asset ID or location. Check the scan.`,true);
+  inventoryLookupFeedback(false);showStatus(`“${value}” isn't an existing Asset ID, pallet or location. Check the scan.`,true);
  }
  el('topScan').onclick=()=>setPage('bulk');
  scanField.addEventListener('keydown',event=>{

@@ -210,6 +210,12 @@ async function cloudInventoryCall(method,route,payload){
  if(method==='POST'&&route==='/v1/pallet-locations')return cloudMetaAction('createPalletLocation',payload);
  if(method==='POST'&&route==='/v1/pallets/move')return cloudMetaAction('movePallets',payload);
  if(method==='POST'&&route==='/v1/pallets')return cloudMetaAction('createPallet',payload);
+ if(method==='POST'&&route==='/v1/pallets/rename'){
+  const meta=await cloudMeta();if(!meta.ok)return meta;
+  try{const response=await cloudFetch('/rest/v1/rpc/apex_rename_pallet',{method:'POST',headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token,'Content-Type':'application/json'},body:JSON.stringify({p_name:payload.name,p_new_name:payload.newName,p_meta_revision:meta.data.revision}),signal:AbortSignal.timeout(20000)});
+   const value=await response.json();return response.ok?value:{ok:false,error:value.message||'Cloud pallet renaming is unavailable. Apply pallet-rename.sql and refresh.'};
+  }catch{return {ok:false,error:'Pallet rename could not be confirmed. Refresh before retrying.'};}
+ }
  if(method==='POST'&&route==='/v1/pallets/delete')return cloudMetaAction('deletePallet',payload);
  if(method==='POST'&&route==='/v1/asset-activity'){
   try{const response=await cloudFetch('/rest/v1/rpc/apex_get_asset_activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_asset_id:payload.id,p_before_at:payload.cursor?.at||null,p_before_key:payload.cursor?.key||null,p_limit:payload.limit||100}),signal:AbortSignal.timeout(12000)});const value=await response.json();return response.ok?{ok:true,...value}:{ok:false,error:'Could not load the saved asset trail. Refresh and retry.'};}
@@ -521,6 +527,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:createPalletLocation',secured(input=>inventoryCall('POST','/v1/pallet-locations',input,()=>{const db=loadDB();const result=palletManagement.createPalletLocation(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:movePallets',secured(input=>inventoryCall('POST','/v1/pallets/move',input,()=>{const db=loadDB();const result=palletManagement.movePallets(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:createPallet',secured(input=>inventoryCall('POST','/v1/pallets',input,()=>{const db=loadDB();const result=palletManagement.createPallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+ ipcMain.handle('inventory:renamePallet',secured(input=>inventoryCall('POST','/v1/pallets/rename',input,()=>{const db=loadDB();const result=palletManagement.renamePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:deletePallet',secured(input=>inventoryCall('POST','/v1/pallets/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:bulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-move',input,()=>{const db=loadDB();const result=palletManagement.moveBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:undoBulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-restore',input,()=>{const db=loadDB();const result=palletManagement.restoreBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;}))); 

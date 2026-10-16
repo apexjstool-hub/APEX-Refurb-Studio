@@ -29,10 +29,21 @@
  window.ApexInventoryTracker={decorate,matches:a=>{if($('palletFilter').value&&String(a.pallet||'').trim().toUpperCase()!==$('palletFilter').value.trim().toUpperCase())return false;const filter=$('repairFilter').value;if(!filter)return true;const s=info(a.id);if(['order','delivery','fit'].includes(filter)){if(['completed','hold'].includes(s.key))return false;return (filter==='order'?s.toOrder:filter==='delivery'?s.awaiting:s.toFit)>0;}return s.key===filter;}};
  window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='inventory')render();});
  const pals=()=>managedPallets;
- function renderPallets(){const list=pals(),counts=new Map();for(const a of items){const key=String(a.pallet||'').toUpperCase();counts.set(key,(counts.get(key)||0)+1);}$('apexPalletTable').innerHTML=list.length?`<table class="asset-table"><thead><tr><th>Pallet number</th><th>Description</th><th>Created</th><th>Pallet location</th><th>Devices</th><th class="storage-actions-heading">Actions</th></tr></thead><tbody>${list.map(p=>`<tr><td><strong>${html(p.name)}</strong></td><td>${html(p.label||'—')}</td><td>${html(p.createdAt?new Date(p.createdAt).toLocaleDateString():'—')}</td><td>${html(p.storageLocation||'Unassigned')}</td><td>${counts.get(p.name.toUpperCase())||0}</td><td class="storage-actions-cell"><div class="storage-row-actions"><button class="secondary" type="button" data-pallet-show="${html(p.name)}">View devices</button> <button class="secondary" type="button" data-pallet-location="${html(p.name)}">Move pallet</button> <button class="secondary" type="button" data-pallet-delete="${html(p.name)}">Delete empty pallet</button></div></td></tr>`).join('')}</tbody></table>`:'<div class="empty"><strong>No pallets yet</strong>Create a pallet, then assign devices from their Overview page.</div>';
+ function renderPallets(){const list=pals(),counts=new Map();for(const a of items){const key=String(a.pallet||'').toUpperCase();counts.set(key,(counts.get(key)||0)+1);}$('apexPalletTable').innerHTML=list.length?`<table class="asset-table"><thead><tr><th>Pallet number</th><th>Description</th><th>Created</th><th>Pallet location</th><th>Devices</th><th class="storage-actions-heading">Actions</th></tr></thead><tbody>${list.map(p=>`<tr><td><strong>${html(p.name)}</strong></td><td>${html(p.label||'—')}</td><td>${html(p.createdAt?new Date(p.createdAt).toLocaleDateString():'—')}</td><td>${html(p.storageLocation||'Unassigned')}</td><td>${counts.get(p.name.toUpperCase())||0}</td><td class="storage-actions-cell"><div class="storage-row-actions"><button class="secondary" type="button" data-pallet-show="${html(p.name)}">View devices</button> <button class="secondary" type="button" data-pallet-rename="${html(p.name)}">Rename</button> <button class="secondary" type="button" data-pallet-location="${html(p.name)}">Move pallet</button> <button class="secondary" type="button" data-pallet-delete="${html(p.name)}">Delete empty pallet</button></div></td></tr>`).join('')}</tbody></table>`:'<div class="empty"><strong>No pallets yet</strong>Create a pallet, then assign devices from their Overview page.</div>';
+  $('apexPalletTable').querySelectorAll('[data-pallet-rename]').forEach(b=>b.onclick=()=>renamePallet(b.dataset.palletRename));
   $('apexPalletTable').querySelectorAll('[data-pallet-location]').forEach(b=>b.onclick=()=>window.ApexPalletLocations?.move([b.dataset.palletLocation]));
   $('apexPalletTable').querySelectorAll('[data-pallet-show]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('pallet',b.dataset.palletShow));
   $('apexPalletTable').querySelectorAll('[data-pallet-delete]').forEach(b=>b.onclick=()=>removePallet(b.dataset.palletDelete,b));
+ }
+ function renamePallet(name){
+  const count=items.filter(a=>!a.deletedAt&&String(a.pallet||'').trim().toUpperCase()===name.trim().toUpperCase()).length;
+  showModal('Rename pallet','INVENTORY / PALLETS',`<form id="renamePalletForm" class="modal-body"><p>Rename <b>${html(name)}</b>. The pallet name in all ${count} assigned device(s) will update too.</p><label class="field">Pallet name or number<input name="newName" value="${html(name)}" maxlength="80" required autocomplete="off"></label><p class="section-note">After renaming, print a new pallet label to scan the new name.</p><div id="renamePalletError" class="form-error" role="alert"></div><div class="modal-actions"><button id="renamePalletCancel" type="button" class="secondary">Cancel</button><button type="submit" class="primary">Save pallet name</button></div></form>`);
+  $('renamePalletCancel').onclick=closeModal;
+  $('renamePalletForm').onsubmit=async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector('[type="submit"]');if(button.disabled)return;button.disabled=true;$('renamePalletCancel').disabled=true;
+   try{const r=await api.renamePallet({name,newName:form.elements.newName.value});if(!r.ok){$('renamePalletError').textContent=r.error||'Unable to rename pallet.';return;}closeModal();await refresh();notify('Pallet renamed; assigned devices updated.');}
+   catch{if($('renamePalletError'))$('renamePalletError').textContent='Rename could not be confirmed. Refresh before retrying.';}
+   finally{button.disabled=false;if($('renamePalletCancel'))$('renamePalletCancel').disabled=false;}
+  };
  }
  async function removePallet(name,button){
   if(items.some(a=>!a.deletedAt&&String(a.pallet||'').toUpperCase()===String(name).toUpperCase())){notify('Move the devices off this pallet before deleting it.');return;}
@@ -54,7 +65,7 @@
   };
  }
  $('apexCreatePallet').onclick=()=>createPallet();
- window.ApexPalletPage={render:renderPallets,create:createPallet,remove:removePallet};
+ window.ApexPalletPage={render:renderPallets,create:createPallet,rename:renamePallet,remove:removePallet};
  $('editPallet').addEventListener('change',()=>{if($('editPallet').value)$('editLocation').value='Unassigned';dirty=true;updateAssetOverview();});
  $('editLocation').addEventListener('change',()=>{if($('editLocation').value!=='Unassigned')$('editPallet').value='';dirty=true;updateAssetOverview();});
  decorate();renderPallets();

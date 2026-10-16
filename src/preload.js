@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  deletePalletLocation:input=>ipcRenderer.invoke('inventory:deletePalletLocation',input),
  createPalletLocation:input=>ipcRenderer.invoke('inventory:createPalletLocation',input),
  movePallets:input=>ipcRenderer.invoke('inventory:movePallets',input),
+ renamePallet:input=>ipcRenderer.invoke('inventory:renamePallet',input),
  createPallet:input=>ipcRenderer.invoke('inventory:createPallet',input),
  deletePallet:input=>ipcRenderer.invoke('inventory:deletePallet',input),
  bulkMove:input=>ipcRenderer.invoke('inventory:bulkMove',input),

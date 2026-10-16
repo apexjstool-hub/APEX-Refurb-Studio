@@ -45,3 +45,14 @@ test('custom pallet names preserve case, support punctuation, stay unique and wo
  assert.equal(P.moveBatch(db,{ids:['A'],pallet:name}).ok,true);assert.equal(db.items[0].pallet,name);assert.equal(P.listPallets(db).find(p=>p.name===name).assets,1);
  assert.equal(P.deletePallet(db,{name}).ok,false);
 });
+
+test('Rename occupied, empty and inferred pallets without changing contents or storage',()=>{
+ const db={locations:['Inspection'],pallets:[{name:'Old pallet',label:'Keep label',storageLocation:'Rack A',createdAt:'2025-01-01'},{name:'Other'}],items:[{id:'A',pallet:'Old pallet',location:'Unassigned',history:[],refurbNotes:'Keep notes'},{id:'B',pallet:'OLD PALLET',location:'Inspection',history:[]},{id:'C',pallet:'Other',history:[]}]};
+ const r=P.renamePallet(db,{name:'Old pallet',newName:'Custom / Batch 7'});assert.equal(r.ok,true);assert.equal(r.renamed,2);assert.equal(db.items[0].pallet,'Custom / Batch 7');assert.equal(db.items[1].pallet,'Custom / Batch 7');assert.equal(db.items[1].location,'Inspection');assert.equal(db.items[0].refurbNotes,'Keep notes');assert.equal(db.items[2].pallet,'Other');assert.equal(db.pallets[0].storageLocation,'Rack A');assert.equal(db.pallets[0].createdAt,'2025-01-01');assert.equal(db.pallets[0].label,'Keep label');assert.equal(db.items[0].history.at(-1).type,'Pallet assignment');
+ for(const newName of ['Other','','<bad>','a'.repeat(81)]){const before=JSON.stringify(db);assert.equal(P.renamePallet(db,{name:'Custom / Batch 7',newName}).ok,false);assert.equal(JSON.stringify(db),before);}
+ assert.equal(P.renamePallet(db,{name:'Old pallet',newName:'Stale'}).ok,false);
+ assert.equal(P.renamePallet(db,{name:'Custom / Batch 7',newName:'CUSTOM / BATCH 7'}).ok,true);assert.equal(db.items[0].pallet,'CUSTOM / BATCH 7');
+ const before=JSON.stringify(db);assert.equal(P.renamePallet(db,{name:'CUSTOM / BATCH 7',newName:'CUSTOM / BATCH 7'}).renamed,0);assert.equal(JSON.stringify(db),before);
+ assert.equal(P.renamePallet(db,{name:'Other',newName:'Empty renamed'}).ok,true);
+ const legacy={items:[{id:'L',pallet:'Legacy',history:[]}]};assert.equal(P.renamePallet(legacy,{name:'Legacy',newName:'Registered now'}).ok,true);assert.equal(legacy.pallets[0].name,'Registered now');
+});

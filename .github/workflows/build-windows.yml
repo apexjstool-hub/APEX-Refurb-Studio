@@ -51,6 +51,10 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f cloud/asset-activity.sql
           psql -v ON_ERROR_STOP=1 -f tests/pallet-locations-regression.sql
           psql -v ON_ERROR_STOP=1 -f tests/asset-activity-regression.sql
+          psql -v ON_ERROR_STOP=1 -f tests/pallet-rename-bootstrap.sql
+          psql -v ON_ERROR_STOP=1 -f cloud/pallet-rename.sql
+          psql -v ON_ERROR_STOP=1 -f cloud/pallet-rename.sql
+          psql -v ON_ERROR_STOP=1 -f tests/pallet-rename-regression.sql
   build:
     needs: pallet-storage
     runs-on: windows-latest
@@ -160,14 +164,14 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Add and save your own notes directly on the device Refurb notes tab. Manual notes are stored separately from imported RefurbFlow reports and logged in asset history. Inventory and parts-needed Excel exports include a dedicated Refurb notes column; part descriptions, costs and ordered-part exclusions stay intact. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Scan a pallet name to load its devices into Scan, review and move them to another pallet using the existing transfer workflow. Rename existing pallets from Pallets or pallet location detail; assigned device references update together and history is retained. Includes atomic staff-only cloud rename SQL. Reprint pallet labels after renaming. Existing 300-device move limit is enforced without partial pallet loading. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
             gh release create $tag --draft --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Draft release preparation failed.' }
-          $files = @($installer, 'dist/latest.yml', 'cloud/pallet-locations-4.0.49.sql', 'cloud/asset-activity.sql')
+          $files = @($installer, 'dist/latest.yml', 'cloud/pallet-locations-4.0.49.sql', 'cloud/asset-activity.sql', 'cloud/pallet-rename.sql')
           if (Test-Path "$installer.blockmap") { $files += "$installer.blockmap" }
           gh release upload $tag @files --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed. Do not publish the incomplete draft.' }

@@ -144,6 +144,20 @@
   db.pallets.push(proposed);
   return {ok:true,pallet:{...proposed,assets:ids.length},moved:ids.length,pallets:listPallets(db)};
  }
+ function renamePallet(db,input={}){
+  const current=listPallets(db).find(p=>equal(p.name,input.name)),name=clean(input.newName);
+  if(!current)return {ok:false,error:'Pallet no longer exists. Refresh and try again.'};
+  if(!name||name.length>80||/[<>\x00-\x1f\x7f]/.test(name))return {ok:false,error:'Enter a pallet name or number of 1–80 characters, without < or >.'};
+  if(listPallets(db).some(p=>!equal(p.name,current.name)&&equal(p.name,name)))return {ok:false,error:'That pallet name already exists. Choose a different name.'};
+  if(current.name===name)return {ok:true,pallet:current,renamed:0,pallets:listPallets(db)};
+  const oldItems=(db.items||[]).filter(a=>!a.deletedAt&&equal(a.pallet,current.name)),copies=[];
+  for(const asset of oldItems){const copy=structuredClone(asset),result=core.update([copy],copy.id,{pallet:name});if(!result.ok)return result;copies.push(copy);}
+  const next=(db.pallets||[]).map(p=>({...p}));let saved=next.find(p=>equal(p.name,current.name));
+  if(!saved){saved={name:current.name,label:current.label,location:current.location,storageLocation:current.storageLocation,createdAt:current.createdAt};next.push(saved);}
+  saved.name=name;saved.updatedAt=new Date().toISOString();
+  copies.forEach((copy,i)=>{db.items[db.items.indexOf(oldItems[i])]=copy;});db.pallets=next;
+  return {ok:true,oldName:current.name,pallet:{...saved,assets:copies.length},renamed:copies.length,pallets:listPallets(db)};
+ }
  function deletePallet(db,input={}) {
   const current=listPallets(db).find(p=>equal(p.name,input.name));
   if(!current)return {ok:false,error:'Pallet not found.'};
@@ -155,7 +169,7 @@
   db.pallets=(db.pallets||[]).filter(p=>!equal(p.name,current.name));
   return {ok:true,removed:current.name,unassigned:next.length};
  }
- const api={palletLocations,createPalletLocation,deletePalletLocation,movePallets,listPallets,nextPalletId,createPallet,moveBatch,restoreBatch,deletePallet};
+ const api={palletLocations,createPalletLocation,deletePalletLocation,movePallets,listPallets,nextPalletId,createPallet,renamePallet,moveBatch,restoreBatch,deletePallet};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  if(typeof window!=='undefined')window.ApexPalletManagement=api;
 })();
