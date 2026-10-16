@@ -324,6 +324,11 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("projectionFixture.condition='Good';window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[];updateAssetOverview();void 0;");
   if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Good'&&$('assetGradeProjection').querySelectorAll('.gp-part').length===0"))throw Error('Empty job resurrected stale parts or changed the assigned baseline.');
   await win.webContents.executeJavaScript("projectionFixture.condition='Fair';window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'LCD',qty:1},{name:'Full respray',qty:1},{name:'Battery',qty:1},{name:'Keyboard',qty:1}];updateAssetOverview();$('assetGradeProjection').querySelector('details').open=false;void 0;");
+  await win.webContents.executeJavaScript("window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'LCD',qty:1},{name:'Respray + UK Keyboard',qty:1},{name:'Battery',qty:1}];updateAssetOverview();void 0;");
+  if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Excellent'&&$('assetGradeProjection').textContent.includes('Respray + UK Keyboard')&&projectionFixture.condition==='Fair'"))throw Error('Bundled respray + UK keyboard did not project Excellent.');
+  await win.webContents.executeJavaScript("window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'Respray Keyboard',qty:1}];window.dispatchEvent(new Event('apex:workflow-updated'));void 0;");
+  if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Fair'"))throw Error('Keyboard-only respray incorrectly promoted to Excellent.');
+  await win.webContents.executeJavaScript("window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'LCD',qty:1},{name:'Respray + UK Keyboard',qty:1},{name:'Battery',qty:1}];updateAssetOverview();void 0;");
   for(const width of [1440,1100,760]){
    win.setSize(width,1000);
    for(const theme of ['light','dark']){

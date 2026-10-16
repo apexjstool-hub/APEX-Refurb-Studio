@@ -36,3 +36,14 @@ test('Battery eligibility and failed diagnostics are separate from the cosmetic 
  a.batteryPercentage='';assert.match(gp.project(a,workflow([])).readiness,/not recorded/);
  a.inspection.battery='Failed';assert.match(gp.project(a,workflow([])).readiness,/failure recorded/);
 });
+test('Bundled respray + UK keyboard means full respray; keyboard-only respray remains partial',()=>{
+ for(const name of ['Respray + UK Keyboard','RESPRAY+UK KEYBOARD','Full Respray + UK Keyboard','Respray & UK Keyboard','Respray and UK Keyboard','UK Keyboard + Respray','All respray + UK keyboard']){
+  const a=asset(),w=workflow(['LCD',name,'Battery']),before=JSON.stringify([a,w]);
+  assert.equal(gp.classify(name),'full-respray',name);assert.equal(gp.project(a,w).potential,'Excellent',name);assert.equal(JSON.stringify([a,w]),before);
+ }
+ for(const name of ['Respray Keyboard','Respray UK Keyboard','Keyboard respray','Lid respray + UK Keyboard','Respray Keyboard + UK Keyboard']){
+  assert.equal(gp.classify(name),'partial-respray',name);assert.equal(gp.project(asset(),workflow([name])).potential,'Fair',name);
+ }
+ const a=asset();a.refurbishment={repairs:[{name:'Respray + UK Keyboard',quantity:1}]};assert.equal(gp.project(a).potential,'Excellent');
+ assert.match(gp.project(a).explanation.join(' '),/not a keyboard-only respray/);
+});

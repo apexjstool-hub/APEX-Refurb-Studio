@@ -7,6 +7,11 @@
  function classify(name){
   const n=normal(name),spray=/\b(?:respray|re spray|repaint|re paint|paint)\b/.test(n);
   if(spray){
+   // Separate bundled tasks from a respray applied to the keyboard itself.
+   const tasks=n.split(/\s*(?:\+|&|\band\b)\s*/).filter(Boolean);
+   const wholeTask=s=>/^(?:(?:full|complete|whole|all)(?: body| device| laptop)? )?(?:respray|re spray|repaint|re paint)(?: required)?$/.test(s);
+   const keyboardTask=s=>/^(?:(?:new|replacement) )?(?:(?:uk|united kingdom|british) )?keyboard(?: replacement)?$/.test(s);
+   if(tasks.length>1&&tasks.some(wholeTask)&&tasks.some(keyboardTask))return 'full-respray';
    const partial=/\b(?:lid|cover|base|bottom|palmrest|palm rest|keyboard|keycap|touchpad|bezel|partial|spot|top case)\b/.test(n);
    const full=!partial&&(/^(?:(?:full|complete|whole)(?: body| device| laptop)? )?(?:respray|re spray|repaint|re paint)(?: required)?$/.test(n)||/\b(?:full|complete|whole) (?:body|device|laptop)\b/.test(n));
    return full?'full-respray':'partial-respray';
@@ -34,6 +39,7 @@
   else if(full)explanation.push('Full respray projects Excellent body condition under your workshop rule.');
   else explanation.push('Without a full respray, the recorded '+current+' grade is retained: the parts list alone cannot prove the condition of all remaining surfaces.');
   if(screen)explanation.push('LCD / screen replacement is assumed to leave a scratch-free screen.');
+  if(list.rows.some(r=>r.effect==='full-respray'&&/\bkeyboard\b/i.test(r.name)))explanation.push('Respray + UK Keyboard is a full respray with a keyboard task, not a keyboard-only respray.');
   if(has('partial-respray'))explanation.push('A respray of one area is included, but does not restore the whole body.');
   if(has('keyboard')||has('body-part'))explanation.push('Replacement keyboard or casing parts improve only the areas being replaced.');
   if(battery)explanation.push('Battery replacement supports battery readiness; it does not raise the cosmetic grade.');
