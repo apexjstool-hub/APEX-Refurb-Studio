@@ -340,6 +340,33 @@ app.whenReady().then(async()=>{
   }
   win.setSize(1440,1000);await win.webContents.executeJavaScript("readAsset=savedReadAsset;updateAssetOverview=function(){};void 0;");
   console.log('PASS: read-only Grade Projection uses live asset parts, responds to requirement changes, retains current grade and fits light/dark device layouts.');
+  // Prices uses a mocked provider here: no credential or paid external run is used in CI.
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'asset-prices-ui.js'),'utf8'));
+  await win.webContents.executeJavaScript("var priceTest={configured:false,starts:0,context:0,result:null};var priceState=q=>({ok:true,query:q,configured:priceTest.configured,canRun:true,busy:false,run:null,limit:10,capUsd:.25,result:q==='Dell Latitude 5420'?priceTest.result:null});api={...api,pricesContext:async c=>{priceTest.context++;return {...priceState(c.id==='TEST-TRACKER'?'Dell Latitude 5420':'HP EliteBook'),device:c.id==='TEST-TRACKER'?'Dell Latitude 5420 · Core i5 · 16 GB · SSD 512 GB':'HP EliteBook'};},pricesState:async c=>priceState(c.query),pricesSaveToken:async t=>{priceTest.configured=true;return {ok:true};},pricesForgetToken:async()=>{priceTest.configured=false;return {ok:true};},pricesStart:async c=>{priceTest.starts++;priceTest.result={query:c.query,fetchedAt:'2026-10-16T21:00:00Z',costUsd:.012,items:[{title:'Dell Latitude 5420 — Core i5 — 16 GB — SSD 512 GB',sellingPrice:350,conditions:{Fair:350,Good:399,Excellent:null},specs:{processor:'Core i5',ram:'16 GB',storage:'512 GB',keyboard:'QWERTY - English'},url:'https://www.backmarket.co.uk/en-gb/p/example'}]};return priceState(c.query);},pricesCancel:async()=>({ok:true}),pricesOpenLink:async()=>({ok:true}),pricesOpenConsole:async()=>({ok:true})};activeAssetId='TEST-TRACKER';setPage('asset');$('v3AssetTabs').querySelector('[data-asset-tab=prices]').click();void 0;");
+  for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("!!$('assetPriceQuery')&&$('assetPriceQuery').value==='Dell Latitude 5420'"))break;await new Promise(r=>setTimeout(r,50));}
+  if(!await win.webContents.executeJavaScript("$('assetPage').dataset.section==='prices'&&getComputedStyle($('assetPricesSection')).display!=='none'&&getComputedStyle($('apexAssetRefurbSection')).display==='none'&&getComputedStyle($('assetEditor')).display==='none'&&$('assetPriceFetch').disabled&&priceTest.starts===0&&$('assetPriceDevice').textContent.includes('16 GB')"))throw Error('Prices tab routing, initial token state or no-auto-paid-run behavior failed.');
+  await win.webContents.executeJavaScript("$('assetPricesSection').querySelector('details').open=true;$('assetPriceToken').value='fake-unit-test-token';$('assetPriceSaveToken').click();void 0;");
+  for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("!$('assetPriceFetch').disabled"))break;await new Promise(r=>setTimeout(r,50));}
+  if(!await win.webContents.executeJavaScript("$('assetPriceToken').value===''&&priceTest.starts===0"))throw Error('Token input was retained or save started a paid run.');
+  await win.webContents.executeJavaScript("$('assetPricesSection').querySelector('details').open=false;$('assetPriceFetch').click();void 0;");
+  for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("$('assetPriceResults').querySelectorAll('.price-listing').length===1"))break;await new Promise(r=>setTimeout(r,50));}
+  if(!await win.webContents.executeJavaScript("priceTest.starts===1&&$('assetPriceResults').textContent.includes('£350.00')&&$('assetPriceResults').textContent.includes('£399.00')&&$('assetPriceResults').textContent.includes('Not available')&&$('assetPriceResults').textContent.includes('QWERTY - English')&&$('assetPriceStatus').textContent.includes('Last fetched')"))throw Error('Prices did not display the returned GBP values, unavailable condition or specs.');
+  for(const width of [1440,760]){
+   win.setSize(width,1000);
+   for(const theme of ['light','dark']){
+    await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";$('assetPricesSection').scrollIntoView({block:'start'});void 0;");await new Promise(r=>setTimeout(r,150));
+    if(!await win.webContents.executeJavaScript("$('assetPricesSection').scrollWidth<=$('assetPricesSection').clientWidth+2&&$('assetPriceResults').querySelectorAll('.price-conditions>div').length===3"))throw Error('Prices layout overflow at '+width+' '+theme);
+    fs.writeFileSync(path.resolve('qa-print/asset-prices-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+   }
+  }
+  await win.webContents.executeJavaScript("$('v3AssetTabs').querySelector('[data-asset-tab=overview]').click();$('v3AssetTabs').querySelector('[data-asset-tab=prices]').click();void 0;");
+  for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("$('assetPriceResults').querySelectorAll('.price-listing').length===1"))break;await new Promise(r=>setTimeout(r,50));}
+  if(!await win.webContents.executeJavaScript("priceTest.starts===1&&$('assetPriceResults').textContent.includes('£399.00')"))throw Error('Reopening cached prices started another paid run or lost the result.');
+  await win.webContents.executeJavaScript("activeAssetId='RW-FIT';setPage('asset');$('v3AssetTabs').querySelector('[data-asset-tab=prices]').click();void 0;");
+  for(let i=0;i<40;i++){if(await win.webContents.executeJavaScript("!!$('assetPriceQuery')&&$('assetPriceQuery').value==='HP EliteBook'"))break;await new Promise(r=>setTimeout(r,50));}
+  if(!await win.webContents.executeJavaScript("priceTest.starts===1&&$('assetPriceResults').querySelectorAll('.price-listing').length===0&&!$('assetPriceResults').textContent.includes('£399.00')"))throw Error('One device prices leaked into another search.');
+  win.setSize(1440,1000);await win.webContents.executeJavaScript("window.ApexAssetPrices.hide();activeAssetId='TEST-TRACKER';setPage('asset');void 0;");
+  console.log('PASS: Prices tab uses manual paid lookup only, clears token input, displays returned/missing prices, reopens cache without spending and isolates device searches.');
   const trailAsset=db.items.find(a=>a.id==='TEST-TRACKER');
   trailAsset.history=[...(trailAsset.history||[]),...Array.from({length:130},(_,i)=>({type:'Specification',detail:'Saved older event '+i,at:new Date(Date.UTC(2025,0,1,0,0,i)).toISOString()}))];
   state.audit.unshift({id:'history-fit-fixture',assetId:'TEST-TRACKER',type:'Part fitted',detail:'Battery fitted for TEST-TRACKER',at:'2026-10-15T23:00:00Z',by:'Test technician'});

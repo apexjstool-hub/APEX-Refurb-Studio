@@ -471,6 +471,18 @@ ipcMain.handle('inventory:updateDownload',()=>safe(()=>authenticated?updateCentr
 ipcMain.handle('inventory:updateInstall',()=>safe(()=>authenticated?updateCentre.install():{ok:false,error:'Sign in first.'}));
 app.whenReady().then(()=>{
  loadDB();
+ const pricesModule=require('./backmarket-prices'),pricesVault=new pricesModule.TokenVault(userDir,safeStorage),pricesService=new pricesModule.PriceService({vault:pricesVault,dir:userDir});
+ const pricesAccess=r=>({...r,canRun:adminOnly()});
+ const priceGuard=fn=>async(...args)=>{try{return await fn(...args);}catch(e){return {ok:false,error:e.message||'Price lookup failed.'};}};
+ async function priceAsset(id){const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)throw Error(data.error||'Inventory unavailable.');const asset=data.items.find(a=>a.id===String(id||'').trim().toUpperCase()&&!a.deletedAt);if(!asset)throw Error('Save or refresh this asset before looking up prices.');return asset;}
+ ipcMain.handle('inventory:pricesContext',secured(priceGuard(async input=>{const a=await priceAsset(input?.id),q=input?.query||pricesModule.searchFor(a);return pricesAccess({...await pricesService.state(q),device:[a.manufacturer,a.model,a.processor,a.ram,a.storage].filter(Boolean).join(' · ')});})));
+ ipcMain.handle('inventory:pricesState',secured(priceGuard(async input=>pricesAccess(await pricesService.state(input?.query)))));
+ ipcMain.handle('inventory:pricesStart',adminSecured(priceGuard(async input=>{const a=await priceAsset(input?.id);return pricesAccess(await pricesService.start(input?.query||pricesModule.searchFor(a)));})));
+ ipcMain.handle('inventory:pricesCancel',adminSecured(priceGuard(async()=>pricesAccess(await pricesService.cancel()))));
+ ipcMain.handle('inventory:pricesSaveToken',adminSecured(priceGuard(async token=>{if(typeof token!=='string'||token.trim().length<10||token.length>500||/\s/.test(token.trim()))throw Error('Enter a valid Apify API token.');await pricesService.request('/users/me',{token:token.trim()});pricesVault.save(token);pricesService.replaceToken(token.trim());return {ok:true};})));
+ ipcMain.handle('inventory:pricesForgetToken',adminSecured(priceGuard(()=>{if(pricesService.publicState('').busy)throw Error('Cancel or finish the current lookup before removing the token.');pricesVault.forget();return {ok:true};})));
+ ipcMain.handle('inventory:pricesOpenLink',secured(priceGuard(async value=>{const url=pricesModule.ukLink(value);if(!url)return {ok:false,error:'Only secure Back Market UK links can be opened.'};await shell.openExternal(url);return {ok:true};})));
+ ipcMain.handle('inventory:pricesOpenConsole',secured(priceGuard(async()=>{await shell.openExternal('https://console.apify.com/settings/integrations');return {ok:true};})));
  session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>{
   const camera=permission==='media'&&(!details?.mediaTypes||(details.mediaTypes.includes('video')&&!details.mediaTypes.includes('audio')));
   cb(Boolean(camera&&wc===win?.webContents));

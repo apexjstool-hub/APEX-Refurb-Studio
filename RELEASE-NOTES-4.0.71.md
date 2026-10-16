@@ -1,0 +1,7 @@
+APEX 4.0.71 — device Prices tab
+
+Adds a separate Prices tab inside device details. Manual Back Market UK searches use the saved asset manufacturer/model/CPU/RAM/storage, with editable search terms. Integrates the requested Apify actor through the authenticated REST API using its documented schema. Fair/Good/Excellent prices, listed price and available technical specifications are displayed; missing prices remain unavailable, and users must verify matching configurations. UK listing links are validated.
+
+Apify connection: an administrator enters an API token in the tab. The token is verified through a read-only API call, encrypted with Windows safeStorage and saved per local Windows user. It is never returned to the renderer, synced to inventory, logged or shipped in the installer. Admins can remove the token. Lookup runs are manual, limited to 10 requested results, capped at US$0.25 total charge and 180 seconds, with automatic restarts disabled. Cached results reopen without a new paid run. Run state is polled without restarting failed runs; an explicit cancel button aborts a known run. Public listing caches are stored locally, not in inventory.
+
+Validation uses mocked Apify API responses and Windows renderer checks. No live paid run was made: the user must connect a valid token and test the third-party actor. Actor availability or Back Market blocking can cause failures; no substitute prices are generated. No inventory schema or grading changes.

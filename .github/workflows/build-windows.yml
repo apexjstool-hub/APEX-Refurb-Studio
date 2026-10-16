@@ -93,7 +93,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/backmarket-prices.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
@@ -169,7 +169,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Corrects Grade Projection: Respray + UK Keyboard is a full respray with a keyboard task and projects Excellent under the existing workshop rule. Respray Keyboard on its own remains keyboard-only work. Includes bundled task wording variations, live job and imported requirement checks. No actual grades or asset records are changed. Download the Setup .exe under Assets. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Adds a Prices tab to every device with manual Back Market UK lookups using scrapegoats/backmarket-scraper on Apify. Includes encrypted local API token setup, cached timestamped listings, Fair/Good/Excellent condition prices, returned specifications, cancellation, a 10-result limit and US$0.25 maximum run charge. Administrator access is required to configure or start paid lookups. Enter an Apify API token in Prices > Apify connection; platform credits are required. Live actor output requires user testing after connection. No inventory grades or parts are modified. Download the Setup .exe under Assets. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
