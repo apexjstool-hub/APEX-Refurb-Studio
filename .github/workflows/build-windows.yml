@@ -164,7 +164,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Scan a pallet name to load its devices into Scan, review and move them to another pallet using the existing transfer workflow. Rename existing pallets from Pallets or pallet location detail; assigned device references update together and history is retained. Includes atomic staff-only cloud rename SQL. Reprint pallet labels after renaming. Existing 300-device move limit is enforced without partial pallet loading. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. First cleanup: main Inventory keeps a repair progress badge and clickable asset ID without duplicate repair dropdowns. Remove redundant device-opening buttons beside clickable IDs in Inventory, parts purchasing and pallet/location contents. Device details show one contextual Back control; the duplicate bottom link is removed. Parts, ordering, receipt, fitting, filters, Excel and unsaved-change safeguards are retained. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

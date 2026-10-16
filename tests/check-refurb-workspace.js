@@ -55,7 +55,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('opsCancel').click();$('rwReceiveSelected').click();void 0;");
   if(!await win.webContents.executeJavaScript("$('opsBulkReceiveForm').querySelectorAll('tbody tr').length===1&&$('opsBulkReceiveForm').textContent.includes('TEST-TRACKER')"))throw Error('Selected receipt scope was not preserved.');
   await win.webContents.executeJavaScript("$('opsCancel').click();$('rwQueueTable').querySelector('[data-rw-action=device]').click();void 0;");
-  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&!$('rwReturnToQueue').hidden"))throw Error('Device details lack Return to Refurbishment.');
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&!$('rwReturnToQueue').hidden&&getComputedStyle($('deviceReturnInventory')).display==='none'&&!$('assetBack')"))throw Error('Device details lack Return to Refurbishment.');
   await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('rwReturnToQueue').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='asset'&&dirty"))throw Error('New workspace bypassed unsaved device changes.');
   await win.webContents.executeJavaScript("dirty=false;$('rwReturnToQueue').click();void 0;");
@@ -88,7 +88,7 @@ app.whenReady().then(async()=>{
    if(!await win.webContents.executeJavaScript("$("+JSON.stringify(name+'Content')+").parentElement.id==='rwExistingPanel'&&$('rwExistingPanel').textContent.includes("+JSON.stringify(name==='qc'?'RW-QC':'RW-DONE')+")"))throw Error('QC/completed route failed: '+name);
   }
   await win.webContents.executeJavaScript("setPage('inventory');void 0;");
-  if(!await win.webContents.executeJavaScript("['parts','partsOrdered','orders','deliveries','qc','completed'].every(id=>$(id+'Content').parentElement.id===id+'Page')&&!!$('inventoryTable').querySelector('[data-tracker-toggle]')&&JSON.stringify([...$('v3Tabs').querySelectorAll('[data-v3tab]')].map(b=>b.dataset.v3tab))===JSON.stringify(['inventory','locations','pallets','palletLocations'])"))throw Error('Inventory must retain its repair details and All devices, Locations, Pallets and Pallet locations tabs.');
+  if(!await win.webContents.executeJavaScript("['parts','partsOrdered','orders','deliveries','qc','completed'].every(id=>$(id+'Content').parentElement.id===id+'Page')&&!!$('inventoryTable').querySelector('.inventory-repair-cell .inventory-stage')&&!$('inventoryTable').querySelector('[data-tracker-toggle]')&&JSON.stringify([...$('v3Tabs').querySelectorAll('[data-v3tab]')].map(b=>b.dataset.v3tab))===JSON.stringify(['inventory','locations','pallets','palletLocations'])"))throw Error('Inventory must retain its progress summary and All devices, Locations, Pallets and Pallet locations tabs.');
   for(const name of ['locations','pallets','inventory']){
    await win.webContents.executeJavaScript("$('v3Tabs').querySelector('[data-v3tab="+name+"]').click();void 0;");
    if(!await win.webContents.executeJavaScript("currentPage==="+JSON.stringify(name)))throw Error('Inventory navigation failed: '+name);
@@ -170,9 +170,9 @@ app.whenReady().then(async()=>{
   if(!await win.webContents.executeJavaScript("!!$('containerInventoryContent').querySelector('.ci-empty')&&$('inventorySearch').value==='no match'"))throw Error('Contents search changed the All devices search.');
   await win.webContents.executeJavaScript("$('ciSearch').value='';$('ciSearch').dispatchEvent(new Event('input'));$('containerInventoryContent').querySelector('[data-ci-asset]').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='asset'&&activeAssetId==='TEST-TRACKER'&&!$('ciReturnFromAsset').hidden"))throw Error('Contents device view lacks a return path.');
-  await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('assetBack').click();void 0;");
+  await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('ciReturnFromAsset').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='asset'&&dirty"))throw Error('Contents return bypassed unsaved device changes.');
-  await win.webContents.executeJavaScript("dirty=false;$('assetBack').click();void 0;");
+  await win.webContents.executeJavaScript("dirty=false;$('ciReturnFromAsset').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='containerInventory'&&$('containerInventoryContent').textContent.includes('PALLET-0001')"))throw Error('Device Back returned to All devices instead of its pallet.');
   await win.webContents.executeJavaScript("$('ciBack').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='palletLocationDetail'&&$('palletLocationDetailContent').textContent.includes('Rack B')"))throw Error('Contents Back lost the parent pallet location.');
@@ -263,7 +263,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';dirty=false;setPage('parts');void 0;");
   await win.webContents.executeJavaScript("window.ApexOps.load();");
   await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-part-toggle]').click();window.testPurchaseAsset=$('partsContent').querySelector('[data-op=open]').dataset.id;$('partsContent').querySelector('[data-op=open]').click();void 0;");
-  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&activeAssetId===window.testPurchaseAsset&&!$('rwReturnToQueue').hidden&&$('rwReturnToQueue').textContent.includes('Back to Parts & purchasing')"))throw Error('Purchasing asset ID did not open device details with a contextual Back button.');
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&activeAssetId===window.testPurchaseAsset&&!$('rwReturnToQueue').hidden&&getComputedStyle($('deviceReturnInventory')).display==='none'&&!$('partsContent').querySelector('.ops-part-buttons [data-op=open]')&&!$('partsOrderedContent').querySelector('.ops-part-buttons [data-op=open]')&&$('rwReturnToQueue').textContent.includes('Back to Parts & purchasing')"))throw Error('Purchasing asset ID did not open device details with a contextual Back button.');
   await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('rwReturnToQueue').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='asset'"))throw Error('Purchasing Back discarded unsaved device changes.');
   await win.webContents.executeJavaScript("dirty=false;$('rwReturnToQueue').click();void 0;");

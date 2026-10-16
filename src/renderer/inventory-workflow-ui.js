@@ -1,18 +1,12 @@
 'use strict';
 (function(){
- const expanded=new Set();let snapshot=null,summaries=new Map();
+ let snapshot=null,summaries=new Map();
  const state=()=>window.ApexWorkflowSnapshot||null;
  function current(){const next=state();if(next!==snapshot){snapshot=next;summaries=window.ApexInventoryWorkflow.index(next||{});}return snapshot;}
  const info=id=>{current();return summaries.get(id)||window.ApexInventoryWorkflow.summarize(null);};
- const locked=job=>['Completed','On Hold'].includes(job?.status);
- const act=(label,kind,id)=>`<button type="button" class="secondary" data-tracker-act="${kind}" data-tracker-ref="${html(id)}">${label}</button>`;
  const toolbar=$('inventoryPage').querySelector('.toolbar');
  toolbar.insertAdjacentHTML('beforeend','<select id="palletFilter" aria-label="Filter by pallet"><option value="">All pallets</option></select><select id="repairFilter" aria-label="Filter by repair progress"><option value="">All repair stages</option><option value="order">Needs ordering</option><option value="delivery">Awaiting delivery</option><option value="fit">Ready to fit / fitting</option><option value="qc">Awaiting QC</option><option value="hold">On hold</option><option value="completed">Completed</option><option value="none">No refurb job</option></select>');
  for(const id of ['palletFilter','repairFilter'])$(id).onchange=()=>{inventoryPageIndex=0;render();};
- function details(id){const s=info(id),job=snapshot?.jobs?.[id],event=window.ApexInventoryWorkflow.latest(job,snapshot?.audit);if(!snapshot)return '<div class="inventory-repair-detail">Workflow has not loaded. Refresh inventory to check the connection.</div>';if(!job)return `<div class="inventory-repair-detail"><strong>No refurbishment job</strong><p>Open this device to create a job when refurbishment is needed.</p>${act('Open device','open',id)}</div>`;
-  const duplicates=window.ApexPartRequirements.duplicates(job,snapshot.orders||[]);
-  return `<div class="inventory-repair-detail"><div class="inventory-repair-heading"><div><strong>${html(s.stage)}</strong><p>Next: ${html(s.next)} · Technician: ${html(s.technician)}</p><small>Recorded job stage: ${html(s.recordedStage)}${s.manualBoard?' · Manual board: '+html(s.manualBoard)+' (not an order receipt)':''}</small></div><div>${s.toOrder&&!locked(job)?act('Order parts','order',id):''} ${!locked(job)&&s.parts.some(p=>p.received<p.required)?act('Receive all parts','receiveAll',id):''} ${act('Edit job','job',id)} ${act('QC checklist','quality',id)} ${duplicates.length?act('Review duplicates ('+duplicates.length+')','duplicates',id):''}</div></div><div class="inventory-repair-scroll"><table class="inventory-parts-table"><thead><tr><th>Part</th><th>Required</th><th>Ordered</th><th>Received</th><th>Fitted</th><th>Next action</th></tr></thead><tbody>${s.parts.map(p=>`<tr><td>${html(p.name)}</td><td>${p.required}</td><td>${p.ordered}</td><td>${p.received}</td><td>${p.fitted}</td><td>${!locked(job)&&p.received<p.required?act('Mark received','receive',id+'|'+p.id):''} ${!locked(job)&&p.toFit?act('Record fitted','fit',id+'|'+p.id):''}${p.fitted>=p.required?'Complete':locked(job)?'Job is locked':p.toOrder?'Needs ordering':p.awaiting?'Awaiting delivery':''}</td></tr>`).join('')||'<tr><td colspan="6">No parts requirements recorded.</td></tr>'}</tbody></table></div><div class="inventory-last-activity">${event?'Last activity: '+html(shortDate(event.at))+' · '+html(event.by||'Recorded activity')+' · '+html(event.text):'No recorded refurbishment activity yet.'}</div></div>`;
- }
  function decorate(){
   const picker=$('palletFilter'),previous=picker.value,names=[...new Set([...managedPallets.map(p=>p.name),...items.map(a=>a.pallet).filter(Boolean)])].sort();picker.innerHTML='<option value="">All pallets</option>'+names.map(n=>`<option value="${html(n)}">${html(n)}</option>`).join('');picker.value=names.includes(previous)?previous:'';
   const table=$('inventoryTable').querySelector('table');if(!table||table.dataset.tracker)return;table.dataset.tracker='1';current();
@@ -20,12 +14,10 @@
   const assetsById=new Map(items.map(a=>[a.id,a]));
   for(const row of [...table.tBodies[0].rows]){
    const id=row.querySelector('[data-asset]')?.dataset.asset;if(!id)continue;const s=info(id),asset=assetsById.get(id),pallet=document.createElement('td');pallet.textContent=asset?.pallet||'—';row.insertBefore(pallet,row.cells[4]);
-   const cell=document.createElement('td');cell.className='inventory-repair-cell';const detailId='inventory-repair-'+encodeURIComponent(id);cell.innerHTML=`<span class="inventory-stage inventory-stage-${s.key}">${html(snapshot?s.stage:'Loading workflow…')}</span><button type="button" class="inventory-repair-toggle" data-tracker-toggle="${html(id)}" aria-expanded="${expanded.has(id)}" aria-controls="${html(detailId)}">${expanded.has(id)?'Hide repair details ▴':'Repair details ▾'}</button>`;row.insertBefore(cell,row.lastElementChild);
-   const detail=document.createElement('tr');detail.className='inventory-repair-row';detail.id=detailId;detail.hidden=!expanded.has(id);detail.innerHTML=`<td colspan="${header.cells.length}">${details(id)}</td>`;row.after(detail);
+   const cell=document.createElement('td');cell.className='inventory-repair-cell';cell.innerHTML=`<span class="inventory-stage inventory-stage-${s.key}" title="${html(snapshot?s.next:'Workflow is loading')}">${html(snapshot?s.stage:'Loading workflow…')}</span>`;row.insertBefore(cell,row.lastElementChild);
   }
-  table.querySelectorAll('[data-tracker-toggle]').forEach(b=>b.onclick=()=>{const id=b.dataset.trackerToggle;if(expanded.has(id))expanded.delete(id);else expanded.add(id);$(b.getAttribute('aria-controls')).hidden=!expanded.has(id);b.setAttribute('aria-expanded',String(expanded.has(id)));b.textContent=expanded.has(id)?'Hide repair details ▴':'Repair details ▾';});
-  table.querySelectorAll('[data-tracker-act]').forEach(b=>b.onclick=()=>{const id=b.dataset.trackerRef;switch(b.dataset.trackerAct){case 'open':openAsset(id);break;case 'job':window.ApexOps.openJob(id);break;case 'order':window.ApexOps.orderParts(id);break;case 'quality':window.ApexOps.quality(id);break;case 'duplicates':window.ApexOps.reviewDuplicates(id);break;case 'receiveAll':window.ApexOps.receiveParts(id);break;case 'receive':window.ApexOps.receivePart(id);break;case 'fit':window.ApexOps.fitPart(id);break;}});
  }
+
  window.ApexInventoryTracker={decorate,matches:a=>{if($('palletFilter').value&&String(a.pallet||'').trim().toUpperCase()!==$('palletFilter').value.trim().toUpperCase())return false;const filter=$('repairFilter').value;if(!filter)return true;const s=info(a.id);if(['order','delivery','fit'].includes(filter)){if(['completed','hold'].includes(s.key))return false;return (filter==='order'?s.toOrder:filter==='delivery'?s.awaiting:s.toFit)>0;}return s.key===filter;}};
  window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='inventory')render();});
  const pals=()=>managedPallets;

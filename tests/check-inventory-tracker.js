@@ -46,18 +46,18 @@ app.whenReady().then(async()=>{
   for(let i=0;i<30;i++){if(await win.webContents.executeJavaScript("!!$('assignmentPrintChoice')"))break;await new Promise(r=>setTimeout(r,100));}
   if(!await win.webContents.executeJavaScript("$('assignmentPrintChoice').value==='PALLET-0001'&&!$('assignmentPrintGo').disabled&&$('assignmentDocumentPreview').textContent.includes('TEST-TRACKER')"))throw Error('Manifest preview missing selected pallet/device.');
   await win.webContents.executeJavaScript('closeModal();void 0;');
-  let result=await win.webContents.executeJavaScript("(()=>{const t=$('inventoryTable').querySelector('table'),button=t.querySelector('[data-tracker-toggle]');button.click();const detail=$('inventory-repair-TEST-TRACKER');return {columns:t.tHead.rows[0].cells.length,stage:t.textContent.includes('Needs ordering'),width:detail.getBoundingClientRect().width,height:detail.getBoundingClientRect().height,display:getComputedStyle(detail).display,partRows:detail.querySelectorAll('.inventory-parts-table tbody > tr').length,received:!!detail.querySelector('[data-tracker-act=receive]')};})()");
-  if(result.columns!==9||!result.stage||result.width<400||result.height<100||result.display==='none'||result.partRows!==1||!result.received)throw Error('Tracker rendering failed: '+JSON.stringify(result));
+  let result=await win.webContents.executeJavaScript("(()=>{const t=$('inventoryTable').querySelector('table');return {columns:t.tHead.rows[0].cells.length,stage:t.textContent.includes('Needs ordering'),badges:t.querySelectorAll('.inventory-repair-cell .inventory-stage').length,rows:t.tBodies[0].rows.length,links:t.querySelectorAll('[data-asset]').length,details:!!t.querySelector('[data-tracker-toggle],.inventory-parts-table,[data-tracker-act]')};})()");
+  if(result.columns!==9||!result.stage||result.badges!==1||result.rows!==1||result.links!==1||result.details)throw Error('Simplified Inventory lost its progress, asset link or retained duplicate repair controls: '+JSON.stringify(result));
   const dashboardResult=await win.webContents.executeJavaScript("(()=>{const d=$('v34Dashboard');return {cards:d.querySelectorAll('button.v34-stat').length,stages:d.querySelectorAll('[data-dash-stage]').length,chart:d.querySelector('.v34-donut').style.background,progress:d.querySelector('.v34-recent table').tHead.rows[0].cells.length,needed:d.querySelectorAll('.v34-stat b')[3].textContent};})()");
   if(dashboardResult.cards!==4||dashboardResult.stages!==4||!dashboardResult.chart.includes('conic-gradient')||dashboardResult.progress!==5||dashboardResult.needed!=='1')throw Error('Visual dashboard failed: '+JSON.stringify(dashboardResult));
   await win.webContents.executeJavaScript("$('v34Dashboard').querySelector('[data-dash-stage=order]').click();");
-  if(!await win.webContents.executeJavaScript("currentPage==='inventory'&&$('repairFilter').value==='order'&&!!$('inventoryTable').querySelector('[data-tracker-toggle]')"))throw Error('Dashboard stage shortcut did not filter Inventory.');
+  if(!await win.webContents.executeJavaScript("currentPage==='inventory'&&$('repairFilter').value==='order'&&!!$('inventoryTable').querySelector('.inventory-repair-cell .inventory-stage')"))throw Error('Dashboard stage shortcut did not filter Inventory.');
   await win.webContents.executeJavaScript("$('repairFilter').value='';render();");
-  await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=order]').click();$('opsOrderForm').elements.supplier.value='Test supplier';$('opsOrderForm').dispatchEvent(new Event('submit',{cancelable:true}));");
-  let ordered=false;for(let i=0;i<30;i++){ordered=await win.webContents.executeJavaScript("currentPage==='inventory'&&$('inventoryTable').querySelector('.inventory-parts-table tbody tr')?.cells[2].textContent==='1'");if(ordered)break;await new Promise(r=>setTimeout(r,100));}
+  await win.webContents.executeJavaScript("window.ApexOps.orderParts('TEST-TRACKER');$('opsOrderForm').elements.supplier.value='Test supplier';$('opsOrderForm').dispatchEvent(new Event('submit',{cancelable:true}));");
+  let ordered=false;for(let i=0;i<30;i++){ordered=await win.webContents.executeJavaScript("currentPage==='inventory'&&window.ApexWorkflowSnapshot.orders.length===1");if(ordered)break;await new Promise(r=>setTimeout(r,100));}
   if(!ordered||state.orders.length!==1)throw Error('Inline ordering left Inventory or failed to record the order.');
-  await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=receive]').click();$('opsDirectReceive').dispatchEvent(new Event('submit',{cancelable:true}));");
-  for(let attempt=0;attempt<30;attempt++){result=await win.webContents.executeJavaScript("({fitting:!!$('inventoryTable').querySelector('[data-tracker-act=fit]'),received:$('inventoryTable').querySelector('.inventory-parts-table tbody tr')?.cells[3].textContent==='1'})");if(result.fitting&&result.received)break;await new Promise(r=>setTimeout(r,100));}
+  await win.webContents.executeJavaScript("window.ApexOps.receivePart('TEST-TRACKER|p');$('opsDirectReceive').dispatchEvent(new Event('submit',{cancelable:true}));");
+  for(let attempt=0;attempt<30;attempt++){result=await win.webContents.executeJavaScript("({fitting:$('inventoryTable').textContent.includes('Ready to fit'),received:window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts[0].received===1})");if(result.fitting&&result.received)break;await new Promise(r=>setTimeout(r,100));}
   if(!result.fitting||!result.received||state.jobs['TEST-TRACKER'].parts[0].received!==1)throw Error('Inline receipt failed: '+JSON.stringify(result));
   const beforeBulk=structuredClone(state);
   state.jobs['TEST-TRACKER'].partsBoard='needed';
@@ -88,8 +88,8 @@ app.whenReady().then(async()=>{
   if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-1').received!==2||state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='bulk-1').fitted!==1||!state.orders[0].lines.every(l=>l.received===l.qty))throw Error('Bulk order receipt did not update outstanding quantities or changed fitting.');
   state=structuredClone(beforeBulk);state.jobs['TEST-TRACKER'].parts.push({id:'direct-bulk',name:'Lid',qty:2,received:0,fitted:0});
   await win.webContents.executeJavaScript("window.ApexOps.load();");
-  if(!await win.webContents.executeJavaScript("!!$('inventoryTable').querySelector('[data-tracker-act=receiveAll]')&&!!$('inventoryTable').querySelector('[data-tracker-act=receive]')"))throw Error('Bulk receipt replaced the individual inventory action.');
-  await win.webContents.executeJavaScript("$('inventoryTable').querySelector('[data-tracker-act=receiveAll]').click();$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
+  if(!await win.webContents.executeJavaScript("typeof window.ApexOps.receiveParts==='function'&&typeof window.ApexOps.receivePart==='function'&&!$('inventoryTable').querySelector('[data-tracker-act]')"))throw Error('Shared receipt actions were lost or duplicate Inventory actions remain.');
+  await win.webContents.executeJavaScript("window.ApexOps.receiveParts('TEST-TRACKER');$('opsBulkReceiveForm').dispatchEvent(new Event('submit',{cancelable:true}));void 0;");
   for(let i=0;i<30;i++){if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received===2)break;await new Promise(r=>setTimeout(r,100));}
   if(state.jobs['TEST-TRACKER'].parts.find(p=>p.id==='direct-bulk').received!==2)throw Error('Per-device Receive all parts failed.');
   state=structuredClone(beforeBulk);state.jobs['TEST-TRACKER'].partsBoard='needed';state.jobs['TEST-TRACKER'].parts.push({id:'mark-screen',name:'Screen purchased',qty:2,received:0,fitted:0},{id:'leave-keyboard',name:'Keyboard still needed',qty:1,received:0,fitted:0});
@@ -186,6 +186,6 @@ app.whenReady().then(async()=>{
   const summaryBox=await win.webContents.executeJavaScript("(()=>{const r=$('assetSummary').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)};})()");
   if(summaryBox.width<500||summaryBox.height<100||(summaryBox.width>950&&summaryBox.height>300))throw Error('Device summary was hidden or too narrow during layout verification.');
   fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/device-summary-preview.png'),(await win.webContents.capturePage(summaryBox)).toPNG());
-  console.log('PASS: real Windows renderer shows expanded Inventory tracker and persists a receipt through actual workflow logic.');win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
+  console.log('PASS: real Windows renderer shows simplified Inventory progress and persists a receipt through actual workflow logic.');win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(1);}
 });

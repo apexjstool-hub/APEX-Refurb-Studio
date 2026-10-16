@@ -22,7 +22,7 @@ function setPage(page,force=false){
 }
 function rows(data,actions){
  if(!data.length)return '<div class="empty"><strong>No assets found</strong>Scan another ID or add a new asset.</div>';
- return `<table class="asset-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Condition</th><th>Location</th><th>Status</th>${actions?'<th>Action</th>':''}</tr></thead><tbody>${data.map(a=>`<tr><td><button class="asset-link" data-asset="${html(a.id)}">${html(a.id)}</button></td><td><b>${html(deviceName(a))}</b><div class="section-note">${html(a.serial||a.productType)}</div></td><td>${conditionBadge(a.condition)}</td><td>${html(a.location||'Unassigned')}</td><td>${state(a.status)}</td>${actions?`<td class="v32-row-actions"><button class="text-button" data-asset="${html(a.id)}">View ↗</button><button type="button" class="v3-delete" data-delete-asset="${html(a.id)}" aria-label="Delete ${html(a.id)}">Delete</button></td>`:''}</tr>`).join('')}</tbody></table>`;
+ return `<table class="asset-table"><thead><tr><th>Asset ID</th><th>Full device name</th><th>Condition</th><th>Location</th><th>Status</th>${actions?'<th>Action</th>':''}</tr></thead><tbody>${data.map(a=>`<tr><td><button class="asset-link" data-asset="${html(a.id)}">${html(a.id)}</button></td><td><b>${html(deviceName(a))}</b><div class="section-note">${html(a.serial||a.productType)}</div></td><td>${conditionBadge(a.condition)}</td><td>${html(a.location||'Unassigned')}</td><td>${state(a.status)}</td>${actions?`<td class="v32-row-actions"><button type="button" class="v3-delete" data-delete-asset="${html(a.id)}" aria-label="Delete ${html(a.id)}">Delete</button></td>`:''}</tr>`).join('')}</tbody></table>`;
 }
 function deviceName(a){const maker=String(a.manufacturer||'').trim(),model=String(a.model||'').trim();return !maker?model||'New asset':model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:maker+(model?' '+model:'');}
 function conditionBadge(c){const cls=['A','Excellent'].includes(c)?'cond-good':['D'].includes(c)?'cond-bad':['C','Fair'].includes(c)?'cond-warn':'cond-neutral';return `<span class="condition-pill ${cls}">${html(c||'Not assessed')}</span>`;}
@@ -287,7 +287,7 @@ document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const f=$(b.da
 document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 for(const id of ['dashAdd','invAdd'])$(id).onclick=()=>openAsset();
 for(const id of ['topScan','invScan'])$(id).onclick=openScan;
-for(const id of ['dashBrowse','viewAll','assetBack','assetCancel','scanBack','deviceReturnInventory'])$(id).onclick=()=>setPage('inventory');
+for(const id of ['dashBrowse','viewAll','assetBack','assetCancel','scanBack','deviceReturnInventory'])$(id)?.addEventListener('click',()=>setPage('inventory'));
 $('assetEditor').onsubmit=saveAsset;$('assetTopSave').onclick=()=>$('assetEditor').requestSubmit();
 $('editRefurbNotes').addEventListener('input',()=>{dirty=true;$('assetEditedHint').textContent='Unsaved refurb notes · press Save notes when ready.';});
 $('assetEditor').addEventListener('input',()=>{dirty=true;updateAssetOverview();$('assetEditedHint').textContent='Unsaved changes · press Save changes when ready.';});

@@ -19,7 +19,7 @@
 #containerInventoryPage td strong{color:var(--text)!important;font-weight:650}
 #containerInventoryPage td:first-child,#containerInventoryPage td:nth-child(3),#containerInventoryPage td:last-child{white-space:nowrap}
 #containerInventoryPage td:nth-child(2){min-width:210px}
-#containerInventoryPage td:last-child{text-align:right}
+#containerInventoryPage td:last-child{text-align:left}
 #containerInventoryPage .ci-status{font-size:11px;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:4px 8px;white-space:nowrap}
 #containerInventoryPage a{color:#176de3;text-decoration:none;font-weight:650}
 #containerInventoryPage a:hover{text-decoration:underline}
