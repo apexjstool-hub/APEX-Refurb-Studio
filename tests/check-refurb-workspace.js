@@ -312,6 +312,29 @@ app.whenReady().then(async()=>{
   if(!manualNotes.dirty||manualNotes.note!=='Check lid scratches and replace the missing screw.'||manualNotes.form!=='assetEditor'||manualNotes.buttonForm!=='assetEditor'||manualNotes.height<100||manualNotes.display==='none')throw Error('Manual refurb notes save or layout failed: '+JSON.stringify(manualNotes));
   for(const theme of ['light','dark']){await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";void 0;");await new Promise(r=>setTimeout(r,150));fs.writeFileSync(path.resolve('qa-print/manual-refurb-notes-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());}
   await win.webContents.executeJavaScript("dirty=false;void 0;");
+  // Exercise the real device overview refresh hook against the existing workflow event.
+  await win.webContents.executeJavaScript(fs.readFileSync(path.resolve(renderer,'../grade-projection.js'),'utf8'));
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'grade-projection-ui.js'),'utf8'));
+  await win.webContents.executeJavaScript("var core=window.ApexInventoryCore;var savedReadAsset=readAsset;var projectionFixture={id:'TEST-TRACKER',condition:'Fair',model:'Latitude 5420',manufacturer:'Dell',productType:'Laptop',inspection:{},batteryPercentage:'65'};readAsset=()=>projectionFixture;function openAssetPrintDialog(){};void 0;");
+  await win.webContents.executeJavaScript(source.slice(source.indexOf('function updateAssetOverview()'),source.indexOf('async function saveAsset('))+';void 0;');
+  await win.webContents.executeJavaScript("window.ApexWorkflowSnapshot={jobs:{'TEST-TRACKER':{parts:[{name:'LCD',qty:1},{name:'Full respray',qty:1},{name:'Battery',qty:1}]}}};updateAssetOverview();void 0;");
+  if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Excellent'&&$('assetGradeProjection').textContent.includes('Full respray')&&$('assetGradeProjection').textContent.includes('Battery replacement planned')&&projectionFixture.condition==='Fair'"))throw Error('Grade projection lost recorded parts, changed current grade or did not apply the workshop rule.');
+  await win.webContents.executeJavaScript("$('assetGradeProjection').querySelector('details').open=true;window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'LCD',qty:1}];window.dispatchEvent(new Event('apex:workflow-updated'));void 0;");
+  if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Fair'&&!$('assetGradeProjection').textContent.includes('Included in planFull respray')&&$('assetGradeProjection').querySelector('details').open"))throw Error('Projection did not update when the existing job requirements changed.');
+  await win.webContents.executeJavaScript("projectionFixture.condition='Good';window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[];updateAssetOverview();void 0;");
+  if(!await win.webContents.executeJavaScript("$('assetPotentialGrade').textContent==='Good'&&$('assetGradeProjection').querySelectorAll('.gp-part').length===0"))throw Error('Empty job resurrected stale parts or changed the assigned baseline.');
+  await win.webContents.executeJavaScript("projectionFixture.condition='Fair';window.ApexWorkflowSnapshot.jobs['TEST-TRACKER'].parts=[{name:'LCD',qty:1},{name:'Full respray',qty:1},{name:'Battery',qty:1},{name:'Keyboard',qty:1}];updateAssetOverview();$('assetGradeProjection').querySelector('details').open=false;void 0;");
+  for(const width of [1440,1100,760]){
+   win.setSize(width,1000);
+   for(const theme of ['light','dark']){
+    await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";$('assetGradeProjection').scrollIntoView({block:'start'});void 0;");await new Promise(r=>setTimeout(r,150));
+    const layout=await win.webContents.executeJavaScript("(()=>{const r=$('assetGradeProjection'),p=$('assetPotentialGrade');return {visible:r.getBoundingClientRect().height>250,contained:r.scrollWidth<=r.clientWidth+2,grade:p.textContent,unique:document.querySelectorAll('#assetGradeProjection').length===1};})()");
+    if(!layout.visible||!layout.contained||!layout.unique||layout.grade!=='Excellent')throw Error('Projection layout failed at '+width+' '+theme+': '+JSON.stringify(layout));
+    fs.writeFileSync(path.resolve('qa-print/grade-projection-'+width+'-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());
+   }
+  }
+  win.setSize(1440,1000);await win.webContents.executeJavaScript("readAsset=savedReadAsset;updateAssetOverview=function(){};void 0;");
+  console.log('PASS: read-only Grade Projection uses live asset parts, responds to requirement changes, retains current grade and fits light/dark device layouts.');
   const trailAsset=db.items.find(a=>a.id==='TEST-TRACKER');
   trailAsset.history=[...(trailAsset.history||[]),...Array.from({length:130},(_,i)=>({type:'Specification',detail:'Saved older event '+i,at:new Date(Date.UTC(2025,0,1,0,0,i)).toISOString()}))];
   state.audit.unshift({id:'history-fit-fixture',assetId:'TEST-TRACKER',type:'Part fitted',detail:'Battery fitted for TEST-TRACKER',at:'2026-10-15T23:00:00Z',by:'Test technician'});

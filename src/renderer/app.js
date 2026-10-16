@@ -204,6 +204,7 @@ function openAsset(id=''){
 }
 function readAsset(){const f=Object.fromEntries(new FormData($('assetEditor')));f.id=String(f.id||'').trim().toUpperCase();f.inspection={cosmetic:f.cosmetic,functional:f.functional,battery:f.battery};return f;}
 function updateAssetOverview(){if(currentPage!=='asset')return;const a=readAsset();const name=deviceName(a),suggested=core.assess(a.inspection),saved=items.find(item=>item.id===activeAssetId),assignedGrade=window.ApexDeviceSummary.grade(a,suggested),work=window.ApexDeviceSummary.process({...saved,...a,refurbishment:saved?.refurbishment},window.ApexWorkflowSnapshot);
+ window.ApexGradeProjectionUI?.render({...saved,...a,refurbishment:saved?.refurbishment},window.ApexWorkflowSnapshot,{loading:!!activeAssetId&&!window.ApexWorkflowSnapshot});
  $('assetSummary').innerHTML=window.ApexDeviceSummary.card(a,work,assignedGrade,html,name);
  const printButton=$('assetPrintLabel');
  if(printButton){printButton.disabled=!activeAssetId;printButton.onclick=openAssetPrintDialog;}

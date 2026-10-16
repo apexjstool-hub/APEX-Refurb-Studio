@@ -93,7 +93,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
@@ -169,7 +169,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Select pallets inside Microdream and Create purchase order to preview and print the supplied Microdream Job Details / Delivery Note template. Device Type comes from the asset, identical models are grouped in Model, QTY Sent counts devices, Language is Reprint UK and Comment is Full respray. Includes optional Job Ref, Save PDF, multi-page model lists and stale-selection validation. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Adds a read-only Grade Projection card in each device Refurbishment tab, using its existing parts and respray requirements. Full respray projects Excellent body condition under your workshop rule; LCD replacement projects a scratch-free screen. Current grade is retained without a full respray unless more condition detail is available. Assumptions and separate battery/functional checks are shown. No current grades, parts, data or database schema are changed by the feature. Previous 4.0.68 installer remains available. Download the Setup .exe under Assets. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
