@@ -160,7 +160,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Overview hides the Smart assessment and duplicate activity panels; History and checks shows one searchable asset trail with older-event loading. Saved events cover parts orders, deliveries, fitting, QC, asset edits and pallet/location transfers across local, hub and cloud modes. Includes durable asset-activity cloud storage and updated pallet transfer SQL. Existing available history is retained. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Consistent bordered return buttons on location inventory, pallet inventory and pallet location detail pages, matching device details. Includes light/dark hover and keyboard focus states. Navigation destinations and asset safeguards are preserved. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
