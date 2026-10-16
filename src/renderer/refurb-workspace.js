@@ -65,12 +65,19 @@
  }
  function syncSelectAll(){const all=$('rwSelectVisible');if(!all)return;const checks=[...$('rwQueueTable').querySelectorAll('[data-rw-select]')],count=checks.filter(c=>c.checked).length;all.checked=!!checks.length&&count===checks.length;all.indeterminate=count>0&&count<checks.length;}
  function runAction(kind,id,part){
-  const ops=window.ApexOps;if(kind==='device'){queueScroll=document.querySelector('.main').scrollTop;returnToQueue=true;openAsset(id);updateReturn();return;}
+  const ops=window.ApexOps;if(kind==='device'){openDevice(id);return;}
   if(kind==='markPartOrdered')ops.markPartOrdered(id+'|'+part);if(kind==='order')ops.orderParts(id);if(kind==='receiveAll')ops.receiveParts(id);if(kind==='receive')ops.receivePart(id+'|'+part);if(kind==='fit')ops.fitPart(id+'|'+part);
   if(kind==='job')ops.openJob(id);if(kind==='qc')ops.quality(id);if(kind==='print')ops.printWorksheet(id);
  }
+ function openDevice(id){
+  if(!items.some(a=>a.id===id&&!a.deletedAt)){notify('This asset is no longer available. Refresh and try again.');return;}
+  const fromWorkspace=active(),scroll=document.querySelector('.main').scrollTop;
+  openAsset(id);
+  if(currentPage==='asset'&&activeAssetId===id){returnToQueue=fromWorkspace;if(fromWorkspace)queueScroll=scroll;updateReturn();}
+ }
  function updateReturn(){
   let back=$('rwReturnToQueue');if(!back){back=document.createElement('button');back.type='button';back.id='rwReturnToQueue';back.className='secondary';back.textContent='← Return to Refurbishment';$('deviceReturnInventory').after(back);back.onclick=()=>{if(setPage('refurbWorkspace'))returnToQueue=false;};}
+  back.textContent='← Back to '+views[view][0];
   back.hidden=!(returnToQueue&&currentPage==='asset');
  }
  function draw(){
@@ -90,6 +97,7 @@
   const restoreScroll=returnToQueue&&currentPage==='asset'&&target==='refurbWorkspace';
   const ok=parentPage(target,force);if(!ok)return false;
   if(target==='refurbWorkspace'){draw();window.ApexOps.load(true);}else restorePanels();
+  if(target!=='asset'&&target!=='refurbWorkspace')returnToQueue=false;
   updateReturn();if(restoreScroll)requestAnimationFrame(()=>{document.querySelector('.main').scrollTop=queueScroll;});return ok;
  };
  const parentRender=render;render=function(...args){const result=parentRender(...args);draw();return result;};
@@ -104,6 +112,6 @@
  $('rwClearSelection').onclick=()=>{selected.clear();drawQueue();};
  // Original navigation handlers are attached during app initialization.
  $('refurbNav').onclick=()=>setPage('refurbWorkspace');
- window.ApexRefurbWorkspace=Object.freeze({open:openView,draw});
+ window.ApexRefurbWorkspace=Object.freeze({open:openView,draw,openAsset:openDevice});
  updateReturn();
 })();

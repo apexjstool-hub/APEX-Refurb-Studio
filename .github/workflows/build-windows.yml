@@ -160,7 +160,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Mark individual parts as ordered from each device, Parts Required or expanded Work queue. Ordered parts are excluded from all and selected parts-needed Excel exports while other requirements remain. Mixed assets appear in both boards as appropriate. Orders use the existing delivery and asset history workflow without marking receipt or fitting. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Parts Required dropdowns retain all recorded requirements and show Ordered beside purchased parts, including when every part is ordered. Excel still excludes ordered quantities. Click asset IDs in Parts Required, Parts Ordered and Deliveries to open full device details; Back restores the purchasing tab and expanded dropdown with unsaved-change protection. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

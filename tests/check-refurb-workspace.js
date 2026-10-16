@@ -260,6 +260,21 @@ app.whenReady().then(async()=>{
   if(!await win.webContents.executeJavaScript("$('managementDeleteConfirm').disabled&&$('managementDeleteCancel').disabled&&$('modalClose').classList.contains('hidden')&&window.testDeleteCalls===1"))throw Error('Delete confirmation allowed a duplicate in-flight request.');
   for(let i=0;i<30;i++){if(!db.pallets.some(p=>p.name==='Delete test pallet')&&await win.webContents.executeJavaScript("!$('managementDeleteForm')"))break;await new Promise(r=>setTimeout(r,50));}
   if(db.pallets.some(p=>p.name==='Delete test pallet')||JSON.stringify(db.items)!==devicesBeforeDelete)throw Error('Confirmed pallet deletion failed or changed device records.');
+  await win.webContents.executeJavaScript("document.documentElement.dataset.theme='light';dirty=false;setPage('parts');void 0;");
+  await win.webContents.executeJavaScript("window.ApexOps.load();");
+  await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-part-toggle]').click();window.testPurchaseAsset=$('partsContent').querySelector('[data-op=open]').dataset.id;$('partsContent').querySelector('[data-op=open]').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'&&activeAssetId===window.testPurchaseAsset&&!$('rwReturnToQueue').hidden&&$('rwReturnToQueue').textContent.includes('Back to Parts & purchasing')"))throw Error('Purchasing asset ID did not open device details with a contextual Back button.');
+  await win.webContents.executeJavaScript("dirty=true;window.confirm=()=>false;$('rwReturnToQueue').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='asset'"))throw Error('Purchasing Back discarded unsaved device changes.');
+  await win.webContents.executeJavaScript("dirty=false;$('rwReturnToQueue').click();void 0;");
+  if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('partsContent').parentElement.id==='rwExistingPanel'&&document.querySelector('[data-rw-purchase=parts]').classList.contains('selected')&&$('partsContent').querySelector('[data-part-toggle]').getAttribute('aria-expanded')==='true'"))throw Error('Purchasing Back lost the source tab or expanded parts.');
+  await new Promise(r=>setTimeout(r,150));fs.writeFileSync(path.resolve('qa-print/purchasing-asset-return.png'),(await win.webContents.capturePage()).toPNG());
+  await win.webContents.executeJavaScript("setPage('deliveries');void 0;");
+  const deliveryLink=await win.webContents.executeJavaScript("!!$('deliveriesContent').querySelector('[data-op=open]')");
+  if(deliveryLink){
+   await win.webContents.executeJavaScript("$('deliveriesContent').querySelector('[data-op=open]').click();$('rwReturnToQueue').click();void 0;");
+   if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('deliveriesContent').parentElement.id==='rwExistingPanel'&&document.querySelector('[data-rw-purchase=deliveries]').classList.contains('selected')"))throw Error('Delivery asset link did not return to its purchasing tab.');
+  }
   const trailAsset=db.items.find(a=>a.id==='TEST-TRACKER');
   trailAsset.history=[...(trailAsset.history||[]),...Array.from({length:130},(_,i)=>({type:'Specification',detail:'Saved older event '+i,at:new Date(Date.UTC(2025,0,1,0,0,i)).toISOString()}))];
   state.audit.unshift({id:'history-fit-fixture',assetId:'TEST-TRACKER',type:'Part fitted',detail:'Battery fitted for TEST-TRACKER',at:'2026-10-15T23:00:00Z',by:'Test technician'});
