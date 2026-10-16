@@ -27,13 +27,13 @@ function requiredPartsRows(assets,workflow,selectedAssetIds){
 }
 function templatePartsRows(assets,workflow,selectedAssetIds){
  const allowed=selectedAssetIds===undefined?null:new Set(selectedAssetIds);
- const rows=[['Item ID','Make/Model','CPU','RAM','Storage','Serial Number','Part #1','Part #1 Cost','Part #2','Part #2 Cost','Part #3','Part #3 Cost','Part #4','Part #4 Cost','Parts Total']];
+ const rows=[['Item ID','Make/Model','CPU','RAM','Storage','Serial Number','Part #1','Part #1 Cost','Part #2','Part #2 Cost','Part #3','Part #3 Cost','Part #4','Part #4 Cost','Parts Total','Refurb notes']];
  for(const asset of assets||[]){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
   const parts=partsToOrder(asset,workflow);if(!parts.length)continue;
   for(let start=0;start<parts.length;start+=4){
    const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
-   for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?String(p.name).trim()+(qty>1?' × '+qty:''):'',null);}row.push(null);rows.push(row);
+   for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?String(p.name).trim()+(qty>1?' × '+qty:''):'',null);}row.push(null,String(asset.refurbNotes||''));rows.push(row);
   }
  }
  return rows;

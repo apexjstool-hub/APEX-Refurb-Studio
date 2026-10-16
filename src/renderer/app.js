@@ -211,12 +211,12 @@ function updateAssetOverview(){if(currentPage!=='asset')return;const a=readAsset
  $('applySuggested').disabled=suggested.grade==='Pending';
 }
 window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='asset')updateAssetOverview();});
-async function saveAsset(e){e?.preventDefault();const data=readAsset();if(!data.id||!data.model.trim()){$('assetError').textContent='Asset ID and model are required.';return;}
+async function saveAsset(e){e?.preventDefault();if($('assetTopSave').disabled)return;const savedSection=$('assetPage').dataset.section;const data=readAsset();if(!data.id||!data.model.trim()){$('assetError').textContent='Asset ID and model are required.';return;}
  if(!data.location.trim()){$('assetError').textContent='Location is required.';return;}
- $('assetTopSave').disabled=true;$('assetBottomSave').disabled=true;$('assetError').textContent='';
+ $('assetTopSave').disabled=true;$('assetBottomSave').disabled=true;$('refurbNotesSave').disabled=true;$('assetError').textContent='';
  try{const r=activeAssetId?await api.update(activeAssetId,data):await api.add(data);if(!r.ok){$('assetError').textContent=r.error||'Could not save asset.';return;}
- activeAssetId=r.item.id;dirty=false;await refresh();openAsset(r.item.id);notify(`Saved ${r.item.id} · ${r.item.status}`);
- }finally{$('assetTopSave').disabled=false;$('assetBottomSave').disabled=false;}
+ activeAssetId=r.item.id;dirty=false;await refresh();openAsset(r.item.id);if(savedSection)document.querySelector('[data-asset-tab="'+savedSection+'"]')?.click();notify(`Saved ${r.item.id} · ${r.item.status}`);
+ }finally{$('assetTopSave').disabled=false;$('assetBottomSave').disabled=false;$('refurbNotesSave').disabled=false;}
 }
 function openScan(){if(!setPage('scan'))return;$('inlineScanInput').value='';$('pageScanHelp').textContent='USB/Bluetooth keyboard scanners typically press Enter after a successful scan.';$('inlineScanInput').focus();}
 function inventoryLookupFeedback(found){notify(found?'Inventory found':'Inventory not found',found?'success':'warning');}
@@ -289,6 +289,7 @@ for(const id of ['dashAdd','invAdd'])$(id).onclick=()=>openAsset();
 for(const id of ['topScan','invScan'])$(id).onclick=openScan;
 for(const id of ['dashBrowse','viewAll','assetBack','assetCancel','scanBack','deviceReturnInventory'])$(id).onclick=()=>setPage('inventory');
 $('assetEditor').onsubmit=saveAsset;$('assetTopSave').onclick=()=>$('assetEditor').requestSubmit();
+$('editRefurbNotes').addEventListener('input',()=>{dirty=true;$('assetEditedHint').textContent='Unsaved refurb notes · press Save notes when ready.';});
 $('assetEditor').addEventListener('input',()=>{dirty=true;updateAssetOverview();$('assetEditedHint').textContent='Unsaved changes · press Save changes when ready.';});
 $('assetEditor').addEventListener('change',()=>{dirty=true;updateAssetOverview();});
 $('applySuggested').onclick=()=>{const suggestion=core.assess(readAsset().inspection).grade;if(suggestion==='Pending')return;$('editCondition').value=suggestion;dirty=true;updateAssetOverview();};

@@ -2,7 +2,7 @@
 const asset={id:'0000123',manufacturer:'HP',model:'ZBook Studio 16 inch G10 Mobile Workstation PC',processor:'Intel Core i7',ram:'32 GB',storage:'1 TB NVMe',serial:'0000456'};const workflow={jobs:{'0000123':{parts:Array.from({length:6},(_,i)=>({name:'Part '+(i+1),qty:i===0?2:1}))}}};
 test('Reference columns map only recorded device fields and preserve all parts across four-slot continuation rows',()=>{const rows=exporter.templatePartsRows([asset],workflow);assert.equal(rows.length,3);assert.deepEqual(rows[1].slice(0,6),['0000123','HP ZBook Studio 16 inch G10 Mobile Workstation PC','Intel Core i7','32 GB','1 TB NVMe','0000456']);assert.equal(rows[1][6],'Part 1 × 2');assert.equal(rows[2][6],'Part 5');assert.equal(rows[2][8],'Part 6');for(const r of rows.slice(1))for(const c of [7,9,11,13])assert.equal(r[c],null);assert.equal(exporter.templatePartsRows([asset],workflow,[]).length,1);});
 test('Export retains reference table/styles and valid totals; asset text stays literal',()=>{const rows=exporter.templatePartsRows([{...asset,processor:'=HYPERLINK("bad")'}],workflow),buffer=xlsx.workbook(rows),entries=xlsx.readArchive(buffer),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(entries.has('xl/styles.xml'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('displayName="Expenses"'));assert.ok(sheet.includes('<t xml:space="preserve">=HYPERLINK(&quot;bad&quot;)</t>'));assert.ok(sheet.includes('r="A4"')&&sheet.includes('0000123'));assert.ok(sheet.includes('r="O4"')&&sheet.includes('SUM(H4,J4,L4,N4)'));assert.ok(!entries.has('xl/calcChain.xml'));assert.ok(sheet.includes('<c r="H4" s="6"/>'));});
-test('Template expands beyond its original row count without truncation or broken totals',()=>{const rows=exporter.templatePartsRows(Array.from({length:50},(_,i)=>({...asset,id:'ASSET-'+i})),{jobs:Object.fromEntries(Array.from({length:50},(_,i)=>['ASSET-'+i,{parts:[{name:'Battery',qty:1}]}]))});const entries=xlsx.readArchive(xlsx.workbook(rows)),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(sheet.includes('ASSET-49'));assert.ok(sheet.includes('SUM(H4:H53)'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('ref="A3:O54"'));});
+test('Template expands beyond its original row count without truncation or broken totals',()=>{const rows=exporter.templatePartsRows(Array.from({length:50},(_,i)=>({...asset,id:'ASSET-'+i})),{jobs:Object.fromEntries(Array.from({length:50},(_,i)=>['ASSET-'+i,{parts:[{name:'Battery',qty:1}]}]))});const entries=xlsx.readArchive(xlsx.workbook(rows)),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(sheet.includes('ASSET-49'));assert.ok(sheet.includes('SUM(H4:H53)'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('ref="A3:P54"'));});
 if(process.env.APEX_EXPORT_QA_PATH)fs.writeFileSync(process.env.APEX_EXPORT_QA_PATH,xlsx.workbook(exporter.templatePartsRows([asset],workflow)));
 
 test('Long descriptions receive wrapped styles, wider columns and content-sized row heights',()=>{
@@ -42,4 +42,20 @@ test('Excel includes only remaining unordered quantities and never resurrects re
  assert.equal(exporter.templatePartsRows(assets,workflow)[1][6],'Battery × 2');
  workflow.jobs.A.partsBoard='ordered';assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
  workflow.jobs.A.parts=[];delete workflow.jobs.A.partsBoard;assert.equal(exporter.requiredPartsRows(assets,workflow).length,1);assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
+});
+
+
+test('Manual refurb notes persist separately and occupy only the Refurb notes Excel column',()=>{
+ const core=require('../src/inventory-core'),W=require('../src/refurb-workflow');
+ const imported={reports:[{key:'phone',notes:'Imported phone note',repairs:[{name:'LCD',quantity:1}]}]};
+ const items=[core.normalize({...asset,notes:'General inventory note',refurbishment:imported})];
+ const note='=This is literal text\nCheck lid & replace screw <before QC>';
+ const r=core.update(items,asset.id,{refurbNotes:note});assert.equal(r.ok,true);assert.equal(r.item.refurbNotes,note);assert.equal(r.item.notes,'General inventory note');assert.deepEqual(r.item.refurbishment,imported);assert.ok(r.item.history.some(e=>e.type==='Refurb notes'&&e.detail.includes('replace screw')));
+ const reloaded=core.normalize(JSON.parse(JSON.stringify(r.item)));assert.equal(reloaded.refurbNotes,note);
+ const workflow={jobs:{[asset.id]:{parts:[{id:'lcd',name:'LCD',qty:1,received:0,fitted:0}]}}};
+ const rows=exporter.templatePartsRows([reloaded],workflow);assert.equal(rows[0][15],'Refurb notes');assert.equal(rows[1][15],note);assert.equal(rows[1][6],'LCD');assert.ok(!rows[1].slice(0,15).includes(note));
+ const entries=xlsx.readArchive(xlsx.workbook(rows)),sheet=entries.get('xl/worksheets/sheet1.xml').toString(),table=entries.get('xl/tables/table1.xml').toString();
+ assert.ok(sheet.includes('r="P4"')&&sheet.includes('=This is literal text'));assert.ok(sheet.includes('&amp; replace screw &lt;before QC&gt;'));assert.ok(sheet.includes('SUM(H4,J4,L4,N4)'));assert.ok(table.includes('count="16"')&&table.includes('name="Refurb notes"')&&table.includes('A3:P'));
+ workflow.jobs[asset.id].parts=[];assert.equal(exporter.templatePartsRows([reloaded],workflow).length,1);
+ const cleared=core.update(items,asset.id,{refurbNotes:''});assert.equal(cleared.item.refurbNotes,'');assert.deepEqual(cleared.item.refurbishment,imported);
 });

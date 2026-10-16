@@ -32,7 +32,7 @@
    const productType=productTypes.includes(item.productType)?item.productType:(productTypes.includes(item.category)?item.category:'Laptop');
    return {id:trim(item.id,80).toUpperCase(),manufacturer:trim(item.manufacturer,90),model:trim(item.model,140),serial:trim(item.serial,90),productType,category:productType,
      processor:trim(item.processor,140),gpu:trim(item.gpu,140),ram:trim(item.ram,70),storage:trim(item.storage,140),ssdType:ssdTypes.includes(item.ssdType)?item.ssdType:'Not specified',batteryPercentage:item.batteryPercentage===undefined||item.batteryPercentage===null||item.batteryPercentage===''?'':(Number(item.batteryPercentage)>=0&&Number(item.batteryPercentage)<=100?String(Math.round(Number(item.batteryPercentage))):''),operatingSystem:trim(item.operatingSystem,140),ramType:ramTypes.includes(item.ramType)?item.ramType:'Not specified',
-     location:trim(item.location,90)||'Unassigned',pallet:trim(item.pallet,80),sku:trim(item.sku,90),condition,status,inspection,grade:suggestion,notes:trim(item.notes,500),
+     location:trim(item.location,90)||'Unassigned',pallet:trim(item.pallet,80),sku:trim(item.sku,90),condition,status,inspection,grade:suggestion,notes:trim(item.notes,500),refurbNotes:trim(item.refurbNotes,5000),
      refurbishment:(item.refurbishment&&typeof item.refurbishment==='object'&&!Array.isArray(item.refurbishment))?item.refurbishment:null,
      diagnosticTests:(typeof require==='function'?require('./diagnostic-tests').sanitise(item.diagnosticTests):Object.fromEntries(Object.entries(item.diagnosticTests||{}).filter(([k,v])=>['pass','fail'].includes(v?.status||v)))),
      deletedAt:item.deletedAt||null,createdAt:item.createdAt||new Date().toISOString(),updatedAt:item.updatedAt||item.createdAt||new Date().toISOString(),history:Array.isArray(item.history)?item.history.slice(-120):[]};
@@ -49,10 +49,11 @@
    // leave earlier fields modified in memory or accidentally persist on a later save.
    const i={...original,history:Array.isArray(original.history)?[...original.history]:[]};
    const events=[];
-   const fields={manufacturer:90,model:140,serial:90,processor:140,gpu:140,ram:70,storage:140,operatingSystem:140,location:90,pallet:80,sku:90,notes:500};
+   const fields={manufacturer:90,model:140,serial:90,processor:140,gpu:140,ram:70,storage:140,operatingSystem:140,location:90,pallet:80,sku:90,notes:500,refurbNotes:5000};
    for(const [key,max] of Object.entries(fields))if(patch?.[key]!==undefined){const value=trim(patch[key],max);if(['model','location'].includes(key)&&!value)return {ok:false,error:`${key==='model'?'Model':'Location'} is required.`};if(!stringEq(i[key],value)){
      if(key==='location')events.push({type:'Transfer',detail:`${i.location} → ${value}`});
      else if(key==='pallet')events.push({type:'Pallet assignment',detail:`${i.pallet||'No pallet'} → ${value||'No pallet'}`});
+     else if(key==='refurbNotes')events.push({type:'Refurb notes',detail:value?'Refurb notes updated: '+value:'Refurb notes cleared'});
      else if(key!=='notes')events.push({type:'Specification',detail:`${key}: ${value||'—'}`});
      else events.push({type:'Notes',detail:'Notes updated'});i[key]=value;
    }}

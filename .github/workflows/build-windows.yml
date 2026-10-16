@@ -160,7 +160,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Parts Required dropdowns retain all recorded requirements and show Ordered beside purchased parts, including when every part is ordered. Excel still excludes ordered quantities. Click asset IDs in Parts Required, Parts Ordered and Deliveries to open full device details; Back restores the purchasing tab and expanded dropdown with unsaved-change protection. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Add and save your own notes directly on the device Refurb notes tab. Manual notes are stored separately from imported RefurbFlow reports and logged in asset history. Inventory and parts-needed Excel exports include a dedicated Refurb notes column; part descriptions, costs and ordered-part exclusions stay intact. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

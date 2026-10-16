@@ -59,7 +59,7 @@ function mutate(db,command){
  if(kind==='deleteRefurb'){
   if(!item||item.deletedAt)return fail('Active asset not found.');
   // Clear the entire refurbishment journey. Hardware and other inventory fields stay intact.
-  const removed=detach(s,id);delete item.refurbishment;
+  const removed=detach(s,id);delete item.refurbishment;item.refurbNotes='';
   item.history=(item.history||[]).concat([{type:'Admin',detail:'Refurbishment history and linked job removed',at:stamp()}]).slice(-120);
   item.updatedAt=stamp();return {ok:true,kind,removedOrders:removed.orders.length};
  }

@@ -9,23 +9,25 @@ function readArchive(buffer){
  return entries;
 }
 function workbook(rows){
- if(!Array.isArray(rows)||rows.length<1||rows.length>30001||rows.some(r=>!Array.isArray(r)||r.length!==15))throw Error('Invalid template export rows.');
+ if(!Array.isArray(rows)||rows.length<1||rows.length>30001||![15,16].includes(rows[0]?.length)||rows.some(r=>!Array.isArray(r)||r.length!==rows[0].length))throw Error('Invalid template export rows.');
+ const columns=rows[0].length,lastColumn=columns===16?'P':'O';
  const entries=readArchive(Buffer.from(require('./templates/refurb-parts-template.json').base64,'base64'));
- let sheet=entries.get('xl/worksheets/sheet1.xml').toString('utf8');const row=r=>sheet.match(new RegExp('<row\\b[^>]*\\br="'+r+'"[^>]*>[\\s\\S]*?</row>'))?.[0];const header=row(1),prototype=row(2),lastBody=row(32),tail=row(34);if(!header||!prototype)throw Error('Template rows are missing.');
+ let sheet=entries.get('xl/worksheets/sheet1.xml').toString('utf8');const row=r=>sheet.match(new RegExp('<row\\b[^>]*\\br="'+r+'"[^>]*>[\\s\\S]*?</row>'))?.[0];let header=row(1);const prototype=row(2),lastBody=row(32),tail=row(34);if(!header||!prototype)throw Error('Template rows are missing.');
  const styles=source=>Object.fromEntries([...source.matchAll(/<c\b([^>]*?)\br="([A-Z]+)\d+"([^>]*?)(?:\/>|>)/g)].map(m=>[m[2],(m[1]+m[3]).match(/\bs="(\d+)"/)?.[1]||'0']));
  const regular=styles(prototype),bottom=styles(lastBody),totalStyles=styles(row(33));const count=Math.max(31,rows.length-1),total=count+2,last=count+3;
+ if(columns===16){regular.P=regular.G;bottom.P=bottom.G;header=header.replace('spans="1:15"','spans="1:16"').replace('</row>','<c r="P1" s="'+styles(header).G+'" t="inlineStr"><is><t>Refurb notes</t></is></c></row>');}
  const formula=prototype.match(/<c\b[^>]*r="O2"[^>]*>\s*<f[^>]*>([\s\S]*?)<\/f>/)?.[1];if(!formula)throw Error('Template total formula is missing.');
- const widths=[18,44,34,18,30,26,30,15,30,15,30,15,30,15,16];
+ const widths=[18,44,34,18,30,26,30,15,30,15,30,15,30,15,16];if(columns===16)widths.push(55);
  const height=values=>Math.max(30,...values.map((v,i)=>{const limit=Math.max(8,Math.floor(widths[i]-4)),lines=String(v??'').split(/\r?\n/).reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/limit)),0);return Math.min(409,lines*16+10);}));
  const output=[header];
  for(let index=0;index<count;index++){
-  const r=index+2,values=rows[index+1]||Array(15).fill(null),style=index===count-1?bottom:regular;
-  output.push(`<row r="${r}" spans="1:15" ht="${height(values)}" customHeight="1">`+values.map((v,c)=>{const letter=col(c),s=style[letter];if(c===14)return `<c r="${letter+r}" s="${s}"><f>SUM(H${r},J${r},L${r},N${r})</f><v>0</v></c>`;if(v===null||v===undefined||v==='')return `<c r="${letter+r}" s="${s}"/>`;return `<c r="${letter+r}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xml(String(v).slice(0,32000))}</t></is></c>`;}).join('')+'</row>');
+  const r=index+2,values=rows[index+1]||Array(columns).fill(null),style=index===count-1?bottom:regular;
+  output.push(`<row r="${r}" spans="1:${columns}" ht="${height(values)}" customHeight="1">`+values.map((v,c)=>{const letter=col(c),s=style[letter];if(c===14)return `<c r="${letter+r}" s="${s}"><f>SUM(H${r},J${r},L${r},N${r})</f><v>0</v></c>`;if(v===null||v===undefined||v==='')return `<c r="${letter+r}" s="${s}"/>`;return `<c r="${letter+r}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xml(String(v).slice(0,32000))}</t></is></c>`;}).join('')+'</row>');
  }
- output.push(`<row r="${total}" spans="1:15">`+Array.from({length:15},(_,c)=>{const letter=col(c);return `<c r="${letter+total}" s="${totalStyles[letter]||16}">`+([7,9,11,13,14].includes(c)?`<f>SUM(${letter}2:${letter}${count+1})</f><v>0</v>`:'')+'</c>';}).join('')+'</row>');
+ output.push(`<row r="${total}" spans="1:${columns}">`+Array.from({length:columns},(_,c)=>{const letter=col(c);return `<c r="${letter+total}" s="${totalStyles[letter]||16}">`+([7,9,11,13,14].includes(c)?`<f>SUM(${letter}2:${letter}${count+1})</f><v>0</v>`:'')+'</c>';}).join('')+'</row>');
  if(tail)output.push(tail.replace(/r="([A-Z]*)(34)"/g,(_,l)=>`r="${l}${last}"`));
- sheet=sheet.replace(/<sheetData>[\s\S]*?<\/sheetData>/,'<sheetData>'+output.join('')+'</sheetData>').replace(/<dimension ref="[^"]*"\/>/,`<dimension ref="A1:O${last}"/>`);sheet=sheet.replace(/<cols>[\s\S]*?<\/cols>/,'<cols>'+widths.map((width,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+width+'" customWidth="1"/>').join('')+'</cols>');entries.set('xl/worksheets/sheet1.xml',Buffer.from(sheet));
- let table=entries.get('xl/tables/table1.xml').toString();table=table.replace(/<calculatedColumnFormula[^>]*>[\s\S]*?<\/calculatedColumnFormula>/g,'<calculatedColumnFormula>SUM(H2,J2,L2,N2)</calculatedColumnFormula>').replace(/ref="A1:O\d+"/,`ref="A1:O${total}"`).replace(/(<autoFilter[^>]*ref=")[^"]*(")/,`$1A1:O${total-1}$2`);entries.set('xl/tables/table1.xml',Buffer.from(table));
+ sheet=sheet.replace(/<sheetData>[\s\S]*?<\/sheetData>/,'<sheetData>'+output.join('')+'</sheetData>').replace(/<dimension ref="[^"]*"\/>/,`<dimension ref="A1:${lastColumn}${last}"/>`);sheet=sheet.replace(/<cols>[\s\S]*?<\/cols>/,'<cols>'+widths.map((width,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+width+'" customWidth="1"/>').join('')+'</cols>');entries.set('xl/worksheets/sheet1.xml',Buffer.from(sheet));
+ let table=entries.get('xl/tables/table1.xml').toString();table=table.replace(/<calculatedColumnFormula[^>]*>[\s\S]*?<\/calculatedColumnFormula>/g,'<calculatedColumnFormula>SUM(H2,J2,L2,N2)</calculatedColumnFormula>').replace(/ref="A1:O\d+"/,`ref="A1:${lastColumn}${total}"`).replace(/(<autoFilter[^>]*ref=")[^"]*(")/,`$1A1:${lastColumn}${total-1}$2`);if(columns===16)table=table.replace('<tableColumns count="15">','<tableColumns count="16">').replace('</tableColumns>','<tableColumn id="16" name="Refurb notes"/></tableColumns>');entries.set('xl/tables/table1.xml',Buffer.from(table));
  // Stale calculation chains reference the old row count. Excel recalculates the preserved formulas.
  entries.delete('xl/calcChain.xml');for(const filename of ['[Content_Types].xml','xl/_rels/workbook.xml.rels'])entries.set(filename,Buffer.from(entries.get(filename).toString().replace(/<(?:Override|Relationship)\b[^>]*(?:calcChain)[^>]*\/>/g,'')));
  let wb=entries.get('xl/workbook.xml').toString();wb=wb.replace(/<calcPr\b[^>]*\/>/,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/>');entries.set('xl/workbook.xml',Buffer.from(wb));

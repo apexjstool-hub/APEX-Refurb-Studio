@@ -275,6 +275,13 @@ app.whenReady().then(async()=>{
    await win.webContents.executeJavaScript("$('deliveriesContent').querySelector('[data-op=open]').click();$('rwReturnToQueue').click();void 0;");
    if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&$('deliveriesContent').parentElement.id==='rwExistingPanel'&&document.querySelector('[data-rw-purchase=deliveries]').classList.contains('selected')"))throw Error('Delivery asset link did not return to its purchasing tab.');
   }
+  await win.webContents.executeJavaScript("activeAssetId='TEST-TRACKER';setPage('asset');$('v3AssetTabs').querySelector('[data-asset-tab=refurb]').click();void 0;");
+  await win.webContents.executeJavaScript(source.slice(source.indexOf('function readAsset()'),source.indexOf('function updateAssetOverview()'))+';void 0;');
+  await win.webContents.executeJavaScript(source.split('\n').find(line=>line.startsWith("$('editRefurbNotes').addEventListener"))+';void 0;');
+  await win.webContents.executeJavaScript("dirty=false;$('editRefurbNotes').value='Check lid scratches and replace the missing screw.';$('editRefurbNotes').dispatchEvent(new Event('input',{bubbles:true}));void 0;");
+  if(!await win.webContents.executeJavaScript("dirty&&readAsset().refurbNotes==='Check lid scratches and replace the missing screw.'&&$('editRefurbNotes').form.id==='assetEditor'&&$('refurbNotesSave').form.id==='assetEditor'&&$('editRefurbNotes').getBoundingClientRect().height>=100&&getComputedStyle($('apexAssetRefurbSection')).display!=='none'"))throw Error('Manual refurb notes are not visible, tracked as unsaved or included in asset save.');
+  for(const theme of ['light','dark']){await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";void 0;");await new Promise(r=>setTimeout(r,150));fs.writeFileSync(path.resolve('qa-print/manual-refurb-notes-'+theme+'.png'),(await win.webContents.capturePage()).toPNG());}
+  await win.webContents.executeJavaScript("dirty=false;void 0;");
   const trailAsset=db.items.find(a=>a.id==='TEST-TRACKER');
   trailAsset.history=[...(trailAsset.history||[]),...Array.from({length:130},(_,i)=>({type:'Specification',detail:'Saved older event '+i,at:new Date(Date.UTC(2025,0,1,0,0,i)).toISOString()}))];
   state.audit.unshift({id:'history-fit-fixture',assetId:'TEST-TRACKER',type:'Part fitted',detail:'Battery fitted for TEST-TRACKER',at:'2026-10-15T23:00:00Z',by:'Test technician'});
