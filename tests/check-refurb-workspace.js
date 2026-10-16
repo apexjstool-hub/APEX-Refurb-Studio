@@ -288,7 +288,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('plSelectJobPallets').click();$('plCreateMicrodreamOrder').click();void 0;");
   for(let i=0;i<80;i++){if(await win.webContents.executeJavaScript("!!$('microdreamPrint')&&!$('microdreamPrint').disabled"))break;await new Promise(r=>setTimeout(r,50));}
   const jobPreview=await win.webContents.executeJavaScript("(()=>{const frame=$('microdreamPreviewFrame'),rows=[...frame.contentDocument.querySelectorAll('.md-model-row')];return {ready:frame.contentWindow.microdreamReady,rows:rows.map(r=>[...r.cells].map(c=>c.textContent)),summary:$('microdreamPreviewSummary').textContent};})()");
-  if(!jobPreview.ready||jobPreview.rows.length!==1||jobPreview.rows[0][0]!=='Dell Latitude 5420'||jobPreview.rows[0][4]!=='3'||!jobPreview.summary.includes('3 devices'))throw Error('Microdream preview did not group only selected pallet devices: '+JSON.stringify(jobPreview));
+  if(!jobPreview.ready||jobPreview.rows.length!==1||jobPreview.rows[0][0]!=='Laptop'||jobPreview.rows[0][1]!=='Dell Latitude 5420'||jobPreview.rows[0][2]!=='Reprint UK'||jobPreview.rows[0][4]!=='3'||!jobPreview.summary.includes('3 devices'))throw Error('Microdream preview did not group only selected pallet devices: '+JSON.stringify(jobPreview));
   fs.writeFileSync(path.resolve('qa-print/microdream-preview-dialog.png'),(await win.webContents.capturePage()).toPNG());
   await win.webContents.executeJavaScript("$('microdreamJobRef').value='REF-TEST';$('microdreamJobRef').dispatchEvent(new Event('input'));void 0;");
   if(!await win.webContents.executeJavaScript("$('microdreamPrint').disabled"))throw Error('Changed job ref did not require a refreshed preview.');

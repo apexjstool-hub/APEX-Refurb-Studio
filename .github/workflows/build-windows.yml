@@ -169,7 +169,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Select pallets inside Microdream and Create purchase order to preview and print the supplied Microdream Job Details / Delivery Note template. Identical device models are grouped once in Type, QTY Sent counts devices, Language is UK and Comment is Full respray. Includes optional Job Ref, Save PDF, multi-page model lists and stale-selection validation. Download the Setup .exe under Assets. Test the installer before publishing this draft."
+          $notes = "APEX $version Windows installer. Select pallets inside Microdream and Create purchase order to preview and print the supplied Microdream Job Details / Delivery Note template. Device Type comes from the asset, identical models are grouped in Model, QTY Sent counts devices, Language is Reprint UK and Comment is Full respray. Includes optional Job Ref, Save PDF, multi-page model lists and stale-selection validation. Download the Setup .exe under Assets. Test the installer before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
