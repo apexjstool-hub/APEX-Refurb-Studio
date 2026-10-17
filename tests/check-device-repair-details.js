@@ -35,8 +35,8 @@ app.whenReady().then(async()=>{
    win.setContentSize(width,1000);
    await win.webContents.executeJavaScript('document.documentElement.dataset.theme='+JSON.stringify(theme)+';void 0;');
    await new Promise(r=>setTimeout(r,100));
-   const result=await win.webContents.executeJavaScript("(()=>{const panel=$('apexAssetRepairsSection').getBoundingClientRect();const bad=[...document.querySelectorAll('#assetJobProgress button,.device-repair-name,.device-repair-state,.device-repair-quantities')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.left<panel.left-1||r.right>panel.right+1||e.scrollWidth>e.clientWidth+2)});return {overflow:document.documentElement.scrollWidth>innerWidth+2,bad:bad.map(e=>e.className)}})()");
-   if(result.overflow||result.bad.length)throw Error('Parts layout overflow '+theme+' '+width+': '+JSON.stringify(result));
+   const result=await win.webContents.executeJavaScript("(()=>{const panel=$('apexAssetRepairsSection').getBoundingClientRect();const bad=[...document.querySelectorAll('#assetJobProgress button,.device-repair-name,.device-repair-state,.device-repair-quantities')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.left<panel.left-1||r.right>panel.right+1||e.scrollWidth>e.clientWidth+2)});return {overflow:document.documentElement.scrollWidth>innerWidth+2,bottom:document.querySelector('.device-repair-qc').getBoundingClientRect().bottom>panel.bottom-10,bad:bad.map(e=>e.className)}})()");
+   if(result.overflow||result.bottom||result.bad.length)throw Error('Parts layout overflow '+theme+' '+width+': '+JSON.stringify(result));
    if(width===1100){const capture=await win.webContents.capturePage();fs.writeFileSync(path.resolve('qa-print/device-parts-'+theme+'.png'),capture.toPNG());}
   }
   await win.webContents.executeJavaScript("ops.jobs[activeAssetId].parts=[];renderAsset();void 0;");

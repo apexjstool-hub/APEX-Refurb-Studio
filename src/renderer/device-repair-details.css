@@ -1,5 +1,5 @@
 /* Device Details / Parts & repair. Scoped to this panel; shared workflows remain intact. */
-body.apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible}
+body.apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible;height:auto!important;max-height:none!important}
 body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head{align-items:center;flex-direction:row;flex-wrap:wrap;margin:0!important;padding:0 0 18px!important;min-height:0!important;border-bottom:1px solid var(--line)}
 body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
 body.apex-v34 #assetPage #assetJobProgress{padding:18px 0 0!important;min-width:0}
