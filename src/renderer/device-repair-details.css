@@ -1,0 +1,70 @@
+/* Device Details / Parts & repair. Scoped to this panel; shared workflows remain intact. */
+body.apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible}
+body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head{align-items:center;flex-direction:row;flex-wrap:wrap;margin:0!important;padding:0 0 18px!important;min-height:0!important;border-bottom:1px solid var(--line)}
+body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+body.apex-v34 #assetPage #assetJobProgress{padding:18px 0 0!important;min-width:0}
+#assetJobProgress .device-repair-job{display:flex;flex-wrap:wrap;align-items:center;gap:20px;padding:0 0 20px;margin:0;border-bottom:1px solid var(--line)}
+#assetJobProgress .device-repair-assignment{display:grid;gap:7px;min-width:150px}
+#assetJobProgress .device-repair-assignment>small{font-size:11px;font-weight:600;color:var(--muted)}
+#assetJobProgress .device-repair-assignment>span{font-size:12px;color:var(--muted)}
+#assetJobProgress .device-repair-assignment .ops-stage{font-size:12px;padding:5px 9px;line-height:1.4}
+#assetJobProgress .device-repair-totals{display:flex;gap:0;align-items:center}
+#assetJobProgress .device-repair-totals>span{display:grid;gap:4px;min-width:78px;padding:0 18px;border-left:1px solid var(--line);text-align:center}
+#assetJobProgress .device-repair-totals b{font-size:22px;line-height:1.2;color:var(--text);font-variant-numeric:tabular-nums;font-weight:650}
+#assetJobProgress .device-repair-totals small{font-size:11px;color:var(--muted)}
+#assetJobProgress .device-repair-job-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+body.apex-v34 #assetJobProgress button:not(.apex-delete-button){min-height:36px!important;height:auto!important;padding:8px 12px!important;line-height:1.35!important;font-size:12px!important;white-space:normal;box-shadow:none}
+#assetJobProgress .device-repair-list{margin-top:20px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+#assetJobProgress .device-repair-list-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px}
+#assetJobProgress .device-repair-list-title h4{display:flex;gap:8px;align-items:center;margin:0;font-size:14px;color:var(--text)}
+#assetJobProgress .device-repair-list-title h4>span{display:inline-grid;place-items:center;min-width:22px;min-height:22px;border-radius:6px;font-size:11px;background:var(--panel2);color:var(--muted)}
+#assetJobProgress .device-repair-list-title>span{font-size:12px;color:var(--muted)}
+#assetJobProgress .device-repair-columns,#assetJobProgress .device-repair-row{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(180px,1fr) minmax(125px,.8fr) minmax(170px,auto);align-items:center;gap:16px}
+#assetJobProgress .device-repair-columns{padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:600}
+#assetJobProgress .device-repair-columns>span:last-child{text-align:right}
+#assetJobProgress .device-repair-list ul{list-style:none;padding:0;margin:0}
+body.apex-v34 #assetJobProgress .device-repair-row{padding:16px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-width:0}
+body.apex-v34 #assetJobProgress .device-repair-row:last-child{border-bottom:0!important}
+#assetJobProgress .device-repair-name{min-width:0;display:grid;gap:5px}
+#assetJobProgress .device-repair-name strong{font-size:14px;font-weight:600;overflow-wrap:anywhere;line-height:1.4}
+#assetJobProgress .device-repair-name small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+#assetJobProgress .device-repair-quantities{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#assetJobProgress .device-repair-quantities>span{display:grid;gap:5px}
+#assetJobProgress .device-repair-quantities small{font-size:11px;color:var(--muted)}
+#assetJobProgress .device-repair-quantities b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+#assetJobProgress .device-repair-state{display:grid;justify-items:start;gap:6px;min-width:0}
+#assetJobProgress .device-repair-state>small{font-size:11px;line-height:1.4;color:var(--muted)}
+#assetJobProgress .device-repair-badge{display:inline-flex;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.35;background:var(--panel2);color:var(--text)}
+#assetJobProgress .device-repair-badge.is-complete,#assetJobProgress .device-repair-badge.is-ready{background:color-mix(in srgb,var(--green) 13%,var(--panel));color:var(--green)}
+#assetJobProgress .device-repair-badge.is-ordered{background:color-mix(in srgb,var(--violet) 12%,var(--panel));color:var(--violet)}
+#assetJobProgress .device-repair-badge.is-waiting{background:color-mix(in srgb,var(--amber) 13%,var(--panel));color:var(--amber)}
+#assetJobProgress .device-repair-actions{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+#assetJobProgress .device-repair-empty{padding:24px 16px;color:var(--muted);font-size:13px;line-height:1.6;border-top:1px solid var(--line)}
+#assetJobProgress .device-repair-qc{display:flex;align-items:center;gap:20px;padding-top:20px;margin-top:20px;border-top:1px solid var(--line)}
+#assetJobProgress .device-repair-qc>div{display:grid;gap:5px;min-width:150px}
+#assetJobProgress .device-repair-qc strong{font-size:13px;font-weight:600}
+#assetJobProgress .device-repair-qc span{font-size:12px;color:var(--muted)}
+#assetJobProgress .device-repair-qc progress{appearance:none;width:160px;max-width:100%;height:6px;border:0;border-radius:20px;overflow:hidden;background:var(--panel2);color:var(--violet);margin-left:auto}
+#assetJobProgress .device-repair-qc progress::-webkit-progress-bar{background:var(--panel2)}
+#assetJobProgress .device-repair-qc progress::-webkit-progress-value{background:var(--violet);border-radius:20px}
+@container(max-width:820px){
+ #assetJobProgress .device-repair-job-actions{width:100%;margin-left:0}
+ #assetJobProgress .device-repair-columns,#assetJobProgress .device-repair-row{grid-template-columns:minmax(100px,1fr) minmax(155px,1fr) minmax(110px,.8fr);gap:12px}
+ #assetJobProgress .device-repair-columns>span:last-child{display:none}
+ #assetJobProgress .device-repair-actions{grid-column:1/-1;justify-content:flex-end}
+}
+@container(max-width:520px){
+ #assetJobProgress .device-repair-job{gap:16px}
+ #assetJobProgress .device-repair-totals{width:100%}
+ #assetJobProgress .device-repair-totals>span{flex:1;padding:0 10px;min-width:0}
+ #assetJobProgress .device-repair-totals>span:first-child{border-left:0}
+ #assetJobProgress .device-repair-columns{display:none}
+ #assetJobProgress .device-repair-list-title>span{display:none}
+ #assetJobProgress .device-repair-row{grid-template-columns:minmax(0,1fr) auto}
+ #assetJobProgress .device-repair-state{grid-column:2;grid-row:1}
+ #assetJobProgress .device-repair-quantities{grid-column:1/-1;grid-row:2}
+ #assetJobProgress .device-repair-actions{justify-content:flex-start}
+ #assetJobProgress .device-repair-qc{flex-wrap:wrap;gap:14px}
+ #assetJobProgress .device-repair-qc progress{width:100%;margin:0;order:3}
+ #assetJobProgress .device-repair-qc button{margin-left:auto}
+}

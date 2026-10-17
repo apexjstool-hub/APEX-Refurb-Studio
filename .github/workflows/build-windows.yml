@@ -115,6 +115,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-refurb-workspace.js
           if ($LASTEXITCODE -ne 0) { throw 'Refurbishment workspace checks failed.' }
+      - name: Verify Device Details parts layout and existing actions
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-device-repair-details.js
+          if ($LASTEXITCODE -ne 0) { throw 'Device Details repair layout checks failed.' }
       - name: Verify sign-in layout and manual saved login
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
@@ -169,7 +174,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Removes the Prices tab and Apify pricing integration, restoring the app behavior from 4.0.70. Keeps Grade Projection and the Respray + UK Keyboard full-respray correction. No inventory records, current grades or repair progress are changed. Download the Setup .exe under Assets. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Refines Device Details / Parts & repair with compact aligned parts, quantity columns, clear order and fitting status, shared bin controls, a job summary and quality-check progress. Responsive Daylight and Midnight layouts. Existing ordering, receiving, fitting, QC, exports and inventory data remain unchanged. Download the Setup .exe under Assets. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
