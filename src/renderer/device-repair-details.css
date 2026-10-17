@@ -19,7 +19,7 @@ body.apex-v34 #assetJobProgress button:not(.apex-delete-button){min-height:36px!
 #assetJobProgress .device-repair-list-title h4{display:flex;gap:8px;align-items:center;margin:0;font-size:14px;color:var(--text)}
 #assetJobProgress .device-repair-list-title h4>span{display:inline-grid;place-items:center;min-width:22px;min-height:22px;border-radius:6px;font-size:11px;background:var(--panel2);color:var(--muted)}
 #assetJobProgress .device-repair-list-title>span{font-size:12px;color:var(--muted)}
-#assetJobProgress .device-repair-columns,#assetJobProgress .device-repair-row{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(180px,1fr) minmax(125px,.8fr) minmax(170px,auto);align-items:center;gap:16px}
+#assetJobProgress .device-repair-columns,#assetJobProgress .device-repair-row{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(180px,1fr) minmax(125px,.8fr) 230px;align-items:center;gap:16px}
 #assetJobProgress .device-repair-columns{padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:600}
 #assetJobProgress .device-repair-columns>span:last-child{text-align:right}
 #assetJobProgress .device-repair-list ul{list-style:none;padding:0;margin:0}
