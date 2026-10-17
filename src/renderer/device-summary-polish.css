@@ -1,44 +1,20 @@
-/* Theme-aware Device Details identity card. Existing content and actions are retained. */
+/* Colour overrides only. The original Device Details card owns all layout and spacing. */
 .apex-v34 #assetPage #assetSummary.mock-summary{
- --device-card-bg:#fff;--device-card-soft:#f5f8fd;--device-card-line:#dde5f0;--device-card-ink:#172b4d;--device-card-muted:#61728a;--device-card-accent:#1769d9;--device-card-accent-soft:#edf4ff;--device-card-green:#13724a;--device-card-green-soft:#e9f7ef;--device-card-amber:#8a5d13;--device-card-amber-soft:#fff5e1;
- display:block!important;container-type:inline-size;background:var(--device-card-bg)!important;color:var(--device-card-ink)!important;border:1px solid var(--device-card-line)!important;border-radius:14px!important;padding:24px!important;margin:0 0 18px!important;min-height:0!important;max-height:none!important;box-shadow:0 4px 18px #17345508!important
+ --device-card-bg:#fff;--device-card-soft:#f5f8fd;--device-card-line:#dde5f0;--device-card-ink:#172b4d;--device-card-muted:#61728a;--device-card-accent:#1769d9;--device-card-accent-soft:#edf4ff;--device-card-green:#13724a;--device-card-green-soft:#e9f7ef;--device-card-green-line:#b8e1c9;--device-card-amber:#8a5d13;--device-card-amber-soft:#fff5e1;--device-card-amber-line:#ebd5a3;
+ background:var(--device-card-bg)!important;color:var(--device-card-ink)!important;border-color:var(--device-card-line)!important
 }
-:root[data-theme='dark'].apex-v34 #assetPage #assetSummary.mock-summary{--device-card-bg:#171d2e;--device-card-soft:#20293c;--device-card-line:#35415b;--device-card-ink:#f0f3fc;--device-card-muted:#b1bed3;--device-card-accent:#bba6ff;--device-card-accent-soft:#30284b;--device-card-green:#85dfb4;--device-card-green-soft:#193b32;--device-card-amber:#f1d397;--device-card-amber-soft:#3d3322;box-shadow:0 4px 18px #00000018!important}
-#assetSummary .device-card-top{gap:24px;align-items:center}
-#assetSummary .device-card-art{width:118px;flex:0 0 118px;min-height:114px;border:1px solid var(--device-card-line);border-radius:12px;background:var(--device-card-accent-soft);padding:10px}
-#assetSummary .device-card-art>svg{width:100%;max-width:118px;height:auto}
-#assetSummary .device-card-main{gap:22px}
-#assetSummary .device-card-heading{gap:16px;align-items:flex-start;flex-wrap:wrap}
-.apex-v34 #assetPage #assetSummary .device-card-heading h2{color:var(--device-card-ink)!important;font-size:25px!important;font-weight:650!important;line-height:1.25!important;letter-spacing:-.5px;margin:0 0 9px!important}
-#assetSummary .device-card-type{background:var(--device-card-accent-soft);color:var(--device-card-accent);border:0;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600}
-.apex-v34 #assetPage #assetSummary #assetPrintLabel{display:inline-flex;align-items:center;justify-content:center;gap:9px;position:static;background:var(--device-card-accent-soft)!important;border:1px solid var(--device-card-line)!important;border-radius:8px!important;color:var(--device-card-accent)!important;padding:10px 14px!important;min-height:40px;font-size:12px!important;font-weight:600!important;white-space:normal;box-shadow:none!important;flex:0 1 auto;line-height:1.4}
-.apex-v34 #assetPage #assetSummary #assetPrintLabel:hover:not(:disabled){border-color:var(--device-card-accent)!important}
-.apex-v34 #assetPage #assetSummary #assetPrintLabel:focus-visible{outline:2px solid var(--device-card-accent);outline-offset:3px}
-#assetSummary .device-card-primary{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;align-items:start}
-#assetSummary .device-card-primary .device-card-fact{padding:0!important;border:0!important;column-gap:7px;row-gap:7px}
-#assetSummary .device-card-fact>svg{color:var(--device-card-muted);width:18px;height:18px;flex:0 0 18px}
-.apex-v34 #assetPage #assetSummary .device-card-fact small{color:var(--device-card-muted)!important;font-size:11px!important;line-height:1.5!important;font-weight:500!important;margin:0 0 6px!important}
-.apex-v34 #assetPage #assetSummary .device-card-primary small{margin:0!important}
-.apex-v34 #assetPage #assetSummary .device-card-fact strong{color:var(--device-card-ink)!important;font-size:14px!important;font-weight:600!important;line-height:1.5!important}
-#assetSummary .device-card-workflow{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:20px;margin-top:22px;border-top:1px solid var(--device-card-line)}
-#assetSummary .device-card-workflow .device-card-fact{display:flex;gap:11px;padding:14px!important;border:1px solid var(--device-card-line)!important;border-radius:10px;background:var(--device-card-soft);align-items:flex-start}
-#assetSummary .device-card-workflow .device-card-fact>svg{margin-top:2px;color:var(--device-card-accent);width:18px;height:18px;flex-basis:18px}
-.apex-v34 #assetPage #assetSummary strong.device-card-status{display:inline-flex;align-items:center;gap:7px;border:0!important;border-radius:6px;padding:5px 8px;color:var(--device-card-green)!important;background:var(--device-card-green-soft)!important;font-size:12px!important;line-height:1.4!important}
-.apex-v34 #assetPage #assetSummary strong.device-card-status.is-awaiting{color:var(--device-card-amber)!important;background:var(--device-card-amber-soft)!important;border:0!important}
-#assetSummary .device-card-status i{width:6px;height:6px;flex-basis:6px}
-.apex-v34 #assetPage #assetSummary strong.device-card-location{display:inline-block;max-width:100%;padding:5px 8px;border-radius:6px;background:var(--device-card-accent-soft)!important;color:var(--device-card-accent)!important;font-size:12px!important;line-height:1.4!important}
-@container(max-width:900px){
- #assetSummary .device-card-primary{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
- #assetSummary .device-card-workflow{grid-template-columns:repeat(2,minmax(0,1fr))}
- #assetSummary .device-card-art{width:106px;flex-basis:106px;min-height:106px}
-}
-@container(max-width:540px){
- #assetSummary .device-card-top{display:block}
- #assetSummary .device-card-art{display:none}
- #assetSummary .device-card-main{gap:20px}
- #assetSummary .device-card-heading{display:grid;gap:14px}
- #assetSummary .device-card-primary{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
- #assetSummary .device-card-workflow{grid-template-columns:1fr;gap:10px;margin-top:20px}
- .apex-v34 #assetPage #assetSummary .device-card-heading h2{font-size:22px!important}
- .apex-v34 #assetPage #assetSummary #assetPrintLabel{justify-self:start}
-}
+:root[data-theme='dark'].apex-v34 #assetPage #assetSummary.mock-summary{--device-card-bg:#171d2e;--device-card-soft:#20293c;--device-card-line:#35415b;--device-card-ink:#f0f3fc;--device-card-muted:#b1bed3;--device-card-accent:#bba6ff;--device-card-accent-soft:#30284b;--device-card-green:#85dfb4;--device-card-green-soft:#193b32;--device-card-green-line:#356650;--device-card-amber:#f1d397;--device-card-amber-soft:#3d3322;--device-card-amber-line:#78603c}
+#assetSummary .device-card-art{background:var(--device-card-accent-soft);border-color:var(--device-card-line)}
+.apex-v34 #assetPage #assetSummary .device-card-heading h2{color:var(--device-card-ink)!important}
+#assetSummary .device-card-type{background:var(--device-card-accent-soft);color:var(--device-card-accent)}
+.apex-v34 #assetPage #assetSummary #assetPrintLabel{background:var(--device-card-accent-soft)!important;border-color:var(--device-card-line)!important;color:var(--device-card-accent)!important}
+.apex-v34 #assetPage #assetSummary #assetPrintLabel:hover:not(:disabled){background:var(--device-card-accent-soft)!important;border-color:var(--device-card-accent)!important}
+.apex-v34 #assetPage #assetSummary #assetPrintLabel:focus-visible{outline-color:var(--device-card-accent)}
+#assetSummary .device-card-fact{border-color:var(--device-card-line)}
+#assetSummary .device-card-fact>svg{color:var(--device-card-muted)}
+.apex-v34 #assetPage #assetSummary .device-card-fact small{color:var(--device-card-muted)!important}
+.apex-v34 #assetPage #assetSummary .device-card-fact strong{color:var(--device-card-ink)!important}
+#assetSummary .device-card-workflow{border-color:var(--device-card-line)}
+.apex-v34 #assetPage #assetSummary strong.device-card-status{color:var(--device-card-green)!important;background:var(--device-card-green-soft)!important;border-color:var(--device-card-green-line)!important}
+.apex-v34 #assetPage #assetSummary strong.device-card-status.is-awaiting{color:var(--device-card-amber)!important;background:var(--device-card-amber-soft)!important;border-color:var(--device-card-amber-line)!important}
+.apex-v34 #assetPage #assetSummary strong.device-card-location{background:var(--device-card-accent-soft)!important;color:var(--device-card-accent)!important}
