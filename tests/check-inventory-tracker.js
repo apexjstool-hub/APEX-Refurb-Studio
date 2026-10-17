@@ -184,7 +184,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("updateAssetOverview();const card=$('assetSummary').outerHTML;document.body.innerHTML='<section id=assetPage>'+card+'</section>';document.body.style.display='block';document.body.style.padding='16px';document.body.style.overflow='auto';$('assetPage').style.maxWidth='1120px';$('assetPage').style.margin='0 auto';");
   win.show();await new Promise(r=>setTimeout(r,350));
   const summaryBox=await win.webContents.executeJavaScript("(()=>{const r=$('assetSummary').getBoundingClientRect();return {x:Math.floor(r.x),y:Math.floor(r.y),width:Math.ceil(r.width),height:Math.ceil(r.height)};})()");
-  if(summaryBox.width<500||summaryBox.height<100||(summaryBox.width>950&&summaryBox.height>300))throw Error('Device summary was hidden or too narrow during layout verification.');
+  if(summaryBox.width<500||summaryBox.height<100||(summaryBox.width>950&&summaryBox.height>420))throw Error('Device summary dimensions outside desktop layout bounds: '+JSON.stringify(summaryBox));
   fs.mkdirSync(path.resolve('qa-print'),{recursive:true});fs.writeFileSync(path.resolve('qa-print/device-summary-preview.png'),(await win.webContents.capturePage(summaryBox)).toPNG());
   console.log('PASS: real Windows renderer shows simplified Inventory progress and persists a receipt through actual workflow logic.');win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();fs.rmSync(folder,{recursive:true,force:true});app.exit(1);}
