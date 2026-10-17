@@ -16,7 +16,7 @@ permissions:
   contents: write
 concurrency:
   group: apex-windows-release
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
 jobs:
   pallet-storage:
     runs-on: ubuntu-latest
@@ -88,12 +88,13 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Verify source and core workflows
+        timeout-minutes: 5
         run: |
           Get-ChildItem src,hub,cloud,scripts -Recurse -Filter *.js | ForEach-Object {
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
