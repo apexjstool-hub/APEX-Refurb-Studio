@@ -1,9 +1,9 @@
 /* Colour overrides only. The original Device Details card owns all layout and spacing. */
 .apex-v34 #assetPage #assetSummary.mock-summary{
- --device-card-bg:#fff;--device-card-soft:#f5f8fd;--device-card-line:#dde5f0;--device-card-ink:#172b4d;--device-card-muted:#61728a;--device-card-accent:#1769d9;--device-card-accent-soft:#edf4ff;--device-card-green:#13724a;--device-card-green-soft:#e9f7ef;--device-card-green-line:#b8e1c9;--device-card-amber:#8a5d13;--device-card-amber-soft:#fff5e1;--device-card-amber-line:#ebd5a3;
+ --device-card-bg:#203a5b;--device-card-soft:#294567;--device-card-line:#496483;--device-card-ink:#f3f7fc;--device-card-muted:#c3d2e4;--device-card-accent:#b5d4ff;--device-card-accent-soft:#2d5076;--device-card-green:#9de6c2;--device-card-green-soft:#164738;--device-card-green-line:#4c8b70;--device-card-amber:#f5d795;--device-card-amber-soft:#514127;--device-card-amber-line:#967a45;
  background:var(--device-card-bg)!important;color:var(--device-card-ink)!important;border-color:var(--device-card-line)!important
 }
-:root[data-theme='dark'].apex-v34 #assetPage #assetSummary.mock-summary{--device-card-bg:#171d2e;--device-card-soft:#20293c;--device-card-line:#35415b;--device-card-ink:#f0f3fc;--device-card-muted:#b1bed3;--device-card-accent:#bba6ff;--device-card-accent-soft:#30284b;--device-card-green:#85dfb4;--device-card-green-soft:#193b32;--device-card-green-line:#356650;--device-card-amber:#f1d397;--device-card-amber-soft:#3d3322;--device-card-amber-line:#78603c}
+:root[data-theme='dark'].apex-v34 #assetPage #assetSummary.mock-summary{--device-card-bg:#182b43;--device-card-soft:#203b57;--device-card-line:#3c5673;--device-card-ink:#f0f5fc;--device-card-muted:#b8cbe2;--device-card-accent:#b5d4ff;--device-card-accent-soft:#29496b;--device-card-green:#9de6c2;--device-card-green-soft:#164738;--device-card-green-line:#4c8b70;--device-card-amber:#f5d795;--device-card-amber-soft:#514127;--device-card-amber-line:#967a45}
 #assetSummary .device-card-art{background:var(--device-card-accent-soft);border-color:var(--device-card-line)}
 .apex-v34 #assetPage #assetSummary .device-card-heading h2{color:var(--device-card-ink)!important}
 #assetSummary .device-card-type{background:var(--device-card-accent-soft);color:var(--device-card-accent)}

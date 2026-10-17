@@ -180,7 +180,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Restores the original Device Details summary layout, illustration size, dividers, spacing and badge shapes. Keeps only the new Daylight and Midnight colour palettes. All card data and Print Label behaviour are unchanged. Retains the Parts & repair spacing correction. Download the Setup .exe under Assets. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Changes the original-style Device Details card to muted navy blue with light text and coordinated blue accents, replacing the white card. Midnight uses a deeper navy shade. Keeps the original layout, illustration, spacing, dividers and badge shapes. Existing device data, grades and Print Label behaviour are unchanged. Download the Setup .exe under Assets. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
