@@ -9,7 +9,7 @@ app.whenReady().then(async()=>{
   const index=fs.readFileSync(path.join(renderer,'index.html'),'utf8');
   const links=[...index.matchAll(/<link[^>]+href="([^"]+\.css)"[^>]*>/g)].map(m=>'<link rel="stylesheet" href="'+pathToFileURL(path.join(renderer,m[1])).href+'">').join('');
   const panel=index.slice(index.indexOf('<section id="apexAssetRepairsSection"'),index.indexOf('<button id="assetTopSave"'));
-  fs.writeFileSync(path.join(folder,'index.html'),'<!doctype html><html data-theme="light"><head><meta charset="utf-8">'+links+'</head><body class="apex-v34"><main id="assetPage" data-section="parts" style="display:block;padding:16px;max-width:none">'+panel+'</main></body></html>');
+  fs.writeFileSync(path.join(folder,'index.html'),'<!doctype html><html class="apex-v34" data-theme="light"><head><meta charset="utf-8">'+links+'</head><body><main id="assetPage" data-section="parts" style="display:block;padding:16px;max-width:none">'+panel+'</main></body></html>');
   win=new BrowserWindow({show:false,width:1440,height:1000,webPreferences:{contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});
   await win.loadFile(path.join(folder,'index.html'));
   const source=fs.readFileSync(path.join(renderer,'refurb-ui.js'),'utf8');
@@ -35,8 +35,8 @@ app.whenReady().then(async()=>{
    win.setContentSize(width,1000);
    await win.webContents.executeJavaScript('document.documentElement.dataset.theme='+JSON.stringify(theme)+';void 0;');
    await new Promise(r=>setTimeout(r,100));
-   const result=await win.webContents.executeJavaScript("(()=>{const panel=$('apexAssetRepairsSection').getBoundingClientRect();const bad=[...document.querySelectorAll('#assetJobProgress button,.device-repair-name,.device-repair-state,.device-repair-quantities')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.left<panel.left-1||r.right>panel.right+1||e.scrollWidth>e.clientWidth+2)});return {overflow:document.documentElement.scrollWidth>innerWidth+2,bottom:document.querySelector('.device-repair-qc').getBoundingClientRect().bottom>panel.bottom-10,bad:bad.map(e=>e.className)}})()");
-   if(result.overflow||result.bottom||result.bad.length)throw Error('Parts layout overflow '+theme+' '+width+': '+JSON.stringify(result));
+   const result=await win.webContents.executeJavaScript("(()=>{const panel=$('apexAssetRepairsSection').getBoundingClientRect();const bad=[...document.querySelectorAll('#assetJobProgress button,.device-repair-name,.device-repair-state,.device-repair-quantities')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(r.left<panel.left-1||r.right>panel.right+1||e.scrollWidth>e.clientWidth+2)});return {overflow:document.documentElement.scrollWidth>innerWidth+2,bottom:document.querySelector('.device-repair-qc').getBoundingClientRect().bottom>panel.bottom-10,padding:[...document.querySelectorAll('.device-repair-row')].some(e=>parseFloat(getComputedStyle(e).paddingLeft)<20||parseFloat(getComputedStyle(e).paddingTop)<18),bad:bad.map(e=>e.className)}})()");
+   if(result.overflow||result.bottom||result.padding||result.bad.length)throw Error('Parts layout overflow '+theme+' '+width+': '+JSON.stringify(result));
    if(width===1100){const capture=await win.webContents.capturePage();fs.writeFileSync(path.resolve('qa-print/device-parts-'+theme+'.png'),capture.toPNG());}
   }
   await win.webContents.executeJavaScript("ops.jobs[activeAssetId].parts=[];renderAsset();void 0;");

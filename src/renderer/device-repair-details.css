@@ -1,8 +1,8 @@
 /* Device Details / Parts & repair. Scoped to this panel; shared workflows remain intact. */
-body.apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible;height:auto!important;max-height:none!important}
-body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head{align-items:center;flex-direction:row;flex-wrap:wrap;margin:0!important;padding:0 0 18px!important;min-height:0!important;border-bottom:1px solid var(--line)}
-body.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
-body.apex-v34 #assetPage #assetJobProgress{padding:18px 0 0!important;min-width:0}
+.apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible;height:auto!important;max-height:none!important}
+.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head{align-items:center;flex-direction:row;flex-wrap:wrap;margin:0!important;padding:0 0 18px!important;min-height:0!important;border-bottom:1px solid var(--line)}
+.apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.apex-v34 #assetPage #assetJobProgress{padding:18px 0 0!important;min-width:0}
 #assetJobProgress .device-repair-job{display:flex;flex-wrap:wrap;align-items:center;gap:20px;padding:0 0 20px;margin:0;border-bottom:1px solid var(--line)}
 #assetJobProgress .device-repair-assignment{display:grid;gap:7px;min-width:150px}
 #assetJobProgress .device-repair-assignment>small{font-size:11px;font-weight:600;color:var(--muted)}
@@ -13,18 +13,18 @@ body.apex-v34 #assetPage #assetJobProgress{padding:18px 0 0!important;min-width:
 #assetJobProgress .device-repair-totals b{font-size:22px;line-height:1.2;color:var(--text);font-variant-numeric:tabular-nums;font-weight:650}
 #assetJobProgress .device-repair-totals small{font-size:11px;color:var(--muted)}
 #assetJobProgress .device-repair-job-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-body.apex-v34 #assetJobProgress button:not(.apex-delete-button){min-height:36px!important;height:auto!important;padding:8px 12px!important;line-height:1.35!important;font-size:12px!important;white-space:normal;box-shadow:none}
+.apex-v34 #assetJobProgress button:not(.apex-delete-button){min-height:36px!important;height:auto!important;padding:8px 12px!important;line-height:1.35!important;font-size:12px!important;white-space:normal;box-shadow:none}
 #assetJobProgress .device-repair-list{margin-top:20px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
-#assetJobProgress .device-repair-list-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px}
+#assetJobProgress .device-repair-list-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px}
 #assetJobProgress .device-repair-list-title h4{display:flex;gap:8px;align-items:center;margin:0;font-size:14px;color:var(--text)}
 #assetJobProgress .device-repair-list-title h4>span{display:inline-grid;place-items:center;min-width:22px;min-height:22px;border-radius:6px;font-size:11px;background:var(--panel2);color:var(--muted)}
 #assetJobProgress .device-repair-list-title>span{font-size:12px;color:var(--muted)}
 #assetJobProgress .device-repair-columns,#assetJobProgress .device-repair-row{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(180px,1fr) minmax(125px,.8fr) 230px;align-items:center;gap:16px}
-#assetJobProgress .device-repair-columns{padding:10px 16px;background:var(--panel2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:600}
+#assetJobProgress .device-repair-columns{padding:12px 20px;background:var(--panel2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:600}
 #assetJobProgress .device-repair-columns>span:last-child{text-align:right}
 #assetJobProgress .device-repair-list ul{list-style:none;padding:0;margin:0}
-body.apex-v34 #assetJobProgress .device-repair-row{padding:16px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-width:0}
-body.apex-v34 #assetJobProgress .device-repair-row:last-child{border-bottom:0!important}
+.apex-v34 #assetJobProgress .device-repair-row{padding:18px 20px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-width:0}
+.apex-v34 #assetJobProgress .device-repair-row:last-child{border-bottom:0!important}
 #assetJobProgress .device-repair-name{min-width:0;display:grid;gap:5px}
 #assetJobProgress .device-repair-name strong{font-size:14px;font-weight:600;overflow-wrap:anywhere;line-height:1.4}
 #assetJobProgress .device-repair-name small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
@@ -68,3 +68,9 @@ body.apex-v34 #assetJobProgress .device-repair-row:last-child{border-bottom:0!im
  #assetJobProgress .device-repair-qc progress{width:100%;margin:0;order:3}
  #assetJobProgress .device-repair-qc button{margin-left:auto}
 }
+
+/* Apply shared bin geometry inside this panel regardless of which element owns the theme class. */
+#assetJobProgress button.apex-delete-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;min-height:34px!important;margin:0!important;padding:8px!important;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;color:#ca4050!important;box-shadow:none!important;flex:0 0 auto!important}
+#assetJobProgress button.apex-delete-button svg{display:block!important;width:16px!important;min-width:16px!important;height:16px!important;flex-shrink:0}
+#assetJobProgress button.apex-delete-button:hover:not(:disabled){background:#cf405012!important;border-color:#cf40502e!important}
+#assetJobProgress button.apex-delete-button:focus-visible{outline:2px solid #cf4050!important;outline-offset:2px!important}
