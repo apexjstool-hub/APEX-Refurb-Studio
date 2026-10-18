@@ -1,6 +1,7 @@
 'use strict';
 /* APEX refurbishment workflow. Admin-only writes; device intake can create requirements but cannot place orders. */
 const requirements=require('./part-requirements');
+const {isCosmetic}=require('./repair-work-type');
 const STATUSES=['Received','Inspected','Awaiting Parts','Ready for Repair','Repair In Progress','Quality Control','Completed','On Hold'];
 const PART_STATUSES=['Needed','Ordered','Partially Received','Received','Fitted'];
 const QC=['Visual inspection','Required parts fitted','Hardware retest','Final clean & sign-off'];
@@ -64,7 +65,7 @@ function apply(state,assets,cmd,by='Administrator'){
   if(cmd.expectedQty!==p.qty||cmd.expectedReceived!==p.received||cmd.expectedOnOrder!==pending)throw Error('Part quantities or orders changed. Refresh before marking as ordered.');
   const qty=p.qty-p.received-pending;
   if(qty<=0)throw Error('This part is already ordered or received.');
-  return apply(s,assets,{type:'createOrder',supplier:'Supplier not recorded',notes:'Manually marked as ordered in APEX. Records an existing order; no purchase is sent to a supplier.',lines:[{assetId:id,partId:p.id,qty}]},by);
+  return apply(s,assets,{type:'createOrder',supplier:isCosmetic(p.name)?'Respray provider not recorded':'Supplier not recorded',notes:isCosmetic(p.name)?'Respray dispatch recorded in APEX. No booking or message is sent to a provider.':'Manually marked as ordered in APEX. Records an existing order; no purchase is sent to a supplier.',lines:[{assetId:id,partId:p.id,qty}]},by);
  }
  if(type==='receiveParts'){
   const rows=Array.isArray(cmd.parts)?cmd.parts:[];
@@ -91,7 +92,7 @@ function apply(state,assets,cmd,by='Administrator'){
   const supplier=clip(cmd.supplier,120);if(!supplier)throw Error('Choose a supplier before approval.');
   if(!draft.lines.length)throw Error('No parts remain to order.');
   draft.supplier=supplier;draft.expectedAt=checkDate(cmd.expectedAt);draft.reference=clip(cmd.reference,90);draft.status='Ordered';draft.auto=false;draft.id='PO-'+Date.now().toString(36).toUpperCase();draft.updatedAt=stamp();
-  for(const l of draft.lines){const j=s.jobs[l.assetId];if(j){if(['Inspected','Received','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,'Part ordered',l.name+' × '+l.qty+' · '+draft.id,l.assetId,by);}}
+  for(const l of draft.lines){const j=s.jobs[l.assetId];if(j){if(['Inspected','Received','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,isCosmetic(l.name)?'Respray sent / booked':'Part ordered',l.name+' × '+l.qty+' · '+draft.id,l.assetId,by);}}
   history(s,'Order approved','Purchase order '+draft.id+' approved for '+supplier,'',by);autoDraft(s);return {ok:true,workflow:s,order:draft};
  }
  if(type==='discardDraft'){
@@ -157,6 +158,7 @@ function apply(state,assets,cmd,by='Administrator'){
   if(['Completed','On Hold'].includes(job.status))throw Error('Change this job stage before receiving parts.');
   const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');
   if(cmd.expectedReceived!==p.received)throw Error('Received quantity changed. Refresh before recording another receipt.');
+  if(cmd.cosmeticEvent==='return'){const sent=s.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,l.qty-l.received),0);if(!isCosmetic(p.name)||Number(cmd.qty)>sent)throw Error('Only respray work already sent or booked can be returned. Refresh and try again.');}
   const qty=asQty(cmd.qty,1);if(p.received+qty>p.qty)throw Error('Cannot receive more than the required quantity.');
   let remaining=qty;
   for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const line of order.lines||[]){
@@ -166,7 +168,7 @@ function apply(state,assets,cmd,by='Administrator'){
   }
   p.received+=qty;p.lastReceivedAt=stamp();p.lastReceivedBy=by;
   if(job.parts.every(x=>x.received>=x.qty)&&job.status==='Awaiting Parts')job.status='Ready for Repair';
-  history(s,'Parts received',`${p.name} × ${qty}; received ${p.received}/${p.qty}`+(remaining?' · direct receipt':' · linked order updated'),id,by);
+  history(s,isCosmetic(p.name)?'Respray returned':'Parts received',`${p.name} × ${qty}; received ${p.received}/${p.qty}`+(remaining?' · direct receipt':' · linked order updated'),id,by);
  }else if(type==='removeDuplicateParts'){
   const available=requirements.duplicates(job,s.orders),chosen=Array.isArray(cmd.partIds)?cmd.partIds:[];
   if(!chosen.length||new Set(chosen).size!==chosen.length||chosen.length>1000)throw Error('Select duplicate requirements to remove.');
@@ -175,9 +177,9 @@ function apply(state,assets,cmd,by='Administrator'){
   const removed=new Set(chosen);job.parts=job.parts.filter(p=>!removed.has(p.id));
   history(s,'Duplicate requirements reviewed',`Removed ${chosen.length} unused imported duplicates; original requirements and progress retained`,id,by);
  }else if(type==='fitPart'){
-  const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');const qty=asQty(cmd.qty,1);
+  const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');if(cmd.cosmeticEvent==='check'&&(!isCosmetic(p.name)||['Completed','On Hold'].includes(job.status)))throw Error('This cosmetic work is locked or no longer available.');if(cmd.cosmeticEvent==='check'&&(cmd.expectedFitted!==p.fitted||cmd.expectedReceived!==p.received))throw Error('Cosmetic progress changed. Refresh before checking this work again.');const qty=asQty(cmd.qty,1);
   if(qty+p.fitted>p.received)throw Error('Cannot fit more parts than have been received.');p.fitted+=qty;
-  history(s,'Part fitted',`${p.name} × ${qty}`,id,by);
+  history(s,isCosmetic(p.name)?'Respray checked':'Part fitted',`${p.name} × ${qty}`,id,by);
  }else if(type==='qc'){
   if(!QC.includes(cmd.check))throw Error('Unknown QC check.');job.qc[cmd.check]=cmd.passed===true;
   history(s,'Quality control',`${cmd.check}: ${cmd.passed===true?'Passed':'Not complete'}`,id,by);
@@ -191,7 +193,7 @@ function apply(state,assets,cmd,by='Administrator'){
    picked.push({assetId:j.assetId,partId:p.id,name:p.name,qty,received:0});
   }
   const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,expectedAt:checkDate(cmd.expectedAt),reference:clip(cmd.reference,90),cost:Math.max(0,Math.min(1e7,Number(cmd.cost)||0)),currency:'GBP',tracking:clip(cmd.tracking,120),notes:clip(cmd.notes,1000),createdAt:stamp(),updatedAt:stamp(),lines:picked};
-  s.orders.unshift(order);for(const l of picked){const j=s.jobs[l.assetId];if(['Received','Inspected','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,'Part ordered',`${l.name} × ${l.qty} · ${order.id}`,l.assetId,by);}history(s,'Purchase order',`${order.id} · ${supplier}`);
+  s.orders.unshift(order);for(const l of picked){const j=s.jobs[l.assetId];if(['Received','Inspected','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,isCosmetic(l.name)?'Respray sent / booked':'Part ordered',`${l.name} × ${l.qty} · ${order.id}`,l.assetId,by);}history(s,'Purchase order',`${order.id} · ${supplier}`);
   return {ok:true,workflow:s,order};
  }else if(type==='receiveOrder'){
   const order=s.orders.find(x=>x.id===cmd.orderId);if(!order)throw Error('Purchase order not found.');
@@ -200,7 +202,7 @@ function apply(state,assets,cmd,by='Administrator'){
   const j=ensure(s,id,assets),p=j.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part requirement missing.');
   line.received+=qty;p.received+=qty;order.updatedAt=stamp();
   if(j.parts.every(x=>x.received>=x.qty)&&j.status==='Awaiting Parts')j.status='Ready for Repair';
-  history(s,'Delivery received',`${p.name} × ${qty} · ${order.id}`,id,by);
+  history(s,isCosmetic(p.name)?'Respray returned':'Delivery received',`${p.name} × ${qty} · ${order.id}`,id,by);
  }else if(type==='orderTracking'){
   const o=s.orders.find(x=>x.id===cmd.orderId);if(!o)throw Error('Order not found.');o.tracking=clip(cmd.tracking,120);o.expectedAt=checkDate(cmd.expectedAt);o.updatedAt=stamp();for(const assetId of new Set(o.lines.map(l=>l.assetId)))history(s,'Order updated',`${o.id} · tracking ${o.tracking||'not set'} · expected ${o.expectedAt||'not set'}`,assetId,by);
  }else throw Error('Unknown workflow action.');
@@ -212,3 +214,4 @@ function outstanding(state){const s=init(state);const output=[];
  return output;
 }
 module.exports={init,ensure,syncRefurb,apply,outstanding,autoDraft,STATUSES,PART_STATUSES,QC};
+

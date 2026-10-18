@@ -1,4 +1,10 @@
 /* Device Details / Parts & repair. Scoped to this panel; shared workflows remain intact. */
+#assetJobProgress .device-repair-view{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:16px;color:var(--muted);font-size:12px}
+#assetJobProgress .device-repair-group-note{margin:0;padding:0 20px 16px;color:var(--muted);font-size:12px;line-height:1.6}
+#assetJobProgress .device-repair-bundle{margin:0;padding:16px 20px;border-top:1px solid var(--line);background:var(--panel2);font-size:12px;line-height:1.6}
+#assetJobProgress .device-repair-bundle p{margin:5px 0;color:var(--text)}
+#assetJobProgress .device-repair-bundle small{font-size:12px;color:var(--muted)}
+#assetJobProgress .device-repair-bundle-note{color:var(--muted);line-height:1.6}
 .apex-v34 #assetPage #apexAssetRepairsSection{padding:20px!important;container-type:inline-size;overflow:visible;height:auto!important;max-height:none!important}
 .apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head{align-items:center;flex-direction:row;flex-wrap:wrap;margin:0!important;padding:0 0 18px!important;min-height:0!important;border-bottom:1px solid var(--line)}
 .apex-v34 #assetPage #apexAssetRepairsSection .section-panel-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
@@ -74,3 +80,4 @@
 #assetJobProgress button.apex-delete-button svg{display:block!important;width:16px!important;min-width:16px!important;height:16px!important;flex-shrink:0}
 #assetJobProgress button.apex-delete-button:hover:not(:disabled){background:#cf405012!important;border-color:#cf40502e!important}
 #assetJobProgress button.apex-delete-button:focus-visible{outline:2px solid #cf4050!important;outline-offset:2px!important}
+
