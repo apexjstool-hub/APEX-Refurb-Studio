@@ -1,29 +1,39 @@
 'use strict';
 (function(){
+ const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  async function open(palletNames){
-  const selected=[...palletNames];let current=null,busy=false,generation=0;
-  showModal('Microdream purchase order — preview','MICRODREAM / JOB REQUEST',`<div class="modal-body microdream-request-dialog"><div class="md-preview-controls"><label class="field" for="microdreamJobRef">Job Ref (optional)<input id="microdreamJobRef" maxlength="100" autocomplete="off" placeholder="Your job or purchase order reference"></label><button type="button" class="secondary" id="microdreamRefreshPreview">Update preview</button></div><p id="microdreamPreviewSummary" class="section-note" aria-live="polite">Preparing selected pallets…</p><iframe id="microdreamPreviewFrame" class="microdream-preview-frame" title="Microdream job request preview" sandbox="allow-scripts allow-same-origin"></iframe><p id="microdreamPreviewError" class="form-error" role="alert"></p><div class="modal-actions"><button id="microdreamPreviewClose" type="button" class="secondary">Close</button><button id="microdreamSavePdf" type="button" class="secondary" disabled>Save PDF</button><button id="microdreamPrint" type="button" class="primary" disabled>Print</button></div></div>`);
-  const root=$('microdreamPreviewFrame').closest('.microdream-request-dialog'),frame=$('microdreamPreviewFrame'),print=$('microdreamPrint'),pdf=$('microdreamSavePdf'),update=$('microdreamRefreshPreview'),reference=$('microdreamJobRef'),error=$('microdreamPreviewError');
-  const buttons=()=>{print.disabled=pdf.disabled=busy||!current;update.disabled=busy;reference.disabled=busy;};
-  $('microdreamPreviewClose').onclick=closeModal;
-  reference.oninput=()=>{current=null;generation++;buttons();$('microdreamPreviewSummary').textContent='Job Ref changed. Update the preview before printing.';};
-  async function preview(){
-   if(busy||!root.isConnected)return;busy=true;current=null;const attempt=++generation;buttons();error.textContent='';
-   try{
-    const result=await api.microdreamPreview({palletNames:selected,jobRef:reference.value});if(!root.isConnected||attempt!==generation)return;
-    if(!result.ok)throw Error(result.error||'Unable to prepare the document.');
-    const document=result.document;
-    frame.onload=async()=>{if(!root.isConnected||attempt!==generation)return;try{await frame.contentWindow.renderMicrodreamDocument(document);if(!root.isConnected||attempt!==generation)return;current=document;$('microdreamPreviewSummary').textContent=document.palletNames.length+' pallet(s) · '+document.total+' devices · '+document.rows.length+' model(s) · A4 landscape';}catch(e){error.textContent=e.message||'Unable to display the document.';}finally{if(root.isConnected&&attempt===generation){busy=false;buttons();}}};
-    frame.src=new URL('microdream-print-page.html',window.ApexPreviewBase||location.href).href+'?preview='+attempt;
-   }catch(e){if(root.isConnected&&attempt===generation){error.textContent=e.message;busy=false;buttons();}}
-  }
-  async function output(mode){
-   if(busy||!current)return;busy=true;buttons();error.textContent='';
-   try{const result=await api.printMicrodreamRequest({palletNames:selected,jobRef:current.jobRef,expectedFingerprint:current.fingerprint,mode});if(!root.isConnected)return;if(!result.ok&&!result.cancelled){error.textContent=result.error||'Unable to complete printing.';current=null;}else if(result.ok)notify(mode==='pdf'?'Microdream PDF saved.':'Microdream document sent to printer.');}
-   catch{if(root.isConnected){error.textContent='The print result could not be confirmed. Update the preview before retrying.';current=null;}}
-   finally{busy=false;if(root.isConnected)buttons();}
-  }
-  update.onclick=preview;print.onclick=()=>output('print');pdf.onclick=()=>output('pdf');await preview();
+  const requestId=crypto.randomUUID();
+  showModal('Create Microdream purchase orders','MICRODREAM / SAVE REPORTS',`<form id="mdCreateReports" class="modal-body"><p>A permanent report will be saved for each selected pallet, using its devices and model quantities now. Existing reports remain available.</p><p>${palletNames.map(escape).join(' · ')}</p><label class="field">Job Ref (optional)<input name="jobRef" maxlength="100" autocomplete="off" placeholder="You can update this later"></label><p id="mdCreateError" class="form-error" role="alert"></p><div class="modal-actions"><button type="button" class="secondary" id="mdCreateCancel">Cancel</button><button type="submit" class="primary">Create purchase order</button></div></form>`);
+  const form=$('mdCreateReports');$('mdCreateCancel').onclick=closeModal;
+  form.onsubmit=async e=>{e.preventDefault();const button=form.querySelector('[type=submit]');button.disabled=true;
+   try{const r=await api.microdreamReports({action:'create',palletNames,jobRef:form.elements.jobRef.value,requestId});if(!form.isConnected)return;if(!r.ok)throw Error(r.error||'Could not save reports.');notify(r.reports.length+' permanent report(s) saved.');await preview(r.reports);}
+   catch(e){if(form.isConnected)$('mdCreateError').textContent=e.message;}finally{if(button.isConnected)button.disabled=false;}
+  };
  }
- window.ApexMicrodreamRequests=Object.freeze({open});
+ async function view(pallet){
+  showModal('Microdream reports','MICRODREAM / SAVED REPORTS','<div class="modal-body"><p id="mdReportLoading" role="status">Loading saved reports…</p><div class="modal-actions"><button class="secondary" id="mdReportClose">Close</button></div></div>');
+  const status=$('mdReportLoading');$('mdReportClose').onclick=closeModal;
+  try{const r=await api.microdreamReports({action:'list',pallet});if(!status.isConnected)return;if(!r.ok)throw Error(r.error||'Could not load reports.');if(!r.reports.length){status.textContent='No saved report for this pallet yet. Select it and use Create purchase order.';return;}await preview(r.reports);}
+  catch(e){if(status.isConnected)status.textContent=e.message;}
+ }
+ async function preview(reports){
+  let current=null,busy=false,generation=0;
+  showModal('Microdream purchase order — saved report','MICRODREAM / PERMANENT REPORT',`<div class="modal-body microdream-request-dialog"><label class="field">Saved report<select id="mdSavedReport">${reports.map(r=>`<option value="${escape(r.id)}">${escape(r.palletName)} · ${escape(new Date(r.createdAt).toLocaleString('en-GB'))}</option>`).join('')}</select></label><div class="md-preview-controls"><label class="field" for="microdreamJobRef">Job Ref<input id="microdreamJobRef" maxlength="100" autocomplete="off" placeholder="Your job or purchase order reference"></label><button type="button" class="secondary" id="microdreamRefreshPreview">Save job reference</button></div><p id="microdreamPreviewSummary" class="section-note" aria-live="polite">Loading saved report…</p><iframe id="microdreamPreviewFrame" class="microdream-preview-frame" title="Saved Microdream purchase order" sandbox="allow-scripts allow-same-origin"></iframe><p id="microdreamPreviewError" class="form-error" role="alert"></p><div class="modal-actions"><button id="microdreamPreviewClose" type="button" class="secondary">Close</button><button id="microdreamSavePdf" type="button" class="secondary" disabled>Save PDF</button><button id="microdreamPrint" type="button" class="primary" disabled>Print</button></div></div>`);
+  const frame=$('microdreamPreviewFrame'),root=frame.closest('.microdream-request-dialog'),print=$('microdreamPrint'),pdf=$('microdreamSavePdf'),save=$('microdreamRefreshPreview'),reference=$('microdreamJobRef'),error=$('microdreamPreviewError'),select=$('mdSavedReport');
+  const dirty=()=>current&&reference.value!==current.document.jobRef;
+  function buttons(){print.disabled=pdf.disabled=busy||!current||!!dirty();save.disabled=busy||!current||!dirty();reference.disabled=busy;select.disabled=busy;}
+  $('microdreamPreviewClose').onclick=closeModal;reference.oninput=()=>{buttons();$('microdreamPreviewSummary').textContent=dirty()?'Unsaved job reference — save before printing.':summary();};
+  function summary(){return current?current.palletName+' · '+current.document.total+' devices · '+current.document.rows.length+' model(s) · Saved '+new Date(current.createdAt).toLocaleString('en-GB'):'';}
+  async function render(report){
+   current=report;reference.value=report.document.jobRef;const attempt=++generation;
+   await new Promise((resolve,reject)=>{frame.onload=async()=>{try{if(!root.isConnected||attempt!==generation)return resolve();await frame.contentWindow.renderMicrodreamDocument(report.document);resolve();}catch(e){reject(e);}};frame.onerror=()=>reject(Error('Could not display saved report.'));frame.src=new URL('microdream-print-page.html',window.ApexPreviewBase||location.href).href+'?saved='+attempt;});
+   if(root.isConnected)$('microdreamPreviewSummary').textContent=summary();
+  }
+  async function load(){if(busy)return;busy=true;buttons();error.textContent='';try{const r=await api.microdreamReports({action:'get',id:select.value});if(!root.isConnected)return;if(!r.ok)throw Error(r.error);await render(r.report);}catch(e){current=null;if(root.isConnected)error.textContent=e.message;}finally{busy=false;if(root.isConnected)buttons();}}
+  select.onchange=load;
+  save.onclick=async()=>{if(busy||!current)return;busy=true;buttons();error.textContent='';try{const r=await api.microdreamReports({action:'update',id:current.id,jobRef:reference.value,expectedRevision:current.revision});if(!root.isConnected)return;if(!r.ok)throw Error(r.error);await render(r.report);notify('Job reference saved permanently.');}catch(e){if(root.isConnected)error.textContent=e.message;}finally{busy=false;if(root.isConnected)buttons();}};
+  async function output(mode){if(busy||!current||dirty())return;busy=true;buttons();error.textContent='';try{const r=await api.printMicrodreamRequest({reportId:current.id,expectedRevision:current.revision,expectedFingerprint:current.document.fingerprint,mode});if(!root.isConnected)return;if(!r.ok&&!r.cancelled)error.textContent=r.error||'Unable to print report.';else if(r.ok)notify(mode==='pdf'?'Microdream PDF saved.':'Microdream report sent to printer.');}catch(e){if(root.isConnected)error.textContent=e.message;}finally{busy=false;if(root.isConnected)buttons();}}
+  print.onclick=()=>output('print');pdf.onclick=()=>output('pdf');await load();
+ }
+ window.ApexMicrodreamRequests=Object.freeze({open,view});
 })();

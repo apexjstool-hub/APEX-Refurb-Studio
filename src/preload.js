@@ -3,6 +3,7 @@ const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  onInventoryArrived:callback=>{if(typeof callback!=='function')return;const listener=(_event,value)=>callback(value);ipcRenderer.on('apex:inventory-arrived',listener);return()=>ipcRenderer.removeListener('apex:inventory-arrived',listener);},
  printAssetBatch:input=>ipcRenderer.invoke('inventory:printAssetBatch',input),
+ microdreamReports:input=>ipcRenderer.invoke('inventory:microdreamReports',input),
  microdreamPreview:input=>ipcRenderer.invoke('inventory:microdreamPreview',input),
  printMicrodreamRequest:input=>ipcRenderer.invoke('inventory:printMicrodreamRequest',input),
  printAssignment:input=>ipcRenderer.invoke('inventory:printAssignment',input),
@@ -72,4 +73,5 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  hubRevoke:id=>ipcRenderer.invoke('inventory:hubRevoke',id),
  hubUnrevoke:id=>ipcRenderer.invoke('inventory:hubUnrevoke',id)
 }));
+
 

@@ -317,6 +317,7 @@ const server=http.createServer(async(req,res)=>{
     }
     if(!authorized(req))return json(res,401,{ok:false,error:'Invalid hub access token.'});
     if(pathname==='/v1/asset-activity'&&req.method==='POST'){const result=assetActivity.page(data,await body(req));return json(res,result.ok?200:404,result);}
+    if(pathname==='/v1/microdream-reports'&&req.method==='POST'){const input=await body(req),result=require('../src/microdream-reports').apply(data,input);if(result.ok&&['create','update'].includes(input.action)){data.version++;save();}return json(res,result.ok?200:400,result);}
     if(pathname==='/v1/operations'&&req.method==='GET')return json(res,200,{ok:true,workflow:data.operations,version:data.version});
     if(pathname==='/v1/operations/action'&&req.method==='POST'){
       const draft=structuredClone(data.operations);const result=workflow.apply(draft,data.items.filter(a=>!a.deletedAt),await body(req));
@@ -387,3 +388,4 @@ if(require.main===module){
  });
 }
 module.exports={server};
+

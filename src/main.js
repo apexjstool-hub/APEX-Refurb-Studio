@@ -204,6 +204,14 @@ async function cloudInventoryCall(method,route,payload){
   if(result.ok){for(const id of ids)cloudSeenRevisions.delete(id);}
   return result.ok?{...result,ids,...(undo?{restored:result.moved}:{moved:result.moved})}:result;
  }
+ if(method==='POST'&&route==='/v1/microdream-reports'){
+  try{
+   let request=payload;
+   if(payload.action==='create'){const data=await cloudInventoryCall('GET','/v1/items',null);if(!data.ok)return data;request={action:'create',reports:require('./microdream-reports').prepare(data,payload)};}
+   const r=await cloudFetch('/rest/v1/rpc/apex_microdream_report_action',{method:'POST',headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token,'Content-Type':'application/json'},body:JSON.stringify({p_input:request}),signal:AbortSignal.timeout(20000)});
+   const result=await r.json();return r.ok?result:{ok:false,error:result.message||'Could not save or load the Microdream report.'};
+  }catch(e){return {ok:false,error:e.message||'Report request interrupted. Reopen View report to verify before retrying.'};}
+ }
  if(method==='POST'&&route==='/v1/locations')return cloudMetaAction('addLocation',payload);
  if(method==='DELETE'&&route.startsWith('/v1/locations/'))return cloudMetaAction('deleteLocation',{name:decodeURIComponent(route.slice('/v1/locations/'.length)),moveTo:payload?.moveTo||''});
  if(method==='POST'&&route==='/v1/pallet-locations/delete')return cloudMetaAction('deletePalletLocation',payload);
@@ -544,8 +552,9 @@ app.whenReady().then(()=>{
   if(records.some(a=>!a))return {ok:false,error:'A selected device no longer exists. Refresh inventory and select it again.'};
   return require('./label-output').outputLabel({records,type:input.type,size:'2x1',dpi:Number(input.dpi)||203},win,input.mode);
  }));
+ ipcMain.handle('inventory:microdreamReports',secured(input=>inventoryCall('POST','/v1/microdream-reports',input,()=>{const db=loadDB(),result=require('./microdream-reports').apply(db,input);if(result.ok&&['create','update'].includes(input.action))atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:microdreamPreview',secured(async input=>{try{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return {ok:true,document:require('./microdream-documents').select(data,input)};}catch(e){return {ok:false,error:e.message};}}));
- ipcMain.handle('inventory:printMicrodreamRequest',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./microdream-output').output(input,win,data);}));
+ ipcMain.handle('inventory:printMicrodreamRequest',secured(async input=>{if(input.reportId){const saved=await inventoryCall('POST','/v1/microdream-reports',{action:'get',id:input.reportId},()=>require('./microdream-reports').apply(loadDB(),{action:'get',id:input.reportId}));if(!saved.ok)return saved;if(saved.report.revision!==input.expectedRevision)return {ok:false,error:'This report was updated elsewhere. Reopen View report before printing.'};return require('./microdream-output').output(input,win,null,saved.report.document);}const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./microdream-output').output(input,win,data);}));
  ipcMain.handle('inventory:printAssignment',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./assignment-output').output(input,win,data);}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
@@ -671,4 +680,5 @@ app.on('before-quit',event=>{
 });
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 app.on('activate',()=>{if(BrowserWindow.getAllWindows().length===0)app.quit();});
+
 

@@ -15,5 +15,7 @@ app.whenReady().then(async()=>{let rendered;try{
  check=await rendered.window.webContents.executeJavaScript("(()=>{const sheets=[...document.querySelectorAll('.microdream-sheet')];return {rows:document.querySelectorAll('.md-model-row').length,sheets:sheets.length,maxHeight:Math.max(...sheets.map(s=>s.getBoundingClientRect().height))};})()");assert.equal(check.rows,23);assert(check.maxHeight<184.6*96/25.4);
  pdf=await rendered.window.webContents.printToPDF(output.pdfOptions());assert.equal((pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length,check.sheets);fs.writeFileSync(path.join(folder,'microdream-job-request-multipage.pdf'),pdf);rendered.window.destroy();rendered=null;
  data.items[0].pallet='MD-2';await assert.rejects(()=>output.renderDocument({...input,expectedFingerprint:snapshot.fingerprint},data),/changed/);
+ const permanent=docs.select(data,{palletNames:['MD-1'],jobRef:'SAVED-REF'});data.items=[];rendered=await output.renderDocument({expectedFingerprint:permanent.fingerprint},data,permanent);assert.equal(rendered.document.jobRef,'SAVED-REF');assert(rendered.document.total>0);rendered.window.destroy();rendered=null;
  console.log('PASS: Microdream template groups selected devices, prints one A4 landscape sheet and paginates long model lists without extra or clipped pages; stale preview rejected.');app.exit(0);
  }catch(e){console.error(e);if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();app.exit(1);}});
+
