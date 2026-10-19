@@ -9,8 +9,8 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg,kind='info'){$('toast').dataset.kind=kind;$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations',containerInventory:'Inventory contents'};
-const PAGE_SUBS={refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',containerInventory:'Contained items'};
+const PAGE_NAMES={labelStudio:'Labels & Printing',qaStickers:'Labels & Printing',refurbWorkspace:'Refurbishment',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations',containerInventory:'Inventory contents'};
+const PAGE_SUBS={labelStudio:'Custom Asset Labels',qaStickers:'QA Stickers',refurbWorkspace:'Work queue',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',containerInventory:'Contained items'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
  if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
@@ -339,4 +339,5 @@ function applyTheme(theme){
 try{applyTheme(localStorage.getItem(appearanceKey)||'light');}catch{applyTheme('light');}
 $('topTheme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 document.querySelectorAll('[data-set-theme]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.setTheme));
+
 

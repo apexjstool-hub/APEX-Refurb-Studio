@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  microdreamPreview:input=>ipcRenderer.invoke('inventory:microdreamPreview',input),
  printMicrodreamRequest:input=>ipcRenderer.invoke('inventory:printMicrodreamRequest',input),
  printAssignment:input=>ipcRenderer.invoke('inventory:printAssignment',input),
+ labelStudioSettings:input=>ipcRenderer.invoke('inventory:labelStudioSettings',input),
  saveLabelPdf:input=>ipcRenderer.invoke('inventory:saveLabelPdf',input),
  printAssetLabel:input=>ipcRenderer.invoke('inventory:printAssetLabel',input),
  updateStatus:()=>ipcRenderer.invoke('inventory:updateStatus'),

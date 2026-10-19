@@ -94,13 +94,18 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/custom-labels.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-label-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Thermal label layout checks failed.' }
+      - name: Verify custom asset labels and QA stickers
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-custom-labels.js
+          if ($LASTEXITCODE -ne 0) { throw 'Custom label and QA sticker verification failed.' }
       - name: Verify inventory report PDF rendering
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
@@ -185,7 +190,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Microdream pallet names sit closer to their selection boxes. Create purchase order saves a permanent report for each selected pallet. View report reopens saved reports, with a persistent editable Job Ref, printing and PDF export. Original model/device quantities are retained as a snapshot. Previous reports remain available. Cloud connections require microdream-reports.sql (included); local/shared hub storage is included. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Adds Labels & Printing with Custom Asset Labels and QA Stickers. Save templates, select device fields, QR/barcode/text layouts, paper sizes and DPI, and print selected asset batches. QA stickers have serial-number space, saved technician names and the frozen creation date beneath the name. Exact-size PDF and printer output reuse the established label engine. Templates and technician names are stored on this computer. Existing barcode and RefurbFlow QR labels remain available. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

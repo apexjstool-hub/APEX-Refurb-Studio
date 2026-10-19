@@ -5,20 +5,21 @@
 const APEX_LABEL_SIZES={'2x1':[50.8,25.4],'50x30':[50,30],'50x25':[50,25],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
 let apexLabelChoice='asset',apexLabelSize='2x1',apexLabelData=null,apexLabelCleanup=null,apexLabelDpi=203;
 const labelEscape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-function labelCodeGeometry(record,style,size=apexLabelSize,dpi=apexLabelDpi){
+function labelCodeGeometry(record,style,size=apexLabelSize,dpi=apexLabelDpi,bounds={}){
  const [w,h]=APEX_LABEL_SIZES[size]||APEX_LABEL_SIZES['2x1'];
  const svg=style==='asset'?window.ApexAssetBarcode.code128Svg(record.id):window.ApexAssetLabelQR.qrCodeSvg(window.ApexAssetLabelQR.makePayload(record));
  const box=svg.match(/viewBox="0 0 ([0-9]+) ([0-9]+)"/);
  if(!box)throw Error('Code geometry is missing.');
  const units=Number(box[1]);
- const available=style==='asset'?w-3:Math.min(h-2,w*0.48);
+ const available=Math.min(style==='asset'?w-3:Math.min(h-2,w*0.48),bounds.maxMm||Infinity);
  const dots=Math.floor(available*dpi/25.4/units);
  if(dots<1)throw Error('This code is too dense for this label. Choose a larger label.');
  const mm=units*dots*25.4/dpi;
  const height=style==='asset'?Math.max(8,(h-2)*0.55):mm;
  return {svg:svg.replace('<svg ',`<svg width="${mm.toFixed(4)}mm" height="${height.toFixed(4)}mm" `),dots,mm,height,dpi};
 }
-function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi){
+function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,options={}){
+ if(['custom','qa'].includes(style))return window.ApexCustomLabels.markup(record,style,size,dpi,options);
  const qr=window.ApexAssetLabelQR;
  if(!qr)throw Error('Offline QR label generator is missing.');
  const asset=labelEscape(record.id||'');
@@ -64,7 +65,7 @@ function openAssetPrintDialog(requestedAssetId){
   <div class="apex-label-help"><strong>2 × 1 inch thermal labels:</strong> Select <b>50.8 × 25.4 mm</b> paper in your printer driver. Match the actual printer resolution (GK420t: 203 dpi), use Actual size / 100%, no margins and one label per page. Use <b>Save label PDF</b> for an exact-size PDF.</div>
  </div><div class="apex-label-display"><div class="apex-label-preview-title">LIVE LABEL PREVIEW · ${labelEscape(record.id)}</div><div id="apexLabelPreview" class="apex-label-preview"></div>
  <div class="apex-label-preview-desc" id="apexLabelDescription">Barcode encodes only ${labelEscape(record.id)}.</div></div></div>
- <div class="modal-actions apex-label-footer"><button class="secondary" type="button" id="apexLabelCancel">Cancel</button><button class="secondary" type="button" id="apexLabelSavePdf">Save label PDF</button><button class="primary" type="button" id="apexLabelPrintNow">▣ Print label</button></div></div>`);
+ <div class="modal-actions apex-label-footer"><button class="secondary" type="button" id="apexLabelCancel">Cancel</button><button class="secondary" type="button" id="apexLabelCustom">Custom labels</button><button class="secondary" type="button" id="apexLabelSavePdf">Save label PDF</button><button class="primary" type="button" id="apexLabelPrintNow">▣ Print label</button></div></div>`);
  document.querySelectorAll('[data-label-type]').forEach(button=>button.onclick=()=>{
   apexLabelChoice=button.dataset.labelType;
   document.querySelectorAll('[data-label-type]').forEach(b=>b.classList.toggle('selected',b===button));
@@ -74,6 +75,7 @@ function openAssetPrintDialog(requestedAssetId){
  $('apexPrintLabelDpi').value=String(apexLabelDpi);
  $('apexPrintLabelDpi').onchange=e=>{apexLabelDpi=Number(e.target.value);drawLabelPreview();};
  $('apexLabelCancel').onclick=closeModal;
+ $('apexLabelCustom').onclick=()=>{closeModal();window.ApexLabelStudio?.openForAsset(record.id);};
  $('apexLabelPrintNow').onclick=printSelectedAssetLabel;
  $('apexLabelSavePdf').onclick=()=>outputDesktopLabel('pdf');
  $('apexLabelSavePdf').disabled=!window.apexInventory?.saveLabelPdf;
@@ -135,5 +137,6 @@ function printSelectedAssetLabel(){
   timeout=setTimeout(cleanup,600000);
  }catch(error){cleanup();notify('Unable to open label printer: '+error.message);}
 }
+
 
 

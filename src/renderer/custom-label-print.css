@@ -1,0 +1,17 @@
+.qa-sticker{padding:1.4mm 2mm;display:flex;flex-direction:column;font-family:Arial,sans-serif}
+.qa-heading{display:flex;align-items:center;justify-content:space-between;gap:2mm;border-bottom:.25mm solid #000;padding-bottom:.8mm;height:3.5mm;flex:none;white-space:nowrap}
+.qa-heading b{font-size:9pt;letter-spacing:.3mm}.qa-heading span{font-size:5pt;font-weight:700;letter-spacing:.2mm}
+.qa-serial{padding-top:1mm;flex:1;min-height:5mm;display:flex;flex-direction:column;justify-content:center}
+.qa-sticker small{font-size:4.5pt;font-weight:700;letter-spacing:.25mm;display:block;line-height:1.2}
+.qa-serial>div{font-size:9pt;line-height:1.15;font-weight:700;min-height:3.5mm;border-bottom:.2mm solid #000;white-space:nowrap}
+.qa-technician{padding-top:1mm;text-align:center;flex:none}.qa-technician b{font-size:10pt;line-height:1.1;display:block;white-space:nowrap;max-width:100%}
+.qa-date{font-size:7pt;line-height:1.3;text-align:center;padding-top:.5mm;flex:none}
+.custom-asset-label{display:flex;flex-direction:column;padding:1mm;gap:.6mm}
+.custom-label-heading{font-size:7pt;font-weight:800;line-height:1.1;white-space:nowrap;flex:none}
+.custom-label-body{display:flex;align-items:center;gap:1mm;min-height:0;flex:1}
+.custom-qr,.custom-barcode{flex:none;display:flex;justify-content:center;align-items:center}.custom-qr svg,.custom-barcode svg{display:block;flex:none;shape-rendering:crispEdges}
+.custom-label-copy{flex:1;min-width:0;max-height:100%;display:flex;flex-direction:column;gap:.7mm}
+.custom-label-field{min-width:0;display:flex;flex-direction:column;gap:.1mm}
+.custom-label-field small{font-size:4.5pt;line-height:1;text-transform:uppercase;flex:none}
+.custom-label-field b{font-size:7pt;line-height:1.06;overflow-wrap:anywhere}
+.custom-with-barcode .custom-barcode{max-height:40%}.custom-with-barcode .custom-label-copy{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:.7mm 2mm}

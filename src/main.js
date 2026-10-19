@@ -556,6 +556,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:microdreamPreview',secured(async input=>{try{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return {ok:true,document:require('./microdream-documents').select(data,input)};}catch(e){return {ok:false,error:e.message};}}));
  ipcMain.handle('inventory:printMicrodreamRequest',secured(async input=>{if(input.reportId){const saved=await inventoryCall('POST','/v1/microdream-reports',{action:'get',id:input.reportId},()=>require('./microdream-reports').apply(loadDB(),{action:'get',id:input.reportId}));if(!saved.ok)return saved;if(saved.report.revision!==input.expectedRevision)return {ok:false,error:'This report was updated elsewhere. Reopen View report before printing.'};return require('./microdream-output').output(input,win,null,saved.report.document);}const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./microdream-output').output(input,win,data);}));
  ipcMain.handle('inventory:printAssignment',secured(async input=>{const data=await inventoryCall('GET','/v1/items',null,()=>localList());if(!data.ok)return data;return require('./assignment-output').output(input,win,data);}));
+ ipcMain.handle('inventory:labelStudioSettings',secured(input=>{const store=require('./label-studio-settings'),file=path.join(userDir(),'label-studio-settings.json');return {ok:true,settings:input?.action==='save'?store.save(file,input):store.read(file)};}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
  ipcMain.handle('inventory:exportXlsx',secured(async (rows,kind)=>{
@@ -575,6 +576,7 @@ app.whenReady().then(()=>{
 
  function localBackupFiles(){return [
    {name:'inventory-db.json',path:dbPath()},
+   {name:'label-studio-settings.json',path:path.join(userDir(),'label-studio-settings.json'),required:false},
    {name:'hub-connection.json',path:hubPath(),required:false}
  ];}
  function localBackup(){return backupManager.snapshot({root:userDir(),files:localBackupFiles()});}
