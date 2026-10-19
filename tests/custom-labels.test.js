@@ -7,7 +7,7 @@ test('Templates, technicians and created QA date survive reopening; stale settin
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 test('QA output has serial space, literal technician text, and the frozen creation date beneath the name',()=>{
- const html=labels.markup({},'qa','2x1',203,{qa:{technician:'Alex <Morgan>',serial:'',createdDate:'2026-10-19'}});assert(html.includes('SERIAL NUMBER')&&html.includes('&nbsp;'));assert(html.includes('Alex &lt;Morgan&gt;'));assert(html.indexOf('Alex &lt;Morgan&gt;')<html.indexOf('19/10/2026'));assert(!html.includes('Passed'));
+ const html=labels.markup({},'qa','2x1',203,{qa:{technician:'Alex <Morgan>',serial:'',createdDate:'2026-10-19'}});assert(html.includes('SERIAL NUMBER')&&html.includes('&nbsp;'));assert(html.includes('Alex &lt;Morgan&gt;'));assert(html.indexOf('Alex &lt;Morgan&gt;')<html.indexOf('19/10/2026'));assert(!html.includes('Passed'));assert(!html.includes('>APEX<'));assert(html.includes('QUALITY ASSURANCE'));
  assert.throws(()=>labels.template({fields:['unknown']}));assert.throws(()=>labels.template({fields:['id','id']}));
 });
 test('Custom labels retain the existing QR / barcode geometry and escape device and template text',()=>{

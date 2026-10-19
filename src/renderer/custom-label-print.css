@@ -1,6 +1,6 @@
 .qa-sticker{padding:1.4mm 2mm;display:flex;flex-direction:column;font-family:Arial,sans-serif}
-.qa-heading{display:flex;align-items:center;justify-content:space-between;gap:2mm;border-bottom:.25mm solid #000;padding-bottom:.8mm;height:3.5mm;flex:none;white-space:nowrap}
-.qa-heading b{font-size:9pt;letter-spacing:.3mm}.qa-heading span{font-size:5pt;font-weight:700;letter-spacing:.2mm}
+.qa-heading{display:flex;align-items:center;justify-content:center;gap:2mm;border-bottom:.25mm solid #000;padding-bottom:.8mm;height:3.5mm;flex:none;white-space:nowrap}
+.qa-heading span{font-size:7pt;font-weight:700;letter-spacing:.2mm}
 .qa-serial{padding-top:1mm;flex:1;min-height:5mm;display:flex;flex-direction:column;justify-content:center}
 .qa-sticker small{font-size:4.5pt;font-weight:700;letter-spacing:.25mm;display:block;line-height:1.2}
 .qa-serial>div{font-size:9pt;line-height:1.15;font-weight:700;min-height:3.5mm;border-bottom:.2mm solid #000;white-space:nowrap}

@@ -190,7 +190,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Adds Labels & Printing with Custom Asset Labels and QA Stickers. Save templates, select device fields, QR/barcode/text layouts, paper sizes and DPI, and print selected asset batches. QA stickers have serial-number space, saved technician names and the frozen creation date beneath the name. Exact-size PDF and printer output reuse the established label engine. Templates and technician names are stored on this computer. Existing barcode and RefurbFlow QR labels remain available. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Removes APEX branding from QA stickers and centres the Quality Assurance heading. Retains the serial-number space, technician name and saved creation date. Exact-size thermal printing and PDF checks are included. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
