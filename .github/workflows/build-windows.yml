@@ -195,7 +195,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Replaces the custom label creator with a visual Label Creation Studio: manual text and barcode labels, centred presets, font families and sizes, drag/resize, exact millimetre positioning, alignment, undo/redo, saved designs and inventory fields. Screen and print use the same physical layout renderer. QA sticker layout, technician names and date behaviour are unchanged. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Adds Reset to blank to the Label Creation Studio. Clears the active label, design name and current input/selection controls while retaining paper size, DPI and saved designs. Undo can restore the previous label. Returning to the page after resetting keeps the blank design. QA stickers and saved technician/date settings are unchanged. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

@@ -28,5 +28,12 @@ app.whenReady().then(async()=>{const folder=fs.mkdtempSync(path.join(os.tmpdir()
  await win.webContents.executeJavaScript("ApexLabelDesignerUI.render($('designerHost'),context);$('lsTemplate').value=settings.templates[0].id;$('lsTemplate').dispatchEvent(new Event('change'));void 0;");await wait("!$('lsPrint').disabled");assert(await win.webContents.executeJavaScript("document.querySelector('[data-ld-prop=font]').value==='Georgia'"));
  for(const theme of ['light','dark']){await win.webContents.executeJavaScript("document.documentElement.dataset.theme="+JSON.stringify(theme)+";void 0;");fs.writeFileSync('qa-print/label-designer-'+theme+'.png',(await win.webContents.capturePage()).toPNG());}
  for(const width of [760,420]){win.setSize(width,1000);await new Promise(r=>setTimeout(r,100));const fits=await win.webContents.executeJavaScript("document.querySelector('.ld-studio').scrollWidth<=document.querySelector('.ld-studio').clientWidth+2");assert(fits,'Studio overflow at '+width);}
+ const beforeReset=fs.readFileSync(file,'utf8');
+ await win.webContents.executeJavaScript("$('ldResetBlank').click();void 0;");
+ assert(await win.webContents.executeJavaScript("document.querySelectorAll('#ldPaper .ld-object').length===0&&$('lsName').value==='My label'&&$('lsTemplate').value===''&&$('lsMode').value==='manual'&&$('ldCopies').value==='1'&&$('lsPrint').disabled"));
+ assert.equal(fs.readFileSync(file,'utf8'),beforeReset,'Reset altered saved designs or QA settings.');
+ await win.webContents.executeJavaScript("$('ldUndo').click();void 0;");assert(await win.webContents.executeJavaScript("document.querySelectorAll('#ldPaper .ld-object').length===1"));
+ await win.webContents.executeJavaScript("$('ldRedo').click();ApexLabelDesignerUI.render($('designerHost'),context);void 0;");
+ assert(await win.webContents.executeJavaScript("document.querySelectorAll('#ldPaper .ld-object').length===0&&$('lsPrint').disabled"));
  console.log('PASS: manual text/barcode presets, native pointer dragging, undo/redo, saved fonts and positions, exact editor/print geometry, real paper dimensions and responsive studio.');win.destroy();app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();app.exit(1);}finally{fs.rmSync(folder,{recursive:true,force:true});}});
