@@ -44,3 +44,6 @@ test('2 by 1 inch stock is exact and exposed as the only label-size choice',()=>
  assert.equal((choices.match(/<option/g)||[]).length,1);assert(choices.includes('value="2x1"'));
  assert.equal(fs.readFileSync(path.join(dir,'asset-label-size-2x1.css'),'utf8').trim(),'@page{size:2in 1in;margin:0}');
 });
+
+
+test('Designer barcodes retain typed letter case while original asset tags keep their existing uppercase format',()=>{assert.equal(decode(c.ApexAssetBarcode.code128Svg('Abc-123',{preserveCase:true}),'asset'),'Abc-123');assert.equal(decode(c.ApexAssetBarcode.code128Svg('Abc-123'),'asset'),'ABC-123');});
