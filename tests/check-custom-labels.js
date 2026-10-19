@@ -30,5 +30,16 @@ app.whenReady().then(async()=>{const folder=fs.mkdtempSync(path.join(os.tmpdir()
  await win.webContents.executeJavaScript("document.querySelector('[data-ls-asset]').click();void 0;");await wait("!$('lsPrint').disabled");
  await win.webContents.executeJavaScript("ApexLabelStudio.open('qaStickers');void 0;");await wait("!!$('qaTechnician')&&$('qaTechnician').value==='Alex Morgan'&&!$('qaPrint').disabled");assert(await win.webContents.executeJavaScript("$('qaPreviewFrame')===null&&$('qaPreview').contentDocument.querySelector('.qa-date').textContent==="+JSON.stringify(frozenDate.split('-').reverse().join('/'))));
  fs.writeFileSync('qa-print/qa-sticker-studio.png',(await win.webContents.capturePage()).toPNG());
+ const beforeReset=store.read(file);
+ await win.webContents.executeJavaScript("$('qaNewTechnician').value='Unsaved name';$('qaSerial').value='UNSAVED-SERIAL';$('qaCopies').value='9';$('qaResetBlank').click();void 0;");
+ await wait("$('qaCreateStatus').textContent.includes('reset to blank')&&!$('qaResetBlank').disabled");
+ assert(await win.webContents.executeJavaScript("$('qaTechnician').value===''&&$('qaNewTechnician').value===''&&$('qaSerial').value===''&&$('qaCopies').value==='1'&&$('qaPrint').disabled&&$('qaPdf').disabled&&!!$('qaPreview').srcdoc"));
+ const afterReset=store.read(file);assert.equal(afterReset.lastQa,null);assert.deepEqual(afterReset.technicians,beforeReset.technicians);assert.deepEqual(afterReset.templates,beforeReset.templates);
+ await win.webContents.executeJavaScript("ApexLabelStudio.open('labelStudio');void 0;");await wait("!!$('lsSaveTemplate')");
+ await win.webContents.executeJavaScript("ApexLabelStudio.open('qaStickers');void 0;");await wait("!!$('qaResetBlank')&&!!$('qaPreview').srcdoc");
+ assert(await win.webContents.executeJavaScript("$('qaTechnician').value===''&&$('qaSerial').value===''&&$('qaPrint').disabled"));
+ await win.webContents.executeJavaScript("$('qaTechnician').value='Alex Morgan';$('qaTechnician').dispatchEvent(new Event('change'));void 0;");
+ assert(await win.webContents.executeJavaScript("$('qaPrint').disabled"));
+ await win.webContents.executeJavaScript("$('qaCreate').click();void 0;");await wait("!$('qaPrint').disabled");assert(store.read(file).lastQa?.createdDate);
  console.log('PASS: QA and custom labels print at exact physical sizes with one label per page; batch counts, technician persistence, saved templates and frozen QA date verified.');win.destroy();app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();app.exit(1);}finally{fs.rmSync(folder,{recursive:true,force:true});}});

@@ -195,7 +195,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Adds Reset to blank to the Label Creation Studio. Clears the active label, design name and current input/selection controls while retaining paper size, DPI and saved designs. Undo can restore the previous label. Returning to the page after resetting keeps the blank design. QA stickers and saved technician/date settings are unchanged. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Adds Reset to blank to QA Stickers. Clears the current technician selection, serial, creation date, sticker preview and copy count. Saved technician names, custom label designs and printer paper settings are retained. Returning to QA Stickers stays blank until another sticker is created. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {

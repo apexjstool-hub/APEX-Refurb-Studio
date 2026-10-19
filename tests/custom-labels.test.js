@@ -4,6 +4,7 @@ test('Templates, technicians and created QA date survive reopening; stale settin
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'apex-labels-test-')),file=path.join(root,'settings.json');try{
  let p=store.read(file);assert.equal(p.revision,0);p=store.save(file,{...p,expectedRevision:0,technicians:['Alex Morgan','alex morgan'],templates:[{id:'one',name:'Asset label',heading:'APEX',code:'qr',fields:['id','serial']}],lastQa:{technician:'Alex Morgan',serial:'',createdDate:'2026-10-19'}});
  const reloaded=store.read(file);assert.equal(reloaded.technicians.length,1);assert.equal(reloaded.lastQa.createdDate,'2026-10-19');assert.equal(reloaded.templates[0].fields[1],'serial');assert.throws(()=>store.save(file,{...p,expectedRevision:0}),/changed/);assert.throws(()=>labels.qa({technician:'',createdDate:'2026-10-19'}),/technician/);assert.throws(()=>labels.settings({technicians:['Alex\nNew']}));
+ const cleared=store.save(file,{...reloaded,expectedRevision:reloaded.revision,lastQa:null});assert.equal(cleared.lastQa,null);assert.equal(store.read(file).lastQa,null);assert.deepEqual(cleared.technicians,reloaded.technicians);assert.deepEqual(cleared.templates,reloaded.templates);
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 test('QA output has serial space, literal technician text, and the frozen creation date beneath the name',()=>{
