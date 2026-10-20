@@ -14,13 +14,13 @@ window.getMicrodreamEdits=()=>{
 window.setMicrodreamEditing=enabled=>{
  editable=!!enabled;
  for(const cell of document.querySelectorAll('[data-md-field]')){
-  cell.contentEditable=enabled?'plaintext-only':'false';cell.spellcheck=false;
+  const mode=enabled?'plaintext-only':'false';if(cell.contentEditable!==mode)cell.contentEditable=mode;cell.spellcheck=false;
   cell.setAttribute('role','textbox');cell.setAttribute('aria-label',cell.dataset.mdField==='jobRef'?'Job Ref':`Row ${Number(cell.dataset.mdRow)+1} ${cell.dataset.mdField}`);
   if(enabled)cell.tabIndex=0;else cell.removeAttribute('tabindex');
   if(['quantity','received'].includes(cell.dataset.mdField))cell.setAttribute('inputmode','numeric');
  }
 };
-window.setMicrodreamJobRef=value=>{for(const cell of document.querySelectorAll('[data-md-field="jobRef"]'))cell.textContent=value;};
+window.setMicrodreamJobRef=value=>{for(const cell of document.querySelectorAll('[data-md-field="jobRef"]'))if(cell.textContent!==value)cell.textContent=value;};
 document.addEventListener('keydown',event=>{if(editable&&event.target.closest('[data-md-field]')&&event.key==='Enter')event.preventDefault();});
 document.addEventListener('input',event=>{
  if(!editable||!event.target.closest('[data-md-field]'))return;

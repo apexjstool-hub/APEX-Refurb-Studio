@@ -19,6 +19,11 @@ app.whenReady().then(async()=>{let win;const folder=fs.mkdtempSync(path.join(os.
  assert(await win.webContents.executeJavaScript("savedReport.document.jobRef==='JOB-98765'&&$('microdreamPreviewFrame').contentDocument.querySelector('.md-job-ref').textContent==='JOB-98765'"));
  await win.webContents.executeJavaScript("$('microdreamPrint').click();void 0;");await waitFor('!!window.printInput');assert(await win.webContents.executeJavaScript('printInput.reportId===savedReport.id&&printInput.expectedRevision===2'));
  await win.webContents.executeJavaScript("closeModal();ApexMicrodreamRequests.view(managedPallets[0]);void 0;");await waitFor("!!$('microdreamPrint')&&!$('microdreamPrint').disabled");assert(await win.webContents.executeJavaScript("$('microdreamJobRef').value==='JOB-98765'"));
+ // Native typing must keep the caret after synchronising repeated Job Ref fields.
+ await win.webContents.executeJavaScript("(()=>{const d=$('microdreamPreviewFrame').contentDocument,cell=d.querySelector('[data-md-field=jobRef]');cell.focus();const range=d.createRange();range.selectNodeContents(cell);range.collapse(false);const selection=d.defaultView.getSelection();selection.removeAllRanges();selection.addRange(range);})();void 0;");
+ await win.webContents.insertText('A');await win.webContents.insertText('B');
+ assert(await win.webContents.executeJavaScript("$('microdreamPreviewFrame').contentDocument.querySelector('[data-md-field=jobRef]').textContent==='JOB-98765AB'&&$('microdreamJobRef').value==='JOB-98765AB'"));
+ await win.webContents.executeJavaScript("$('microdreamDiscard').click();void 0;");await waitFor("!$('microdreamPrint').disabled");
  // Edit table fields directly inside the preview, save, and reopen the pallet report.
  await win.webContents.executeJavaScript(`(()=>{const d=$('microdreamPreviewFrame').contentDocument;for(const [field,value] of [['comment','Keyboard spray'],['language','UK keyboard only'],['received','12']]){const cell=d.querySelector('[data-md-field="'+field+'"][data-md-row="0"]');cell.textContent=value;cell.dispatchEvent(new Event('input',{bubbles:true}));}})();void 0;`);
  assert(await win.webContents.executeJavaScript("$('microdreamPrint').disabled&&$('microdreamSavePdf').disabled&&$('mdSavedReport').disabled&&!$('microdreamRefreshPreview').disabled"));
