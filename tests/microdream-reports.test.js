@@ -21,3 +21,29 @@ test('Creation retry is idempotent, fresh creation retains history, invalid sele
  assert.equal(reports.apply(db,{action:'list',pallet:{name:'MD-1',createdAt:'new-pallet-date'}}).reports.length,0);
  assert(before.includes('microdreamReports'));
 });
+
+
+test('Inline report edits survive restart and leave pallet, assets and other reports unchanged',()=>{
+ const db=fixture(),created=create(db),first=created.reports[0],other=created.reports[1],assets=JSON.stringify(db.items),pallets=JSON.stringify(db.pallets);
+ const docs=require('../src/microdream-documents'),edits=docs.editable(first.document);
+ edits.jobRef='KEYBOARD-ONLY';Object.assign(edits.rows[0],{comment:'Keyboard spray',language:'UK keyboard only',type:'Notebook',model:'Dell Latitude 5420 UK',quantity:'2',received:'1'});
+ const result=reports.apply(db,{action:'update',id:first.id,expectedRevision:1,edits});assert(result.ok,result.error);
+ assert.equal(result.report.document.rows[0].comment,'Keyboard spray');assert.equal(result.report.document.rows[0].received,1);assert.equal(result.report.document.total,2);
+ assert.deepEqual(result.report.assetIds,first.assetIds);assert.equal(result.report.document.fingerprint,first.document.fingerprint);
+ assert.equal(JSON.stringify(db.items),assets);assert.equal(JSON.stringify(db.pallets),pallets);assert.deepEqual(db.microdreamReports[1],other);
+ const restarted=JSON.parse(JSON.stringify(db)),loaded=reports.apply(restarted,{action:'get',id:first.id}).report;
+ assert.equal(loaded.document.rows[0].language,'UK keyboard only');assert.equal(loaded.document.jobRef,'KEYBOARD-ONLY');
+ const html=docs.markup(loaded.document);assert(html.includes('Keyboard spray'));assert(!html.includes('Full respray'));assert(html.includes('UK keyboard only'));assert(!html.includes('contenteditable'));
+ const oldClient=reports.apply(restarted,{action:'update',id:first.id,expectedRevision:2,jobRef:'JOB-NEW'});assert(oldClient.ok);assert.equal(oldClient.report.document.rows[0].comment,'Keyboard spray');
+});
+test('Editable cells validate quantities and text without partial writes or metadata replacement',()=>{
+ const docs=require('../src/microdream-documents'),db=fixture(),first=create(db).reports[0];
+ for(const alter of [e=>e.rows.pop(),e=>e.rows[0].quantity='1.5',e=>e.rows[0].quantity='-1',e=>e.rows[0].received='100001',e=>e.rows[0].type='',e=>e.rows[0].comment='line\nbreak',e=>e.rows[0].comment='x'.repeat(201),e=>e.rows[0].language={},e=>e.jobRef='x'.repeat(101)]){
+  const edits=docs.editable(first.document);alter(edits);const before=JSON.stringify(db);
+  assert.equal(reports.apply(db,{action:'update',id:first.id,expectedRevision:1,edits}).ok,false);assert.equal(JSON.stringify(db),before);
+ }
+ const edits=docs.editable(first.document);edits.rows[0].comment='<script>Keyboard spray</script>';edits.rows[0].language='';edits.rows[0].quantity='0';edits.rows[0].received='';edits.id='REPLACED';edits.fingerprint='REPLACED';
+ const r=reports.apply(db,{action:'update',id:first.id,expectedRevision:1,edits});assert(r.ok,r.error);assert.equal(r.report.id,first.id);assert.equal(r.report.document.fingerprint,first.document.fingerprint);assert.equal(r.report.document.total,0);assert.equal(r.report.document.rows[0].received,'');
+ assert(docs.markup(r.report.document).includes('&lt;script&gt;'));assert(!docs.markup(r.report.document).includes('<script>'));
+ assert.equal(reports.apply(db,{action:'update',id:first.id,expectedRevision:1,edits}).ok,false);
+});

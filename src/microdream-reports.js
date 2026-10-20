@@ -22,8 +22,9 @@ function apply(db,input){
  if(input.action==='get')return {ok:true,report};
  if(input.action!=='update')throw Error('Invalid report action.');
  if(report.revision!==input.expectedRevision)throw Error('This report was updated elsewhere. Reopen View report before saving.');
- const jobRef=reference(input.jobRef),updated={...report,document:{...report.document,jobRef},revision:report.revision+1,updatedAt:new Date().toISOString()};
+ const document=input.edits!==undefined?docs.applyEdits(report.document,input.edits):{...report.document,jobRef:reference(input.jobRef)},updated={...report,document,revision:report.revision+1,updatedAt:new Date().toISOString()};
  db.microdreamReports=reports.map(r=>r.id===updated.id?updated:r);return {ok:true,report:updated};
  }catch(e){return {ok:false,error:e.message};}
 }
 module.exports={prepare,apply,matches,reference};
+

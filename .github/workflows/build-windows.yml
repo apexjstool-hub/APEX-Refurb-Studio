@@ -55,6 +55,10 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f cloud/pallet-rename.sql
           psql -v ON_ERROR_STOP=1 -f cloud/pallet-rename.sql
           psql -v ON_ERROR_STOP=1 -f tests/pallet-rename-regression.sql
+          psql -v ON_ERROR_STOP=1 -f tests/microdream-reports-bootstrap.sql
+          psql -v ON_ERROR_STOP=1 -f cloud/microdream-reports.sql
+          psql -v ON_ERROR_STOP=1 -f cloud/microdream-reports.sql
+          psql -v ON_ERROR_STOP=1 -f tests/microdream-reports-regression.sql
   build:
     needs: pallet-storage
     runs-on: windows-latest
@@ -195,7 +199,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Adds Reset to blank to QA Stickers. Clears the current technician selection, serial, creation date, sticker preview and copy count. Saved technician names, custom label designs and printer paper settings are retained. Returning to QA Stickers stays blank until another sticker is created. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Edit Microdream purchase-order fields directly in the preview: Job Ref, Type, Model, Language, Comment and sent/received quantities. Save changes permanently on the pallet report, reopen them later, and print or save PDF from the saved version. Includes Discard changes and protection against unsaved edits or conflicting updates. Existing reports, assets, QA stickers and custom label designs are retained. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
@@ -206,5 +210,6 @@ jobs:
           if (Test-Path "$installer.blockmap") { $files += "$installer.blockmap" }
           gh release upload $tag @files --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed. Do not publish the incomplete draft.' }
+
 
 
