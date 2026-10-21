@@ -55,6 +55,15 @@ app.whenReady().then(async()=>{const folder=fs.mkdtempSync(path.join(os.tmpdir()
  await win.webContents.executeJavaScript("ApexLabelStudio.open('labelStudio');void 0;");await wait("!!$('lsSaveTemplate')");await win.webContents.executeJavaScript("ApexLabelStudio.open('qaStickers');void 0;");await wait("!!$('qaTechnician')&&!!$('qaPreview').srcdoc");
  assert(await win.webContents.executeJavaScript("!Array.from($('qaTechnician').options).some(o=>o.value==='Alex Morgan')&&Array.from($('qaTechnician').options).some(o=>o.value==='Jordan Lee')"));
  await win.webContents.executeJavaScript("$('qaTechnician').value='Jordan Lee';$('qaTechnician').dispatchEvent(new Event('change'));$('qaCreate').click();void 0;");await wait("!$('qaPrint').disabled");assert.equal(store.read(file).lastQa.technician,'Jordan Lee');
+ // Saved QR/barcode design names can be removed without losing the open canvas.
+ await win.webContents.executeJavaScript("ApexLabelStudio.open('labelStudio');void 0;");await wait("!!$('lsDeleteTemplate')&&!$('lsDeleteTemplate').disabled");
+ const beforeDesignDelete=store.read(file),canvasBefore=await win.webContents.executeJavaScript("$('ldPaper').innerHTML");
+ await win.webContents.executeJavaScript("$('lsDeleteTemplate').click();void 0;");assert(await win.webContents.executeJavaScript("$('qaTestModal').textContent.includes('Workshop QR')&&!!$('lsConfirmDeleteTemplate').querySelector('svg')"));
+ await win.webContents.executeJavaScript("$('lsCancelDeleteTemplate').click();void 0;");assert.deepEqual(store.read(file),beforeDesignDelete);
+ await win.webContents.executeJavaScript("$('lsDeleteTemplate').click();$('lsConfirmDeleteTemplate').click();void 0;");await wait("$('lsSaveStatus').textContent.includes('Saved design deleted')");
+ assert.equal(store.read(file).templates.length,0);assert.deepEqual(store.read(file).technicians,beforeDesignDelete.technicians);assert.deepEqual(store.read(file).lastQa,beforeDesignDelete.lastQa);
+ assert.equal(await win.webContents.executeJavaScript("$('ldPaper').innerHTML"),canvasBefore);assert(await win.webContents.executeJavaScript("$('lsTemplate').value===''&&$('lsDeleteTemplate').disabled"));
+ await win.webContents.executeJavaScript("ApexLabelStudio.open('qaStickers');void 0;");await wait("!!$('qaTechnician')&&$('qaTechnician').value==='Jordan Lee'");await win.webContents.executeJavaScript("ApexLabelStudio.open('labelStudio');void 0;");await wait("!!$('lsTemplate')&&$('lsTemplate').options.length===1");
  console.log('PASS: QA and custom labels print at exact physical sizes with one label per page; batch counts, technician persistence, saved templates, frozen QA date, bin confirmation/cancellation and persistent technician-name deletion verified.');win.destroy();app.exit(0);
  }catch(e){console.error(e);if(win&&!win.isDestroyed())win.destroy();if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();app.exit(1);}finally{fs.rmSync(folder,{recursive:true,force:true});}});
 
