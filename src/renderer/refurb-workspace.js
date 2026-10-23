@@ -4,7 +4,7 @@
  const $=id=>document.getElementById(id),root=$('refurbWorkspacePage');
  if(!root||!window.ApexOps)return;
  const views={queue:['Work queue','Parts, respray and the next action for each laptop.'],purchasing:['Parts & purchasing','Manage requirements, supplier orders and deliveries together.'],qc:['Quality control','Use the existing checks to finish refurbishment jobs.'],completed:['Completed','Recorded completed refurbishment jobs.']};
- const filterNames={all:'All active',order:'Needs ordering',delivery:'Awaiting delivery',fit:'Ready to fit',respray:'Needs respray',qc:'Awaiting QC',hold:'On hold'};
+ const filterNames={all:'All active',order:'Needs ordering',delivery:'Parts ordered',fit:'Ready to fit',respray:'Needs respray',qc:'Awaiting QC',hold:'On hold'};
  let view='queue',purchase='parts',filter='all',query='',page=0,returnToQueue=false,queueScroll=0;
  const expanded=new Set(),selected=new Set(),homes=new Map();
  const snapshot=()=>window.ApexWorkflowSnapshot;
@@ -28,7 +28,7 @@
   if(j.status==='Completed')return false;
   if(value==='all')return true;if(value==='hold')return j.status==='On Hold';if(locked(j))return false;
   if(value==='respray')return s.parts.some(p=>spray(p)&&p.fitted<p.required);
-  if(value==='order')return s.toOrder>0;if(value==='delivery')return s.awaiting>0;if(value==='fit')return s.toFit>0;
+  if(value==='order')return s.needsOrdering>0;if(value==='delivery')return s.awaitingDelivery>0;if(value==='fit')return s.toFit>0;
   return s.key===value;
  }
  function selectionState(){

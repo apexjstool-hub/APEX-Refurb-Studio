@@ -4,7 +4,7 @@ app.whenReady().then(async()=>{
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'apex-tracker-'));let win;
  try{
   const renderer=path.resolve(__dirname,'../src/renderer');let html=fs.readFileSync(path.join(renderer,'index.html'),'utf8').replace(/<script\b[\s\S]*?<\/script>/g,'').replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,'').replace(/href="([^"]+\.css)"/g,(_,p)=>'href="'+pathToFileURL(path.join(renderer,p)).href+'"');
-  const assets=[core.normalize({id:'TEST-TRACKER',model:'HP ZBook Studio 16 inch G10 Mobile Workstation PC',manufacturer:'HP',serial:'TEST-SERIAL',location:'Unassigned',pallet:'PALLET-0001',status:'Awaiting Processing'})];let state=wf.init({jobs:{'TEST-TRACKER':{assetId:'TEST-TRACKER',status:'Awaiting Parts',priority:'Normal',partsBoard:'ordered',parts:[{id:'p',name:'Battery',qty:1,received:0,fitted:0,sourceKey:'test|battery'}],qc:{}}},orders:[],audit:[]});
+  const assets=[core.normalize({id:'TEST-TRACKER',model:'HP ZBook Studio 16 inch G10 Mobile Workstation PC',manufacturer:'HP',serial:'TEST-SERIAL',location:'Unassigned',pallet:'PALLET-0001',status:'Awaiting Processing'})];let state=wf.init({jobs:{'TEST-TRACKER':{assetId:'TEST-TRACKER',status:'Awaiting Parts',priority:'Normal',partsBoard:'needed',parts:[{id:'p',name:'Battery',qty:1,received:0,fitted:0,sourceKey:'test|battery'}],qc:{}}},orders:[],audit:[]});
   const db={items:assets,locations:['Unassigned','Inspection'],pallets:[{name:'PALLET-0001',label:'Batch'}]};
   ipcMain.handle('test:renamePallet',(_e,c)=>pallets.renamePallet(db,c));
   ipcMain.handle('test:pallet',(_e,c)=>pallets.createPallet(db,c));ipcMain.handle('test:move',(_e,c)=>pallets.moveBatch(db,c));ipcMain.handle('test:assets',()=>({items:db.items,pallets:pallets.listPallets(db)}));
@@ -71,8 +71,17 @@ app.whenReady().then(async()=>{
   let boardMoved=false;
   for(let i=0;i<30;i++){boardMoved=await win.webContents.executeJavaScript("!$('partsContent').querySelector('.ops-part-check')&&$('opsMoveSelectedParts').disabled&&$('partsOrderedContent').textContent.includes('TEST-TRACKER')");if(boardMoved)break;await new Promise(r=>setTimeout(r,100));}
   if(!boardMoved||state.jobs['TEST-TRACKER'].partsBoard!=='ordered'||state.orders.length!==orderCountBeforeMove)throw Error('Selected board move failed or created a purchase order.');
-  state.jobs['TEST-TRACKER'].partsBoard='needed';
+  await win.webContents.executeJavaScript("setPage('inventory');$('repairFilter').value='';render();void 0;");
+  if(!await win.webContents.executeJavaScript("$('inventoryTable').textContent.includes('Parts ordered')&&!$('inventoryTable').textContent.includes('Needs ordering')"))throw Error('Bulk board move did not update Inventory to Parts ordered.');
+  await win.webContents.executeJavaScript("$('repairFilter').value='order';render();void 0;");
+  if(await win.webContents.executeJavaScript("!!$('inventoryTable').querySelector('.inventory-repair-cell')"))throw Error('Moved asset still appears under Needs ordering.');
+  await win.webContents.executeJavaScript("$('repairFilter').value='delivery';render();void 0;");
+  if(!await win.webContents.executeJavaScript("$('inventoryTable').textContent.includes('Parts ordered')"))throw Error('Moved asset is missing from the Parts ordered filter.');
   await win.webContents.executeJavaScript("window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("$('inventoryTable').textContent.includes('Parts ordered')"))throw Error('Parts ordered progress was lost after reloading workflow.');
+  state.jobs['TEST-TRACKER'].partsBoard='needed';
+  await win.webContents.executeJavaScript("$('repairFilter').value='';window.ApexOps.load();");
+  if(!await win.webContents.executeJavaScript("$('inventoryTable').textContent.includes('Needs ordering')"))throw Error('Moving back did not restore Needs ordering in Inventory.');
   if(!await win.webContents.executeJavaScript("!!$('partsContent').querySelector('[data-op=orderAll]')"))throw Error('Mark all as ordered button is missing.');
   await win.webContents.executeJavaScript("$('partsContent').querySelector('[data-op=orderAll]').click();void 0;");
   if(!await win.webContents.executeJavaScript("$('opsOrderForm').querySelectorAll('input[type=checkbox]:checked').length===2"))throw Error('Order all did not preselect every outstanding part.');

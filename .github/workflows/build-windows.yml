@@ -199,7 +199,7 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Adds consistent bin buttons beside Saved designs in Label Creation Studio and the technician dropdown in QA Stickers. Themed confirmations identify the selected entry. Deleted design names stay removed while the current label remains open as an unsaved design. Deleted technician names stay removed and the current QA sticker resets to blank. Cancellation preserves saved entries. Test before publishing this draft."
+          $notes = "APEX $version Windows installer. Inventory repair progress now shows Parts ordered after a device moves to the Parts Ordered refurbishment board, including bulk moves. Inventory, Work queue and dashboard filters agree with the saved board. Received and fitted progress takes precedence once all outstanding parts arrive. Actual purchasing, receipt and fitting quantities remain unchanged. Includes regression checks for moving back, reopening and later repair progress. Test before publishing this draft."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
@@ -210,6 +210,7 @@ jobs:
           if (Test-Path "$installer.blockmap") { $files += "$installer.blockmap" }
           gh release upload $tag @files --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed. Do not publish the incomplete draft.' }
+
 
 
 
