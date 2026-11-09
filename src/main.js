@@ -251,7 +251,23 @@ async function cloudInventoryCall(method,route,payload){
   return {ok:true,items:archived};
  }
  if(method==='POST'&&route==='/v1/maintenance/delete'){
-  if(payload?.type!=='hardDeleteAsset')return {ok:false,error:'Only confirmed permanent asset deletion is available in cloud mode.'};
+  if(payload?.type!=='hardDeleteAsset'){
+   const kind=String(payload?.type||'');
+   if(!['deletePart','deleteRefurb','deleteJob','clearTests','deleteOrder'].includes(kind))return {ok:false,error:'Unsupported cloud deletion operation.'};
+   const id=String(payload?.assetId||'').trim().toUpperCase();
+   if(kind!=='deleteOrder'&&!cloudSeenRevisions.has(id))return {ok:false,error:'Refresh shared inventory before removing asset records.'};
+   try{
+    const response=await cloudFetch('/rest/v1/rpc/apex_admin_delete_record',{
+     method:'POST',headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token,'Content-Type':'application/json'},
+     body:JSON.stringify({p_action:kind,p_asset_id:id||null,p_expected_revision:kind==='deleteOrder'?null:cloudSeenRevisions.get(id),
+      p_part_id:payload?.partId||null,p_order_id:payload?.orderId||null}),signal:AbortSignal.timeout(15000)});
+    const result=await response.json().catch(()=>null);
+    if(!response.ok)return {ok:false,error:String(result?.message||'Cloud deletion unavailable. Apply cloud/admin-granular-delete.sql and retry.')};
+    if(!result?.ok)return {ok:false,error:'Cloud did not confirm deletion. Refresh before trying again.'};
+    if(id)cloudSeenRevisions.delete(id);
+    return {...result,kind};
+   }catch{return {ok:false,error:'Cloud deletion interrupted. Refresh before retrying.'};}
+  }
   const id=String(payload.assetId||'').trim().toUpperCase();
   if(!cloudSeenRevisions.has(id))return {ok:false,error:'Refresh shared inventory before deleting this laptop.'};
   try{

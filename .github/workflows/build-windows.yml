@@ -98,7 +98,7 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/custom-labels.test.js tests/label-designer.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/custom-labels.test.js tests/label-designer.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-workflow.test.js tests/granular-deletion.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
         run: |
@@ -184,6 +184,7 @@ jobs:
           if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed (exit $($verification.ExitCode)). No release will be uploaded." }
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
       - name: Verify installer and create draft release
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -199,14 +200,14 @@ jobs:
           $existing = gh release view $tag --json isDraft 2>$null
           $exists = $LASTEXITCODE -eq 0
           if ($exists -and -not (($existing | ConvertFrom-Json).isDraft)) { throw "Release $tag is already published. Use a newer version." }
-          $notes = "APEX $version Windows installer. Inventory repair progress now shows Parts ordered after a device moves to the Parts Ordered refurbishment board, including bulk moves. Inventory, Work queue and dashboard filters agree with the saved board. Received and fitted progress takes precedence once all outstanding parts arrive. Actual purchasing, receipt and fitting quantities remain unchanged. Includes regression checks for moving back, reopening and later repair progress. Test before publishing this draft."
+          $notes = "APEX $version — Cloud Mode granular deletion. Admins can remove individual asset parts, including ordered/received/fitted requirements, with coordinated linked purchase order line cleanup and an audit entry. Cloud Mode additionally supports clearing refurbishment records, jobs, test results and deleting purchase orders. Asset IDs and device specifications remain when only refurbishment data is cleared. This version requires the database migration cloud/admin-granular-delete.sql, which has been installed on the linked APEX Supabase project. Deletions cannot be undone without a separate backup. Review and test before publishing."
           if ($exists) {
             gh release edit $tag --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           } else {
             gh release create $tag --draft --target $env:GITHUB_SHA --title "APEX $version" --notes $notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'Draft release preparation failed.' }
-          $files = @($installer, 'ROLLBACK-4.0.78.md', 'dist/latest.yml', 'cloud/pallet-locations-4.0.49.sql', 'cloud/asset-activity.sql', 'cloud/pallet-rename.sql', 'cloud/microdream-reports.sql')
+          $files = @($installer, 'ROLLBACK-4.0.78.md', 'dist/latest.yml', 'cloud/pallet-locations-4.0.49.sql', 'cloud/asset-activity.sql', 'cloud/pallet-rename.sql', 'cloud/microdream-reports.sql', 'cloud/admin-granular-delete.sql')
           if (Test-Path "$installer.blockmap") { $files += "$installer.blockmap" }
           gh release upload $tag @files --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed. Do not publish the incomplete draft.' }

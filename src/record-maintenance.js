@@ -56,7 +56,21 @@ function mutate(db,command){
   if(!item||!item.deletedAt)return fail('Move this asset to Recycle Bin first.');
   db.items=db.items.filter(a=>a!==item);delete db.removedLinks[id];return {ok:true,kind};
  }
- if(kind==='deleteRefurb'){
+  if(kind==='deletePart'){
+  if(!item||item.deletedAt)return fail('Active asset not found.');
+  const job=s.jobs[id],part=job?.parts?.find(p=>p.id===String(command?.partId||''));
+  if(!part)return fail('Part not found. Refresh and retry.');
+  const touched=[];
+  for(const order of s.orders){
+   const count=(order.lines||[]).filter(l=>l.assetId===id&&l.partId===part.id).length;
+   if(count){order.lines=order.lines.filter(l=>!(l.assetId===id&&l.partId===part.id));touched.push(order.id);}
+  }
+  s.orders=s.orders.filter(o=>(o.lines||[]).length);
+  job.parts=job.parts.filter(p=>p.id!==part.id);job.updatedAt=stamp();
+  s.audit.unshift({id:require('node:crypto').randomUUID(),type:'Part deleted',at:stamp(),assetId:id,detail:'Administrator deleted '+part.name+' and '+touched.length+' linked order record(s).',by:'Administrator'});
+  s.audit=s.audit.slice(0,2500);workflow.autoDraft(s);return {ok:true,kind};
+ }
+if(kind==='deleteRefurb'){
   if(!item||item.deletedAt)return fail('Active asset not found.');
   // Clear the entire refurbishment journey. Hardware and other inventory fields stay intact.
   const removed=detach(s,id);delete item.refurbishment;item.refurbNotes='';
