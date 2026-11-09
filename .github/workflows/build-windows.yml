@@ -1,7 +1,7 @@
 name: Build APEX Windows Update
 on:
   push:
-    branches: [main]
+    branches: [main, fix/cloud-admin-granular-deletion-20261109]
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -184,6 +184,7 @@ jobs:
           if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed (exit $($verification.ExitCode)). No release will be uploaded." }
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
       - name: Verify installer and create draft release
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
