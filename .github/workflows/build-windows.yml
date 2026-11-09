@@ -1,7 +1,7 @@
 name: Build APEX Windows Update
 on:
   push:
-    branches: [main, fix/cloud-admin-granular-deletion-20261109]
+    branches: [main]
     paths:
       - 'package.json'
       - 'package-lock.json'
