@@ -38,7 +38,7 @@
    const row=result.get(item.assetId);if(!row||row.resprayStatus)continue;
    if(shipment.status==='Dispatched'&&row.sprayOutstanding)row.resprayStatus='Sent for Respray';
    if(shipment.status==='Returned'&&row.sprayOutstanding)row.resprayStatus='Respray Returned';
-   if(shipment.status==='Completed')row.resprayStatus='Respray Completed';
+   if(shipment.status==='Completed'&&!row.sprayOutstanding)row.resprayStatus='Respray Completed';
    if(row.key==='respray'&&row.resprayStatus&&shipment.status!=='Completed'){
     row.stage=row.resprayStatus;row.key=shipment.status==='Dispatched'?'respray-sent':'respray-returned';
     row.next=shipment.status==='Dispatched'?'Await Microdream pallet return':'Inspect and complete respray';
