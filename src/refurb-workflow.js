@@ -8,7 +8,7 @@ const QC=['Visual inspection','Required parts fitted','Hardware retest','Final c
 const clip=(v,n=200)=>String(v??'').trim().slice(0,n);
 const stamp=()=>new Date().toISOString();
 const uid=()=>require('node:crypto').randomUUID();
-function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return s;}
+function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true,resprayPallets:Array.isArray(raw?.resprayPallets)?raw.resprayPallets:[]};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return s;}
 function history(s,type,detail,assetId='',by='Administrator'){
  s.audit.unshift({id:uid(),at:stamp(),type,detail:clip(detail,400),assetId:clip(assetId,80),by:clip(by,80)});s.audit=s.audit.slice(0,2500);
 }
@@ -57,6 +57,59 @@ function apply(state,assets,cmd,by='Administrator'){
  const s=init(state);try{
  if(!cmd||typeof cmd!=='object')throw Error('Invalid workflow request.');
  const type=clip(cmd.type,40),id=clip(cmd.assetId,80).toUpperCase();let job;
+ if(['dispatchResprayPallet','returnResprayPallet','completeResprayPallet'].includes(type)){
+  const pallet=clip(cmd.palletName,80),key=pallet.toLowerCase();
+  if(!pallet)throw Error('Choose a Microdream pallet.');
+  const active=s.resprayPallets.find(x=>String(x.palletName||'').toLowerCase()===key&&['Dispatched','Returned'].includes(x.status));
+  if(type==='dispatchResprayPallet'){
+   if(active)throw Error('This pallet already has an active respray dispatch.');
+   const manifest=[];
+   for(const asset of assets.filter(a=>!a.deletedAt&&clip(a.pallet,80).toLowerCase()===key)){
+    const job=s.jobs[asset.id];if(!job||['Completed','On Hold'].includes(job.status))continue;
+    const parts=job.parts.filter(p=>isCosmetic(p.name)&&p.fitted<p.qty).map(p=>({partId:p.id,qty:p.qty,name:p.name}));
+    if(parts.length)manifest.push({assetId:asset.id,parts});
+   }
+   if(!manifest.length)throw Error('No outstanding respray jobs on this pallet.');
+   if(manifest.length>300)throw Error('Maximum 300 laptops per dispatch.');
+   const record={id:uid(),palletName:pallet,status:'Dispatched',dispatchedAt:stamp(),dispatchedBy:clip(by,80),manifest};
+   s.resprayPallets.unshift(record);
+   for(const item of manifest)history(s,'Sent for Respray',pallet+' · '+item.parts.length+' tasks',item.assetId,by);
+   return {ok:true,workflow:s,resprayPallet:record,affected:manifest.length};
+  }
+  if(!active||cmd.expectedDispatchId!==active.id)throw Error('Dispatch changed or not found. Refresh and scan again.');
+  if(type==='returnResprayPallet'){
+   if(active.status!=='Dispatched')throw Error('This box has already been returned.');
+   active.status='Returned';active.returnedAt=stamp();active.returnedBy=clip(by,80);
+   for(const item of active.manifest)history(s,'Respray pallet returned',pallet,item.assetId,by);
+   return {ok:true,workflow:s,resprayPallet:active,affected:active.manifest.length};
+  }
+  if(active.status!=='Returned')throw Error('Confirm the pallet has returned first.');
+  if(cmd.confirmChecked!==true)throw Error('Confirm respray inspection before completion.');
+  const prepared=[];
+  for(const item of active.manifest){
+   const job=s.jobs[item.assetId];
+   if(!job||['Completed','On Hold'].includes(job.status)||!assets.some(a=>a.id===item.assetId&&!a.deletedAt))throw Error('Dispatched asset unavailable or locked: '+item.assetId);
+   for(const row of item.parts){
+    const part=job.parts.find(p=>p.id===row.partId);
+    if(!part||!isCosmetic(part.name)||part.qty!==row.qty||part.received>part.qty||part.fitted>part.qty)throw Error('Respray requirement changed: '+item.assetId);
+    prepared.push({job,part,assetId:item.assetId});
+   }
+  }
+  for(const {job,part,assetId} of prepared){
+   let left=part.qty-part.received;
+   for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const line of order.lines||[]){
+    if(line.assetId!==assetId||line.partId!==part.id||left<=0)continue;
+    const fill=Math.min(left,Math.max(0,line.qty-line.received));line.received+=fill;left-=fill;
+    if(fill)order.updatedAt=stamp();
+   }
+   part.received=part.qty;part.fitted=part.qty;
+   part.lastReceivedAt=stamp();part.lastReceivedBy=by;
+   part.lastProgressAt=stamp();part.lastProgressBy=by;job.updatedAt=stamp();
+   history(s,'Respray Completed',part.name+' × '+part.qty+' · '+pallet,assetId,by);
+  }
+  active.status='Completed';active.completedAt=stamp();active.completedBy=clip(by,80);
+  return {ok:true,workflow:s,resprayPallet:active,affected:active.manifest.length,completedTasks:prepared.length};
+ }
  if(type==='markPartOrdered'){
   const j=s.jobs[id],p=j?.parts?.find(p=>p.id===cmd.partId);
   if(!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('This part or asset no longer exists. Refresh and try again.');
