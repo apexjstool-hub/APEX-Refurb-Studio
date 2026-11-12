@@ -37,3 +37,27 @@
 #inventoryPage #inventoryTable .inventory-repair-cell{width:205px;min-width:195px}
 #inventoryPage #inventoryTable>.asset-table{min-width:1190px}
 @media(prefers-color-scheme:dark){#inventoryPage #inventoryTable .inventory-waiting-value{color:#ffbcae}}
+
+
+/* v4.0.95 Inventory table only: restrained visual hierarchy and consistent density. */
+#inventoryPage #inventoryTable .asset-table{border-collapse:separate;border-spacing:0;table-layout:auto}
+#inventoryPage #inventoryTable .asset-table thead th{font-size:10.5px;font-weight:750;letter-spacing:.045em;text-transform:uppercase;color:var(--muted);padding-top:11px;padding-bottom:11px;white-space:nowrap}
+#inventoryPage #inventoryTable .asset-table tbody td{padding-top:10px;padding-bottom:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+#inventoryPage #inventoryTable .asset-table tbody tr:hover td{background:rgba(54,111,197,.035)}
+#inventoryPage #inventoryTable .asset-table tbody tr:last-child td{border-bottom-color:transparent}
+#inventoryPage #inventoryTable .apex-device-identity{display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:225px;max-width:340px}
+#inventoryPage #inventoryTable .apex-device-model{min-width:0;line-height:1.2}
+#inventoryPage #inventoryTable .apex-device-model b{font-size:12.5px;line-height:1.3;font-weight:750;color:var(--text);white-space:normal}
+#inventoryPage #inventoryTable .apex-device-meta{display:flex;align-items:center;flex-wrap:wrap;gap:4px 9px;color:var(--muted);font-size:11px;line-height:1.25}
+#inventoryPage #inventoryTable .apex-device-number .asset-link{font-size:11px!important;padding:0!important;min-height:0!important;font-weight:750!important;color:#286cc0!important;line-height:1.25!important}
+#inventoryPage #inventoryTable .apex-device-serial{padding:0;margin:0!important;display:inline!important;color:var(--muted)!important;font-size:11px!important;line-height:1.25!important}
+#inventoryPage #inventoryTable .apex-device-serial:not(:empty)::before{content:'·';margin-right:9px;color:var(--muted)}
+#inventoryPage #inventoryTable .inventory-repair-cell{min-width:185px;width:200px}
+#inventoryPage #inventoryTable .apex-status-stack{gap:5px}
+#inventoryPage #inventoryTable .apex-work-chip{font-size:11px;padding:4px 9px;border-radius:6px}
+#inventoryPage #inventoryTable .inventory-waiting-cell{min-width:120px;width:130px}
+#inventoryPage #inventoryTable .inventory-waiting-heading{min-width:120px;width:130px}
+#inventoryPage #inventoryTable .v32-row-actions{text-align:center;width:62px;min-width:62px}
+#inventoryPage #inventoryTable .v32-row-actions .v3-delete{margin:0 auto}
+#inventoryPage #inventoryTable>.asset-table{min-width:1030px}
+@media(max-width:1250px){#inventoryPage #inventoryTable .apex-device-identity{min-width:185px}#inventoryPage #inventoryTable .apex-device-model b{font-size:12px}}
