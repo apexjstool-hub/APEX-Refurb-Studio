@@ -24,3 +24,5 @@
 .apex-bulk-modal .modal-actions{display:flex;justify-content:flex-end;gap:8px}
 .apex-bulk-modal #apexBulkOrderInfo{display:grid;gap:8px}
 .apex-bulk-modal #apexBulkOrderInfo[hidden]{display:none!important}
+
+#inventoryPage #selection-toolbar-inventory{grid-template-columns:auto auto auto minmax(230px,1fr) auto auto auto}
