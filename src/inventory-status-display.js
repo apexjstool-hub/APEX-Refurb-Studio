@@ -1,6 +1,14 @@
 'use strict';
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ApexInventoryStatusDisplay=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  const cosmetic=name=>/respray|re[ -]?spray|paint/i.test(String(name||''));
+ function waitingDays(summary,job,now=Date.now()){
+  if(!summary||!job||Number(summary.needsOrdering)<=0)return null;
+  const waiting=(Array.isArray(summary.parts)?summary.parts:[]).filter(p=>!cosmetic(p.name)&&Number(p.toOrder)>0);
+  if(!waiting.length)return null;
+  const stamps=waiting.map(p=>Date.parse(p.createdAt||job.createdAt)).filter(Number.isFinite);
+  if(!stamps.length)return null;
+  return Math.max(0,Math.floor((now-Math.min(...stamps))/86400000));
+ }
  function compose(summary,age){
   const s=summary||{},parts=Array.isArray(s.parts)?s.parts:[],replacement=parts.filter(p=>!cosmetic(p.name)),spray=parts.filter(p=>cosmetic(p.name));
   const badges=[];
@@ -28,5 +36,5 @@
   const waiting=badges.some(b=>b.tone==='order')&&Number.isFinite(age)&&age>=0?age+'d awaiting order':'';
   return {badges,waiting};
  }
- return {compose};
+ return {compose,waitingDays};
 });
