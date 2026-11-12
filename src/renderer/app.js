@@ -44,10 +44,11 @@ function render(){
  const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
  const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
  // Only draw the current page. Exports and scans still use the entire items array.
- const pageSize=100, pageCount=Math.max(1,Math.ceil(filtered.length/pageSize));
+ const ordered=window.ApexInventorySort?window.ApexInventorySort.sort(filtered,window.ApexWorkflowSnapshot):filtered;
+ const pageSize=100, pageCount=Math.max(1,Math.ceil(ordered.length/pageSize));
  inventoryPageIndex=Math.min(Math.max(0,inventoryPageIndex),pageCount-1);
  const first=inventoryPageIndex*pageSize;
- $('inventoryTable').innerHTML=rows(filtered.slice(first,first+pageSize),true)+
+ $('inventoryTable').innerHTML=rows(ordered.slice(first,first+pageSize),true)+
   `<div class="v395-pagebar" role="navigation" aria-label="Inventory pages"><span>${filtered.length?`${first+1}–${Math.min(filtered.length,first+pageSize)} of ${filtered.length} devices`:'0 devices'} · Page ${inventoryPageIndex+1} of ${pageCount}</span><div><button type="button" data-inventory-page="prev" ${inventoryPageIndex===0?'disabled':''} aria-label="Previous page">← Previous</button><button type="button" data-inventory-page="next" ${inventoryPageIndex>=pageCount-1?'disabled':''} aria-label="Next page">Next →</button></div></div>`;
  $('inventoryTable').querySelectorAll('[data-inventory-page]').forEach(button=>button.onclick=()=>{
    inventoryPageIndex+=button.dataset.inventoryPage==='next'?1:-1;
