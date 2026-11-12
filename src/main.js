@@ -16,7 +16,7 @@ const backupManager=require('./backup-manager');
 const {shell}=require('electron');
 const updateCentre=require('./update-centre');
 const arrivalTracker=new (require('./inventory-arrivals').InventoryArrivals)();
-let intakeNotification=null,arrivalPollBusy=false;
+let intakeNotification=null,arrivalPollBusy=false,backgroundReminders=null;
 // Use the same app identity and native Windows icon as APEX Laptop Diagnostics.
 app.setName('APEX Refurb Management Studio');
 if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory');
@@ -503,7 +503,8 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:settingsLock',()=>accountSecurity.lock());
  ipcMain.handle('inventory:settingsAccess',secured(()=>({ok:true,admin:adminOnly(),unlocked:accountSecurity.isUnlocked()})));
  ipcMain.handle('inventory:reminderSettings',secured(()=>({ok:true,settings:require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json'))})));
- ipcMain.handle('inventory:saveReminderSettings',settingsSecured(input=>({ok:true,settings:require('./reminder-settings').write(path.join(userDir(),'refurb-reminders.json'),input)})));
+ ipcMain.handle('inventory:saveReminderSettings',settingsSecured(input=>{const settings=require('./reminder-settings').write(path.join(userDir(),'refurb-reminders.json'),input);backgroundReminders?.applySettings();return {ok:true,settings};}));
+  ipcMain.handle('inventory:desktopReminderNotify',secured(input=>backgroundReminders?.notify(input)||{ok:false,error:'Reminder service unavailable'}));
  ipcMain.handle('inventory:usersList',settingsSecured(()=>hubAdmin('users-list')));
  ipcMain.handle('inventory:usersCreate',settingsSecured(input=>hubAdmin('users-create',input)));
  ipcMain.handle('inventory:usersUpdate',settingsSecured(input=>hubAdmin('users-update',input)));
@@ -670,6 +671,9 @@ app.whenReady().then(()=>{
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
  win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#0c0e17',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer','index.html'));
+  backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
+  backgroundReminders.applySettings();
+  win.on('close',event=>backgroundReminders?.interceptClose(event));
  intakeNotification=require('./desktop-intake-notification').createDesktopIntakeNotification(()=>win,ids=>{win.webContents.send('apex:inventory-arrived',{ids,open:true});});
  const arrivalTimer=setInterval(async()=>{
   if(arrivalPollBusy||!authenticated||!win||win.isDestroyed()||(authMode==='local'&&loadDB().user.mustChangePassword))return;
