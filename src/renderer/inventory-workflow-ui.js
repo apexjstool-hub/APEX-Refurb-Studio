@@ -19,13 +19,14 @@
  function decorate(){
   const picker=$('palletFilter'),previous=picker.value,names=[...new Set([...managedPallets.map(p=>p.name),...items.map(a=>a.pallet).filter(Boolean)])].sort();picker.innerHTML='<option value="">All pallets</option>'+names.map(n=>`<option value="${html(n)}">${html(n)}</option>`).join('');picker.value=names.includes(previous)?previous:'';
   const table=$('inventoryTable').querySelector('table');if(!table||table.dataset.tracker)return;table.dataset.tracker='1';current();
-  const header=table.tHead.rows[0];const pal=document.createElement('th');pal.textContent='Pallet';header.insertBefore(pal,header.cells[4]);const progress=document.createElement('th');progress.textContent='Repair progress';header.insertBefore(progress,header.lastElementChild);
+  const header=table.tHead.rows[0];const pal=document.createElement('th');pal.textContent='Pallet';header.insertBefore(pal,header.cells[4]);const progress=document.createElement('th');progress.textContent='Repair progress';header.insertBefore(progress,header.lastElementChild);const waitingHeader=document.createElement('th');waitingHeader.textContent='Time waiting';waitingHeader.className='inventory-waiting-heading';waitingHeader.title='Time outstanding replacement parts have waited for ordering';header.insertBefore(waitingHeader,header.lastElementChild);
   const assetsById=new Map(items.map(a=>[a.id,a]));
   const overdue=new Map((window.ApexRefurbReminders?.getAlerts?.()||[]).filter(r=>r.category.type==='ordering').map(r=>[r.id,r]));
   for(const row of [...table.tBodies[0].rows]){
    const id=row.querySelector('[data-asset]')?.dataset.asset;if(!id)continue;const s=info(id),asset=assetsById.get(id),pallet=document.createElement('td');pallet.textContent=asset?.pallet||'—';row.insertBefore(pallet,row.cells[4]);
    const cell=document.createElement('td');cell.className='inventory-repair-cell';const display=window.ApexInventoryStatusDisplay.compose(snapshot?s:null,overdue.get(id)?.age);
-   cell.innerHTML='<div class="apex-status-stack" aria-label="Refurbishment progress">'+display.badges.map(b=>'<span class="apex-work-chip apex-work-'+html(b.tone)+'" title="'+html(snapshot?s.next:'Workflow is loading')+'"><i aria-hidden="true"></i>'+html(snapshot?b.label:'Loading workflow…')+'</span>').join('')+(display.waiting?'<small class="apex-work-age">'+html(display.waiting)+'</small>':'')+'</div>';row.insertBefore(cell,row.lastElementChild);
+   cell.innerHTML='<div class="apex-status-stack" aria-label="Refurbishment progress">'+display.badges.map(b=>'<span class="apex-work-chip apex-work-'+html(b.tone)+'" title="'+html(snapshot?s.next:'Workflow is loading')+'"><i aria-hidden="true"></i>'+html(snapshot?b.label:'Loading workflow…')+'</span>').join('')+'</div>';row.insertBefore(cell,row.lastElementChild);
+   const waiting=document.createElement('td');waiting.className='inventory-waiting-cell';waiting.innerHTML=display.waiting?'<span class="inventory-waiting-value" title="Replacement part remains unordered">'+html(display.waiting)+'</span>':'<span class="inventory-waiting-empty" aria-label="No overdue ordering reminder">—</span>';row.insertBefore(waiting,row.lastElementChild);
   }
  }
 
