@@ -26,6 +26,31 @@
    const cell=document.createElement('td');cell.className='inventory-repair-cell';const waitingDays=window.ApexInventoryStatusDisplay.waitingDays(snapshot?s:null,snapshot?.jobs?.[id]);const display=window.ApexInventoryStatusDisplay.compose(snapshot?s:null,waitingDays);
    cell.innerHTML='<div class="apex-status-stack" aria-label="Refurbishment progress">'+display.badges.map(b=>'<span class="apex-work-chip apex-work-'+html(b.tone)+'" title="'+html(snapshot?s.next:'Workflow is loading')+'"><i aria-hidden="true"></i>'+html(snapshot?b.label:'Loading workflow…')+'</span>').join('')+'</div>';row.insertBefore(cell,row.lastElementChild);
    const waiting=document.createElement('td');waiting.className='inventory-waiting-cell';waiting.innerHTML=display.waiting?'<span class="inventory-waiting-value" title="Replacement part remains unordered">'+html(display.waiting)+'</span>':'<span class="inventory-waiting-empty" aria-label="No overdue ordering reminder">—</span>';row.insertBefore(waiting,row.lastElementChild);
+   // Inventory-only device identity grouping: retains the original clickable
+   // asset button, serial information and attached event handlers.
+   const idCell=row.cells[0],nameCell=row.cells[1];
+   if(idCell&&nameCell){
+    const assetButton=idCell.querySelector('[data-asset]');
+    const model=nameCell.querySelector('b');
+    const secondary=nameCell.querySelector('.section-note');
+    if(assetButton&&model){
+     const identity=document.createElement('div');identity.className='apex-device-identity';
+     const nameLine=document.createElement('div');nameLine.className='apex-device-model';
+     nameLine.appendChild(model);
+     const details=document.createElement('div');details.className='apex-device-meta';
+     const identifier=document.createElement('span');identifier.className='apex-device-number';
+     identifier.appendChild(assetButton);
+     details.appendChild(identifier);
+     if(secondary){secondary.classList.add('apex-device-serial');details.appendChild(secondary);}
+     identity.appendChild(nameLine);identity.appendChild(details);
+     idCell.replaceChildren(identity);nameCell.remove();
+    }
+   }
+  }
+  // Column merge occurs after all existing inserts, so the bin stays last.
+  if(header.cells[1]&&header.cells[1].textContent.trim()==='Full device name'){
+   header.cells[0].textContent='Device / asset';
+   header.cells[1].remove();
   }
  }
 
