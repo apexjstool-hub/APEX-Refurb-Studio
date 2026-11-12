@@ -1,0 +1,29 @@
+/* APEX Inventory v4.0.93 — status column polish only. No table layout or workflow changes. */
+#inventoryPage #inventoryTable .inventory-repair-cell{vertical-align:middle;min-width:205px;width:215px;padding-top:7px;padding-bottom:7px}
+#inventoryPage #inventoryTable .apex-status-stack{display:flex;align-items:flex-start;flex-direction:column;gap:4px;width:max-content;max-width:100%;min-width:0}
+#inventoryPage #inventoryTable .apex-work-chip{--chip-bg:#f3f5f8;--chip-fg:#48576b;--chip-border:#d9e0e9;display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:5px 9px;border-radius:7px;border:1px solid var(--chip-border);background:var(--chip-bg);color:var(--chip-fg);font-size:11.5px;font-weight:760;letter-spacing:0;line-height:1.2;white-space:nowrap;box-shadow:none}
+#inventoryPage #inventoryTable .apex-work-chip i{display:block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:currentColor;opacity:.9}
+#inventoryPage #inventoryTable .apex-work-order{--chip-bg:#fff1ed;--chip-fg:#a53a27;--chip-border:#f6d4ca}
+#inventoryPage #inventoryTable .apex-work-delivery{--chip-bg:#eaf3ff;--chip-fg:#1c5ca7;--chip-border:#c9dff9}
+#inventoryPage #inventoryTable .apex-work-respray{--chip-bg:#f2eaff;--chip-fg:#7141ad;--chip-border:#decbf9}
+#inventoryPage #inventoryTable .apex-work-respray-sent{--chip-bg:#eee9ff;--chip-fg:#6447a6;--chip-border:#d6cbf4}
+#inventoryPage #inventoryTable .apex-work-respray-returned{--chip-bg:#fff2df;--chip-fg:#885914;--chip-border:#f1dbb4}
+#inventoryPage #inventoryTable .apex-work-respray-complete{--chip-bg:#e5f7ed;--chip-fg:#187446;--chip-border:#c6e9d3}
+#inventoryPage #inventoryTable .apex-work-fit{--chip-bg:#e5f8f5;--chip-fg:#147b73;--chip-border:#c7eae4}
+#inventoryPage #inventoryTable .apex-work-fitted,#inventoryPage #inventoryTable .apex-work-completed{--chip-bg:#e5f7ed;--chip-fg:#187446;--chip-border:#c6e9d3}
+#inventoryPage #inventoryTable .apex-work-qc{--chip-bg:#fff5e0;--chip-fg:#8d6517;--chip-border:#efdcae}
+#inventoryPage #inventoryTable .apex-work-hold,#inventoryPage #inventoryTable .apex-work-none{--chip-bg:#f1f3f6;--chip-fg:#596579;--chip-border:#dfe3eb}
+#inventoryPage #inventoryTable .apex-work-age{margin:0 0 0 3px;font-size:10.5px;font-weight:650;color:#a04433;line-height:1.2;white-space:nowrap}
+#inventoryPage #inventoryTable .asset-table tbody tr:not(.inventory-repair-row) td{vertical-align:middle}
+#inventoryPage #inventoryTable .asset-table tbody tr:hover{background:rgba(42,107,206,.045)}
+#inventoryPage #inventoryTable .asset-table tbody tr.inventory-row-selected{background:rgba(50,126,217,.09)}
+#inventoryPage #inventoryTable .asset-table td:last-child button{box-shadow:none}
+@media(prefers-color-scheme:dark){
+ #inventoryPage #inventoryTable .apex-work-order{--chip-bg:#422a2a;--chip-fg:#ffc1b4;--chip-border:#754742}
+ #inventoryPage #inventoryTable .apex-work-delivery{--chip-bg:#203954;--chip-fg:#bedbff;--chip-border:#345779}
+ #inventoryPage #inventoryTable .apex-work-respray,#inventoryPage #inventoryTable .apex-work-respray-sent{--chip-bg:#382b53;--chip-fg:#e0ccff;--chip-border:#61487e}
+ #inventoryPage #inventoryTable .apex-work-respray-returned,#inventoryPage #inventoryTable .apex-work-qc{--chip-bg:#473820;--chip-fg:#f3dca0;--chip-border:#73603c}
+ #inventoryPage #inventoryTable .apex-work-fit{--chip-bg:#1d4140;--chip-fg:#a6e7df;--chip-border:#366865}
+ #inventoryPage #inventoryTable .apex-work-completed,#inventoryPage #inventoryTable .apex-work-fitted,#inventoryPage #inventoryTable .apex-work-respray-complete{--chip-bg:#224536;--chip-fg:#b6e9ca;--chip-border:#39765b}
+ #inventoryPage #inventoryTable .apex-work-age{color:#ffbbad}
+}
