@@ -28,7 +28,7 @@
    const waiting=document.createElement('td');waiting.className='inventory-waiting-cell';waiting.innerHTML=display.waiting?'<span class="inventory-waiting-value" title="Replacement part remains unordered">'+html(display.waiting)+'</span>':'<span class="inventory-waiting-empty" aria-label="No overdue ordering reminder">—</span>';row.insertBefore(waiting,row.lastElementChild);
    // Inventory-only device identity grouping: retains the original clickable
    // asset button, serial information and attached event handlers.
-   const idCell=row.cells[0],nameCell=row.cells[1];
+   const idCell=row.querySelector('[data-asset]')?.closest('td'),nameCell=idCell?.nextElementSibling;
    if(idCell&&nameCell){
     const assetButton=idCell.querySelector('[data-asset]');
     const model=nameCell.querySelector('b');
@@ -48,10 +48,9 @@
    }
   }
   // Column merge occurs after all existing inserts, so the bin stays last.
-  if(header.cells[1]&&header.cells[1].textContent.trim()==='Full device name'){
-   header.cells[0].textContent='Device / asset';
-   header.cells[1].remove();
-  }
+  const deviceHeading=[...header.cells].find(th=>th.textContent.trim()==='Asset ID');
+  const nameHeading=[...header.cells].find(th=>th.textContent.trim()==='Full device name');
+  if(deviceHeading&&nameHeading){deviceHeading.textContent='Device / asset';nameHeading.remove();}
  }
 
  window.ApexInventoryTracker={decorate,matches:a=>{if($('palletFilter').value&&String(a.pallet||'').trim().toUpperCase()!==$('palletFilter').value.trim().toUpperCase())return false;const filter=$('repairFilter').value;if(!filter)return true;const s=info(a.id);if(['order','delivery','fit','respray'].includes(filter)){if(['completed','hold'].includes(s.key))return false;return (filter==='order'?s.needsOrdering:filter==='delivery'?s.awaitingDelivery:filter==='respray'?Number(s.sprayOutstanding):s.toFit)>0;}return s.key===filter;}};
