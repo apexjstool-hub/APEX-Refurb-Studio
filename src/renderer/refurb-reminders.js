@@ -41,11 +41,19 @@
  function dismiss(id,days){
   snoozed.set(id,Date.now()+days*86400000);draw(); // This snooze is per-session; it never changes asset history or age.
  }
+ function showStartupSummary(rows){
+  if(!loaded||!settings.enabled||!settings.popup||!rows.length||lastPopupKey)return;
+  lastPopupKey='shown';
+  const toast=document.createElement('div');toast.className='apex-reminder-popup';toast.setAttribute('role','status');
+  toast.innerHTML='<div><strong>Outstanding refurbishment reminders</strong><p>'+rows.length+' jobs need attention. Open the refurbishment queue to review them.</p></div><button type="button" class="secondary">Dismiss</button>';
+  document.body.appendChild(toast);
+  toast.querySelector('button').onclick=()=>toast.remove();
+ }
  function draw(){
   const root=$('refurbWorkspacePage');if(!root||!settings.enabled)return;
   let panel=$('apexAgeingAlerts');if(!panel){panel=document.createElement('section');panel.id='apexAgeingAlerts';panel.className='apex-ageing-alerts';panel.setAttribute('aria-label','Outstanding refurbishment reminders');const anchor=$('rwQueueSummary');if(anchor)anchor.before(panel);}
   if(!panel)return;
-  const rows=alerts();panel.hidden=!rows.length;
+  const rows=alerts();panel.hidden=!rows.length;showStartupSummary(rows);
   if(!rows.length)return;
   const n=rows.filter(r=>r.level==='critical').length;
   panel.innerHTML='<div class="apex-ageing-head"><div><strong>⏰ Smart refurbishment reminders</strong><p>'+rows.length+' outstanding jobs require attention'+(n?' · '+n+' critical':'')+'. Age is counted from the last recorded job update.</p></div><button class="secondary" type="button" data-apex-toggle>Show '+Math.min(rows.length,10)+' alerts</button></div><div class="apex-ageing-list" hidden>'+rows.slice(0,10).map(r=>'<div class="apex-ageing-item"><div><b>'+escape(r.id)+'</b> <span class="apex-age-pill '+escape(r.level)+'">'+escape(r.age)+' days · '+escape(r.category.title)+'</span><small>'+escape([r.asset.manufacturer,r.asset.model,r.asset.pallet||r.asset.location].filter(Boolean).join(' · '))+'</small></div><div class="apex-age-actions"><button type="button" class="secondary" data-apex-open="'+escape(r.id)+'">View asset</button><button type="button" class="secondary" data-apex-snooze="'+escape(r.id)+'">Snooze 3 days</button></div></div>').join('')+'</div>';
@@ -62,7 +70,7 @@
  }
  async function save(){
   const next={enabled:$('apexReminderEnabled').checked,popup:$('apexReminderPopup').checked};
-  for(const key of Object.keys(labels)){const value=$('apexReminderSettings').querySelector('[data-apex-days="'+key+'"]').value;next[key]=Number(value);if(!/^\\d+$/.test(value)||next[key]<1||next[key]>365){$('apexReminderResult').textContent='Enter whole numbers between 1 and 365.';return;}}
+  for(const key of Object.keys(labels)){const value=$('apexReminderSettings').querySelector('[data-apex-days="'+key+'"]').value;next[key]=Number(value);if(!/^[0-9]+$/.test(value)||next[key]<1||next[key]>365){$('apexReminderResult').textContent='Enter whole numbers between 1 and 365.';return;}}
   if(!(next.attention<next.overdue&&next.overdue<next.critical)){$('apexReminderResult').textContent='Reminder levels must increase from Attention to Overdue to Critical.';return;}
   try{const result=await window.apexInventory.saveReminderSettings(next);if(!result?.ok)throw Error(result?.error||'Unable to save. Unlock Admin Centre first.');settings=result.settings;loaded=true;$('apexReminderResult').textContent='Saved successfully';draw();window.ApexRefurbWorkspace?.draw();}
   catch(e){$('apexReminderResult').textContent=e.message||'Unable to save reminder settings.';}
