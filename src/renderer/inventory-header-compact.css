@@ -1,0 +1,36 @@
+/* APEX Inventory control bar v4.0.96 - presentation-only, existing filters retained */
+#inventoryPage .page-intro{margin-bottom:10px;align-items:center}
+#inventoryPage .page-intro h1{font-size:clamp(24px,2.4vw,31px);line-height:1.13;margin:4px 0}
+#inventoryPage .page-intro p{font-size:12px;line-height:1.35;margin:2px 0 0}
+#inventoryPage .inventory-overview{padding:10px 16px;min-height:0;margin-bottom:10px;align-items:center}
+#inventoryPage .inventory-overview .overview-number{font-size:24px;line-height:1.1}
+#inventoryPage .inventory-overview .overview-icon{font-size:22px;opacity:.5}
+#inventoryPage #selection-toolbar-inventory{display:grid;grid-template-columns:auto auto minmax(230px,1fr) auto auto auto;gap:9px;padding:10px 13px;align-items:center;justify-content:initial}
+#inventoryPage #selection-toolbar-inventory>.inventory-inline-search{min-width:0;max-width:none}
+#inventoryPage #selection-toolbar-inventory>.inventory-inline-search input{width:100%;min-width:0;max-width:none;border-radius:8px;min-height:36px}
+#inventoryPage #selection-toolbar-inventory>.inventory-inline-results{font-size:11px;white-space:nowrap;color:var(--muted)}
+#inventoryPage #selection-toolbar-inventory .inventory-selection-count{font-size:11px;white-space:nowrap}
+#inventoryPage #inventoryFiltersButton{border-radius:8px;padding:8px 11px;white-space:nowrap}
+#inventoryPage .inventory-quick-filters{display:flex;align-items:center;gap:6px;padding:9px 13px;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid var(--line);background:var(--panel)}
+#inventoryPage .inventory-quick-chip{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;padding:6px 10px;min-height:31px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:11px;font-weight:680;white-space:nowrap;cursor:pointer}
+#inventoryPage .inventory-quick-chip b{font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px;background:color-mix(in srgb,var(--text) 8%,transparent);font-variant-numeric:tabular-nums}
+#inventoryPage .inventory-quick-chip.is-active{background:color-mix(in srgb,#2972d0 13%,var(--panel));border-color:#4a8cdd;color:var(--text)}
+#inventoryPage .inventory-quick-chip:hover{border-color:#6a9bd4}
+#inventoryPage .inventory-active-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 13px;border-bottom:1px solid var(--line);background:var(--panel)}
+#inventoryPage .inventory-active-filters[hidden]{display:none!important}
+#inventoryPage .inventory-active-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;min-height:26px;max-width:240px;border:1px solid var(--line);border-radius:6px;color:var(--text);background:var(--panel2);font-size:11px;cursor:pointer}
+#inventoryPage .inventory-active-chip span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#inventoryPage .inventory-active-chip:hover{border-color:#b64e52}
+#inventoryPage .inventory-active-chip span:last-child{font-weight:800;font-size:14px}
+#inventoryPage .inventory-filter-menu{z-index:250}
+#inventoryPage .inventory-quick-chip:focus-visible,#inventoryPage .inventory-active-chip:focus-visible{outline:2px solid #4b8bdb;outline-offset:2px}
+@media(max-width:1200px){
+ #inventoryPage #selection-toolbar-inventory{display:flex;flex-wrap:wrap;justify-content:flex-start}
+ #inventoryPage #selection-toolbar-inventory>.inventory-inline-search{flex:1 1 310px}
+ #inventoryPage #selection-toolbar-inventory>.inventory-inline-results{margin-left:auto}
+}
+@media(max-width:650px){
+ #inventoryPage .page-intro{flex-wrap:wrap}
+ #inventoryPage #selection-toolbar-inventory>.inventory-inline-search{order:-1;flex-basis:100%}
+ #inventoryPage .inventory-quick-filters{padding:8px}
+}
