@@ -69,14 +69,15 @@
   toast.className='apex-reminder-popup apex-reminder-toast';
   toast.dataset.level=urgent?'critical':lead.level;
   toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
-  toast.innerHTML='<div class="apex-reminder-toast-icon" aria-hidden="true">!</div><div class="apex-reminder-toast-copy"><strong>'+escape(count===1?lead.category.title:count+' refurbishment reminders')+'</strong><p>'+escape(count===1?lead.id+' · '+lead.age+' days waiting':lead.id+' · '+lead.category.title+' ('+lead.age+' days)'+(count>1?' · plus '+(count-1)+' other asset'+(count===2?'':'s'):''))+'</p></div><div class="apex-reminder-toast-buttons"><button type="button" class="secondary" data-reminder-open>View</button><button type="button" class="apex-reminder-toast-dismiss" data-reminder-close aria-label="Dismiss refurbishment notification">×</button></div>';
+  toast.innerHTML='<div class="apex-reminder-toast-icon" aria-hidden="true">!</div><div class="apex-reminder-toast-copy"><strong>'+escape(count===1?lead.category.title:count+' refurbishment reminders')+'</strong><p>'+escape(count===1?lead.id+' · '+lead.age+' days waiting':lead.id+' · '+lead.category.title+' ('+lead.age+' days)'+(count>1?' · plus '+(count-1)+' other asset'+(count===2?'':'s'):''))+'</p></div><div class="apex-reminder-toast-buttons"><button type="button" class="secondary" data-reminder-open>View</button><button type="button" class="secondary" data-reminder-snooze>Snooze</button><button type="button" class="apex-reminder-toast-dismiss" data-reminder-close aria-label="Dismiss refurbishment notification">×</button></div>';
   document.body.appendChild(toast);
   const close=()=>{if(toastTimer){clearTimeout(toastTimer);toastTimer=null;}toast.remove();};
   toast.querySelector('[data-reminder-close]').onclick=close;
+  toast.querySelector('[data-reminder-snooze]').onclick=()=>{for(const row of pending)snoozed.set(row.id,Date.now()+3*86400000);close();};
   toast.querySelector('[data-reminder-open]').onclick=()=>{
    close();
    if(count===1)openAssetSafely(lead.id);
-   else if(typeof setPage==='function')setPage('refurbJobs',true);
+   else if(typeof setPage==='function')setPage('refurbWorkspace',true);
   };
   toastTimer=setTimeout(()=>{toast.remove();toastTimer=null;},12000);
  }
