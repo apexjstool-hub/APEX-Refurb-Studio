@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  settingsLock:()=>ipcRenderer.invoke('inventory:settingsLock'),
  settingsAccess:()=>ipcRenderer.invoke('inventory:settingsAccess'),
  reminderSettings:()=>ipcRenderer.invoke('inventory:reminderSettings'),
+ desktopReminderNotify:items=>ipcRenderer.invoke('inventory:desktopReminderNotify',items),
  saveReminderSettings:input=>ipcRenderer.invoke('inventory:saveReminderSettings',input),
  usersList:()=>ipcRenderer.invoke('inventory:usersList'),
  usersCreate:input=>ipcRenderer.invoke('inventory:usersCreate',input),
