@@ -4,7 +4,7 @@
  const $=id=>document.getElementById(id);
  const key='apex.parts-order-notification.frequency.v1';
  const frequencies=[['session','Once each session'],['30m','Every 30 minutes'],['1h','Every hour'],['4h','Every 4 hours'],['24h','Once a day'],['off','Off']];
- let frequency='session',lastShown=0,lastCount=0,closeTimer=null;
+ let frequency='session',lastShown=0,lastCount=0,closeTimer=null,wasLoggedOut=true;
  const read=()=>{try{return localStorage.getItem(key)||'session';}catch{return 'session';}};
  const save=value=>{try{localStorage.setItem(key,value);return true;}catch{return false;}};
  const safe=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -31,7 +31,9 @@
  function check(){
   if(frequency==='off'){hide();return;}
   // Wait until both the signed-in workspace and refurbishment data are ready.
-  if(!$('loginPage')?.classList.contains('hidden')||!window.ApexWorkflowSnapshot)return;
+  if(!$('loginPage')?.classList.contains('hidden')){wasLoggedOut=true;hide();return;}
+  if(wasLoggedOut){lastShown=0;lastCount=0;wasLoggedOut=false;}
+  if(!window.ApexWorkflowSnapshot)return;
   const data=getSummary();
   if(!data.count){hide();return;}
   if(!window.ApexPartsOrderNotice.shouldShow({frequency,lastShown,lastCount,count:data.count}))return;
@@ -46,6 +48,7 @@
    const choice=$('apexPartsNoticeFrequency').value;
    if(!Object.prototype.hasOwnProperty.call(window.ApexPartsOrderNotice.INTERVALS,choice))return;
    if(!save(choice)){$('apexPartsNoticeSaved').textContent='Unable to save settings on this PC.';return;}
+   if(frequency!==choice){lastShown=0;lastCount=0;}
    frequency=choice;
    $('apexPartsNoticeSaved').textContent='Saved on this PC.';
    if(frequency==='off')hide();else check();
