@@ -12,9 +12,10 @@
   const table=$('inventoryTable').querySelector('table');if(!table||table.dataset.tracker)return;table.dataset.tracker='1';current();
   const header=table.tHead.rows[0];const pal=document.createElement('th');pal.textContent='Pallet';header.insertBefore(pal,header.cells[4]);const progress=document.createElement('th');progress.textContent='Repair progress';header.insertBefore(progress,header.lastElementChild);
   const assetsById=new Map(items.map(a=>[a.id,a]));
+  const overdue=new Map((window.ApexRefurbReminders?.getAlerts?.()||[]).filter(r=>r.category.type==='ordering').map(r=>[r.id,r]));
   for(const row of [...table.tBodies[0].rows]){
    const id=row.querySelector('[data-asset]')?.dataset.asset;if(!id)continue;const s=info(id),asset=assetsById.get(id),pallet=document.createElement('td');pallet.textContent=asset?.pallet||'—';row.insertBefore(pallet,row.cells[4]);
-   const cell=document.createElement('td');cell.className='inventory-repair-cell';cell.innerHTML=`<span class="inventory-stage inventory-stage-${s.key}" title="${html(snapshot?s.next:'Workflow is loading')}">${html(snapshot?s.stage:'Loading workflow…')}</span>`;row.insertBefore(cell,row.lastElementChild);
+   const cell=document.createElement('td');cell.className='inventory-repair-cell';cell.innerHTML=`<span class="inventory-stage inventory-stage-${s.key}" title="${html(snapshot?s.next:'Workflow is loading')}">${html(snapshot?(s.key==='respray'?'Needs Respray':s.key==='order'?'Needs Ordering':s.stage):'Loading workflow…')}</span>${overdue.has(id)?`<small class="inventory-inactive-hint" title="Replacement part requirement remains un-ordered">${overdue.get(id).age} days waiting to order</small>`:''}`;row.insertBefore(cell,row.lastElementChild);
   }
  }
 
