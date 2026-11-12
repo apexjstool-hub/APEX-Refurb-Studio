@@ -1,9 +1,9 @@
 'use strict';
 /* APEX Smart Reminders: non-destructive, read-only ageing checks and editable local thresholds. */
 (function(){
- const defaults={enabled:true,popup:true,attention:7,overdue:14,critical:30,respray:7,repair:7,ordering:3,delivery:10,pallet:14};
+ const defaults={enabled:true,popup:true,attention:7,overdue:14,critical:30,respray:7,repair:7,ordering:3,delivery:10,pallet:14,desktopNotifications:false,keepInTray:false,startWithWindows:false,checkMinutes:15,repeatHours:24};
  const labels={attention:'Attention',overdue:'Overdue',critical:'Critical',respray:'Awaiting respray',repair:'Awaiting repair',ordering:'Parts not ordered',delivery:'Awaiting delivery',pallet:'Pallet inactivity'};
- let settings={...defaults},loaded=false,lastPopupKey='',snoozed=new Map();
+ let settings={...defaults},loaded=false,lastPopupKey='',snoozed=new Map(),lastBackgroundCheck=0,backgroundBusy=false;
  const $=id=>document.getElementById(id);
  const escape=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  function alerts(){
@@ -27,6 +27,18 @@
    if(!category||days===null||days<(settings[category.type]||7))return [];
    return [{id:job.assetId,asset,job,age:days,category,level:days>=settings.critical?'critical':days>=settings.overdue?'overdue':'attention'}];
   }).sort((a,b)=>a.category.priority-b.category.priority||b.age-a.age);
+ }
+ async function backgroundCheck(force=false){
+  if(!loaded||!settings.enabled||!settings.desktopNotifications||!settings.keepInTray||backgroundBusy)return;
+  if(!force&&Date.now()-lastBackgroundCheck<settings.checkMinutes*60000)return;
+  backgroundBusy=true;lastBackgroundCheck=Date.now();
+  try{
+   if(typeof refresh==='function')await refresh(true); // existing authenticated inventory read
+   await window.ApexOps?.load(true); // existing authenticated workflow read
+   const pending=alerts().filter(row=>row.category.type==='ordering').map(row=>({id:row.id,days:row.age}));
+   await window.apexInventory?.desktopReminderNotify(pending);
+  }catch(err){console.warn('Desktop reminders refresh skipped:',err.message);}
+  finally{backgroundBusy=false;}
  }
  function openAssetSafely(id){
   if(window.ApexRefurbWorkspace?.openAsset)window.ApexRefurbWorkspace.openAsset(id);
@@ -57,26 +69,34 @@
  }
  function fields(){
   const root=$('apexReminderSettings');if(!root)return;
-  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unordered part requirements count from the date they were first recorded. Editing notes will not reset this timer. Startup popups focus on un-ordered parts; other active jobs appear in the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show a reminder summary when APEX opens</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
+  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unordered part requirements count from the date they were first recorded. Editing notes will not reset this timer. Startup popups focus on un-ordered parts; other active jobs appear in the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show a reminder summary when APEX opens</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><div class="apex-background-settings"><strong>Windows desktop notifications</strong><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderTray"> Keep APEX running in the system tray when the window is closed</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderDesktop"> Show Windows desktop reminders for unordered parts</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderStartup"> Start APEX with Windows (sign-in may still be required)</label><div class="apex-reminder-grid"><label>Check every <span><input type="number" min="1" max="120" id="apexReminderCheckMinutes"> minutes</span></label><label>Repeat reminder after <span><input type="number" min="1" max="168" id="apexReminderRepeatHours"> hours</span></label></div><p class="apex-reminder-hint">Desktop reminders work while APEX is running and you are signed in. Closing the window keeps it in the tray when enabled; Exit APEX completely in the tray menu stops notifications. Windows sign-in may require you to open APEX and log in.</p></div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
   $('apexReminderEnabled').checked=settings.enabled;$('apexReminderPopup').checked=settings.popup;
+  $('apexReminderTray').checked=settings.keepInTray;$('apexReminderDesktop').checked=settings.desktopNotifications;$('apexReminderStartup').checked=settings.startWithWindows;
+  $('apexReminderCheckMinutes').value=settings.checkMinutes;$('apexReminderRepeatHours').value=settings.repeatHours;
+  $('apexReminderDesktop').onchange=()=>{if($('apexReminderDesktop').checked)$('apexReminderTray').checked=true;};
+  $('apexReminderStartup').onchange=()=>{if($('apexReminderStartup').checked)$('apexReminderTray').checked=true;};
   for(const [key,val] of Object.entries(settings))if(typeof val==='number'){const el=root.querySelector('[data-apex-days="'+key+'"]');if(el)el.value=val;}
   $('apexReminderSave').onclick=save;
  }
  async function save(){
-  const next={enabled:$('apexReminderEnabled').checked,popup:$('apexReminderPopup').checked};
+  const next={enabled:$('apexReminderEnabled').checked,popup:$('apexReminderPopup').checked,keepInTray:$('apexReminderTray').checked,desktopNotifications:$('apexReminderDesktop').checked,startWithWindows:$('apexReminderStartup').checked,checkMinutes:Number($('apexReminderCheckMinutes').value),repeatHours:Number($('apexReminderRepeatHours').value)};
+  if((next.desktopNotifications||next.startWithWindows)&&!next.keepInTray){$('apexReminderResult').textContent='Enable tray mode to use desktop reminders or Windows startup.';return;}
+  if(!Number.isInteger(next.checkMinutes)||next.checkMinutes<1||next.checkMinutes>120||!Number.isInteger(next.repeatHours)||next.repeatHours<1||next.repeatHours>168){$('apexReminderResult').textContent='Check interval must be 1–120 minutes; repeat interval 1–168 hours.';return;}
   for(const key of Object.keys(labels)){const value=$('apexReminderSettings').querySelector('[data-apex-days="'+key+'"]').value;next[key]=Number(value);if(!/^[0-9]+$/.test(value)||next[key]<1||next[key]>365){$('apexReminderResult').textContent='Enter whole numbers between 1 and 365.';return;}}
   if(!(next.attention<next.overdue&&next.overdue<next.critical)){$('apexReminderResult').textContent='Reminder levels must increase from Attention to Overdue to Critical.';return;}
-  try{const result=await window.apexInventory.saveReminderSettings(next);if(!result?.ok)throw Error(result?.error||'Unable to save. Unlock Admin Centre first.');settings=result.settings;loaded=true;$('apexReminderResult').textContent='Saved successfully';draw();window.ApexRefurbWorkspace?.draw();}
+  try{const result=await window.apexInventory.saveReminderSettings(next);if(!result?.ok)throw Error(result?.error||'Unable to save. Unlock Admin Centre first.');settings={...defaults,...result.settings};loaded=true;lastBackgroundCheck=0;$('apexReminderResult').textContent='Saved successfully';draw();window.ApexRefurbWorkspace?.draw();backgroundCheck(true);}
   catch(e){$('apexReminderResult').textContent=e.message||'Unable to save reminder settings.';}
  }
  async function init(){
   if(!window.apexInventory?.reminderSettings)return;
   try{const result=await window.apexInventory.reminderSettings();if(result?.ok){settings={...defaults,...result.settings};loaded=true;}}
   catch(e){console.warn('Reminder settings unavailable',e);}
-  fields();draw();
+  fields();draw();backgroundCheck(true);
  }
  document.addEventListener('DOMContentLoaded',init);
  window.addEventListener('apex:workflow-updated',draw);
  window.addEventListener('apex:reminders-refresh',draw);
+ const heartbeat=setInterval(()=>backgroundCheck(),60000);
+ window.addEventListener('apex:workflow-updated',()=>{if(loaded&&settings.desktopNotifications&&Date.now()-lastBackgroundCheck>=settings.checkMinutes*60000)backgroundCheck();});
  window.ApexRefurbReminders=Object.freeze({refresh:draw,getAlerts:alerts,getSettings:()=>({...settings})});
 })();
