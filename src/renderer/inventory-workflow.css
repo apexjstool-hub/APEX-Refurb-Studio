@@ -130,3 +130,12 @@
 }
 
 #inventoryPage .inventory-inactive-hint{display:block;margin-top:5px;color:#a63b2b;font-weight:700;font-size:11px;line-height:1.35}
+
+
+/* Reuse the existing Asset register subtitle for an ultra-compact status key. */
+#inventoryPage .apex-inventory-legend{display:flex;align-items:center;flex-wrap:wrap;gap:4px 9px;margin:4px 0 0;line-height:1.2;min-height:18px;}
+#inventoryPage .apex-legend-label{font-size:10px;letter-spacing:.08em;font-weight:800;color:var(--muted);}
+#inventoryPage .apex-legend-item{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:11px;color:var(--text);white-space:nowrap;}
+#inventoryPage .apex-legend-item i{height:7px;width:7px;display:inline-block;border-radius:50%;background:currentColor;}
+#inventoryPage .apex-legend-order{color:#d95c53}#inventoryPage .apex-legend-respray{color:#9e70dd}#inventoryPage .apex-legend-delivery{color:#5f9fee}#inventoryPage .apex-legend-fit{color:#30b8aa}#inventoryPage .apex-legend-qc{color:#daa43d}#inventoryPage .apex-legend-completed{color:#37a96d}
+@media(max-width:1150px){#inventoryPage .apex-inventory-legend{gap:5px 7px}#inventoryPage .apex-legend-item{font-size:10px}}
