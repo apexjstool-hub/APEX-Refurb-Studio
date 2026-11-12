@@ -27,3 +27,13 @@
  #inventoryPage #inventoryTable .apex-work-completed,#inventoryPage #inventoryTable .apex-work-fitted,#inventoryPage #inventoryTable .apex-work-respray-complete{--chip-bg:#224536;--chip-fg:#b6e9ca;--chip-border:#39765b}
  #inventoryPage #inventoryTable .apex-work-age{color:#ffbbad}
 }
+
+
+/* Dedicated, restrained time-waiting column immediately before row actions. */
+#inventoryPage #inventoryTable .inventory-waiting-heading{width:142px;min-width:135px;white-space:nowrap;text-align:left}
+#inventoryPage #inventoryTable .inventory-waiting-cell{min-width:135px;width:142px;vertical-align:middle;white-space:nowrap}
+#inventoryPage #inventoryTable .inventory-waiting-value{display:inline-flex;align-items:center;min-height:24px;font-size:11px;font-weight:750;letter-spacing:0;color:#a34432}
+#inventoryPage #inventoryTable .inventory-waiting-empty{font-size:12px;font-weight:500;color:var(--muted);opacity:.65}
+#inventoryPage #inventoryTable .inventory-repair-cell{width:205px;min-width:195px}
+#inventoryPage #inventoryTable>.asset-table{min-width:1190px}
+@media(prefers-color-scheme:dark){#inventoryPage #inventoryTable .inventory-waiting-value{color:#ffbcae}}
