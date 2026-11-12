@@ -162,6 +162,42 @@ function apply(state,assets,cmd,by='Administrator'){
   if(o.status!=='Draft')throw Error('Only unapproved drafts can be removed. Approved orders form part of your purchasing history.');
   s.orders=s.orders.filter(x=>x!==o);for(const assetId of new Set(o.lines.map(l=>l.assetId)))history(s,'Draft removed',o.id,assetId,by);return {ok:true,workflow:s};
  }
+ if(type==='bulkPartsStage'){
+  const plan=require('./bulk-refurb-plan').prepare(s,assets,cmd.assetIds,cmd.stage);
+  if(plan.invalid.length)throw Error('Some selected laptops cannot be updated: '+plan.invalid[0].assetId+' — '+plan.invalid[0].reason);
+  if(cmd.expectedSignature!==plan.signature)throw Error('Parts or purchase records have changed. Refresh the selection before saving.');
+  if(!plan.lines.length)throw Error('No replacement parts need updating.');
+  const supplier=clip(cmd.supplier,120);
+  if(cmd.stage==='ordered'&&!supplier)throw Error('Enter the supplier or purchase reference before recording parts as ordered.');
+  // All checks happen before any mutation. The caller commits this document in
+  // one optimistic-concurrency transaction, not one write per asset.
+  if(cmd.stage==='ordered'){
+   const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,reference:clip(cmd.reference,90),notes:'Bulk purchase/order record confirmed by an operator. No order was transmitted automatically.',status:'Ordered',expectedAt:'',cost:0,currency:'GBP',tracking:'',createdAt:stamp(),updatedAt:stamp(),lines:plan.lines.map(l=>({...l,received:0}))};
+   s.orders.unshift(order);
+   for(const line of plan.lines){const j=s.jobs[line.assetId];if(['Received','Inspected','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,'Part ordered',line.name+' × '+line.qty+' · '+order.id,line.assetId,by);}
+  }else{
+   for(const line of plan.lines){
+    const j=s.jobs[line.assetId],p=j.parts.find(x=>x.id===line.partId);
+    if(cmd.stage==='received'){
+     let remaining=line.qty;
+     for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const orderLine of order.lines||[]){
+      if(orderLine.assetId!==line.assetId||orderLine.partId!==line.partId||remaining<=0)continue;
+      const received=Math.min(remaining,Math.max(0,orderLine.qty-orderLine.received));
+      orderLine.received+=received;remaining-=received;if(received)order.updatedAt=stamp();
+     }
+     if(remaining)throw Error('Order quantity changed for '+line.assetId);
+     p.received+=line.qty;p.lastReceivedAt=stamp();p.lastReceivedBy=by;
+     if(j.parts.every(x=>x.received>=x.qty)&&j.status==='Awaiting Parts')j.status='Ready for Repair';
+     history(s,'Parts received',line.name+' × '+line.qty,line.assetId,by);
+    }else{
+     p.fitted+=line.qty;p.lastProgressAt=stamp();p.lastProgressBy=by;
+     history(s,'Part fitted',line.name+' × '+line.qty,line.assetId,by);
+    }
+    j.updatedAt=stamp();
+   }
+  }
+  return {ok:true,workflow:s,affected:plan.eligible.length,partLines:plan.lines.length};
+ }
  if(type==='bulkSetPartsBoard'){
   s.jobs={...s.jobs};s.audit=[...s.audit];
   if(!['needed','ordered'].includes(cmd.board))throw Error('Choose Parts Needed or Parts Ordered.');
