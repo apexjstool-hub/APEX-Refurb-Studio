@@ -25,12 +25,19 @@ function orderedBoard(assetId, list){
  return ops.orders.some(o=>o.status!=='Draft'&&(o.lines||[]).some(l=>l.assetId===assetId&&activeIds.has(l.partId)));
 }
 function partProgress(p){
- const text=p.fitted>=p.qty?'Fitted':p.received>=p.qty?'Received':p.toOrder===0&&p.onOrder>0?'Ordered':p.onOrder>0?'Partially ordered':p.received>0?'Partially received':'Needs ordering';
+ const cosmetic=window.ApexRepairWork?.isCosmetic(p.name)||/respray|re[ -]?spray|repaint|paint/i.test(String(p.name||''));
+ const text=cosmetic?(p.fitted>=p.qty?'Respray checked':p.received>=p.qty?'Respray returned':p.received>0?'Partially returned':p.onOrder>0?'Sent for respray':'Awaiting respray')
+  :(p.fitted>=p.qty?'Fitted':p.received>=p.qty?'Received':p.toOrder===0&&p.onOrder>0?'Ordered':p.onOrder>0?'Partially ordered':p.received>0?'Partially received':'Needs ordering');
  return '<span class="ops-part-progress-badge '+(p.onOrder>0?'is-ordered':'')+'">'+text+'</span>';
 }
 function partOrderControl(assetId,part){
  const p=partList().find(x=>x.assetId===assetId&&x.id===part.id);
  if(!p)return '';
+ const cosmetic=window.ApexRepairWork?.isCosmetic(p.name)||/respray|re[ -]?spray|repaint|paint/i.test(String(p.name||''));
+ if(cosmetic){
+  if(p.onOrder>0&&p.toOrder===0)return '<span class="ops-part-progress-badge is-ordered">Sent for respray · '+p.onOrder+' awaiting return</span>';
+  return p.toOrder>0&&!['Completed','On Hold'].includes(ops.jobs[assetId]?.status)?btn('Record sent','sendCosmetic',assetId+'|'+part.id):'';
+ }
  if(p.onOrder>0&&p.toOrder===0)return '<span class="ops-part-progress-badge is-ordered">Ordered · '+p.onOrder+' awaiting delivery</span>';
  return p.toOrder>0&&!['Completed','On Hold'].includes(ops.jobs[assetId]?.status)?btn('Mark as ordered','markPartOrdered',assetId+'|'+part.id):'';
 }
