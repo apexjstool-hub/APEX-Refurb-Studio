@@ -28,6 +28,13 @@
   const labels=kind==='inventory'?'<button type="button" data-selection-action="asset">Asset barcode</button><button type="button" data-selection-action="refurb">QR Refurb</button>':'<button type="button" data-selection-action="assignment">'+(kind==='pallet'?'Pallet':'Location')+' barcode</button>';
   bar.innerHTML='<button type="button" class="secondary inventory-selection-scan"><span aria-hidden="true">▦</span> Scan</button><div class="inventory-menu-wrap"><button type="button" class="secondary" data-selection-menu="actions" aria-expanded="false" aria-controls="selection-actions-'+kind+'" disabled>Actions <span aria-hidden="true">↓</span></button><div id="selection-actions-'+kind+'" class="inventory-action-menu" popover="manual" hidden><div data-menu-level="root"><button type="button" data-selection-group="labels">Labels <span aria-hidden="true">›</span></button><button type="button" data-selection-group="reports">Reports <span aria-hidden="true">›</span></button><button type="button" data-selection-action="clear">Clear selection</button></div><div data-menu-level="labels" hidden><button type="button" class="inventory-menu-back">‹ Labels</button>'+labels+'</div><div data-menu-level="reports" hidden><button type="button" class="inventory-menu-back">‹ Reports</button>'+(kind==='pallet'?'<button type="button" data-selection-action="manifest">A4 pallet manifest</button>':'')+'<button type="button" data-selection-action="inventory">Inventory report</button><button type="button" data-selection-action="worksheet">Refurbishment worksheets</button><button type="button" data-selection-action="diagnostics">Diagnostics reports</button><button type="button" data-selection-action="qc">Quality control reports</button><button type="button" data-selection-action="parts">Parts required report</button></div></div></div><div class="inventory-inline-search"></div><span class="inventory-selection-count">Select '+scope.label+'</span>';
   host.before(bar);
+  if(kind==='inventory'){
+   const bulk=document.createElement('button');bulk.type='button';bulk.id='inventoryBulkRefurbButton';
+   bulk.className='primary inventory-bulk-refurb-launch';bulk.textContent='Bulk refurbishment';
+   bulk.title='Scan or select multiple laptops, then update their replacement-part status';
+   bulk.onclick=()=>window.ApexBulkRefurb?.open([...selected.inventory]);
+   const scan=bar.querySelector('.inventory-selection-scan');scan?.after(bulk);
+  }
   if(kind!=='inventory'){
    bar.classList.add('management-toolbar');
    const heading=document.createElement('div');heading.className='management-toolbar-title';heading.innerHTML='<h3>'+(kind==='pallet'?'Pallets':'Locations')+'</h3><span class="management-total" aria-live="polite"></span>';bar.prepend(heading);
