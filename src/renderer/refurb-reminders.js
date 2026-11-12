@@ -39,7 +39,7 @@
   if(!loaded||!settings.enabled||!settings.popup||!urgent.length||lastPopupKey)return;
   lastPopupKey='shown';
   const toast=document.createElement('div');toast.className='apex-reminder-popup';toast.setAttribute('role','status');
-  toast.innerHTML='<div><strong>Outstanding refurbishment reminders</strong><p>'+rows.length+' jobs need attention. Open the refurbishment queue to review them.</p></div><button type="button" class="secondary">Dismiss</button>';
+  toast.innerHTML='<div><strong>Parts ordering reminders</strong><p>'+urgent.length+' devices are waiting for replacement parts to be ordered. Open Refurbishment to review them.</p></div><button type="button" class="secondary">Dismiss</button>';
   document.body.appendChild(toast);
   toast.querySelector('button').onclick=()=>toast.remove();
  }
@@ -57,7 +57,7 @@
  }
  function fields(){
   const root=$('apexReminderSettings');if(!root)return;
-  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unopened parts requirements count from the date they were first recorded. Editing notes will not reset this timer. Startup popups focus on un-ordered parts; other active jobs appear in the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show a reminder summary when APEX opens</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
+  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unordered part requirements count from the date they were first recorded. Editing notes will not reset this timer. Startup popups focus on un-ordered parts; other active jobs appear in the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show a reminder summary when APEX opens</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
   $('apexReminderEnabled').checked=settings.enabled;$('apexReminderPopup').checked=settings.popup;
   for(const [key,val] of Object.entries(settings))if(typeof val==='number'){const el=root.querySelector('[data-apex-days="'+key+'"]');if(el)el.value=val;}
   $('apexReminderSave').onclick=save;
