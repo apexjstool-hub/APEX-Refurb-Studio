@@ -51,6 +51,9 @@ jobs:
         run: |
           npm run pack:windows -- --publish never
           if ($LASTEXITCODE -ne 0) { throw 'Windows installer build failed.' }
+          # Electron Builder normalizes semantic version 4.1.00 to filename 4.1.0.
+          # Preserve the release's requested 4.1.00 filename explicitly.
+          Move-Item -LiteralPath 'dist/APEX-Refurb-Studio-Setup-4.1.0.exe' -Destination 'dist/APEX-Refurb-Studio-Setup-4.1.00.exe' -ErrorAction Stop
       - name: Verify packaged sync worker
         run: |
           $env:ELECTRON_RUN_AS_NODE = '1'
