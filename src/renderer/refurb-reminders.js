@@ -7,12 +7,26 @@
  const $=id=>document.getElementById(id);
  const escape=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  function alerts(){
-  if(!settings.enabled||!window.ApexWorkflowSnapshot||!window.ApexReminderAgeing)return [];
+  if(!settings.enabled||!window.ApexWorkflowSnapshot)return [];
   const s=window.ApexWorkflowSnapshot;
-  const assets=typeof items!=='undefined'?items:[];
-  const summaries=window.ApexInventoryWorkflow?.index(s)||new Map();
-  return window.ApexReminderAgeing.getAlerts(s,assets,summaries,settings)
-   .filter(row=>(snoozed.get(row.id)||0)<=Date.now());
+  const assets=new Map((typeof items!=='undefined'?items:[]).filter(a=>!a.deletedAt).map(a=>[a.id,a]));
+  const summaries=window.ApexInventoryWorkflow?.index(s)||new Map(),now=Date.now();
+  const age=value=>{const t=Date.parse(value);return Number.isFinite(t)?Math.max(0,Math.floor((now-t)/86400000)):null;};
+  return Object.values(s.jobs||{}).flatMap(job=>{
+   const asset=assets.get(job.assetId),summary=summaries.get(job.assetId);
+   if(!asset||!summary||['Completed','On Hold'].includes(job.status)||(snoozed.get(job.assetId)||0)>now)return [];
+   const parts=summary.parts||[],spray=p=>/respray|re[ -]?spray|paint/i.test(String(p.name||''));
+   const unordered=job.partsBoard==='ordered'?[]:parts.filter(p=>!spray(p)&&p.toOrder>0);
+   const unsprayed=parts.filter(p=>spray(p)&&p.fitted<p.required);
+   const oldest=rows=>{const dates=rows.map(p=>Date.parse(p.createdAt||job.createdAt)).filter(Number.isFinite);return dates.length?age(new Date(Math.min(...dates)).toISOString()):null;};
+   let category=null,days=null;
+   if(unordered.length){category={type:'ordering',title:'Parts still need ordering',priority:0};days=oldest(unordered);}
+   else if(summary.awaitingDelivery>0){category={type:'delivery',title:'Waiting for parts delivery',priority:2};days=age(job.updatedAt||job.createdAt);}
+   else if(unsprayed.length){category={type:'respray',title:'Respray not completed',priority:3};days=oldest(unsprayed);}
+   else if(summary.toFit>0||['Repair In Progress','Ready for Repair'].includes(job.status)){category={type:'repair',title:'Repair work inactive',priority:4};days=age(job.updatedAt||job.createdAt);}
+   if(!category||days===null||days<(settings[category.type]||7))return [];
+   return [{id:job.assetId,asset,job,age:days,category,level:days>=settings.critical?'critical':days>=settings.overdue?'overdue':'attention'}];
+  }).sort((a,b)=>a.category.priority-b.category.priority||b.age-a.age);
  }
  function openAssetSafely(id){
   if(window.ApexRefurbWorkspace?.openAsset)window.ApexRefurbWorkspace.openAsset(id);
