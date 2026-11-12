@@ -46,30 +46,51 @@
  function dismiss(id,days){
   snoozed.set(id,Date.now()+days*86400000);draw(); // This snooze is per-session; it never changes asset history or age.
  }
- function showStartupSummary(rows){
-  const urgent=rows.filter(row=>row.category.type==='ordering');
-  if(!loaded||!settings.enabled||!settings.popup||!urgent.length||lastPopupKey)return;
-  lastPopupKey='shown';
-  const toast=document.createElement('div');toast.className='apex-reminder-popup';toast.setAttribute('role','status');
-  toast.innerHTML='<div><strong>Parts ordering reminders</strong><p>'+urgent.length+' devices are waiting for replacement parts to be ordered. Open Refurbishment to review them.</p></div><button type="button" class="secondary">Dismiss</button>';
+ // Reminders are shown as small, dismissible toasts, never as a Work Queue panel.
+ // Suppress repeats for the configured repeat interval and notify immediately
+ // when a new asset crosses a threshold.
+ const notified=new Map();
+ let toastTimer=null;
+ function showReminderToast(rows){
+  if(!loaded||!settings.enabled||!settings.popup||!rows.length)return;
+  const now=Date.now(),repeatMs=Math.max(1,settings.repeatHours)*3600000;
+  const pending=rows.filter(r=>{
+   const key=r.id+'|'+r.category.type+'|'+r.level;
+   return now-(notified.get(key)||0)>=repeatMs;
+  });
+  if(!pending.length)return;
+  for(const row of pending)notified.set(row.id+'|'+row.category.type+'|'+row.level,now);
+  // Keep memory bounded even across long-running tray sessions.
+  if(notified.size>1200)for(const [key,seen] of notified)if(now-seen>repeatMs*2)notified.delete(key);
+  const existing=$('apexReminderToast');if(existing)existing.remove();
+  if(toastTimer){clearTimeout(toastTimer);toastTimer=null;}
+  const lead=pending[0],count=pending.length,urgent=pending.filter(r=>r.level==='critical').length;
+  const toast=document.createElement('div');toast.id='apexReminderToast';
+  toast.className='apex-reminder-popup apex-reminder-toast';
+  toast.dataset.level=urgent?'critical':lead.level;
+  toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
+  toast.innerHTML='<div class="apex-reminder-toast-icon" aria-hidden="true">!</div><div class="apex-reminder-toast-copy"><strong>'+escape(count===1?lead.category.title:count+' refurbishment reminders')+'</strong><p>'+escape(count===1?lead.id+' · '+lead.age+' days waiting':lead.id+' · '+lead.category.title+' ('+lead.age+' days)'+(count>1?' · plus '+(count-1)+' other asset'+(count===2?'':'s'):''))+'</p></div><div class="apex-reminder-toast-buttons"><button type="button" class="secondary" data-reminder-open>View</button><button type="button" class="apex-reminder-toast-dismiss" data-reminder-close aria-label="Dismiss refurbishment notification">×</button></div>';
   document.body.appendChild(toast);
-  toast.querySelector('button').onclick=()=>toast.remove();
+  const close=()=>{if(toastTimer){clearTimeout(toastTimer);toastTimer=null;}toast.remove();};
+  toast.querySelector('[data-reminder-close]').onclick=close;
+  toast.querySelector('[data-reminder-open]').onclick=()=>{
+   close();
+   if(count===1)openAssetSafely(lead.id);
+   else if(typeof setPage==='function')setPage('refurbJobs',true);
+  };
+  toastTimer=setTimeout(()=>{toast.remove();toastTimer=null;},12000);
  }
  function draw(){
-  const root=$('refurbWorkspacePage');if(!root)return;
-  let panel=$('apexAgeingAlerts');if(!panel){panel=document.createElement('section');panel.id='apexAgeingAlerts';panel.className='apex-ageing-alerts';panel.setAttribute('aria-label','Outstanding refurbishment reminders');const anchor=$('rwQueueSummary');if(anchor)anchor.before(panel);}
-  if(!panel)return;
-  const rows=alerts();panel.hidden=!rows.length;showStartupSummary(rows);
-  if(!rows.length)return;
-  const n=rows.filter(r=>r.level==='critical').length,unplaced=rows.filter(r=>r.category.type==='ordering').length;
-  panel.innerHTML='<div class="apex-ageing-head"><div><strong>⏰ Inactive refurbishment reminders</strong><p>'+unplaced+' devices still need parts ordered · '+rows.length+' total flagged'+(n?' · '+n+' critical':'')+'. Parts ordering age starts when a requirement was recorded.</p></div><button class="secondary" type="button" data-apex-toggle>Show '+Math.min(rows.length,10)+' alerts</button></div><div class="apex-ageing-list" hidden>'+rows.slice(0,10).map(r=>'<div class="apex-ageing-item"><div><b>'+escape(r.id)+'</b> <span class="apex-age-pill '+escape(r.level)+'">'+escape(r.age)+' days · '+escape(r.category.title)+'</span><small>'+escape([r.asset.manufacturer,r.asset.model,r.asset.pallet||r.asset.location].filter(Boolean).join(' · '))+'</small></div><div class="apex-age-actions"><button type="button" class="secondary" data-apex-open="'+escape(r.id)+'">View asset</button><button type="button" class="secondary" data-apex-snooze="'+escape(r.id)+'">Snooze 3 days</button></div></div>').join('')+'</div>';
-  panel.querySelector('[data-apex-toggle]').onclick=()=>{const list=panel.querySelector('.apex-ageing-list');list.hidden=!list.hidden;};
-  panel.querySelectorAll('[data-apex-open]').forEach(b=>b.onclick=()=>openAssetSafely(b.dataset.apexOpen));
-  panel.querySelectorAll('[data-apex-snooze]').forEach(b=>b.onclick=()=>dismiss(b.dataset.apexSnooze,3));
+  // Remove obsolete Work Queue panel left by earlier app versions, including
+  // when a Work Queue tab is re-rendered without reload.
+  $('apexAgeingAlerts')?.remove();
+  const rows=alerts();
+  if(!rows.length){$('apexReminderToast')?.remove();if(toastTimer){clearTimeout(toastTimer);toastTimer=null;}return;}
+  showReminderToast(rows);
  }
  function fields(){
   const root=$('apexReminderSettings');if(!root)return;
-  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unordered part requirements count from the date they were first recorded. Editing notes will not reset this timer. Startup popups focus on un-ordered parts; other active jobs appear in the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show a reminder summary when APEX opens</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><div class="apex-background-settings"><strong>Windows desktop notifications</strong><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderTray"> Keep APEX running in the system tray when the window is closed</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderDesktop"> Show Windows desktop reminders for unordered parts</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderStartup"> Start APEX with Windows (sign-in may still be required)</label><div class="apex-reminder-grid"><label>Check every <span><input type="number" min="1" max="120" id="apexReminderCheckMinutes"> minutes</span></label><label>Repeat reminder after <span><input type="number" min="1" max="168" id="apexReminderRepeatHours"> hours</span></label></div><p class="apex-reminder-hint">Desktop reminders work while APEX is running and you are signed in. Closing the window keeps it in the tray when enabled; Exit APEX completely in the tray menu stops notifications. Windows sign-in may require you to open APEX and log in.</p></div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
+  root.innerHTML='<p class="apex-reminder-hint"><strong>Parts ordering is prioritised:</strong> unordered part requirements count from the date they were first recorded. Editing notes will not reset this timer. In-app notification toasts summarise outstanding refurbishment work without adding a panel to the Work Queue.</p><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderEnabled"> Enable automatic reminders</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderPopup"> Show refurbishment notification toasts in APEX</label><div class="apex-reminder-grid">'+Object.keys(labels).map(key=>'<label>'+escape(labels[key])+'<span><input type="number" min="1" max="365" step="1" data-apex-days="'+key+'" required> days</span></label>').join('')+'</div><div class="apex-background-settings"><strong>Windows desktop notifications</strong><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderTray"> Keep APEX running in the system tray when the window is closed</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderDesktop"> Show Windows desktop reminders for unordered parts</label><label class="apex-reminder-toggle"><input type="checkbox" id="apexReminderStartup"> Start APEX with Windows (sign-in may still be required)</label><div class="apex-reminder-grid"><label>Check every <span><input type="number" min="1" max="120" id="apexReminderCheckMinutes"> minutes</span></label><label>Repeat reminder after <span><input type="number" min="1" max="168" id="apexReminderRepeatHours"> hours</span></label></div><p class="apex-reminder-hint">Desktop reminders work while APEX is running and you are signed in. Closing the window keeps it in the tray when enabled; Exit APEX completely in the tray menu stops notifications. Windows sign-in may require you to open APEX and log in.</p></div><p class="apex-reminder-hint">Set the day limits separately for each type of work (1–365 days). Attention must be less than Overdue, and Overdue less than Critical. Changes apply immediately after saving.</p><div class="apex-reminder-actions"><button id="apexReminderSave" class="primary" type="button">Save reminder settings</button><span id="apexReminderResult" role="status" aria-live="polite"></span></div>';
   $('apexReminderEnabled').checked=settings.enabled;$('apexReminderPopup').checked=settings.popup;
   $('apexReminderTray').checked=settings.keepInTray;$('apexReminderDesktop').checked=settings.desktopNotifications;$('apexReminderStartup').checked=settings.startWithWindows;
   $('apexReminderCheckMinutes').value=settings.checkMinutes;$('apexReminderRepeatHours').value=settings.repeatHours;
@@ -96,7 +117,7 @@
  document.addEventListener('DOMContentLoaded',init);
  window.addEventListener('apex:workflow-updated',draw);
  window.addEventListener('apex:reminders-refresh',draw);
- const heartbeat=setInterval(()=>backgroundCheck(),60000);
+ const heartbeat=setInterval(()=>{draw();backgroundCheck();},60000);
  window.addEventListener('apex:workflow-updated',()=>{if(loaded&&settings.desktopNotifications&&Date.now()-lastBackgroundCheck>=settings.checkMinutes*60000)backgroundCheck();});
  window.ApexRefurbReminders=Object.freeze({refresh:draw,getAlerts:alerts,getSettings:()=>({...settings})});
 })();
