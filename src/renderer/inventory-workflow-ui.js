@@ -24,7 +24,8 @@
   const overdue=new Map((window.ApexRefurbReminders?.getAlerts?.()||[]).filter(r=>r.category.type==='ordering').map(r=>[r.id,r]));
   for(const row of [...table.tBodies[0].rows]){
    const id=row.querySelector('[data-asset]')?.dataset.asset;if(!id)continue;const s=info(id),asset=assetsById.get(id),pallet=document.createElement('td');pallet.textContent=asset?.pallet||'—';row.insertBefore(pallet,row.cells[4]);
-   const cell=document.createElement('td');cell.className='inventory-repair-cell';cell.innerHTML=`<span class="inventory-stage inventory-stage-${s.key}" title="${html(snapshot?s.next:'Workflow is loading')}">${html(snapshot?(s.key==='respray'?'Needs Respray':s.key==='order'?'Needs Ordering':s.stage):'Loading workflow…')}</span>${s.resprayStatus&&s.key!=='respray-sent'&&s.key!=='respray-returned'?`<small class="inventory-respray-aux">${html(s.resprayStatus)}</small>`:''}${overdue.has(id)?`<small class="inventory-inactive-hint" title="Replacement part requirement remains un-ordered">${overdue.get(id).age} days waiting to order</small>`:''}`;row.insertBefore(cell,row.lastElementChild);
+   const cell=document.createElement('td');cell.className='inventory-repair-cell';const display=window.ApexInventoryStatusDisplay.compose(snapshot?s:null,overdue.get(id)?.age);
+   cell.innerHTML='<div class="apex-status-stack" aria-label="Refurbishment progress">'+display.badges.map(b=>'<span class="apex-work-chip apex-work-'+html(b.tone)+'" title="'+html(snapshot?s.next:'Workflow is loading')+'"><i aria-hidden="true"></i>'+html(snapshot?b.label:'Loading workflow…')+'</span>').join('')+(display.waiting?'<small class="apex-work-age">'+html(display.waiting)+'</small>':'')+'</div>';row.insertBefore(cell,row.lastElementChild);
   }
  }
 
