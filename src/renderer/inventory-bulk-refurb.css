@@ -1,0 +1,26 @@
+/* Inventory bulk refurbishment workstation, scoped to the modal and toolbar. */
+#inventoryPage #inventoryBulkRefurbButton{min-height:34px;border-radius:8px;padding:8px 11px;font-size:12px;font-weight:750;white-space:nowrap}
+.apex-bulk-modal{display:flex;flex-direction:column;gap:12px}
+.apex-bulk-scan{display:flex;align-items:end;gap:8px}
+.apex-bulk-scan .field{flex:1;margin:0}
+.apex-bulk-scan input{width:100%}
+.apex-bulk-scan button{min-height:39px}
+.apex-bulk-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.apex-bulk-summary strong{font-size:13px}
+.apex-bulk-devices{display:flex;flex-direction:column;gap:0;max-height:185px;overflow:auto;border:1px solid var(--line);border-radius:9px}
+.apex-bulk-device{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.apex-bulk-device:last-child{border-bottom:0}
+.apex-bulk-device b{display:block;font-size:12px}
+.apex-bulk-device small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.apex-bulk-device button{min-width:30px;padding:3px 8px;border-radius:6px}
+.apex-bulk-review{padding:11px 13px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;font-size:12px;line-height:1.5}
+.apex-bulk-review p{margin:8px 0 0}
+.apex-bulk-metrics{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.apex-bulk-metrics>span{display:flex;align-items:center;gap:6px;font-size:11px}
+.apex-bulk-metrics b{font-weight:800;font-size:14px}
+.apex-bulk-metrics .is-warning{color:#bd493c}
+.apex-bulk-blocked{border-top:1px solid var(--line);margin-top:10px;padding-top:8px;max-height:140px;overflow:auto}
+.apex-bulk-blocked p{margin:3px 0}
+.apex-bulk-modal .modal-actions{display:flex;justify-content:flex-end;gap:8px}
+.apex-bulk-modal #apexBulkOrderInfo{display:grid;gap:8px}
+.apex-bulk-modal #apexBulkOrderInfo[hidden]{display:none!important}
