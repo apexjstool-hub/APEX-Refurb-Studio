@@ -5,6 +5,15 @@
  function current(){const next=state();if(next!==snapshot){snapshot=next;summaries=window.ApexInventoryWorkflow.index(next||{});}return snapshot;}
  const info=id=>{current();return summaries.get(id)||window.ApexInventoryWorkflow.summarize(null);};
  const toolbar=$('inventoryPage').querySelector('.toolbar');
+ const statusHelp=$('inventoryPage').querySelector('.section-panel-head > div > p');
+ if(statusHelp){
+  statusHelp.classList.add('apex-inventory-legend');
+  statusHelp.setAttribute('aria-label','Inventory refurbishment status colour guide');
+  statusHelp.innerHTML='<span class="apex-legend-label">STATUS KEY</span>'+
+   [['order','Needs ordering'],['respray','Needs respray'],['delivery','Parts ordered'],['fit','In progress'],['qc','QC'],['completed','Completed']].map(([type,label])=>
+   '<span class="apex-legend-item apex-legend-'+type+'"><i aria-hidden="true"></i>'+label+'</span>').join('');
+ }
+
  toolbar.insertAdjacentHTML('beforeend','<select id="palletFilter" aria-label="Filter by pallet"><option value="">All pallets</option></select><select id="repairFilter" aria-label="Filter by repair progress"><option value="">All repair stages</option><option value="order">Needs ordering</option><option value="respray">Needs respray</option><option value="delivery">Parts ordered / awaiting delivery</option><option value="fit">Ready to fit / fitting</option><option value="qc">Awaiting QC</option><option value="hold">On hold</option><option value="completed">Completed</option><option value="none">No refurb job</option></select>');
  for(const id of ['palletFilter','repairFilter'])$(id).onchange=()=>{inventoryPageIndex=0;render();};
  function decorate(){
