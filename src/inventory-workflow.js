@@ -26,6 +26,25 @@
   return {...totals,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
  }
  function latest(job,audit=[]){const events=audit.filter(e=>(e.assetId||e.AssetID)===job?.assetId).map(e=>({at:e.at||e.time,by:e.by||'',text:e.type||e.detail||'Activity'}));for(const p of job?.parts||[]){if(p.lastProgressAt)events.push({at:p.lastProgressAt,by:p.lastProgressBy||'',text:'Repair progress'});if(p.lastReceivedAt)events.push({at:p.lastReceivedAt,by:p.lastReceivedBy||'',text:'Parts received'});}return events.filter(e=>Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0]||null;}
- function index(workflow){const grouped=new Map();for(const order of workflow.orders||[])if(order.status!=='Draft')for(const l of order.lines||[]){if(!grouped.has(l.assetId))grouped.set(l.assetId,[]);grouped.get(l.assetId).push(l);}return new Map(Object.entries(workflow.jobs||{}).map(([id,j])=>[id,summarize(j,[{status:'Ordered',lines:grouped.get(id)||[]}])]));}
+ function index(workflow){
+  const grouped=new Map();
+  for(const order of workflow.orders||[])if(order.status!=='Draft')for(const l of order.lines||[]){
+   if(!grouped.has(l.assetId))grouped.set(l.assetId,[]);
+   grouped.get(l.assetId).push(l);
+  }
+  const result=new Map(Object.entries(workflow.jobs||{}).map(([id,j])=>[id,summarize(j,[{status:'Ordered',lines:grouped.get(id)||[]}])]));
+  // Only the exact IDs snapshotted at dispatch inherit its respray stage.
+  for(const shipment of workflow.resprayPallets||[])for(const item of shipment.manifest||[]){
+   const row=result.get(item.assetId);if(!row||row.resprayStatus)continue;
+   if(shipment.status==='Dispatched'&&row.sprayOutstanding)row.resprayStatus='Sent for Respray';
+   if(shipment.status==='Returned'&&row.sprayOutstanding)row.resprayStatus='Respray Returned';
+   if(shipment.status==='Completed')row.resprayStatus='Respray Completed';
+   if(row.key==='respray'&&row.resprayStatus&&shipment.status!=='Completed'){
+    row.stage=row.resprayStatus;row.key=shipment.status==='Dispatched'?'respray-sent':'respray-returned';
+    row.next=shipment.status==='Dispatched'?'Await Microdream pallet return':'Inspect and complete respray';
+   }
+  }
+  return result;
+ }
  return {summarize,latest,index};
 });
