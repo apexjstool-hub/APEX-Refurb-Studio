@@ -35,9 +35,15 @@
    if(kind==='location')$(scope.page).querySelector('.section-panel-head')?.remove();
   }
   const search=kind==='inventory'?$('inventorySearch'):document.createElement('input'),old=search.closest('.table-search');
-  search.type='search';search.placeholder='Search...';search.setAttribute('aria-label','Search '+scope.label);if(kind!=='inventory'){search.id='selectionSearch-'+kind;search.oninput=()=>filter(kind);}
+  search.type='search';search.placeholder=kind==='inventory'?'Search asset ID, serial, model, location or pallet…':'Search...';search.setAttribute('aria-label','Search '+scope.label);if(kind!=='inventory'){search.id='selectionSearch-'+kind;search.oninput=()=>filter(kind);}
   bar.querySelector('.inventory-inline-search').appendChild(search);old?.remove();
   bar.querySelector('.inventory-selection-scan').onclick=()=>{closeMenus();setPage('bulk');};
+  if(kind==='inventory'){
+   const quick=document.createElement('div');quick.id='inventoryQuickFilters';quick.className='inventory-quick-filters';quick.setAttribute('aria-label','Quick inventory filters');bar.after(quick);
+   const active=document.createElement('div');active.id='inventoryActiveFilters';active.className='inventory-active-filters';active.setAttribute('aria-label','Active inventory filters');quick.after(active);
+   quick.addEventListener('click',event=>{const target=event.target.closest('[data-quick-repair]');if(!target)return;const control=$('repairFilter');if(!control)return;control.value=target.dataset.quickRepair;control.dispatchEvent(new Event('change',{bubbles:true}));});
+   active.addEventListener('click',event=>{const target=event.target.closest('[data-clear-filter]');if(!target)return;const control=$(target.dataset.clearFilter);if(!control)return;control.value=control.id==='statusFilter'?'All statuses':'';control.dispatchEvent(new Event(control.id==='inventorySearch'?'input':'change',{bubbles:true}));});
+  }
   const menu=bar.querySelector('.inventory-action-menu'),button=bar.querySelector('[data-selection-menu]');
   const level=name=>{menu.querySelectorAll('[data-menu-level]').forEach(p=>p.hidden=p.dataset.menuLevel!==name);placeMenu(kind);};
   button.onclick=()=>{
@@ -73,10 +79,31 @@
   const menu=$('inventoryFiltersMenu'),button=$('inventoryFiltersButton');if(!menu||!button||menu.hidden)return;
   const r=button.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(r.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=(r.bottom+5)+'px';menu.style.maxHeight=Math.max(80,innerHeight-r.bottom-14)+'px';
  }
+ function updateQuickFilters(){
+  const quick=$('inventoryQuickFilters'),active=$('inventoryActiveFilters');if(!quick||!active)return;
+  const current=$('repairFilter')?.value||'',snapshot=window.ApexWorkflowSnapshot;
+  const summaries=snapshot&&window.ApexInventoryWorkflow?.index?window.ApexInventoryWorkflow.index(snapshot):new Map();
+  const counts={all:0,order:0,respray:0,delivery:0,completed:0,hold:0};
+  for(const asset of items){
+   if(asset.deletedAt)continue;counts.all++;
+   const s=summaries.get(asset.id);if(!s)continue;
+   if(s.key==='completed'){counts.completed++;continue;}
+   if(s.key==='hold'){counts.hold++;continue;}
+   if(s.needsOrdering>0)counts.order++;
+   if(s.sprayOutstanding)counts.respray++;
+   if(s.awaitingDelivery>0)counts.delivery++;
+  }
+  const opts=[['','All devices',counts.all],['order','Needs ordering',counts.order],['respray','Needs respray',counts.respray],['delivery','Parts ordered',counts.delivery],['completed','Completed',counts.completed],['hold','On hold',counts.hold]];
+  quick.innerHTML=opts.map(([value,label,n])=>'<button type="button" class="inventory-quick-chip'+(current===value?' is-active':'')+'" data-quick-repair="'+html(value)+'" aria-pressed="'+String(current===value)+'"><span>'+html(label)+'</span><b>'+n+'</b></button>').join('');
+  const filterLabels=[['inventorySearch','Search'],['locationFilter','Location'],['gradeFilter','Grade'],['statusFilter','Asset status'],['palletFilter','Pallet'],['repairFilter','Repair']];
+  const entries=filterLabels.flatMap(([id,label])=>{const el=$(id);if(!el)return [];const value=String(el.value||'');if(!value||(id==='statusFilter'&&value==='All statuses'))return [];const shown=id==='inventorySearch'?value:(el.selectedOptions?.[0]?.textContent?.trim()||value);return [{id,label,value:shown}];});
+  active.hidden=!entries.length;
+  active.innerHTML=entries.map(e=>'<button type="button" class="inventory-active-chip" data-clear-filter="'+html(e.id)+'" aria-label="Clear '+html(e.label)+' filter"><span>'+html(e.label)+': '+html(e.value.slice(0,42))+'</span><span aria-hidden="true">×</span></button>').join('');
+ }
  function filterBadge(){
   const button=$('inventoryFiltersButton');if(!button)return;
   const active=['locationFilter','gradeFilter','statusFilter','palletFilter','repairFilter'].filter(id=>$(id)&&(id==='statusFilter'?$(id).value!=='All statuses':Boolean($(id).value))).length;
-  button.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h18l-7 8v7l-4 2v-9Z"/></svg><span>Filter'+(active?' ('+active+')':'')+'</span>';button.classList.toggle('has-active-filters',active>0);
+  button.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h18l-7 8v7l-4 2v-9Z"/></svg><span>Advanced filters'+(active?' ('+active+')':'')+'</span>';button.classList.toggle('has-active-filters',active>0);
  }
  function decorate(){
   for(const kind of Object.keys(scopes)){
@@ -95,7 +122,7 @@
    window.ApexDeleteControls?.decorate(table);
    filter(kind);update(kind);
   }
-  setupFilters();filterBadge();
+  setupFilters();filterBadge();updateQuickFilters();
  }
  function action(kind,name){
   closeMenus();if(name==='clear'){selected[kind].clear();update(kind);return;}
@@ -110,6 +137,8 @@
   const values=[...selected[kind]];if(!values.length)return;if(values.length>300){notify('Select up to 300 rows for one print job.');return;}
   window.ApexSelectionPreviews.labels(kind,type,values,scopes[kind].label);
  }
+ for(const id of ['inventorySearch','locationFilter','gradeFilter','statusFilter','palletFilter','repairFilter'])document.addEventListener(id==='inventorySearch'?'input':'change',event=>{if(event.target?.id===id)updateQuickFilters();});
+ window.addEventListener('apex:workflow-updated',updateQuickFilters);
  document.addEventListener('click',event=>{if(!event.target.closest('.inventory-menu-wrap,.inventory-filter-menu,#inventoryFiltersButton'))closeMenus();});
  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenus();});
  window.addEventListener('resize',()=>{Object.keys(scopes).forEach(placeMenu);placeFilters();});document.addEventListener('scroll',()=>Object.keys(scopes).forEach(placeMenu),true);
