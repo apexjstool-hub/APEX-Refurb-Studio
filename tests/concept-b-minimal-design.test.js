@@ -18,12 +18,12 @@ test('light design covers workspace and login without changing routes',()=>{
  for(const route of ['data-page="inventory"','data-page="dashboard"','id="refurbNav"','data-page="reports"'])assert(html.includes(route),route);
 });
 test('classic rollback is available, persistent and restores prior theme',()=>{
- assert.match(toggle,/apex-ui-concept-v1/);
+ assert.match(toggle,/apex-ui-concept-v2/);
  assert.match(toggle,/previousThemeKey/);
  assert.match(toggle,/data\-apexDesign|dataset\.apexDesign/);
- assert.match(toggle,/get\(key,'minimal'\)/);
+ assert.match(toggle,/get\(key,'heritage'\)/);
  assert.match(toggle,/get\(previousThemeKey/);
- assert.match(toggle,/design==='minimal'\?'classic':'minimal'/);
+ assert.match(toggle,/const options=\['heritage','minimal','classic'\]/);
 });
 test('Concept B respects reduced motion and print layout',()=>{
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
