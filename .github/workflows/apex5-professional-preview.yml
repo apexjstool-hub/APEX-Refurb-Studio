@@ -1,8 +1,8 @@
-name: APEX 5.0 Professional Redesign Preview 2 Windows EXE
+name: APEX 5.0 Green Professional Preview 3 Windows EXE
 on:
   push:
     branches:
-      - preview/apex-5-professional-redesign-v2
+      - preview/apex5-green-inventory-v3
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
           }
       - name: Verify preview isolation, demo fixtures and professional screens
         run: |
-          node --test tests/apex5-preview-isolation.test.js tests/apex5-reimagined-v2.test.js
+          node --test tests/apex5-preview-isolation.test.js tests/apex5-green-reference-v3.test.js
           if ($LASTEXITCODE -ne 0) { throw 'APEX 5 preview isolation tests failed. Do not package.' }
       - name: Run retained inventory and refurbishment regression tests
         run: |
@@ -50,7 +50,7 @@ jobs:
         run: |
           npm run pack:windows
           if ($LASTEXITCODE -ne 0) { throw 'Preview Windows installer build failed.' }
-          if (!(Test-Path 'dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.2.exe')) { throw 'Expected preview EXE not found.' }
+          if (!(Test-Path 'dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.3.exe')) { throw 'Expected preview EXE not found.' }
       - name: Verify packaged preview boundaries
         run: |
           $env:ELECTRON_RUN_AS_NODE = '1'
@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: APEX-Management-Studio-5-Professional-Preview-Windows
-          path: dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.2.exe
+          path: dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.3.exe
           if-no-files-found: error
           retention-days: 14
       - name: Publish separate GitHub pre-release
@@ -69,11 +69,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          $tag = 'v5.0.0-preview.2'
-          $installer = 'dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.2.exe'
+          $tag = 'v5.0.0-preview.3'
+          $installer = 'dist/APEX-Management-Studio-5-Preview-Setup-5.0.0-preview.3.exe'
           if (!(Test-Path $installer)) { throw 'Preview EXE is missing.' }
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw "Preview tag $tag already exists. Do not overwrite." }
-          $notes = "APEX Management Studio 5.0 Preview 2 — Concept A Professional. Separate Windows appId, product name, installer, shortcut and local data folder. Offline demo with synthetic laptop records; production cloud authentication, shared hub, cloud sync, automatic updates and remote network connections are disabled. No production Supabase credentials or hub/cloud worker files in installer. First redesign of Dashboard, Inventory and Device Details, existing other pages preserved. Demo login admin / Admin123!; all changes remain in the separate demo database. Original v4.1.22 Beta 4 release is unaffected. Preview only — visually inspect on Windows before adoption."
-          gh release create $tag $installer --prerelease --target $env:GITHUB_SHA --title 'APEX Management Studio 5.0 Professional Preview 2' --notes $notes
+          $notes = "APEX Management Studio 5.0 Green Professional Preview 3 — a separate, completely offline demo based on v4.1.22 Beta 4. Implements the user-approved dark slate and green enterprise inventory reference with professional sidebar, deep-green actions, balanced full-width inventory table, visible filters for device type/brand/status/location, functional search, original live workflow status tabs and repair badges. Asset ID, model, serial, location, pallet, status and waiting-time information remain sourced from actual demo records, not fictional progress figures. Existing inventory, barcode, refurbishment, Microdream, reporting and label functions retained. Separate Windows appId/installer/user profile. Synthetic sample laptops only. Production Supabase and hubs disabled; network blocked; cloud workers excluded; updater disabled. Source, regression and packaged isolation checks required before release. Compare Inventory at your own display resolution before giving design approval."
+          gh release create $tag $installer --prerelease --target $env:GITHUB_SHA --title 'APEX Management Studio 5.0 Green Professional Preview 3' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Separate preview release publishing failed.' }
