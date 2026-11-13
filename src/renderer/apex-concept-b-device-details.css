@@ -1,0 +1,280 @@
+/* Concept B Device Details 2.0 (v4.1.07).
+   Scoped to the selected Concept B theme and existing asset page.
+   Retains form names, tab routes, save actions, QR printing and audit history. */
+html[data-apex-design="minimal"] #assetPage{
+ --apex-device-ink:#18334F;
+ --apex-device-muted:#5C7088;
+ --apex-device-border:#DCE6F1;
+ --apex-device-blue:#2268BF;
+}
+html:not([data-apex-design="minimal"]) #assetPage #apexDeviceActions{display:none!important}
+html[data-apex-design="minimal"] #assetPage .device-inventory-navigation{
+ margin:0 0 8px!important;padding:0!important;
+}
+html[data-apex-design="minimal"] #assetPage .compact-breadcrumb{
+ margin:0 0 14px!important;color:#61748D!important;
+ font-size:12px!important;line-height:1.5!important;
+}
+html[data-apex-design="minimal"] #assetPage .compact-breadcrumb strong{
+ color:#163957!important;font-weight:760!important;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions{
+ position:sticky;top:0;z-index:8;
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;flex-wrap:wrap;padding:12px 16px;margin:0 0 16px;
+ border:1px solid #D2E1F1;border-radius:12px;
+ background:#F8FBFF;box-shadow:0 3px 15px rgba(19,62,112,.07);
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-heading{
+ min-width:0;display:grid;gap:2px;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-heading strong{
+ color:#173758;font-size:13px;font-weight:800;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-heading small{
+ color:#617891;font-size:11px;line-height:1.4;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-buttons{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions button{
+ display:inline-flex;align-items:center;justify-content:center;
+ gap:6px;min-height:36px;padding:8px 12px;
+ font-size:12px;font-weight:750;border-radius:8px;
+ border:1px solid #C7D9ED;background:#FFF;color:#19538F;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions button:hover{
+ background:#E8F3FF;border-color:#A5C7EC;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions button.primary{
+ background:#2369C2!important;border-color:#2369C2!important;color:#FFF!important;
+}
+html[data-apex-design="minimal"] #assetPage #apexDeviceActions button.primary:hover{
+ background:#1758A8!important;
+}
+html[data-apex-design="minimal"] #assetPage:not([data-section="overview"]) #apexDeviceSave{
+ display:none!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary.mock-summary{
+ --device-card-bg:#FFFFFF;
+ --device-card-soft:#F2F7FE;
+ --device-card-line:#D9E5F3;
+ --device-card-ink:#18334F;
+ --device-card-muted:#5F758E;
+ --device-card-accent:#205EA8;
+ --device-card-accent-soft:#EAF3FF;
+ --device-card-green:#18714E;
+ --device-card-green-soft:#E7F7EE;
+ --device-card-green-line:#BDE6CE;
+ --device-card-amber:#936018;
+ --device-card-amber-soft:#FFF5E5;
+ --device-card-amber-line:#F0D8AB;
+ display:block!important;
+ padding:18px 20px!important;margin:0 0 15px!important;
+ min-height:0!important;
+ background:#FFFFFF!important;color:#18334F!important;
+ border:1px solid #D9E5F3!important;border-radius:14px!important;
+ box-shadow:0 4px 17px rgba(29,63,102,.05)!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-top{
+ display:flex;gap:20px!important;align-items:flex-start!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-art{
+ background:#EFF6FF!important;border:1px solid #D7E7F8!important;
+ border-radius:12px!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-main{
+ flex:1;min-width:0;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-heading{
+ display:flex;align-items:flex-start;justify-content:space-between;gap:15px;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-heading h2{
+ color:#142F4E!important;font-weight:840!important;
+ font-size:clamp(20px,2.25vw,27px)!important;letter-spacing:-.55px!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-type{
+ display:inline-flex;border-radius:6px!important;
+ background:#EAF3FF!important;color:#205EA8!important;
+ font-weight:750!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary #assetPrintLabel{
+ background:#EFF6FF!important;border:1px solid #C9DCF3!important;
+ border-radius:8px!important;color:#1C5BA3!important;
+ font-size:12px!important;font-weight:750!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px!important;margin-top:15px!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact{
+ min-width:0;padding:7px 10px!important;
+ border:1px solid #E6EDF6!important;border-radius:9px!important;
+ background:#FAFCFF!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact>svg{
+ color:#5581AE!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact small{
+ color:#627B94!important;font-size:10.5px!important;font-weight:700!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact strong{
+ color:#173858!important;font-weight:760!important;font-size:12.5px!important;
+ overflow-wrap:anywhere;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:10px!important;margin-top:15px!important;
+ padding-top:14px!important;border-top:1px solid #DFE8F3!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-status{
+ color:#18714E!important;background:#E7F7EE!important;border-color:#BDE6CE!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-status.is-awaiting{
+ color:#936018!important;background:#FFF5E5!important;border-color:#F0D8AB!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-location{
+ background:#EAF3FF!important;color:#205EA8!important;
+}
+html[data-apex-design="minimal"] #assetPage .v3-asset-tabs{
+ position:sticky!important;top:69px!important;z-index:7!important;
+ display:flex!important;flex-wrap:nowrap!important;gap:6px!important;
+ margin:0 0 15px!important;padding:8px!important;
+ background:#F1F6FC!important;border:1px solid #DDE7F1!important;
+ border-radius:11px!important;
+ overflow-x:auto!important;
+}
+html[data-apex-design="minimal"] #assetPage .v3-asset-tabs .v3-tab{
+ border-radius:8px!important;padding:10px 14px!important;
+ min-height:38px!important;font-size:12px!important;font-weight:750!important;
+ color:#4A627E!important;white-space:nowrap!important;
+}
+html[data-apex-design="minimal"] #assetPage .v3-asset-tabs .v3-tab.selected{
+ background:#FFFFFF!important;color:#1359AB!important;
+ border:1px solid #BDD4F0!important;
+ box-shadow:0 1px 6px rgba(32,82,140,.08)!important;
+}
+html[data-apex-design="minimal"] #assetPage #apexAssetDetailsSection.flat-editor{
+ background:#FFFFFF!important;border:1px solid #DCE6F1!important;
+ border-radius:13px!important;
+ padding:20px!important;
+ box-shadow:0 2px 12px rgba(26,62,104,.035)!important;
+}
+html[data-apex-design="minimal"] #assetPage .flat-editor-heading{
+ padding:0 0 16px!important;margin:0 0 18px!important;
+ border-bottom:1px solid #E5ECF4!important;
+}
+html[data-apex-design="minimal"] #assetPage .flat-editor-heading h2{
+ color:#183653!important;font-size:18px!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetEditedHint{
+ color:#60788F!important;font-size:11.5px!important;
+}
+html[data-apex-design="minimal"] #assetPage .v34-editor-columns{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:17px!important;align-items:start;
+}
+html[data-apex-design="minimal"] #assetPage .v34-form-group{
+ min-width:0!important;padding:17px!important;
+ border:1px solid #DFE8F2!important;background:#FAFCFF!important;
+ border-radius:11px!important;box-shadow:none!important;
+}
+html[data-apex-design="minimal"] #assetPage .v34-form-group-head{
+ display:flex!important;align-items:flex-start!important;
+ justify-content:space-between!important;gap:9px!important;flex-wrap:wrap!important;
+ border-bottom:1px solid #E5EDF6!important;
+ padding:0 0 12px!important;margin:0 0 14px!important;
+}
+html[data-apex-design="minimal"] #assetPage .v34-form-group-head h3{
+ color:#194369!important;font-size:14px!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] #assetPage .v34-form-group-head span{
+ color:#667D95!important;font-size:11px!important;
+}
+html[data-apex-design="minimal"] #assetPage .v34-group-fields{
+ display:grid!important;grid-template-columns:1fr!important;
+ gap:10px!important;
+}
+html[data-apex-design="minimal"] #assetPage .field.compact-field{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:5px!important;padding:0!important;margin:0!important;
+ font-size:11.5px!important;font-weight:730!important;color:#4A617D!important;
+}
+html[data-apex-design="minimal"] #assetPage .field.compact-field :is(input,select){
+ width:100%!important;min-width:0!important;min-height:38px!important;
+ height:38px!important;padding:7px 11px!important;margin:0!important;
+ font-size:12.5px!important;background:#FFFFFF!important;color:#243C58!important;
+ border:1px solid #CDD9E7!important;border-radius:8px!important;
+}
+html[data-apex-design="minimal"] #assetPage .field.compact-field :is(input,select):focus{
+ border-color:#3D84CF!important;box-shadow:0 0 0 3px #2E74D41C!important;
+}
+html[data-apex-design="minimal"] #assetPage .flat-actions{
+ border-top:1px solid #E3EAF3!important;margin-top:18px!important;
+ padding:16px 0 0!important;gap:9px!important;
+}
+html[data-apex-design="minimal"] #assetPage :is(#apexAssetDiagnosticsSection,#apexAssetRefurbSection,#apexAssetRepairsSection){
+ background:#FFFFFF!important;border:1px solid #DCE6F1!important;
+ border-radius:13px!important;padding:19px!important;
+ box-shadow:0 2px 12px rgba(26,62,104,.035)!important;
+}
+html[data-apex-design="minimal"] #assetPage :is(.apex-test-head,.refurb-header,#apexAssetRepairsSection .section-panel-head){
+ border-bottom:1px solid #E5EDF6!important;
+ padding:0 0 15px!important;margin:0 0 16px!important;
+}
+html[data-apex-design="minimal"] #assetPage :is(.apex-test-head,.refurb-header,#apexAssetRepairsSection .section-panel-head) h3{
+ font-size:18px!important;color:#173653!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] #assetPage :is(.apex-test-head,.refurb-header,#apexAssetRepairsSection .section-panel-head) p{
+ color:#647A92!important;line-height:1.55!important;
+}
+html[data-apex-design="minimal"] #assetPage .manual-refurb-notes{
+ background:#F8FBFF!important;border:1px solid #DFEAF5!important;
+ border-radius:11px!important;padding:15px!important;
+}
+html[data-apex-design="minimal"] #assetPage #editRefurbNotes{
+ min-height:135px!important;border-radius:9px!important;
+ background:#FFFFFF!important;color:#263F5A!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetJobProgress .device-repair-list{
+ border:1px solid #DFE8F2!important;border-radius:10px!important;
+ background:#FFFFFF!important;overflow:hidden!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetJobProgress .device-repair-list-title{
+ background:#F7FAFE!important;border-bottom:1px solid #E4EBF4!important;
+}
+html[data-apex-design="minimal"] #assetPage #assetAdvanced.v63-history-ready{
+ background:transparent!important;border:0!important;padding:0!important;
+}
+html[data-apex-design="minimal"] #assetPage .v63-history-tools,
+html[data-apex-design="minimal"] #assetPage .v63-history-timeline{
+ background:#FFFFFF!important;border:1px solid #DCE6F1!important;
+ color:#243C58!important;border-radius:11px!important;
+}
+html[data-apex-design="minimal"] #assetPage .v63-history-event{
+ border-color:#E3ECF5!important;padding:13px 16px!important;
+}
+html[data-apex-design="minimal"] #assetPage .v63-history-event time{
+ color:#607891!important;font-size:11px!important;
+}
+@media(max-width:1150px){
+ html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+ html[data-apex-design="minimal"] #assetPage .v34-editor-columns{grid-template-columns:1fr!important}
+ html[data-apex-design="minimal"] #assetPage #apexDeviceActions{position:relative}
+ html[data-apex-design="minimal"] #assetPage .v3-asset-tabs{top:0!important}
+}
+@media(max-width:620px){
+ html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-top{flex-direction:column}
+ html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{grid-template-columns:1fr}
+ html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{grid-template-columns:1fr!important}
+ html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-buttons{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-apex-design="minimal"] #assetPage *{scroll-behavior:auto!important}
+}
+@media print{
+ html[data-apex-design="minimal"] #assetPage #apexDeviceActions{display:none!important}
+}
