@@ -1,0 +1,108 @@
+/* APEX v4.1.17 — Professional Refurbishment UI 3.0
+   Isolated presentation pass. Does not modify records, workflows, buttons or print output.
+   Uses the existing light/dark APEX design tokens throughout. */
+#refurbWorkspacePage{--rw17-radius:11px;--rw17-radius-sm:8px;--rw17-control-h:35px;--rw17-hairline:var(--line);--rw17-ink:var(--text);--rw17-secondary:var(--muted);--rw17-surface:var(--panel);--rw17-soft:var(--panel2)}
+#refurbWorkspacePage .rw-heading{margin:0 0 12px!important;padding:3px 0 13px!important;border-bottom:1px solid var(--rw17-hairline);gap:14px}
+#refurbWorkspacePage .rw-heading h2{font-size:23px!important;font-weight:800!important;letter-spacing:-.5px!important;line-height:1.25!important;margin:0 0 4px!important;color:var(--rw17-ink)}
+#refurbWorkspacePage .rw-heading p{font-size:11.5px!important;line-height:1.5!important;color:var(--rw17-secondary);max-width:690px}
+#refurbWorkspacePage #rwRefresh{border-radius:var(--rw17-radius-sm)!important;min-height:var(--rw17-control-h)!important;padding:8px 13px!important}
+#refurbWorkspacePage .rw-view-tabs{display:flex!important;align-items:center;flex-wrap:wrap;gap:5px!important;border-bottom:1px solid var(--rw17-hairline)!important;padding:0 0 11px!important;margin:0 0 14px!important}
+#refurbWorkspacePage .rw-view-tabs .v3-tab{padding:8px 12px!important;min-height:36px!important;border-radius:var(--rw17-radius-sm)!important;font-size:11.5px!important;line-height:1.3!important;font-weight:700!important;transition:background .12s,border-color .12s}
+#refurbWorkspacePage .rw-view-tabs .v3-tab.selected{font-weight:800!important;box-shadow:none!important}
+#refurbWorkspacePage .rw-queue-summary{gap:9px!important;margin:0 0 12px!important}
+#refurbWorkspacePage .rw-queue-summary>div,#refurbWorkspacePage .rw-queue-summary>.apex-b-rw-metric{border-radius:var(--rw17-radius)!important;min-height:70px!important;padding:11px 14px!important;box-shadow:none!important;border:1px solid var(--rw17-hairline)!important}
+#refurbWorkspacePage .rw-queue-summary strong{font-size:21px!important;font-weight:800!important;line-height:1.15!important}
+#refurbWorkspacePage .rw-queue-summary span{font-size:10.5px!important;line-height:1.35!important}
+#refurbWorkspacePage .rw-queue-controls{border:1px solid var(--rw17-hairline)!important;border-radius:var(--rw17-radius)!important;background:var(--rw17-surface)!important;margin-bottom:12px!important;padding:0!important;overflow:visible!important}
+#refurbWorkspacePage .rw-queue-controls .rw-toolbar{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex-wrap:wrap!important;margin:0!important;padding:10px 13px!important}
+#refurbWorkspacePage .rw-search-field{flex:1 1 260px!important;max-width:580px!important;margin:0!important}
+#refurbWorkspacePage #rwSearch{background:var(--rw17-soft)!important;color:var(--rw17-ink)!important;border:1px solid var(--rw17-hairline)!important;min-height:var(--rw17-control-h)!important;height:var(--rw17-control-h)!important;padding:7px 11px!important;border-radius:var(--rw17-radius-sm)!important;font-size:11.5px!important;max-width:none!important}
+#refurbWorkspacePage #rwResults{font-size:11px!important;font-weight:650!important;color:var(--rw17-secondary)!important;white-space:nowrap!important}
+#refurbWorkspacePage #rwFilters{display:flex!important;gap:6px!important;flex-wrap:wrap!important;margin:0!important;padding:0 13px 10px!important}
+#refurbWorkspacePage #rwFilters button{min-height:30px!important;padding:5px 9px!important;border-radius:7px!important;font-size:10.5px!important;font-weight:650!important;line-height:1.25!important}
+#refurbWorkspacePage #rwFilters button.selected{font-weight:800!important}
+#refurbWorkspacePage #rwFilters span{border-radius:5px!important;font-size:10px!important;min-width:18px!important}
+#refurbWorkspacePage .rw-selection-bar{margin:0 13px 10px!important;padding:8px 11px!important;border-radius:8px!important}
+#refurbWorkspacePage .rw-selection-actions{gap:5px!important}
+#refurbWorkspacePage .rw-selection-actions button{min-height:32px!important;border-radius:7px!important;padding:6px 10px!important}
+#refurbWorkspacePage #rwQueueTable,#refurbWorkspacePage #rwLaneTable{border:1px solid var(--rw17-hairline)!important;border-radius:var(--rw17-radius)!important;box-shadow:none!important;background:var(--rw17-surface)!important}
+#refurbWorkspacePage #rwQueueTable .rw-table-scroll,#refurbWorkspacePage #rwLaneTable .rw-table-scroll{max-width:100%;overflow-x:auto!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table{min-width:820px!important;width:100%!important;table-layout:fixed!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th,#refurbWorkspacePage #rwLaneTable .rw-lane-table>thead>tr>th{padding:11px 12px!important;background:var(--rw17-soft)!important;color:var(--rw17-secondary)!important;font-size:10.5px!important;font-weight:800!important;letter-spacing:.01em!important;line-height:1.35!important;white-space:nowrap!important;border-bottom:1px solid var(--rw17-hairline)!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>tr.rw-job-row>td{padding:11px 12px!important;vertical-align:middle!important;line-height:1.3!important;border-bottom:1px solid var(--rw17-hairline)!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>tbody>tr.rw-job-row:hover>td{background:color-mix(in srgb,var(--rw17-soft) 68%,transparent)!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th:nth-child(2){width:38%!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table>thead>tr>th:nth-child(3){width:36%!important}
+#refurbWorkspacePage #rwQueueTable .rw-work-table .inventory-selection-cell{padding:13px 9px!important}
+#refurbWorkspacePage #rwQueueTable .rw-device-name{margin:3px 0 4px!important;font-size:12px!important;line-height:1.35!important;font-weight:750!important}
+#refurbWorkspacePage #rwQueueTable .rw-device-meta{gap:2px!important;flex-direction:row!important;flex-wrap:wrap!important;column-gap:15px!important}
+#refurbWorkspacePage #rwQueueTable .rw-device-meta>span{font-size:10px!important;max-width:100%!important}
+#refurbWorkspacePage #rwQueueTable .rw-device-meta small{min-width:0!important;margin-right:3px!important;font-size:9.5px!important}
+#refurbWorkspacePage #rwQueueTable .inventory-stage{display:inline-flex!important;align-items:center!important;font-size:10px!important;line-height:1.2!important;padding:4px 7px!important;border-radius:6px!important;white-space:normal!important;max-width:100%!important}
+#refurbWorkspacePage #rwQueueTable .rw-task-tags{gap:4px!important;margin:5px 0 3px!important}
+#refurbWorkspacePage #rwQueueTable .rw-tag{font-size:9.5px!important;line-height:1.2!important;padding:3px 6px!important;border-radius:6px!important}
+#refurbWorkspacePage #rwQueueTable .rw-progress-track{margin-top:6px!important;height:5px!important;border-radius:9px!important}
+#refurbWorkspacePage #rwQueueTable .rw-completion{margin-top:3px!important;font-size:9.5px!important}
+#refurbWorkspacePage #rwQueueTable .rw-next-cell>[data-rw-expand]{min-height:32px!important;border-radius:7px!important;padding:6px 10px!important;font-size:10.5px!important}
+#refurbWorkspacePage #rwQueueTable .rw-next-description{margin-top:5px!important;font-size:10px!important;line-height:1.35!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail{padding:13px!important;border-top:1px solid var(--rw17-hairline)!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail-top{gap:10px!important;margin-bottom:11px!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail .inventory-parts-table{border-radius:var(--rw17-radius-sm)!important;overflow:hidden!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail .inventory-parts-table th{padding:9px 10px!important}
+#refurbWorkspacePage #rwQueueTable .rw-detail .inventory-parts-table td{padding:9px 10px!important}
+#refurbWorkspacePage .rw-pagebar{padding:9px 12px!important;font-size:10.5px!important}
+#refurbWorkspacePage .rw-pagebar button{min-height:32px!important;border-radius:7px!important}
+#refurbWorkspacePage .rw-lane-summary{gap:9px!important;margin:0 0 12px!important}
+#refurbWorkspacePage .rw-lane-summary>div{min-height:70px!important;padding:12px 14px!important;border-radius:var(--rw17-radius)!important}
+#refurbWorkspacePage .rw-lane-summary strong{font-size:21px!important}
+#refurbWorkspacePage .rw-lane-summary>p{line-height:1.45!important;font-size:10.5px!important}
+#refurbWorkspacePage .rw-lane-toolbar{margin-bottom:12px!important;align-items:flex-end!important}
+#refurbWorkspacePage #rwLaneSearch{height:35px!important;min-height:35px!important;border-radius:var(--rw17-radius-sm)!important}
+#refurbWorkspacePage #rwLaneResults{font-size:10.5px!important}
+#refurbWorkspacePage .rw-lane-table{min-width:820px!important}
+#refurbWorkspacePage #rwLaneTable .rw-lane-table td{padding:10px 12px!important;line-height:1.35!important;vertical-align:middle!important}
+#refurbWorkspacePage .rw-lane-device{font-size:11.5px!important;line-height:1.35!important;margin:3px 0!important}
+#refurbWorkspacePage .rw-lane-meta{font-size:10px!important;line-height:1.45!important}
+#refurbWorkspacePage .rw-lane-tasks{gap:4px!important}
+#refurbWorkspacePage .rw-lane-task{font-size:10.5px!important}
+#refurbWorkspacePage .rw-lane-status{font-size:10px!important;border-radius:7px!important;padding:5px 7px!important;line-height:1.2!important}
+#refurbWorkspacePage .rw-lane-both{font-size:9.5px!important;border-radius:6px!important;margin-top:5px!important}
+#refurbWorkspacePage .rw-lane-next{font-size:10.5px!important;line-height:1.35!important;margin-bottom:6px!important}
+#refurbWorkspacePage .rw-lane-table button.secondary{min-height:32px!important;border-radius:7px!important;padding:6px 10px!important}
+#refurbWorkspacePage .rw-purchasing-tabs{gap:5px!important;padding:5px!important;margin:0 0 13px!important;border:1px solid var(--rw17-hairline)!important;border-radius:var(--rw17-radius)!important;background:var(--rw17-soft)!important;width:fit-content!important;max-width:100%!important}
+#refurbWorkspacePage .rw-purchasing-tabs .v3-tab{min-height:33px!important;padding:7px 11px!important;border-radius:7px!important;font-size:11px!important;font-weight:700!important}
+#refurbWorkspacePage .rw-purchasing-tabs .v3-tab.selected{background:var(--rw17-surface)!important;border-color:var(--rw17-hairline)!important;box-shadow:0 1px 3px #0000000b!important}
+#refurbWorkspacePage #rwPurchasingOverview{gap:9px!important;margin-bottom:12px!important}
+#refurbWorkspacePage #rwPurchasingOverview button{border-radius:var(--rw17-radius)!important;min-height:74px!important;padding:12px 14px!important}
+#refurbWorkspacePage #rwPurchasingOverview strong{font-size:22px!important}
+#refurbWorkspacePage #rwExistingPanel>.ops-page-content{min-width:0!important}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar{gap:9px!important;padding:11px 13px!important;border-radius:var(--rw17-radius)!important;margin:0 0 12px!important;min-height:0!important}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar select,#refurbWorkspacePage #rwExistingPanel .ops-toolbar input{height:35px!important;min-height:35px!important;max-width:100%!important;border-radius:var(--rw17-radius-sm)!important}
+#refurbWorkspacePage #rwExistingPanel .ops-toolbar button{min-height:33px!important;padding:6px 10px!important;border-radius:var(--rw17-radius-sm)!important}
+#refurbWorkspacePage #rwExistingPanel .ops-table-wrap{margin:0!important;border-radius:var(--rw17-radius)!important;border:1px solid var(--rw17-hairline)!important;box-shadow:none!important;overflow-x:auto!important}
+#refurbWorkspacePage #rwExistingPanel .asset-table{min-width:830px!important;width:100%!important;border-collapse:separate!important;border-spacing:0!important}
+#refurbWorkspacePage #rwExistingPanel .asset-table>thead>tr>th{padding:11px 12px!important;font-size:10.5px!important;line-height:1.3!important;background:var(--rw17-soft)!important;color:var(--rw17-secondary)!important;font-weight:800!important;white-space:nowrap!important}
+#refurbWorkspacePage #rwExistingPanel .asset-table>tbody>tr>td{padding:10px 12px!important;font-size:11px!important;line-height:1.4!important;vertical-align:middle!important}
+#refurbWorkspacePage #rwExistingPanel .asset-table>tbody>tr:hover>td{background:color-mix(in srgb,var(--rw17-soft) 60%,transparent)!important}
+#refurbWorkspacePage #rwExistingPanel .ops-parts-select-toolbar{border-radius:var(--rw17-radius)!important;margin-bottom:12px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-parts-heading{padding:12px 14px!important;gap:10px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-parts-heading .ops-parts-summary>b{font-size:13px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-part-export-actions{padding:9px 14px!important;gap:9px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-parts-tools{gap:6px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons{min-width:0!important;white-space:normal!important}
+#refurbWorkspacePage #rwExistingPanel .ops-part-buttons button{margin:2px!important;min-height:31px!important;padding:5px 9px!important;border-radius:7px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-part-asset-row>td{padding:12px 11px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-expanded-parts{padding:12px 14px!important;border-radius:0 0 var(--rw17-radius-sm) var(--rw17-radius-sm)!important}
+#refurbWorkspacePage #rwExistingPanel .ops-part-progress-badge,#refurbWorkspacePage #rwExistingPanel .ops-stage{display:inline-flex!important;align-items:center!important;border:1px solid var(--rw17-hairline)!important;background:var(--rw17-soft)!important;color:var(--rw17-ink)!important;border-radius:7px!important;padding:5px 8px!important;font-size:10px!important;font-weight:750!important;line-height:1.25!important}
+#refurbWorkspacePage #rwExistingPanel .ops-empty{padding:28px 15px!important;font-size:12px!important;color:var(--rw17-secondary)!important}
+#refurbWorkspacePage #rwExistingPanel .ops-qc-list label{gap:10px!important;padding:11px 13px!important;line-height:1.4!important}
+#refurbWorkspacePage #rwExistingPanel .ops-metrics{gap:9px!important;margin:0 0 12px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-metrics>div{border-radius:var(--rw17-radius)!important;padding:12px 14px!important}
+#refurbWorkspacePage #rwExistingPanel .ops-metrics strong{font-size:22px!important}
+#refurbWorkspacePage :is(button,input,select):focus-visible{outline:2px solid #4084d2!important;outline-offset:2px!important}
+#refurbWorkspacePage .asset-link{font-weight:750!important}
+@media(max-width:1180px){#refurbWorkspacePage .rw-queue-summary{flex-wrap:wrap!important}#refurbWorkspacePage .rw-queue-summary>div{flex:1 1 155px!important}#refurbWorkspacePage .rw-queue-summary>.apex-b-rw-metric{flex:1 1 150px!important}}
+@media(max-width:850px){#refurbWorkspacePage .rw-heading{align-items:flex-start!important}#refurbWorkspacePage #rwQueueTable .rw-work-table{min-width:800px!important}#refurbWorkspacePage .rw-lane-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}#refurbWorkspacePage .rw-lane-summary>p{grid-column:1/-1!important}}
+@media(max-width:650px){#refurbWorkspacePage .rw-heading{flex-wrap:wrap!important}#refurbWorkspacePage .rw-view-tabs{gap:4px!important}#refurbWorkspacePage .rw-view-tabs .v3-tab{flex:1 1 auto!important}#refurbWorkspacePage .rw-queue-controls .rw-toolbar{align-items:stretch!important}#refurbWorkspacePage .rw-search-field{flex-basis:100%!important;max-width:none!important}#refurbWorkspacePage #rwFilters{padding:0 10px 9px!important}#refurbWorkspacePage .rw-lane-toolbar{flex-direction:column!important;align-items:stretch!important}#refurbWorkspacePage .rw-lane-search-field{max-width:none!important}#refurbWorkspacePage .rw-purchasing-tabs{width:100%!important;flex-wrap:wrap!important}#refurbWorkspacePage .rw-purchasing-tabs .v3-tab{flex:1 1 125px!important}}
+@media print{#refurbWorkspacePage .rw-queue-controls,#refurbWorkspacePage .rw-view-tabs{box-shadow:none!important}}
+@media(prefers-reduced-motion:reduce){#refurbWorkspacePage .rw-view-tabs .v3-tab{transition:none!important}}
