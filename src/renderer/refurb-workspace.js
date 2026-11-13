@@ -44,7 +44,10 @@
  function drawQueue(){
   const rows=entries(),valid=new Set(rows.map(r=>r.job.assetId));for(const id of selected)if(!valid.has(id))selected.delete(id);
   for(const id of expanded)if(!valid.has(id))expanded.delete(id);
-  $('rwQueueSummary').innerHTML=[['Active jobs',rows.filter(r=>r.job.status!=='Completed').length],['Awaiting respray',rows.filter(r=>matches(r,'respray')).length],['Awaiting delivery',rows.filter(r=>matches(r,'delivery')).length],['Ready to fit',rows.filter(r=>matches(r,'fit')).length]].map(([label,count])=>'<div><span>'+label+'</span><strong>'+count+'</strong></div>').join('');
+  const queueStats=[['Active jobs',rows.filter(r=>r.job.status!=='Completed').length,'all'],['Needs ordering',rows.filter(r=>matches(r,'order')).length,'order'],['Awaiting respray',rows.filter(r=>matches(r,'respray')).length,'respray'],['Awaiting delivery',rows.filter(r=>matches(r,'delivery')).length,'delivery'],['Ready to fit',rows.filter(r=>matches(r,'fit')).length,'fit']];
+  $('rwQueueSummary').innerHTML=document.documentElement.dataset.apexDesign==='minimal'
+   ?queueStats.map(([label,count,key])=>'<button type="button" class="apex-b-rw-metric" data-rw-metric="'+key+'" aria-pressed="'+(filter===key)+'" title="Filter Work Queue to '+esc(label)+'"><span>'+esc(label)+'</span><strong>'+count+'</strong></button>').join('')
+   :queueStats.filter(([, ,key])=>key!=='order').map(([label,count])=>'<div><span>'+label+'</span><strong>'+count+'</strong></div>').join('');
   $('rwFilters').innerHTML=Object.entries(filterNames).map(([key,name])=>'<button type="button" class="secondary '+(filter===key?'selected':'')+'" data-rw-filter="'+key+'" aria-pressed="'+(filter===key)+'">'+name+' <span>'+rows.filter(r=>matches(r,key)).length+'</span></button>').join('');
   const q=query.trim().toLowerCase(),list=rows.filter(r=>matches(r,filter)&&(!q||[r.asset.id,deviceName(r.asset),r.asset.serial,r.asset.location,r.asset.pallet,r.job.technician,...r.summary.parts.map(p=>p.name)].some(v=>String(v||'').toLowerCase().includes(q))));
   const pages=Math.max(1,Math.ceil(list.length/50));page=Math.max(0,Math.min(page,pages-1));const visible=list.slice(page*50,page*50+50);
@@ -60,6 +63,7 @@
   const all=$('rwSelectVisible');if(all)all.onchange=()=>{for(const r of visible){if(all.checked)selected.add(r.job.assetId);else selected.delete(r.job.assetId);}drawQueue();};
   $('rwQueueTable').querySelectorAll('[data-rw-page]').forEach(b=>b.onclick=()=>{page+=Number(b.dataset.rwPage);drawQueue();});
   $('rwFilters').querySelectorAll('[data-rw-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.rwFilter;page=0;drawQueue();});
+  $('rwQueueSummary').querySelectorAll('[data-rw-metric]').forEach(b=>b.onclick=()=>{filter=b.dataset.rwMetric;page=0;drawQueue();});
   $('rwQueueTable').querySelectorAll('[data-rw-action]').forEach(b=>b.onclick=()=>runAction(b.dataset.rwAction,b.dataset.rwId,b.dataset.rwPart));
   selectionState();syncSelectAll();
  }
