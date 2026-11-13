@@ -10,7 +10,7 @@
   if(!sizes[raw.size||'2x1'])throw Error('Choose a supported label size.');const size=raw.size||'2x1',[w,h]=sizes[size];
   if(!Array.isArray(raw.elements)||raw.elements.length>40)throw Error('Use up to 40 label elements.');const ids=new Set();
   const elements=raw.elements.map((e,i)=>{if(!e||!['text','barcode','qr','line','box'].includes(e.type))throw Error('Unsupported label element.');const id=String(e.id||'element-'+i);if(!/^[a-zA-Z0-9_-]{1,80}$/.test(id)||ids.has(id))throw Error('Each label element needs a different ID.');ids.add(id);
-   const out={id,type:e.type,x:num(e.x,0,w,'X'),y:num(e.y,0,h,'Y'),w:num(e.w,.3,w,'Width'),h:num(e.h,.3,h,'Height'),value:text(e.value),font:fonts.includes(e.font)?e.font:'Arial',fontSize:num(e.fontSize??10,4,72,'Font size'),bold:e.bold===true,italic:e.italic===true,align:['left','center','right'].includes(e.align)?e.align:'center',human:e.human!==false,payload:e.payload==='refurb'?'refurb':'text',stroke:num(e.stroke??.25,.1,2,'Stroke')};
+   const out={id,type:e.type,x:num(e.x,0,w,'X'),y:num(e.y,0,h,'Y'),w:num(e.w,.3,w,'Width'),h:num(e.h,.3,h,'Height'),value:text(e.value),font:fonts.includes(e.font)?e.font:'Arial',fontSize:num(e.fontSize??10,4,72,'Font size'),bold:e.bold===true,italic:e.italic===true,align:['left','center','right'].includes(e.align)?e.align:'center',human:e.human!==false,payload:e.payload==='refurb'?'refurb':'text',stroke:num(e.stroke??.25,.1,2,'Stroke'),...(e.type==='barcode'?{barcodeWidthPct:num(e.barcodeWidthPct??100,20,100,'Barcode width percentage'),barcodeHeightPct:num(e.barcodeHeightPct??100,20,100,'Barcode bar height percentage')}: {})};
    if(out.x+out.w>w+.005||out.y+out.h>h+.005)throw Error('Element '+(i+1)+' extends beyond the label. Move or resize it to fit.');return out;
   });
   return {designerVersion:2,name:text(raw.name||'My label',60).trim(),size,dpi:[203,300,600].includes(Number(raw.dpi))?Number(raw.dpi):203,elements};
@@ -20,7 +20,7 @@
   const content=e.type==='qr'&&e.payload==='refurb'?encoders.ApexAssetLabelQR.makePayload(record):value(e.value,record);if(!String(content).trim())throw Error('Enter a value for the '+e.type+'.');
   let svg=e.type==='barcode'?encoders.ApexAssetBarcode.code128Svg(content,{preserveCase:true}):encoders.ApexAssetLabelQR.qrCodeSvg(content);
   const box=svg.match(/viewBox="0 0 (\d+) (\d+)"/);if(!box)throw Error('Unable to build the code.');const units=Number(box[1]),dot=25.4/dpi,human=e.type==='barcode'&&e.human?e.fontSize*25.4/72*1.2+.5:0;
-  const available=e.type==='qr'?Math.min(e.w,e.h):e.w,dots=Math.floor((available+.00001)/(units*dot));if(dots<1)throw Error('Code is too dense. Make it wider, increase DPI or shorten its value.');const width=units*dots*dot,height=e.type==='qr'?width:e.h-human;
+  const available=e.type==='qr'?Math.min(e.w,e.h):e.w*(e.barcodeWidthPct??100)/100,dots=Math.floor((available+.00001)/(units*dot));if(dots<1)throw Error('Code is too dense. Increase barcode width, DPI or shorten its value.');const width=units*dots*dot,height=e.type==='qr'?width:(e.h-human)*(e.barcodeHeightPct??100)/100;
   if(height<(e.type==='barcode'?3:.3))throw Error('Make the barcode taller or reduce its caption font size.');
   svg=svg.replace('<svg ',`<svg width="${width.toFixed(5)}mm" height="${height.toFixed(5)}mm" `);return {svg,width,height,dots,content,human};
  }
@@ -38,7 +38,7 @@
  }
  function mount(root,raw,record={},dpi){root.innerHTML=markup(raw,record,dpi);return applyLayout(root,raw);}
  function problems(root){const paper=root.matches?.('.designer-label')?root:root.querySelector('.designer-label');if(!paper)return ['No label to print.'];const errors=[];for(const node of paper.children){if(!node.matches('.ld-object'))continue;for(const text of node.querySelectorAll('.ld-text,.ld-human'))if(text.scrollWidth>text.clientWidth+1||text.scrollHeight>text.clientHeight+1)errors.push('Text does not fit in its box. Enlarge the box or reduce its font size.');}return [...new Set(errors)];}
- function element(type,w,h,id){return {id,type,x:1,y:1,w:Math.min(30,w-2),h:Math.min(type==='text'?6:14,h-2),value:type==='text'?'Your text':type==='barcode'?'1234567890':type==='qr'?'Your QR text':'',font:'Arial',fontSize:10,bold:false,italic:false,align:'center',human:true,payload:'text',stroke:.25};}
+ function element(type,w,h,id){return {id,type,x:1,y:1,w:Math.min(30,w-2),h:Math.min(type==='text'?6:14,h-2),value:type==='text'?'Your text':type==='barcode'?'1234567890':type==='qr'?'Your QR text':'',font:'Arial',fontSize:10,bold:false,italic:false,align:'center',human:true,payload:'text',stroke:.25,...(type==='barcode'?{barcodeWidthPct:100,barcodeHeightPct:100}:{})};}
  function preset(kind='text-barcode',size='2x1'){
   const [w,h]=sizes[size],elements=[];let e;
   if(kind==='text'){e=element('text',w,h,'text-1');Object.assign(e,{x:1,y:(h-8)/2,w:w-2,h:8,fontSize:16});elements.push(e);}
