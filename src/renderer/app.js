@@ -18,7 +18,7 @@ function setPage(page,force=false){
  for(const name of Object.keys(PAGE_NAMES))$(name+'Page').classList.toggle('hidden',name!==page);
  document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page||(['asset','scan'].includes(page)&&b.dataset.page==='inventory')));
  $('breadPage').textContent=PAGE_NAMES[page];$('breadSub').textContent=PAGE_SUBS[page];
- document.querySelector('.main').scrollTop=0;render();return true;
+ document.querySelector('.main').scrollTop=0;render();if(page==='dispatch')window.ApexDispatchCentre?.open();return true;
 }
 function rows(data,actions){
  if(!data.length)return '<div class="empty"><strong>No assets found</strong>Scan another ID or add a new asset.</div>';
