@@ -5,17 +5,18 @@ const css=read('src/renderer/inventory-column-spacing-v4122-beta3.css');
 test('Inventory all-devices table fills available horizontal room instead of auto-packing',()=>{
  assert.match(css,/#inventoryPage #inventoryTable\{width:100%!important/);
  assert.match(css,/table-layout:fixed!important/);
- assert.match(css,/min-width:1360px!important/);
+ assert.match(css,/min-width:0!important/);
+ assert.doesNotMatch(css,/min-width:1360px!important/);
  assert.match(css,/:has\(>thead>tr>th:nth-child\(10\):last-child\)/);
- const widths=[3,6,15,9,9,10,8,23,11,6];
+ const widths=[3.5,6.5,15,9,9,10,8,24,10,5];
  assert.equal(widths.reduce((a,b)=>a+b,0),100);
  widths.forEach((w,i)=>assert(css.includes('>thead>tr>th:nth-child('+(i+1)+'){width:'+w+'%!important}'),'column '+(i+1)));
 });
 test('Repair, waiting, identity and actions remain visible and support narrow windows',()=>{
  for(const v of ['.inventory-repair-cell','.inventory-waiting-cell','.inventory-waiting-heading','.v32-row-actions','.apex-device-identity','.apex-status-stack'])assert(css.includes(v),v);
- assert.match(css,/overflow-x:auto!important/);
+ assert.match(css,/overflow-x:hidden!important/);
  assert.match(css,/flex-wrap:wrap!important/);
- assert.match(css,/@media\(max-width:1360px\)/);
+ assert.match(css,/@media\(max-width:1200px\)/);
 });
 test('No unrelated page or data actions are modified',()=>{
  const html=read('src/renderer/index.html');
