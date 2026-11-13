@@ -1,0 +1,19 @@
+/* v4.1.21 report PREVIEW window presentation only.
+   The print layout, A4 units and Code128 module width remain unchanged. */
+@media screen{
+ html:has(#previewContent){background:#e9edf3!important}
+ body:has(#previewContent){padding:22px 16px 30px!important}
+ #previewContent{border:1px solid #cdd7e3;box-shadow:0 9px 32px #122b451a,0 2px 7px #122b4510!important;overflow:visible;border-radius:3px}
+ #previewContent :is(h1,h2,h3){overflow-wrap:anywhere}
+ #previewContent :is(table,thead,tbody,tr){max-width:100%}
+ #previewContent :is(td,th){overflow-wrap:anywhere}
+ #previewContent #printPane{background:#fff!important}
+}
+@media print{
+ html:has(#previewContent),body:has(#previewContent){background:white!important;margin:0!important;padding:0!important}
+ #previewContent{box-shadow:none!important;border:none!important}
+ #previewContent :is(table){border-collapse:collapse}
+ #previewContent :is(thead){display:table-header-group}
+ #previewContent :is(tr){break-inside:avoid;page-break-inside:avoid}
+ #previewContent :is(.apex-report-asset-code,.apex-report-bars){break-inside:avoid;page-break-inside:avoid}
+}
