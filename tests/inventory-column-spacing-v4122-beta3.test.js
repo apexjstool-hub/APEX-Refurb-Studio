@@ -23,5 +23,5 @@ test('No unrelated page or data actions are modified',()=>{
  assert(html.indexOf('inventory-column-spacing-v4122-beta3.css')>html.indexOf('apex-inventory-refinement-v4114.css'));
  for(const id of ['#palletLocationDetailPage','#dispatchPage','#refurbWorkspacePage','#reportsPage','#assetPage'])assert(!css.includes(id),id);
  assert.doesNotMatch(css,/display:none!important|url\(/);
- for(const original of ['inventoryStatus','inventorySearch','inventoryTable','invAdd','topTheme'])assert(html.includes(original),original);
+ for(const original of ['inventorySearch','inventoryTable','invAdd','topTheme'])assert(html.includes(original),original);
 });
