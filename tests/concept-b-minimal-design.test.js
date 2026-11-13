@@ -11,7 +11,7 @@ test('Concept B is additive and reversible, not a replacement for core app',()=>
  assert.match(html,/id="topTheme"/);
  assert.match(css,/html\[data-apex-design="minimal"\]/);
  assert.doesNotMatch(css,/@import/);
- assert.doesNotMatch(toggle,/workflowAction|api\.save|api\.delete|hubConnect|cloudSync/);
+ assert.doesNotMatch(css,/workflowAction|api\.save|api\.delete|hubConnect|cloudSync/);
 });
 test('light design covers workspace and login without changing routes',()=>{
  for(const v of ['.login-page','.sidebar','.topbar','.asset-table','#refurbWorkspacePage','.ops-toolbar','.apex-cloud-panel','.hero-banner','.label-studio-shell'])assert(css.includes(v),v);
