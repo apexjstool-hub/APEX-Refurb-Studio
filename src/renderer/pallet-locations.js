@@ -78,6 +78,7 @@
   detail.querySelectorAll('[data-pl-move]').forEach(b=>b.onclick=()=>move([b.dataset.plMove]));
   detail.querySelectorAll('[data-pl-remove-pallet]').forEach(b=>b.onclick=()=>window.ApexPalletPage.remove(b.dataset.plRemovePallet,b));
   window.ApexDeleteControls?.decorate(detail);
+  if(showJobs)window.ApexPalletStatusPolish?.refresh();
   if(currentPage==='palletLocationDetail')$('breadSub').textContent=viewed||'Unassigned pallets';
  }
  function move(initial=[],target=''){
