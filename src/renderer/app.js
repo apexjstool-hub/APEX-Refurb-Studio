@@ -332,7 +332,7 @@ updateConnection();
 // One preference for login and all workspace pages. Apply before sign-in to avoid flashing themes.
 const appearanceKey='apex-inventory-appearance-v1';
 function applyTheme(theme){
- const mode=theme==='light'?'light':'dark';document.documentElement.dataset.theme=mode;
+ const mode=theme==='light'?'light':'dark';document.documentElement.dataset.theme=mode;document.documentElement.dataset.apexDesign=mode==='light'?'minimal':'classic';
  try{localStorage.setItem(appearanceKey,mode);}catch{}
  const button=$('topTheme');if(button)button.innerHTML=mode==='dark'?'☀ <span>Light</span>':'☾ <span>Dark</span>';
  document.querySelectorAll('[data-set-theme]').forEach(b=>{b.classList.toggle('selected',b.dataset.setTheme===mode);b.setAttribute('aria-pressed',String(b.dataset.setTheme===mode));});
