@@ -52,7 +52,7 @@ test('Synthetic laptop records and local-only demo account ship with the preview
 });
 test('Concept A redesign covers Dashboard, Inventory and Device Details without replacing their handlers',()=>{
  assert.match(html,/href="apex5-professional-preview\.css"/);
- assert.match(html,/<title>APEX 5\.0 Redesign Preview 2 — Offline Demo<\/title>/);
+ assert.match(html,/<title>APEX 5\.0 Green Professional Preview 3 — Offline Demo<\/title>/);
  for(const id of ['dashboardPage','inventoryPage','assetPage','inventoryTable','assetEditor','assetJobProgress','mTotal','mTesting','topTheme'])assert(html.includes('id="'+id+'"'),id);
  for(const area of ['#dashboardPage .hero-banner','#dashboardPage .metric','#dashboardPage .apex-pulse','#inventoryPage #inventoryTable','#inventoryPage .inventory-quick-chip','#assetPage .v3-asset-tabs','#assetPage #apexAssetDetailsSection.flat-editor'])assert(css.includes(area),area);
  assert.match(css,/#appPage \.menu-item\.active/);
