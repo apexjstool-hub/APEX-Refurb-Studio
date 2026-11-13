@@ -7,7 +7,7 @@ const read=p=>fs.readFileSync(path.join(archive,p),'utf8');
 assert(fs.existsSync(archive),'Missing packaged preview app.asar');
 const pkg=JSON.parse(read('package.json'));
 assert.equal(pkg.name,'apex-management-studio-5-preview');
-assert.equal(pkg.version,'5.0.0-preview.1');
+assert.equal(pkg.version,'5.0.0-preview.2');
 const main=read('src/main.js');
 assert(main.includes("app.setPath('userData',previewUserData)"),'Isolated userData missing');
 assert(main.includes("app.setAppUserModelId('com.apex.management.preview5')"),'Separate Windows app ID missing');
