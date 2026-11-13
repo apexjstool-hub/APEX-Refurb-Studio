@@ -3,9 +3,9 @@
 (function(){
  const $=id=>document.getElementById(id),root=$('refurbWorkspacePage');
  if(!root||!window.ApexOps)return;
- const views={queue:['Work queue','Parts, respray and the next action for each laptop.'],purchasing:['Parts & purchasing','Manage requirements, supplier orders and deliveries together.'],qc:['Quality control','Use the existing checks to finish refurbishment jobs.'],completed:['Completed','Recorded completed refurbishment jobs.']};
- const filterNames={all:'All active',order:'Needs ordering',delivery:'Parts ordered',fit:'Ready to fit',respray:'Awaiting respray',qc:'Awaiting QC',hold:'On hold'};
- let view='queue',purchase='parts',filter='all',query='',page=0,returnToQueue=false,queueScroll=0;
+ const views={queue:['All refurbishment jobs','Parts, respray and the next action for each laptop.'],partsLane:['Parts required','Replacement parts only. Assets needing respray also remain in the Respray queue.'],resprayLane:['Respray required','Cosmetic respray jobs only. Existing Microdream pallet dispatch and return workflows are unchanged.'],purchasing:['Parts & purchasing','Manage requirements, supplier orders and deliveries together.'],qc:['Quality control','Use the existing checks to finish refurbishment jobs.'],completed:['Completed','Recorded completed refurbishment jobs.']};
+ const filterNames={all:'All active',order:'Needs ordering',delivery:'Parts ordered',fit:'Ready to fit',respray:'Awaiting respray',both:'Both required',qc:'Awaiting QC',hold:'On hold'};
+ let view='queue',purchase='parts',filter='all',query='',laneQuery='',page=0,returnToQueue=false,queueScroll=0;
  const expanded=new Set(),selected=new Set(),homes=new Map();
  const snapshot=()=>window.ApexWorkflowSnapshot;
  const esc=html,locked=j=>['Completed','On Hold'].includes(j.status);
@@ -28,6 +28,7 @@
   if(j.status==='Completed')return false;
   if(value==='all')return true;if(value==='hold')return j.status==='On Hold';if(locked(j))return false;
   if(value==='respray')return s.parts.some(p=>spray(p)&&p.fitted<p.required);
+  if(value==='both')return s.parts.some(p=>spray(p)&&p.fitted<p.required)&&s.parts.some(p=>!spray(p)&&p.fitted<p.required);
   if(value==='order')return s.needsOrdering>0;if(value==='delivery')return s.awaitingDelivery>0;if(value==='fit')return s.toFit>0;
   return s.key===value;
  }
@@ -67,6 +68,22 @@
   $('rwQueueTable').querySelectorAll('[data-rw-action]').forEach(b=>b.onclick=()=>runAction(b.dataset.rwAction,b.dataset.rwId,b.dataset.rwPart));
   selectionState();syncSelectAll();
  }
+ function drawLane(){
+  const lane=view==='resprayLane'?'respray':'parts';
+  const queue=window.ApexRefurbLanes.lanes(entries()),list=queue[lane];
+  const both=new Set(queue.both),q=laneQuery.trim().toLowerCase();
+  const visible=list.filter(row=>!q||[row.assetId,deviceName(row.asset),row.asset.serial,row.pallet,row.location,row.parts.map(p=>p.name).join(' ')].some(v=>String(v||'').toLowerCase().includes(q)));
+  $('rwLaneResults').textContent=visible.length+' of '+list.length+' devices';
+  const label=lane==='respray'?'Respray':'Parts';
+  $('rwLaneSummary').innerHTML='<div><small>Active '+label.toLowerCase()+' jobs</small><strong>'+list.length+'</strong></div><div><small>Also needs '+(lane==='respray'?'parts':'respray')+'</small><strong>'+list.filter(r=>both.has(r.assetId)).length+'</strong></div><p>Each asset is linked to its original refurbishment job. No duplicate asset records are created.</p>';
+  $('rwLaneTable').innerHTML=visible.length?'<div class="rw-table-scroll"><table class="asset-table rw-lane-table"><thead><tr><th>Asset / device</th><th>'+label+' required</th><th>Progress</th><th>Next action</th></tr></thead><tbody>'+visible.map(row=>{
+   const status='<span class="rw-lane-status rw-lane-status-'+lane+'">'+esc(row.status)+'</span>';
+   const also=both.has(row.assetId)?'<span class="rw-lane-both">Also in '+(lane==='respray'?'Parts':'Respray')+'</span>':'';
+   const tasks=row.parts.filter(p=>Number(p.fitted)<Number(p.required)).map(p=>'<span class="rw-lane-task">'+esc(p.name)+' <small>'+Number(p.fitted)+'/'+Number(p.required)+' done</small></span>').join('');
+   return '<tr><td><button type="button" class="asset-link" data-rw-lane-open="'+esc(row.assetId)+'">'+esc(row.assetId)+'</button><strong class="rw-lane-device">'+esc(deviceName(row.asset))+'</strong><small class="rw-lane-meta">'+esc(row.asset.serial||'No serial')+' · '+esc(row.pallet||row.location||'Unassigned')+'</small>'+also+'</td><td><div class="rw-lane-tasks">'+tasks+'</div></td><td>'+status+'<small class="rw-lane-meta">'+row.fitted+' of '+row.required+' completed</small></td><td><span class="rw-lane-next">'+esc(row.next)+'</span><button type="button" class="secondary" data-rw-lane-manage="'+esc(row.assetId)+'">Work on device</button></td></tr>';
+  }).join('')+'</tbody></table></div>':'<div class="empty"><strong>No '+label.toLowerCase()+' jobs found</strong>Try another search, or add an outstanding '+label.toLowerCase()+' task to an asset refurbishment job.</div>';
+  $('rwLaneTable').querySelectorAll('[data-rw-lane-open],[data-rw-lane-manage]').forEach(button=>button.onclick=()=>openDevice(button.dataset.rwLaneOpen||button.dataset.rwLaneManage));
+ }
  function syncSelectAll(){const all=$('rwSelectVisible');if(!all)return;const checks=[...$('rwQueueTable').querySelectorAll('[data-rw-select]')],count=checks.filter(c=>c.checked).length;all.checked=!!checks.length&&count===checks.length;all.indeterminate=count>0&&count<checks.length;}
  function runAction(kind,id,part){
   const ops=window.ApexOps;if(kind==='device'){openDevice(id);return;}
@@ -87,7 +104,7 @@
  function draw(){
   if(!active())return;
   $('rwHeading').textContent=views[view][0];$('rwSubtitle').textContent=views[view][1];
-  $('rwQueue').hidden=view!=='queue';$('rwPurchasingTabs').hidden=view!=='purchasing';
+  $('rwQueue').hidden=view!=='queue';$('rwLaneView').hidden=!['partsLane','resprayLane'].includes(view);$('rwPurchasingTabs').hidden=view!=='purchasing';
    const procurement=$('rwPurchasingOverview');
    if(procurement){
     const show=view==='purchasing'&&document.documentElement.dataset.apexDesign==='minimal';
@@ -103,7 +120,7 @@
      const metrics=[['Parts needed',needed,'parts'],['Parts ordered',awaiting,'partsOrdered'],['Open purchase orders',orders,'orders'],['Awaiting respray',resprays,'respray']];
      procurement.innerHTML=metrics.map(([title,count,key])=>'<button type="button" data-rw-procurement="'+key+'" aria-pressed="'+(purchase===key)+'" title="View '+esc(title)+'"><span>'+esc(title)+'</span><strong>'+count+'</strong></button>').join('');
      procurement.querySelectorAll('[data-rw-procurement]').forEach(b=>b.onclick=()=>{
-      if(b.dataset.rwProcurement==='respray'){view='queue';filter='respray';page=0;}
+      if(b.dataset.rwProcurement==='respray'){view='resprayLane';page=0;}
       else purchase=b.dataset.rwProcurement;
       draw();
      });
@@ -112,11 +129,11 @@
   document.querySelectorAll('[data-rw-view]').forEach(b=>{b.classList.toggle('selected',b.dataset.rwView===view);b.setAttribute('aria-current',b.dataset.rwView===view?'page':'false');});
   document.querySelectorAll('[data-rw-purchase]').forEach(b=>b.classList.toggle('selected',b.dataset.rwPurchase===purchase));
   $('breadSub').textContent=views[view][0];
-  if(view==='queue'){restorePanels();drawQueue();}else mount((view==='purchasing'?purchase:view)+'Content');
+  if(view==='queue'){restorePanels();drawQueue();}else if(view==='partsLane'||view==='resprayLane'){restorePanels();drawLane();}else mount((view==='purchasing'?purchase:view)+'Content');
  }
  function openView(next){if(!views[next])return;const previous=view;view=next;if(!setPage('refurbWorkspace'))view=previous;}
  const parentPage=setPage;
- const routeViews={refurbJobs:['queue'],parts:['purchasing','parts'],partsOrdered:['purchasing','partsOrdered'],orders:['purchasing','orders'],deliveries:['purchasing','deliveries'],qc:['qc'],completed:['completed']};
+ const routeViews={refurbJobs:['queue'],parts:['partsLane'],partsOrdered:['purchasing','partsOrdered'],orders:['purchasing','orders'],deliveries:['purchasing','deliveries'],qc:['qc'],completed:['completed']};
  setPage=function(target,force){
   if(routeViews[target]){const route=routeViews[target];view=route[0];if(route[1])purchase=route[1];target='refurbWorkspace';}
   const restoreScroll=returnToQueue&&currentPage==='asset'&&target==='refurbWorkspace';
@@ -131,6 +148,7 @@
  document.querySelectorAll('[data-rw-purchase]').forEach(b=>b.onclick=()=>{purchase=b.dataset.rwPurchase;draw();});
  $('rwRefresh').onclick=async()=>{const b=$('rwRefresh');b.disabled=true;try{await refresh();await window.ApexOps.load();}finally{b.disabled=false;}};
  $('rwSearch').oninput=()=>{query=$('rwSearch').value;page=0;drawQueue();};
+ $('rwLaneSearch').oninput=()=>{laneQuery=$('rwLaneSearch').value;drawLane();};
  $('rwOrderSelected').onclick=()=>window.ApexOps.orderParts([...selected]);
  $('rwReceiveSelected').onclick=()=>window.ApexOps.receiveParts([...selected]);
  $('rwPrintSelected').onclick=()=>window.ApexOps.printBatchWorksheets([...selected]);
