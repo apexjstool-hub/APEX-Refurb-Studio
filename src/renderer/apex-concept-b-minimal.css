@@ -109,3 +109,90 @@ html[data-apex-design="minimal"] .topbar .theme-switch{background:#F8FAFD!import
 @media print{html[data-apex-design="minimal"] .app-shell,html[data-apex-design="minimal"] #opsPrintArea{background:white!important}html[data-apex-design="minimal"] #opsPrintArea *{color:inherit}}
 
 @media(prefers-reduced-motion:reduce){html[data-apex-design="minimal"] *,html[data-apex-design="minimal"] *::before,html[data-apex-design="minimal"] *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* Concept B v4.1.03 — sidebar readability refinement ONLY.
+   Keep all other Concept B surfaces and workflows unchanged. */
+html[data-apex-design="minimal"] .sidebar{
+  background:#FFFFFF!important;
+  border-right:1px solid #D7E1EC!important;
+  box-shadow:3px 0 15px rgba(26,59,98,.04)!important;
+}
+html[data-apex-design="minimal"] .sidebar .sidebar-header{
+  border-bottom:1px solid #E3EAF2!important;
+  padding-bottom:15px;
+}
+html[data-apex-design="minimal"] .sidebar .wordmark{
+  color:#0F2742!important;
+  font-weight:800!important;
+  letter-spacing:.75px!important;
+}
+html[data-apex-design="minimal"] .sidebar .wordmark b{
+  color:#1F5FAF!important;
+  font-weight:700!important;
+}
+html[data-apex-design="minimal"] .sidebar .apex-brand-logo{
+  background:#EDF4FF;
+  border:1px solid #D4E3F6;
+  border-radius:10px;
+  padding:3px;
+  box-shadow:0 1px 4px rgba(23,67,119,.09);
+  opacity:1!important;
+}
+html[data-apex-design="minimal"] .sidebar .sidebar-subtitle{
+  color:#61748E!important;
+  font-size:9px!important;
+  font-weight:750!important;
+  letter-spacing:1.2px!important;
+}
+html[data-apex-design="minimal"] .sidebar .sidebar-label{
+  color:#52647E!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  letter-spacing:1.35px!important;
+}
+html[data-apex-design="minimal"] .sidebar .menu-item{
+  color:#2B405C!important;
+  background:transparent!important;
+  border:1px solid transparent!important;
+  border-radius:9px!important;
+  font-size:12.5px!important;
+  font-weight:700!important;
+}
+html[data-apex-design="minimal"] .sidebar .menu-item:hover{
+  color:#163F74!important;
+  background:#F1F6FD!important;
+  border-color:#D8E5F4!important;
+}
+html[data-apex-design="minimal"] .sidebar .menu-item.active{
+  background:#E4F0FF!important;
+  color:#114D99!important;
+  border-color:#C7DCF8!important;
+  box-shadow:inset 3px 0 0 #2F70C7!important;
+}
+html[data-apex-design="minimal"] .sidebar .menu-item .nav-symbol{
+  color:#506580!important;
+  opacity:1!important;
+}
+html[data-apex-design="minimal"] .sidebar .menu-item.active .nav-symbol{
+  color:#155BB2!important;
+}
+html[data-apex-design="minimal"] .sidebar .count-pill{
+  background:#E6F0FF!important;
+  border:1px solid #CFE0FB!important;
+  color:#15539F!important;
+  font-weight:750!important;
+}
+html[data-apex-design="minimal"] .sidebar :is(.v3-small-link,#hubSettings,.sidebar-user){
+  color:#364B64!important;
+  border-color:#E0E7F0!important;
+}
+html[data-apex-design="minimal"] .sidebar :is(.sidebar-user,#hubSettings) b{
+  color:#21364F!important;
+}
+html[data-apex-design="minimal"] .sidebar :is(.sidebar-user,#hubSettings) small{
+  color:#687C95!important;
+}
+html[data-apex-design="minimal"] .sidebar :is(.v3-small-link,#hubSettings,.sidebar-user):hover{
+  background:#F1F6FD!important;
+  color:#163F74!important;
+}
