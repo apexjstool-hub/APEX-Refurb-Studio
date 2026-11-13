@@ -1,0 +1,91 @@
+/* APEX 5.0 Professional / DEMO preview — presentation only.
+   Existing functions, page IDs, event handlers and navy device summary are preserved.
+   Preview ships with a distinct app ID and no cloud/hub connections. */
+body{--ap5-accent:#2367bd;--ap5-ring:#8db8ee;--ap5-radius:14px;--ap5-radius-small:9px}
+#appPage .sidebar{background:#13283f!important;border-right:1px solid #345070!important;box-shadow:3px 0 24px #0c274b0f!important}
+#appPage .sidebar-header{padding-top:23px!important;padding-bottom:19px!important;border-bottom:1px solid #ffffff1a!important}
+#appPage .sidebar-header .wordmark{letter-spacing:.035em!important}
+#appPage .sidebar-header .wordmark span{color:#f5f8fd!important;font-size:15px!important}
+#appPage .sidebar .sidebar-subtitle{color:#a6c0db!important;font-size:9px!important;letter-spacing:.09em!important;line-height:1.6!important}
+#appPage .sidebar-label{color:#91a9c4!important;font-size:9.5px!important;font-weight:800!important;letter-spacing:.12em!important;margin-top:17px!important;margin-bottom:8px!important}
+#appPage .menu-item{border:1px solid transparent!important;border-radius:10px!important;min-height:41px!important;margin:2px 10px!important;padding:9px 12px!important;color:#bed0e5!important;font-size:12px!important;font-weight:670!important;transition:background .16s,color .16s,border-color .16s!important}
+#appPage .menu-item .nav-symbol{color:#92b6d6!important;opacity:1!important;font-size:16px!important;min-width:22px!important}
+#appPage .menu-item:hover{background:#ffffff14!important;border-color:#ffffff16!important;color:#fff!important}
+#appPage .menu-item.active{background:#deecff!important;color:#173d70!important;border-color:#c9dff9!important;box-shadow:0 2px 9px #00000015!important}
+#appPage .menu-item.active .nav-symbol{color:#2065b6!important}
+#appPage .sidebar #hubSettings,#appPage .sidebar .sidebar-user{background:#192f48!important;border:1px solid #ffffff1d!important;border-radius:10px!important;color:#f3f8ff!important}
+#appPage .sidebar #connectionLabel,#appPage .sidebar #connectionDetail{color:#c4d7ed!important}
+#appPage .topbar{border-bottom:1px solid var(--line)!important;box-shadow:0 1px 3px #00000008!important;min-height:61px!important}
+#appPage .main{background:var(--page-bg,var(--bg))!important}
+#appPage .main>.page-intro,#appPage section>.page-intro{margin-bottom:17px!important}
+#appPage .page-intro h1{font-size:27px!important;letter-spacing:-.7px!important;line-height:1.2!important;font-weight:830!important}
+#appPage .page-intro p{font-size:12px!important;line-height:1.55!important;color:var(--muted)!important}
+#appPage .page-intro .eyebrow{color:var(--ap5-accent)!important;font-size:9.5px!important;letter-spacing:.12em!important;font-weight:800!important}
+#appPage .section-panel{border:1px solid var(--line)!important;border-radius:var(--ap5-radius)!important;box-shadow:0 4px 16px #13284709!important;overflow:visible}
+#appPage .section-panel-head{border-bottom:1px solid var(--line)!important;padding:15px 17px!important}
+#appPage .section-panel-head h3{font-size:13.5px!important;font-weight:790!important;letter-spacing:-.1px!important}
+#appPage .section-panel-head p{color:var(--muted)!important;font-size:11px!important;line-height:1.55!important}
+#appPage button.primary{border-radius:9px!important;min-height:37px!important;padding:8px 13px!important;box-shadow:none!important;font-weight:750!important}
+#appPage :is(input,select,textarea){border-radius:9px!important}
+#appPage :is(button,input,select,textarea,a):focus-visible{outline:2px solid var(--ap5-ring)!important;outline-offset:2px!important}
+.ap5-demo-banner{display:flex;gap:9px;align-items:center;justify-content:space-between;background:#dbeafe;color:#123b70;border:1px solid #b6d4f8;border-radius:10px;padding:9px 13px;font-size:11.5px;font-weight:720;line-height:1.45}
+.ap5-demo-banner>span{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ap5-demo-tag{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:4px 8px;background:#164b88;color:#fff;font-size:10px;font-weight:850;letter-spacing:.045em;white-space:nowrap}
+#loginPage .ap5-demo-banner{margin:12px 0 16px}
+#appPage .ap5-demo-banner{margin:11px 18px 0}
+#appPage .ap5-demo-banner strong{color:#123b70}
+#loginPage .login-hero h1{letter-spacing:-1.3px!important}
+#loginPage .login-hero p{max-width:460px;line-height:1.6}
+#loginPage #loginCloudMode,#loginPage #loginLocalMode,#loginPage .apex-login-modes{display:none!important}
+#loginPage #apexLoginHelp{display:none!important}
+#loginPage .login-card{border-radius:18px!important}
+#loginPage .login-card h2{font-size:23px!important;letter-spacing:-.5px!important}
+#dashboardPage .hero-banner{border-radius:16px!important;min-height:178px!important;box-shadow:0 8px 22px #132c5013!important;overflow:hidden!important}
+#dashboardPage .hero-banner-content{padding:24px 27px!important}
+#dashboardPage .hero-banner h2{font-size:26px!important;letter-spacing:-.6px!important;line-height:1.2!important}
+#dashboardPage .hero-banner p{max-width:410px!important;line-height:1.55!important}
+#dashboardPage .metrics{gap:11px!important;margin:13px 0 17px!important}
+#dashboardPage .metric{padding:16px 17px!important;border-radius:13px!important;border:1px solid var(--line)!important;box-shadow:0 2px 11px #122b4c09!important;min-height:108px!important}
+#dashboardPage .metric-head{font-size:10.5px!important;font-weight:760!important;color:var(--muted)!important}
+#dashboardPage .metric-value{font-size:30px!important;letter-spacing:-1px!important;font-weight:830!important;line-height:1.1!important;margin:10px 0 7px!important}
+#dashboardPage .metric-foot{font-size:10.5px!important;line-height:1.4!important}
+#dashboardPage .smart-grid{gap:13px!important;margin-bottom:14px!important}
+#dashboardPage .apex-pulse{border-radius:14px!important;padding:17px!important;margin:15px 0!important}
+#dashboardPage .apex-pulse-heading h2{font-size:17px!important;font-weight:810!important}
+#dashboardPage .apex-pulse-grid{gap:9px!important}
+#dashboardPage .apex-pulse-card{border-radius:10px!important;box-shadow:none!important;min-height:106px!important}
+#dashboardPage .apex-pulse-card strong{font-size:25px!important}
+#dashboardPage #recentTable{overflow-x:auto}
+#inventoryPage .inventory-overview{border-radius:12px!important}
+#inventoryPage .section-panel{overflow:visible!important}
+#inventoryPage .inventory-selection-toolbar{padding:11px 14px!important;gap:7px!important}
+#inventoryPage .inventory-quick-filters{border-top:1px solid var(--line)!important;padding:9px 13px!important}
+#inventoryPage .inventory-quick-chip{border-radius:8px!important;font-weight:750!important}
+#inventoryPage #inventoryTable{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+#inventoryPage #inventoryTable>.asset-table{table-layout:fixed!important;width:100%!important;min-width:0!important;border-collapse:separate!important;border-spacing:0!important}
+#inventoryPage #inventoryTable .asset-table th{background:var(--panel2)!important;padding:11px 8px!important;color:var(--muted)!important;font-size:10px!important;font-weight:780!important;letter-spacing:.015em!important;white-space:normal!important}
+#inventoryPage #inventoryTable .asset-table tbody>tr:not(.inventory-repair-row)>td{padding:12px 8px!important;line-height:1.38!important;font-size:11.5px!important;overflow-wrap:anywhere!important;vertical-align:middle!important}
+#inventoryPage #inventoryTable .asset-table tbody>tr:not(.inventory-repair-row){height:51px!important}
+#inventoryPage #inventoryTable .asset-table tbody>tr:not(.inventory-repair-row):hover td{background:color-mix(in srgb,var(--panel2) 68%,transparent)!important}
+#inventoryPage #inventoryTable .inventory-repair-cell{min-width:0!important;width:auto!important}
+#inventoryPage #inventoryTable .apex-device-identity{min-width:0!important;max-width:100%!important}
+#inventoryPage #inventoryTable .apex-status-stack{display:flex!important;flex-wrap:wrap!important;gap:4px!important}
+#inventoryPage #inventoryTable .apex-work-chip{padding:4px 6px!important;font-size:9.5px!important;white-space:normal!important;border-radius:6px!important}
+#inventoryPage #inventoryTable .inventory-waiting-cell,#inventoryPage #inventoryTable .inventory-waiting-heading{width:auto!important;min-width:0!important}
+#inventoryPage #inventoryTable .inventory-row-actions-menu>summary{border-radius:8px!important;background:var(--panel2)!important}
+#inventoryPage #inventoryTable .inventory-row-actions-menu>summary:hover{border-color:#5997da!important}
+#assetPage .compact-breadcrumb{font-size:11px!important;color:var(--muted)!important;margin:0 0 13px!important}
+#assetPage #apexDeviceActions{border:1px solid var(--line)!important;border-radius:13px!important;box-shadow:0 2px 10px #00000009!important}
+#assetPage .v3-asset-tabs{border-radius:11px!important;gap:5px!important;margin-bottom:14px!important}
+#assetPage .v3-asset-tabs .v3-tab{border-radius:8px!important;min-height:37px!important}
+#assetPage #apexAssetDetailsSection.flat-editor{border-radius:14px!important;border:1px solid var(--line)!important;padding:17px!important}
+#assetPage .v34-form-group{border-radius:11px!important;box-shadow:none!important}
+#assetPage .v34-form-group-head{border-bottom:1px solid var(--line)!important}
+#assetPage .field.compact-field input,#assetPage .field.compact-field select{min-height:38px!important;border-radius:8px!important}
+#assetPage .flat-actions{gap:8px!important;border-top:1px solid var(--line)!important;padding-top:13px!important}
+#assetPage #assetJobProgress .apex-independent-overview{border-radius:12px!important}
+#assetPage #assetJobProgress .device-repair-list{border-radius:11px!important}
+#assetPage #assetJobProgress .device-repair-row{border-bottom:1px solid var(--line)!important}
+@media(max-width:1080px){#dashboardPage .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}#dashboardPage .apex-pulse-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:760px){#dashboardPage .metrics,#dashboardPage .apex-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#loginPage .ap5-demo-banner,#appPage .ap5-demo-banner{font-size:10px!important}#inventoryPage #inventoryTable .asset-table th,#inventoryPage #inventoryTable .asset-table td{padding-left:5px!important;padding-right:5px!important}}
+@media(prefers-reduced-motion:reduce){#appPage .menu-item{transition:none!important}}
