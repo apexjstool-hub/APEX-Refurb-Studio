@@ -1,0 +1,177 @@
+/* Concept B v4.1.06 — screenshot-driven sidebar fix.
+   The user's sidebar was dark while menu text was dark as well.
+   Match the actual dark sidebar with bright accessible text, regardless of
+   stored light/dark theme. Explicit selectors outrank older theme sheets. */
+html[data-apex-design="minimal"] body #appPage #apexSidebar.sidebar{
+ background:#152A3E!important;
+ background-image:none!important;
+ color:#F4F8FF!important;
+ border-right:1px solid #304B65!important;
+ box-shadow:3px 0 19px #0515261C!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .sidebar-header{
+ background:transparent!important;border-bottom:1px solid #344A61!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .wordmark,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .wordmark span{
+ color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
+ opacity:1!important;text-shadow:none!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .wordmark b{
+ color:#9CC8FF!important;-webkit-text-fill-color:#9CC8FF!important;
+ font-weight:850!important;opacity:1!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .sidebar-subtitle,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .sidebar-label{
+ color:#C1D6EC!important;-webkit-text-fill-color:#C1D6EC!important;
+ opacity:1!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item .apex-nav-text,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item .nav-symbol{
+ color:#F3F8FF!important;-webkit-text-fill-color:#F3F8FF!important;
+ opacity:1!important;font-weight:750!important;
+ filter:none!important;text-shadow:none!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item{
+ background:transparent!important;background-image:none!important;
+ border:1px solid transparent!important;box-shadow:none!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item:hover{
+ color:#FFFFFF!important;background:#254563!important;
+ border-color:#426486!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item.active{
+ background:#D4E5FC!important;background-image:none!important;
+ color:#103E78!important;border:1px solid #A9CAF0!important;
+ box-shadow:inset 4px 0 0 #2671C4!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item.active .apex-nav-text,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .menu-item.active .nav-symbol{
+ color:#103E78!important;-webkit-text-fill-color:#103E78!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .count-pill{
+ background:#2B5276!important;color:#FFFFFF!important;
+ -webkit-text-fill-color:#FFFFFF!important;border-color:#56799A!important;
+ opacity:1!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .v3-small-link,
+html[data-apex-design="minimal"] body #appPage #apexSidebar #hubSettings,
+html[data-apex-design="minimal"] body #appPage #apexSidebar .sidebar-user{
+ background:#1F3A54!important;color:#F3F8FF!important;
+ -webkit-text-fill-color:#F3F8FF!important;
+ border:1px solid #42627F!important;opacity:1!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar :is(.v3-small-link,#hubSettings,.sidebar-user):hover{
+ background:#294A6A!important;border-color:#6D95BE!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar :is(.sidebar-user,#hubSettings) b,
+html[data-apex-design="minimal"] body #appPage #apexSidebar :is(.sidebar-user,#hubSettings) small{
+ color:#E9F3FF!important;-webkit-text-fill-color:#E9F3FF!important;
+ opacity:1!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .sidebar-user .avatar{
+ background:#D7E9FF!important;color:#174E8A!important;
+ -webkit-text-fill-color:#174E8A!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .apex-b-sidebar-logo{
+ width:54px!important;height:54px!important;min-width:54px!important;
+ background:#0B2035!important;
+ border:2px solid #73ADFA!important;border-radius:13px!important;
+ box-shadow:0 0 0 3px #FFFFFF16!important;
+ opacity:1!important;filter:none!important;
+}
+html[data-apex-design="minimal"] body #appPage #apexSidebar .apex-nav-collapse{
+ color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
+ border:1px solid #6282A0!important;background:#213C55!important;
+}
+/* Procurement overview, rendered from existing live workflow snapshots. */
+html:not([data-apex-design="minimal"]) #rwPurchasingOverview{display:none!important}
+html[data-apex-design="minimal"] #rwPurchasingOverview{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:12px;margin-bottom:17px;
+}
+html[data-apex-design="minimal"] #rwPurchasingOverview[hidden]{display:none!important}
+html[data-apex-design="minimal"] #rwPurchasingOverview button{
+ background:#FFF!important;border:1px solid #D9E5F1!important;
+ border-radius:12px!important;padding:15px 16px!important;
+ min-height:96px;display:flex;flex-direction:column;align-items:flex-start;
+ gap:10px;box-shadow:0 2px 9px #2546700A!important;text-align:left;
+ color:#25445F!important;white-space:normal!important;
+}
+html[data-apex-design="minimal"] #rwPurchasingOverview button:hover{
+ background:#F3F8FF!important;border-color:#A8CAE9!important;
+}
+html[data-apex-design="minimal"] #rwPurchasingOverview button[aria-pressed="true"]{
+ background:#E7F1FF!important;border-color:#7BABDE!important;
+ box-shadow:inset 3px 0 0 #2876CB!important;
+}
+html[data-apex-design="minimal"] #rwPurchasingOverview span{
+ font-size:12px;font-weight:750;color:#4E6780!important;
+}
+html[data-apex-design="minimal"] #rwPurchasingOverview strong{
+ font-size:27px;font-weight:850;line-height:1;color:#193753!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .rw-purchasing-tabs{
+ padding:9px 0 13px!important;margin-bottom:15px!important;gap:8px!important;
+ border-bottom:1px solid #D7E5F2!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .rw-purchasing-tabs .v3-tab{
+ font-size:12.5px!important;font-weight:750!important;
+ border-radius:9px!important;min-height:36px!important;
+ padding:8px 15px!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .rw-purchasing-tabs .v3-tab.selected{
+ background:#DDEEFF!important;border:1px solid #A5C8EC!important;
+ color:#15559F!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage :is(.ops-parts-heading,.ops-part-export-actions,.ops-toolbar){
+ gap:11px!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-grouped-parts th{
+ color:#3F5976!important;font-size:11.5px!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-grouped-parts td{
+ color:#29415D!important;font-size:12px!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-part-count{
+ font-weight:700!important;color:#2A5A93!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-expanded-parts{
+ background:#F8FBFF!important;border-radius:10px!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-part-progress-badge{
+ padding:5px 9px!important;font-size:11px!important;font-weight:750!important;
+}
+html[data-apex-design="minimal"] #refurbWorkspacePage .ops-part-buttons button{
+ border-radius:8px!important;
+}
+html[data-apex-design="minimal"] #palletLocationDetailPage .md-pallet-selection{
+ background:#F6FAFF!important;border:1px solid #DCE7F3!important;
+ border-radius:10px!important;padding:13px 17px!important;
+}
+html[data-apex-design="minimal"] #palletLocationDetailPage .md-pallet-selection span{
+ color:#405C79!important;font-size:12px!important;font-weight:700!important;
+}
+html[data-apex-design="minimal"] #palletLocationDetailPage .md-pallet-table th{
+ color:#466481!important;font-weight:800!important;
+}
+html[data-apex-design="minimal"] #modalLayer .microdream-request-dialog .md-preview-controls{
+ background:#F7FAFF!important;border:1px solid #DCE8F5!important;
+ padding:12px;border-radius:10px!important;
+}
+html[data-apex-design="minimal"] #modalLayer .microdream-request-dialog .section-note{
+ color:#4D6885!important;font-size:12px!important;line-height:1.55!important;
+}
+html[data-apex-design="minimal"] .microdream-preview-frame{
+ border:1px solid #B6CCE2!important;border-radius:10px!important;
+}
+@media(max-width:1050px){
+ html[data-apex-design="minimal"] #rwPurchasingOverview{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ html[data-apex-design="minimal"] #rwPurchasingOverview{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-apex-design="minimal"] #rwPurchasingOverview button{transition:none!important}
+}
