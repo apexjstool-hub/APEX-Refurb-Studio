@@ -1,33 +1,33 @@
-/* APEX v4.1.22 Beta 3 — Inventory register horizontal spacing fix.
+/* APEX v4.1.22 Beta 4 — Inventory balanced spacing without horizontal scrolling.
    In the 10-column all-devices view, distribute spare room across the row
    instead of packing the text at the left and leaving unused table space.
    Presentation-only. Tables with different column sets retain their layouts. */
-#inventoryPage #inventoryTable{width:100%!important;max-width:100%!important;overflow-x:auto!important}
+#inventoryPage #inventoryTable{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child){
  width:100%!important;
- min-width:1360px!important;
+ min-width:0!important;
  table-layout:fixed!important;
  border-collapse:separate!important;
  border-spacing:0!important;
 }
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(1){width:3%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(2){width:6%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(1){width:3.5%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(2){width:6.5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(3){width:15%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(4){width:9%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(5){width:9%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(6){width:10%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(7){width:8%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:23%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(9){width:11%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(10){width:6%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:24%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(9){width:10%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(10){width:5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td{
- padding-left:13px!important;
- padding-right:13px!important;
+ padding-left:9px!important;
+ padding-right:9px!important;
  overflow-wrap:anywhere;
 }
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th{
- padding-left:13px!important;
- padding-right:13px!important;
+ padding-left:9px!important;
+ padding-right:9px!important;
 }
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) .inventory-repair-cell{
  width:auto!important;
@@ -51,9 +51,14 @@
  justify-content:flex-start!important;
  flex-wrap:wrap!important;
 }
-@media(max-width:1360px){
- #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child){min-width:1360px!important}
+@media(max-width:1200px){
+ #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td,
+ #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th{padding-left:6px!important;padding-right:6px!important}
+ #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) .apex-work-chip{font-size:9px!important;padding:3px 5px!important;white-space:normal!important}
 }
+/* Keep even long pallet identifiers within their assigned cells rather than widening the table. */
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td{min-width:0!important;max-width:0;overflow-wrap:anywhere!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) .apex-work-chip{max-width:100%!important}
 @media print{
  #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child){table-layout:auto!important;min-width:0!important}
 }
