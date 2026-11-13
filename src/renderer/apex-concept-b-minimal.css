@@ -1,0 +1,109 @@
+/* APEX CONCEPT B / MINIMAL — strictly visual and fully reversible.
+   Opt in with html[data-apex-design="minimal"]. The classic app is unchanged. */
+html[data-apex-design="minimal"]{
+ color-scheme:light;
+ --bg:#F5F7FB;--side:#FFFFFF;--panel:#FFFFFF;--panel2:#F8FAFD;
+ --line:#DEE5EF;--text:#1E293B;--muted:#65748B;
+ --violet:#2463C8;--violet2:#1F58B3;
+ --green:#15805D;--amber:#95620E;--pink:#B94661;
+ --shadow:0 3px 16px rgba(30,57,95,.055);
+ --select-bg:#fff;--select-fg:#1E293B;--input-border:#CDD8E6;
+ --glass:#fff;--field-bg:#fff;--card-bg:#F6F9FD;
+ --nav-text:#516079;--surface-hover:#EFF5FE;--soft-highlight:#2364C8;
+}
+html[data-apex-design="minimal"] body{background:#F5F7FB;color:#1E293B;font-family:Inter,"Segoe UI",system-ui,sans-serif;letter-spacing:0;-webkit-font-smoothing:antialiased}
+html[data-apex-design="minimal"] .app-shell{background:#F5F7FB}
+html[data-apex-design="minimal"] .sidebar{background:#fff!important;border-right:1px solid #E2E8F0!important;box-shadow:3px 0 15px rgba(26,59,98,.025)}
+html[data-apex-design="minimal"] .sidebar-header{border-bottom:1px solid #E9EDF3!important;padding-bottom:15px}
+html[data-apex-design="minimal"] .sidebar .wordmark{font-weight:800!important;letter-spacing:.75px!important;color:#142C4A!important}
+html[data-apex-design="minimal"] .sidebar .wordmark b{font-weight:550!important;color:#2464BC!important}
+html[data-apex-design="minimal"] .sidebar-subtitle{color:#8592A4!important;letter-spacing:1.2px!important;font-size:9px!important}
+html[data-apex-design="minimal"] .sidebar-label{color:#8C99AA!important;font-size:10px!important;letter-spacing:1.35px!important;font-weight:800!important;margin-top:16px!important}
+html[data-apex-design="minimal"] .sidebar .menu-item{color:#52647D!important;background:transparent!important;border:1px solid transparent!important;border-radius:9px!important;font-size:12.5px!important;font-weight:600!important;transition:background .14s,color .14s}
+html[data-apex-design="minimal"] .sidebar .menu-item:hover{color:#164E99!important;background:#F1F6FD!important}
+html[data-apex-design="minimal"] .sidebar .menu-item.active{background:#EAF2FF!important;color:#215FBD!important;border-color:#DCEAFE!important;box-shadow:none!important}
+html[data-apex-design="minimal"] .sidebar .nav-symbol{color:#8794A8!important}
+html[data-apex-design="minimal"] .sidebar .menu-item.active .nav-symbol{color:#2368C9!important}
+html[data-apex-design="minimal"] .count-pill{background:#EAF2FF!important;border:1px solid #D8E7FF!important;color:#2860AD!important}
+html[data-apex-design="minimal"] .v3-small-link,html[data-apex-design="minimal"] #hubSettings,html[data-apex-design="minimal"] .sidebar-user{color:#4E5E75!important;border-color:#E5EAF3!important}
+html[data-apex-design="minimal"] .sidebar-user .avatar,html[data-apex-design="minimal"] .top-avatar{background:#E7F0FD!important;color:#205DAA!important}
+html[data-apex-design="minimal"] .topbar{background:rgba(255,255,255,.98)!important;border-bottom:1px solid #E4EAF3!important;box-shadow:none!important;min-height:62px!important}
+html[data-apex-design="minimal"] .topbar .top-left,html[data-apex-design="minimal"] #breadPage{color:#25364F!important;font-weight:700}
+html[data-apex-design="minimal"] .topbar .top-muted{color:#8591A3!important}
+html[data-apex-design="minimal"] .header-username{color:#394D67!important}
+html[data-apex-design="minimal"] .content{background:#F5F7FB!important}
+html[data-apex-design="minimal"] .v3-topline{background:transparent!important;border-color:#E2E8F0!important}
+html[data-apex-design="minimal"] #v3Workspace,html[data-apex-design="minimal"] .page-intro h1{color:#172B47!important;font-weight:770!important;letter-spacing:-.9px!important}
+html[data-apex-design="minimal"] .page-intro h1{font-size:clamp(24px,2.7vw,32px)!important}
+html[data-apex-design="minimal"] .page-intro p,html[data-apex-design="minimal"] .section-note,html[data-apex-design="minimal"] .rw-heading p{color:#677790!important;font-size:12px;line-height:1.55}
+html[data-apex-design="minimal"] .eyebrow,html[data-apex-design="minimal"] .eyebrow.violet{color:#3B78C8!important;letter-spacing:1.4px!important}
+html[data-apex-design="minimal"] .heading-dot{color:#2671CE!important}
+html[data-apex-design="minimal"] .primary,html[data-apex-design="minimal"] .banner-button{background:#2769C6!important;border:1px solid #2769C6!important;color:#fff!important;box-shadow:none!important;border-radius:8px!important;font-weight:700!important;text-shadow:none!important}
+html[data-apex-design="minimal"] .primary:hover:not(:disabled),html[data-apex-design="minimal"] .banner-button:hover:not(:disabled){background:#1857AD!important;border-color:#1857AD!important}
+html[data-apex-design="minimal"] .secondary{background:#FFFFFF!important;color:#405472!important;border:1px solid #DCE4EF!important;border-radius:8px!important;box-shadow:none!important;font-weight:650!important}
+html[data-apex-design="minimal"] .secondary:hover:not(:disabled){background:#F0F5FC!important;border-color:#B9CCE3!important}
+html[data-apex-design="minimal"] button:focus-visible,html[data-apex-design="minimal"] input:focus-visible,html[data-apex-design="minimal"] select:focus-visible,html[data-apex-design="minimal"] textarea:focus-visible{outline:2px solid #2872D6!important;outline-offset:2px!important}
+html[data-apex-design="minimal"] button:disabled{opacity:.48!important;cursor:not-allowed}
+html[data-apex-design="minimal"] input:not([type="checkbox"]):not([type="radio"]),html[data-apex-design="minimal"] select,html[data-apex-design="minimal"] textarea{color:#21354F!important;background:#FFFFFF!important;border:1px solid #CFD9E7!important;border-radius:8px!important;box-shadow:none!important}
+html[data-apex-design="minimal"] input::placeholder,html[data-apex-design="minimal"] textarea::placeholder{color:#8A98AD!important}
+html[data-apex-design="minimal"] input:focus,html[data-apex-design="minimal"] select:focus,html[data-apex-design="minimal"] textarea:focus{border-color:#4386DB!important}
+html[data-apex-design="minimal"] label,html[data-apex-design="minimal"] .field{color:#465A73}
+html[data-apex-design="minimal"] .hero-banner{background:linear-gradient(110deg,#EDF5FF 0%,#F7FAFF 65%,#EAF3FF 100%)!important;border:1px solid #DCEAFB!important;box-shadow:none!important;border-radius:14px!important}
+html[data-apex-design="minimal"] .hero-banner h2,html[data-apex-design="minimal"] .hero-banner p{color:#1B3554!important}
+html[data-apex-design="minimal"] .banner-tag{color:#2D6CB8!important;border-color:#CFDFF4!important;background:#FFFFFFCF!important}
+html[data-apex-design="minimal"] .hero-banner .banner-button{background:#2769C6!important;color:#fff!important;border-color:#2769C6!important}
+html[data-apex-design="minimal"] .metric-icon{background:#EAF2FF!important;color:#2669C7!important}
+html[data-apex-design="minimal"] .metric-icon.green{background:#E7F7F0!important;color:#177854!important}
+html[data-apex-design="minimal"] .metric-icon.amber{background:#FFF5E3!important;color:#9B6A19!important}
+html[data-apex-design="minimal"] .metric-icon.pink{background:#FFEDF2!important;color:#B24E6B!important}
+/* Shared card surfaces, dense operational panels and all nested views */
+html[data-apex-design="minimal"] :is(.metric-card,.stat-card,.section-panel,.inventory-overview,.ops-toolbar,.ops-card,.report-card,.apex-cloud-panel,.device-summary-card,.rw-selection-bar,.rw-detail,.management-toolbar,.pallet-location-card,.v3-panel,.inventory-view-controls,.inventory-selection-toolbar,.inventory-quick-filters,.inventory-active-filters,.ops-table-wrap){background:#FFFFFF!important;border:1px solid #E0E7F0!important;box-shadow:0 2px 11px rgba(24,50,83,.035)!important;border-radius:10px!important;color:#253851}
+html[data-apex-design="minimal"] :is(.metric-card,.stat-card,.report-card,.pallet-location-card):hover{border-color:#CDDDF2!important;box-shadow:0 5px 18px rgba(28,72,127,.075)!important}
+html[data-apex-design="minimal"] :is(.section-panel,.ops-table-wrap){overflow-x:auto}
+html[data-apex-design="minimal"] .asset-table{color:#243951!important;border-collapse:separate!important;border-spacing:0!important;font-size:12px!important}
+html[data-apex-design="minimal"] .asset-table th,html[data-apex-design="minimal"] .asset-table thead td{background:#F7F9FC!important;color:#667993!important;font-weight:750!important;letter-spacing:.2px!important;font-size:11px!important;border-bottom:1px solid #DFE6EF!important}
+html[data-apex-design="minimal"] .asset-table td{background:transparent!important;color:#293D56!important;border-bottom:1px solid #EDF0F5!important}
+html[data-apex-design="minimal"] .asset-table tbody tr:hover td{background:#F5F9FF!important}
+html[data-apex-design="minimal"] .asset-table tbody tr.inventory-row-selected td{background:#EAF3FF!important}
+html[data-apex-design="minimal"] :is(.asset-link,.ops-part-buttons .asset-link){color:#2366BF!important;font-weight:700!important}
+html[data-apex-design="minimal"] .ops-part-progress-badge{border-radius:999px!important}
+html[data-apex-design="minimal"] :is(.v3-tab,.rw-view-tabs .v3-tab,.rw-purchasing-tabs .v3-tab){border-radius:8px!important;color:#51637D!important}
+html[data-apex-design="minimal"] :is(.v3-tab.active,.v3-tab.selected,.rw-view-tabs .v3-tab.active,.rw-purchasing-tabs .v3-tab.active){background:#EAF2FE!important;border-color:#D5E6FD!important;color:#225FB4!important}
+html[data-apex-design="minimal"] :is(.inventory-quick-chip,.inventory-active-chip){background:#F8FAFD!important;color:#526A87!important;border:1px solid #DCE5EF!important}
+html[data-apex-design="minimal"] :is(.inventory-quick-chip.is-active,.inventory-quick-chip[aria-pressed="true"]){background:#E8F2FF!important;color:#215CB1!important;border-color:#AFCDF5!important}
+html[data-apex-design="minimal"] #refurbWorkspacePage #rwSearch{border:1px solid #CFD9E7!important;border-radius:8px!important;background:#fff!important;color:#1D3654!important}
+html[data-apex-design="minimal"] .rw-work-table>thead th{background:#F7F9FC!important}
+html[data-apex-design="minimal"] :is(.rw-job-row,.rw-detail,.rw-filters button){color:#263E57!important}
+html[data-apex-design="minimal"] .rw-filters button.selected{background:#EAF2FF!important;border-color:#AFCBF1!important;color:#205DB6!important}
+html[data-apex-design="minimal"] .rw-work-table tbody tr:hover td{background:#F5F9FF!important}
+/* Modals and temporary surfaces */
+html[data-apex-design="minimal"] :is(.modal,.modal-card,.dialog-card,.modal-content,.inventory-action-menu,.inventory-filter-menu,.apex-reminder-popup,.apex-parts-order-notice){background:#FFFFFF!important;color:#25374F!important;border-color:#DDE5F0!important;box-shadow:0 16px 48px rgba(23,47,78,.16)!important}
+html[data-apex-design="minimal"] :is(.modal-header,.modal-actions){border-color:#E6ECF4!important}
+html[data-apex-design="minimal"] :is(.inventory-action-menu button,.inventory-filter-menu button){color:#38516F!important}
+html[data-apex-design="minimal"] :is(.inventory-action-menu button:hover,.inventory-filter-menu button:hover){background:#EDF4FE!important}
+html[data-apex-design="minimal"] .form-error{color:#BD3648!important}
+/* Label designer and printing controls; NEVER recolour print media */
+html[data-apex-design="minimal"] :is(#labelStudioPage,#reportsPage,#settingsPage,#refurbWorkspacePage,#inventoryPage,#palletsPage,#locationsPage) :is(.section-panel,.apex-cloud-panel){border-color:#DFE6F0!important}
+html[data-apex-design="minimal"] .label-studio-shell :is(.panel,.field-group,.label-control-group){background:#FFFFFF!important;border-color:#DFE6F0!important;color:#293B53!important}
+/* Login uses the same quiet, premium light identity */
+html[data-apex-design="minimal"] .login-page{background:#F5F8FC!important}
+html[data-apex-design="minimal"] .login-left{background:linear-gradient(138deg,#EAF3FF,#F7FAFF 78%)!important;border-right:1px solid #DCE7F3!important}
+html[data-apex-design="minimal"] .login-hero h1{color:#17304F!important}
+html[data-apex-design="minimal"] .login-hero h1 em{background:linear-gradient(90deg,#2571C7,#1C539B)!important;background-clip:text!important;-webkit-background-clip:text!important;color:transparent!important}
+html[data-apex-design="minimal"] .login-hero p,html[data-apex-design="minimal"] .hero-points{color:#5D7390!important}
+html[data-apex-design="minimal"] .login-panel{background:#FFFFFF!important}
+html[data-apex-design="minimal"] .login-card h2{color:#192F4A!important}
+html[data-apex-design="minimal"] .login-card>p{color:#647991!important}
+html[data-apex-design="minimal"] .login-card label{color:#344D69!important}
+html[data-apex-design="minimal"] .login-card input{background:#fff!important;color:#243954!important;border-color:#D4DFED!important}
+html[data-apex-design="minimal"] .login-hint,html[data-apex-design="minimal"] .login-panel-footer,html[data-apex-design="minimal"] .footer-note{color:#7C8DA3!important}
+html[data-apex-design="minimal"] .login-hint b{color:#3D5876!important}
+/* In-app reversible design selector. */
+#apexDesignSwitch{font-size:11px!important;letter-spacing:0!important;white-space:nowrap!important;min-height:34px!important;max-height:36px!important;padding:7px 10px!important;border-radius:8px!important;display:inline-flex!important;align-items:center!important;gap:6px!important}
+html[data-apex-design="minimal"] #apexDesignSwitch{background:#F1F6FD!important;border:1px solid #CFDEEF!important;color:#225DAA!important;box-shadow:none!important}
+html[data-apex-design="minimal"] #apexDesignSwitch:hover{background:#E6F0FC!important}
+html[data-apex-design="minimal"] .topbar .global-search{background:#F8FAFD!important;border:1px solid #DDE5EF!important;color:#6D8099!important;border-radius:9px!important}
+html[data-apex-design="minimal"] .topbar .theme-switch{background:#F8FAFD!important;color:#415B78!important;border:1px solid #DCE5EF!important}
+@media (max-width:1100px){#apexDesignSwitch{padding:7px!important}#apexDesignSwitch .apex-design-label{display:none}}
+@media (max-width:720px){html[data-apex-design="minimal"] .topbar{min-height:55px!important}html[data-apex-design="minimal"] .page-intro h1{font-size:25px!important}}
+@media print{html[data-apex-design="minimal"] .app-shell,html[data-apex-design="minimal"] #opsPrintArea{background:white!important}html[data-apex-design="minimal"] #opsPrintArea *{color:inherit}}
