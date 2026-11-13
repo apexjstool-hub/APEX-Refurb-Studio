@@ -3,3 +3,9 @@
 
 
 .ld-studio .ld-saved-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px}.ld-studio .ld-saved-row>.field{flex:1;min-width:0;margin:0}.ld-studio .ld-saved-row>button{flex:none}
+
+/* Independent barcode dimensions: inspector grouping only; never scales caption text. */
+.ld-studio .ld-barcode-sizing{padding:12px 13px;margin:12px 0;border:1px solid var(--line);border-radius:9px;background:var(--panel2)}
+.ld-studio .ld-barcode-sizing h3{font-size:12px;font-weight:800;margin:0 0 6px;color:var(--text)}
+.ld-studio .ld-barcode-sizing .field{margin:10px 0}
+.ld-studio .ld-barcode-sizing .ld-caption{margin:7px 0 0}
