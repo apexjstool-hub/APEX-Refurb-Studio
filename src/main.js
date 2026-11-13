@@ -21,7 +21,9 @@ let intakeNotification=null,arrivalPollBusy=false,backgroundReminders=null;
 // Separate demo identity and data directory, never use production app data.
 const PREVIEW_DEMO=true;
 app.setName('APEX Management Studio 5 Preview');
-app.setPath('userData',path.join(app.getPath('appData'),'APEX-Management-Studio-5-Preview-Demo'));
+const previewUserData=path.join(app.getPath('appData'),'APEX-Management-Studio-5-Preview-Demo');
+fs.mkdirSync(previewUserData,{recursive:true});
+app.setPath('userData',previewUserData);
 if(process.platform==='win32') app.setAppUserModelId('com.apex.management.preview5');
 let cloudSession=null;
 const cloudSeenRevisions=new Map();
