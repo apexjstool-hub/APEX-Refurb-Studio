@@ -42,7 +42,7 @@ function render(){
  for(const asset of items)gradeCounts.set(asset.grade,(gradeCounts.get(asset.grade)||0)+1);
  $('gradeSummary').innerHTML=['A','B','C','D','Pending'].map(g=>`<div class="grade-tile"><b>${g}</b><small>${gradeCounts.get(g)||0} assets</small></div>`).join('');
  const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
- const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
+ const filtered=sorted.filter(a=>(!document.getElementById('ap5V3BrandFilter')?.value||String(a.manufacturer||'')===document.getElementById('ap5V3BrandFilter').value)&&(!document.getElementById('ap5V3TypeFilter')?.value||String(a.productType||'Laptop')===document.getElementById('ap5V3TypeFilter').value)&&(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
  // Only draw the current page. Exports and scans still use the entire items array.
  const ordered=window.ApexInventorySort?window.ApexInventorySort.sort(filtered,window.ApexWorkflowSnapshot):filtered;
  const pageSize=100, pageCount=Math.max(1,Math.ceil(ordered.length/pageSize));
