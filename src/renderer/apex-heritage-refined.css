@@ -1,0 +1,268 @@
+/* APEX Heritage Refined v4.1.08 — user's original dark navy APEX design
+   preserved, with readable menu contrast and smoother modern geometry.
+   Opt-in only, never touches database, routes, report prints or Classic/Concept B. */
+html[data-apex-design="heritage"]{
+ color-scheme:dark;
+ --bg:#101B29;--side:#152433;--panel:#1B2B3C;--panel2:#22364B;
+ --line:#33495F;--text:#EFF5FE;--muted:#B7C7D9;
+ --violet:#75B6FF;--violet2:#428DE1;
+ --green:#81DDAF;--amber:#E7BE78;--pink:#F1A5B4;
+ --shadow:0 5px 22px #03101E30;
+ --select-bg:#1F3349;--select-fg:#EFF5FE;--input-border:#4A6178;
+ --glass:#1A2B3F;--field-bg:#17283A;--card-bg:#1E3043;
+ --nav-text:#EAF3FF;--surface-hover:#29435F;--soft-highlight:#377FC9;
+}
+html[data-apex-design="heritage"] body,
+html[data-apex-design="heritage"] .app-shell,
+html[data-apex-design="heritage"] .content{background:#101B29!important;color:#EFF5FE!important;}
+/* Old sidebar proportions and classic APEX wordmark/position. */
+html[data-apex-design="heritage"] body #appPage #apexSidebar.sidebar{
+ width:272px!important;min-width:272px!important;
+ background:#172634!important;background-image:none!important;
+ border-right:1px solid #34485D!important;
+ box-shadow:4px 0 20px #08162426!important;
+ color:#F5F9FF!important;
+}
+html[data-apex-design="heritage"] #apexSidebar .apex-b-sidebar-logo{display:none!important}
+html[data-apex-design="heritage"] #apexSidebar .apex-brand-logo{
+ display:block!important;width:60px!important;height:60px!important;
+ min-width:60px!important;padding:0!important;
+ filter:none!important;opacity:1!important;
+ border:1px solid #4D9AEF!important;border-radius:14px!important;
+ background:#102D51!important;box-shadow:0 2px 12px #00000025!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .sidebar-header{
+ padding:13px 8px 21px!important;
+ border-bottom:1px solid #395067!important;
+ background:transparent!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .sidebar-header .wordmark{
+ display:flex!important;align-items:center!important;gap:13px!important;
+ font-size:14px!important;font-weight:850!important;
+ color:#FFFFFF!important;letter-spacing:.1px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .wordmark span{
+ color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
+ font-size:14px!important;line-height:1.35!important;
+ font-weight:850!important;white-space:normal!important;
+ opacity:1!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .wordmark b{
+ color:#9AC9FF!important;-webkit-text-fill-color:#9AC9FF!important;
+ font-size:11.5px!important;font-weight:800!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .sidebar-subtitle{
+ color:#C1D4E7!important;-webkit-text-fill-color:#C1D4E7!important;
+ opacity:1!important;font-size:10px!important;font-weight:720!important;
+ letter-spacing:.75px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .sidebar-label{
+ color:#BDD0E4!important;-webkit-text-fill-color:#BDD0E4!important;
+ font-size:10px!important;font-weight:820!important;
+ letter-spacing:1.05px!important;opacity:1!important;
+ margin-top:14px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu{gap:5px!important}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item{
+ background:transparent!important;
+ border:1px solid transparent!important;
+ border-radius:11px!important;
+ min-height:45px!important;
+ color:#F4F8FF!important;-webkit-text-fill-color:#F4F8FF!important;
+ font-weight:730!important;font-size:13.5px!important;
+ padding:12px 13px!important;box-shadow:none!important;
+ transition:background-color .15s ease,border-color .15s ease!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item .apex-nav-text,
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item .nav-symbol{
+ color:#F4F8FF!important;-webkit-text-fill-color:#F4F8FF!important;
+ font-size:13.5px!important;font-weight:730!important;opacity:1!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item .nav-symbol{
+ color:#9DC5F2!important;-webkit-text-fill-color:#9DC5F2!important;font-size:20px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item:hover{
+ background:#253D56!important;border-color:#476482!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item.active{
+ background:#D1E4FF!important;color:#0E447F!important;
+ -webkit-text-fill-color:#0E447F!important;border:1px solid #A7CAF6!important;
+ border-radius:11px!important;box-shadow:inset 4px 0 0 #286EC0!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item.active .apex-nav-text,
+html[data-apex-design="heritage"] body #appPage #apexSidebar .menu-item.active .nav-symbol{
+ color:#0E447F!important;-webkit-text-fill-color:#0E447F!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .count-pill{
+ color:#FFFFFF!important;background:#2B4F73!important;
+ border:1px solid #4F779B!important;border-radius:7px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .v3-utilities{
+ border-color:#395067!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar :is(.v3-small-link,#hubSettings,.sidebar-user){
+ color:#F3F8FF!important;-webkit-text-fill-color:#F3F8FF!important;
+ background:#20394F!important;border:1px solid #47627E!important;
+ border-radius:10px!important;opacity:1!important;
+ font-size:12px!important;font-weight:730!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar :is(.v3-small-link,#hubSettings,.sidebar-user):hover{
+ background:#2B4C6D!important;border-color:#6C92B8!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar :is(.sidebar-user,#hubSettings) b,
+html[data-apex-design="heritage"] body #appPage #apexSidebar :is(.sidebar-user,#hubSettings) small{
+ color:#EAF5FF!important;-webkit-text-fill-color:#EAF5FF!important;
+ opacity:1!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .sidebar-user .avatar{
+ background:#DCEBFF!important;color:#1B518A!important;
+ border-radius:999px!important;
+}
+html[data-apex-design="heritage"] body #appPage #apexSidebar .apex-nav-collapse{
+ color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;
+ background:#243B50!important;border:1px solid #5B7791!important;
+ border-radius:9px!important;
+}
+/* Keep the familiar dark APEX layout but give panels, controls and tables a
+   coherent refined finish, with no changes to data rendering or routes. */
+html[data-apex-design="heritage"] .topbar{
+ background:#1A2A3B!important;border-bottom:1px solid #3D5168!important;
+ box-shadow:none!important;
+}
+html[data-apex-design="heritage"] .topbar :is(.top-left,#breadPage,.header-username){
+ color:#ECF4FF!important;
+}
+html[data-apex-design="heritage"] .topbar :is(.top-muted,.top-slash){color:#B6C9DD!important}
+html[data-apex-design="heritage"] :is(.v3-topline,.v3-workspace-label){color:#EFF5FE!important}
+html[data-apex-design="heritage"] :is(#v3Workspace,.page-intro h1,.rw-heading h2){color:#F2F7FF!important}
+html[data-apex-design="heritage"] :is(.page-intro p,.section-note,.rw-heading p){color:#BDD0E4!important}
+html[data-apex-design="heritage"] .eyebrow{color:#9BC9FF!important}
+html[data-apex-design="heritage"] .heading-dot{color:#7DB7F2!important}
+html[data-apex-design="heritage"] .app-shell :is(.metric-card,.stat-card,.v34-stat,.v34-panel,.section-panel,.ops-table-wrap,.ops-card,.report-card,.v3-panel,.flat-editor,.inventory-overview,.apex-cloud-panel,.rw-detail,.v34-form-group){
+ background:#1C2D3F!important;color:#EDF4FC!important;
+ border:1px solid #3A526B!important;border-radius:12px!important;
+ box-shadow:0 3px 14px #0714231A!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.v34-stat,.metric-card,.report-card):hover{
+ border-color:#6587AA!important;box-shadow:0 6px 20px #020C192B!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.section-panel-head h3,.flat-editor-heading h2,.v34-panel h3,.v34-form-group-head h3,.management-toolbar-title h3){
+ color:#F0F6FF!important;font-weight:800!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.section-note,.v34-form-group-head span,.flat-editor-heading .section-note,.device-card-fact small){
+ color:#B8CBE0!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(button.primary,button.secondary,button.v3-tab,.rw-filters button,.inventory-quick-chip){
+ border-radius:9px!important;font-weight:750!important;
+ transition:background-color .15s ease,border-color .15s ease!important;
+}
+html[data-apex-design="heritage"] .app-shell button.primary{
+ background:#397DD0!important;color:#FFFFFF!important;border:1px solid #478AD9!important;
+ box-shadow:none!important;
+}
+html[data-apex-design="heritage"] .app-shell button.primary:hover:not(:disabled){
+ background:#2B6EBF!important;border-color:#83B8F2!important;
+}
+html[data-apex-design="heritage"] .app-shell button.secondary{
+ color:#EEF6FF!important;background:#243C55!important;
+ border:1px solid #52708E!important;box-shadow:none!important;
+}
+html[data-apex-design="heritage"] .app-shell button.secondary:hover:not(:disabled){
+ background:#305476!important;border-color:#6E9DCB!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){
+ color:#F1F7FF!important;background:#17283A!important;
+ border:1px solid #54708A!important;border-radius:9px!important;
+ box-shadow:none!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(input,textarea)::placeholder{color:#A5BACF!important}
+html[data-apex-design="heritage"] .app-shell :is(input,select,textarea):focus{
+ border-color:#8DC1FF!important;box-shadow:0 0 0 3px #6BAAF226!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(button,input,select,textarea):focus-visible{
+ outline:2px solid #98CEFF!important;outline-offset:2px!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.field,.compact-field,.ops-form-grid label){color:#C8DAED!important}
+html[data-apex-design="heritage"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table){
+ color:#E7F1FB!important;border-collapse:separate!important;border-spacing:0!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table) th{
+ background:#263C53!important;color:#C8D8E9!important;
+ border-bottom:1px solid #4B6680!important;font-weight:800!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table) td{
+ color:#E1EEFB!important;border-bottom:1px solid #354C62!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table) tr:hover td{
+ background:#29425A!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.asset-link,.v34-recent [data-v34-open]){
+ color:#A2CEFF!important;font-weight:750!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.v3-tab.selected,.v3-tab.active,.rw-filters button.selected){
+ color:#BFE0FF!important;border-color:#608CB7!important;background:#294666!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.inventory-action-menu,.inventory-filter-menu,.modal-card,.modal-content,.dialog-card){
+ background:#1B2C3F!important;color:#EFF5FE!important;
+ border:1px solid #4E6882!important;border-radius:12px!important;
+ box-shadow:0 15px 40px #00000045!important;
+}
+html[data-apex-design="heritage"] .app-shell :is(.inventory-action-menu,.inventory-filter-menu) button:hover{
+ background:#294966!important;
+}
+html[data-apex-design="heritage"] #modalLayer .modal-card{
+ background:#1B2C3F!important;color:#EFF5FE!important;
+ border:1px solid #4E6882!important;border-radius:14px!important;
+}
+html[data-apex-design="heritage"] #modalLayer :is(.modal-header,.modal-actions){border-color:#3A526B!important}
+html[data-apex-design="heritage"] #modalLayer .modal-header h2{color:#F0F6FF!important}
+html[data-apex-design="heritage"] #modalLayer :is(.modal-body,.modal-body p){color:#C5D7E9!important}
+html[data-apex-design="heritage"] .app-shell :is(.inventory-stage,.ops-part-progress-badge,.v34-state,.status){
+ border-radius:999px!important;
+}
+html[data-apex-design="heritage"] #assetPage #assetSummary.mock-summary{
+ --device-card-bg:#213A54;--device-card-soft:#294964;--device-card-line:#4B6B87;
+ --device-card-ink:#F1F7FF;--device-card-muted:#C8DAE9;--device-card-accent:#B0D7FF;
+ --device-card-accent-soft:#315679;--device-card-green:#9CE1BD;
+ --device-card-green-soft:#1E4A39;--device-card-green-line:#547F69;
+ --device-card-amber:#F1CC8D;--device-card-amber-soft:#594229;--device-card-amber-line:#897248;
+ border-radius:13px!important;
+}
+html[data-apex-design="heritage"] #assetPage #assetSummary .device-card-heading h2{color:#F4F8FF!important}
+html[data-apex-design="heritage"] #assetPage #assetSummary .device-card-fact strong{color:#F0F7FF!important}
+html[data-apex-design="heritage"] #assetPage #assetSummary .device-card-fact small{color:#C7DAED!important}
+html[data-apex-design="heritage"] #assetPage #apexDeviceActions{display:none!important}
+html[data-apex-design="heritage"] #dashboardPage .apex-b-dashboard-actions{display:none!important}
+html[data-apex-design="heritage"] .rw-queue-summary>div{
+ background:#21374D!important;border:1px solid #405B75!important;
+ border-radius:11px!important;color:#EAF3FF!important;
+}
+html[data-apex-design="heritage"] .rw-queue-summary>div span{color:#C9D9EB!important}
+html[data-apex-design="heritage"] .rw-queue-summary>div strong{color:#FFFFFF!important}
+html[data-apex-design="heritage"] #rwQueueTable .rw-detail{
+ background:#22394E!important;color:#EAF3FF!important;
+}
+html[data-apex-design="heritage"] #rwQueueTable .rw-device-name{color:#F1F7FF!important}
+html[data-apex-design="heritage"] #rwQueueTable .rw-next-description{color:#BFD1E4!important}
+html[data-apex-design="heritage"] .v34-recent table{color:#E5F0FD!important}
+html[data-apex-design="heritage"] .v34-recent th{background:#294159!important;color:#CCDEEF!important}
+html[data-apex-design="heritage"] .v34-recent td{border-color:#3C536A!important;color:#E1ECF8!important}
+html[data-apex-design="heritage"] .v34-progress-row{color:#D3E4F4!important}
+html[data-apex-design="heritage"] .v34-stat small{color:#C5D7EA!important}
+html[data-apex-design="heritage"] .v34-stat b{color:#FFFFFF!important}
+html[data-apex-design="heritage"] .v34-legend-row{color:#D8E7F6!important}
+html[data-apex-design="heritage"] .rw-search-field{color:#BCD2E7!important}
+@media(max-width:900px){
+ html[data-apex-design="heritage"] body:not(.apex-nav-collapsed) #appPage #apexSidebar.sidebar{
+  width:222px!important;min-width:222px!important;
+ }
+}
+@media(max-width:700px){
+ html[data-apex-design="heritage"] body #appPage #apexSidebar.sidebar{width:68px!important;min-width:68px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-apex-design="heritage"] .app-shell *{transition:none!important;animation:none!important}
+}
+@media print{
+ html[data-apex-design="heritage"] #apexSidebar{display:none!important}
+}
