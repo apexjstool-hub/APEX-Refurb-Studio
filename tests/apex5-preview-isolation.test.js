@@ -48,11 +48,11 @@ test('Synthetic laptop records and local-only demo account ship with the preview
  for(const id of ['APX-10482','APX-10483','APX-10484','APX-10485','APX-10486','APX-10487','APX-10488','APX-10489','APX-10490'])assert(main.includes(id),id);
  assert.match(main,/mustChangePassword:false\},items:demoItems/);
  assert.match(html,/Offline demo · No live Supabase connection/);
- assert.match(html,/Demo records only · No cloud connections/);
+ assert.match(html,/Standalone visual concept · Demo records only · No production connections/);
 });
 test('Concept A redesign covers Dashboard, Inventory and Device Details without replacing their handlers',()=>{
  assert.match(html,/href="apex5-professional-preview\.css"/);
- assert.match(html,/<title>APEX 5\.0 Preview — Offline Demo<\/title>/);
+ assert.match(html,/<title>APEX 5\.0 Redesign Preview 2 — Offline Demo<\/title>/);
  for(const id of ['dashboardPage','inventoryPage','assetPage','inventoryTable','assetEditor','assetJobProgress','mTotal','mTesting','topTheme'])assert(html.includes('id="'+id+'"'),id);
  for(const area of ['#dashboardPage .hero-banner','#dashboardPage .metric','#dashboardPage .apex-pulse','#inventoryPage #inventoryTable','#inventoryPage .inventory-quick-chip','#assetPage .v3-asset-tabs','#assetPage #apexAssetDetailsSection.flat-editor'])assert(css.includes(area),area);
  assert.match(css,/#appPage \.menu-item\.active/);
