@@ -30,6 +30,6 @@ test('Microdream and purchasing changes are visual-only',()=>{
  assert.match(css,/\.microdream-request-dialog/);
  assert.match(css,/\.microdream-preview-frame/);
  assert.doesNotMatch(css,/workflowAction|localStorage|fetch\(/);
- assert.match(html,/id="apexDesignSwitch"/);
+ assert.match(html,/id="topTheme"/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
