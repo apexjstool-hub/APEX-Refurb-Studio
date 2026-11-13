@@ -11,7 +11,7 @@ test('sidebar on dark background receives bright nonselected text and icons',()=
  assert.match(css,/\.menu-item \.nav-symbol/);
  assert.match(css,/color:#F3F8FF!important/);
  assert.match(css,/-webkit-text-fill-color:#F3F8FF!important/);
- assert.match(css,/\.menu-item\.active \ .apex-nav-text/.replace('\\ ',''));
+ assert(css.includes('.menu-item.active .apex-nav-text'));
  assert.match(css,/color:#103E78!important/);
  assert.match(css,/html\[data-apex-design="minimal"\] body #appPage #apexSidebar/);
 });
