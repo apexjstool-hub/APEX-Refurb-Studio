@@ -188,7 +188,14 @@ function draw(){
  $('qcContent').innerHTML=jobsTable(js.filter(j=>['Quality Control','Ready for Repair','Repair In Progress','On Hold'].includes(j.status)))+'<p class="section-note">Complete the four QC checks on each job. The app blocks completion while repairs or QC remain unfinished.</p>';
  $('completedContent').innerHTML=jobsTable(js.filter(j=>j.status==='Completed'));
  $('activityContent').innerHTML=`<div class="section-panel"><div class="ops-log">${ops.audit.slice(0,200).map(x=>`<div><time>${esc(shortDate(x.at))}</time><b>${esc(x.type)}</b><span>${esc(x.assetId||'System')}</span><p>${esc(x.detail)}</p></div>`).join('')||empty('No refurbishment actions recorded yet.')}</div></div>`;
- renderAsset();bindActions(document);window.ApexWorkflowSnapshot=structuredClone(ops);window.dispatchEvent(new Event('apex:workflow-updated'));
+ renderAsset();
+ // Derived from the original work records: fitting parts never completes a respray.
+ const job=ops.jobs[activeAssetId],out=job&&window.ApexDispatchStatus?.status(job,ops),container=$('assetJobProgress');
+ if(out&&container){
+  const chip=(label,value,done)=>'<span class="apex-independent-stage '+(done?'is-done':'')+'"><small>'+label+'</small><b>'+esc(value)+'</b></span>';
+  container.insertAdjacentHTML('afterbegin','<div class="apex-independent-overview" aria-label="Independent repair completion"><div class="apex-independent-head"><strong>Refurbishment completion</strong><span>'+esc(out.overall)+'</span></div><div class="apex-independent-stages">'+chip('Replacement parts',out.parts,out.partsDone)+chip('Respray',out.respray,out.resprayDone)+chip('Quality control',out.qcDone?'Passed':'Not completed',out.qcDone)+'</div><p>Mark replacement parts fitted independently of respray. The overall laptop is completed only after all required work and QC are finished.</p></div>');
+ }
+ bindActions(document);window.ApexWorkflowSnapshot=structuredClone(ops);window.dispatchEvent(new Event('apex:workflow-updated'));
  const bulk=$('opsBulkStage');if(bulk)bulk.onclick=()=>{
   const ids=[...document.querySelectorAll('#opsFilteredJobs .ops-job-check:checked')].map(n=>n.value);
   if(!ids.length){notify('Select some refurbishment jobs first.');return;}
