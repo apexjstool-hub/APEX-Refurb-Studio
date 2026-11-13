@@ -1,6 +1,6 @@
 {
   "name": "apex-management-studio-5-preview",
-  "version": "5.0.0-preview.1",
+  "version": "5.0.0-preview.2",
   "description": "Isolated demo preview of APEX Management Studio 5 (Concept A) — no production cloud writes",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
