@@ -1,0 +1,31 @@
+/* v4.1.16 Dispatch Centre — integrates with existing APEX theme variables */
+#dispatchPage{min-width:0;color:var(--text)}
+#dispatchPage .apex-dispatch-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:15px 0}
+#dispatchPage .apex-dispatch-summary>div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:17px;display:flex;flex-direction:column;gap:9px}
+#dispatchPage .apex-dispatch-summary small{font-size:11px;color:var(--muted)}
+#dispatchPage .apex-dispatch-summary strong{font-size:25px;color:var(--text)}
+#dispatchPage .apex-dispatch-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:17px 0}
+#dispatchPage .apex-dispatch-tabs{display:flex;gap:5px;flex-wrap:wrap}
+#dispatchPage .apex-dispatch-tabs button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;min-height:35px;padding:8px 11px;font-size:11.5px;cursor:pointer}
+#dispatchPage .apex-dispatch-tabs button.selected{border-color:#3678c6;background:color-mix(in srgb,var(--panel) 85%,#3678c6 15%);font-weight:750}
+#dispatchPage #dispatchSearch{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;min-height:37px;padding:8px 12px;flex:1 1 240px;max-width:390px}
+#dispatchPage .apex-dispatch-records{display:flex;flex-direction:column;gap:12px}
+#dispatchPage .apex-dispatch-card{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:17px;min-width:0}
+#dispatchPage .apex-dispatch-card-head{display:flex;justify-content:space-between;align-items:start;gap:13px}
+#dispatchPage .apex-dispatch-card h3{font-size:14px;color:var(--text);margin:0 0 5px}
+#dispatchPage .apex-dispatch-card-head span{font-size:11px;color:var(--muted)}
+#dispatchPage .apex-dispatch-state{display:inline-block;border-radius:8px;padding:5px 9px;background:var(--panel2);border:1px solid var(--line);font-size:11px!important;font-weight:750;color:var(--text)!important;white-space:nowrap}
+#dispatchPage .apex-dispatch-state[data-state="Dispatched"]{border-color:#598dcc}
+#dispatchPage .apex-dispatch-state[data-state="Returned"]{border-color:#d6a849}
+#dispatchPage .apex-dispatch-state[data-state="Completed"]{border-color:#4b9f74}
+#dispatchPage .apex-dispatch-details{display:flex;gap:12px 22px;flex-wrap:wrap;margin:15px 0;color:var(--muted);font-size:11px}
+#dispatchPage .apex-dispatch-details b{color:var(--text);font-weight:650}
+#dispatchPage .apex-dispatch-actions{display:flex;gap:8px;flex-wrap:wrap}
+#dispatchPage .apex-dispatch-actions button{min-height:33px;padding:6px 12px;font-size:11px;border-radius:7px}
+#dispatchPage .apex-dispatch-manifest{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+#dispatchPage .apex-dispatch-manifest[hidden]{display:none!important}
+#dispatchPage .apex-dispatch-scroll{overflow-x:auto}
+#dispatchPage .apex-dispatch-manifest table{width:100%;min-width:600px;border-collapse:collapse}
+#dispatchPage .apex-dispatch-manifest th,#dispatchPage .apex-dispatch-manifest td{text-align:left;padding:10px;font-size:11px;color:var(--text);border-bottom:1px solid var(--line)}
+#dispatchPage button:focus-visible,#dispatchPage input:focus-visible{outline:2px solid #3678c6;outline-offset:2px}
+@media(max-width:780px){#dispatchPage .apex-dispatch-summary{grid-template-columns:1fr}#dispatchPage .apex-dispatch-card{padding:12px}#dispatchPage #dispatchSearch{max-width:none}}
