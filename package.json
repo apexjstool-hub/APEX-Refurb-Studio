@@ -1,7 +1,7 @@
 {
-  "name": "apex-inventory-studio",
-  "version": "4.1.22",
-  "description": "APEX Refurb Management Studio \u2014 inventory, refurbishment and pallet storage management, A4 and Excel reports",
+  "name": "apex-management-studio-5-preview",
+  "version": "5.0.0-preview.1",
+  "description": "Isolated demo preview of APEX Management Studio 5 (Concept A) — no production cloud writes",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
   "license": "MIT",
@@ -10,7 +10,7 @@
     "start": "electron .",
     "test:pallet-locations": "node --test tests/pallet-locations.test.js",
     "pack:windows": "electron-builder --win nsis",
-    "pack:portable": "electron-builder --win portable --config.win.artifactName=APEX-Refurb-Studio-Portable-${version}.${ext}",
+    "pack:portable": "electron-builder --win portable --config.win.artifactName=APEX-Management-Studio-5-Preview-Portable-${version}.${ext}",
     "prepack:windows": "node scripts/configure-distribution-login.js --check",
     "prepack:portable": "node scripts/configure-distribution-login.js --check"
   },
@@ -24,8 +24,8 @@
     "electron-builder": "^26.0.12"
   },
   "build": {
-    "appId": "com.apex.inventory",
-    "productName": "APEX Refurb Management Studio",
+    "appId": "com.apex.management.preview5",
+    "productName": "APEX Management Studio 5 Preview",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -44,24 +44,16 @@
       "target": [
         "nsis"
       ],
-      "artifactName": "APEX-Refurb-Studio-Setup-${version}.${ext}",
+      "artifactName": "APEX-Management-Studio-5-Preview-Setup-${version}.${ext}",
       "icon": "build/icon.ico"
     },
     "icon": "build/icon.png",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "apexjstool-hub",
-        "repo": "APEX-Refurb-Studio",
-        "releaseType": "release"
-      }
-    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "APEX Refurb Management Studio",
+      "shortcutName": "APEX Management Studio 5 Preview",
       "deleteAppDataOnUninstall": false
     },
     "extraResources": [
