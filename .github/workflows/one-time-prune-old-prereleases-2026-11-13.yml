@@ -17,16 +17,16 @@ jobs:
         run: |
           set -euo pipefail
           # Explicit protected releases: latest five published betas and the stable fallback.
-          protected='^(v4\\.1\\.12-beta\\.[1-4]|v4\\.1\\.11-beta\\.1|v4\\.0\\.2)$'
-          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" \
-            --jq '.[][] | select(.draft == false and .prerelease == true) | .tag_name' > /tmp/published-prereleases.txt
+          gh api --paginate "repos/$GH_REPO/releases?per_page=100" \
+            --jq '.[] | select(.draft == false and .prerelease == true) | .tag_name' > /tmp/published-prereleases.txt
           count=0
           while IFS= read -r tag; do
             [[ -z "$tag" ]] && continue
-            if [[ "$tag" =~ $protected ]]; then
-              echo "KEEP $tag"
-              continue
-            fi
+            case "$tag" in
+              v4.1.12-beta.1|v4.1.12-beta.2|v4.1.12-beta.3|v4.1.12-beta.4|v4.1.11-beta.1)
+                echo "KEEP $tag"
+                continue ;;
+            esac
             # Only published old prereleases are removed; drafts, stable, tags and Git history remain.
             echo "REMOVE old published pre-release $tag"
             gh release delete "$tag" --yes
