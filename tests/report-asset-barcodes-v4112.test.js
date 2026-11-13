@@ -24,14 +24,21 @@ test('Barcode contents are escaped and invalid unprintable IDs never break repor
 });
 test('Printed and PDF report markup has barcode styles and scan-ready values',()=>{
  assert.match(barcode.printStyles,/print-color-adjust/);
- assert.match(barcode.printStyles,/height:5mm/);
+ assert.match(barcode.printStyles,/height:7mm/);
  assert.doesNotMatch(barcode.printStyles,/46mm/);
  const short=barcode.inline('APX-10482',globalThis.ApexAssetBarcode);
  const long=barcode.inline('APX-10482-EXTENDED-000123',globalThis.ApexAssetBarcode);
- const shortWidth=Number(short.match(/style="width:(\d+)mm"/)?.[1]);
- const longWidth=Number(long.match(/style="width:(\d+)mm"/)?.[1]);
- assert.ok(shortWidth>=22&&shortWidth<35,'compact but printable');
+ const shortWidth=Number(short.match(/<svg width="(\d+)mm" height="7mm"/)?.[1]);
+ const longWidth=Number(long.match(/<svg width="(\d+)mm" height="7mm"/)?.[1]);
+ assert.ok(shortWidth>=24&&shortWidth<50,'compact but printable');
  assert.ok(longWidth>shortWidth,'longer codes retain scan-safe module width');
+ assert.doesNotMatch(short, /style=/, 'barcodes must not rely on blocked inline style attributes');
+ const preview=read('src/renderer/report-preview.html');
+ const stylesheet=read('src/renderer/report-asset-barcode.css');
+ assert.match(preview, /report-asset-barcode\.css/);
+ assert.match(html, /report-asset-barcode\.css/);
+ assert.match(stylesheet, /\.apex-report-bars>svg/);
+ assert.match(preview, /style-src 'self'/, 'preview CSP still prohibits inline style');
  assert.match(app,/ApexReportBarcode\.td\(a\.id,window\.ApexAssetBarcode\)/);
  assert.match(app,/ApexReportBarcode\.printStyles/);
  assert.match(ops,/markup=window\.ApexReportBarcode\.printStyles\+markup/);
