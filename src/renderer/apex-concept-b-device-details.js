@@ -18,7 +18,7 @@
  });
  function update(){
   if(!heading||!subtitle)return;
-  const isNew=!window.activeAssetId;
+  const isNew=!activeAssetId;
   const name=$('assetSummary')?.querySelector('.device-card-heading h2')?.textContent?.trim();
   heading.textContent=isNew?'New device intake':name||'Device details';
   subtitle.textContent=isNew?'Complete device identity and save to inventory.':'Edit specifications, track refurbishment and review the audit trail.';
