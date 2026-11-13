@@ -14,6 +14,10 @@ body{--ap5-green:#075747;--ap5-teal:#0f8469;--ap5-slate:#273d50;--ap5-slate-deep
 #appPage .menu-item:hover{background:#ffffff17!important;color:#fff!important}
 #appPage .menu-item.active{background:#0d2435!important;color:#fff!important;border-left:4px solid #23c99d!important;font-weight:790!important}
 #appPage .menu-item.active .nav-symbol{color:#fff!important}
+#appPage .ap5-v3-subnav{display:flex!important;align-items:center!important;gap:13px!important;width:calc(100% - 22px)!important;min-height:48px!important;margin:3px 11px!important;padding:10px 13px!important;border:0!important;border-left:4px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#e2eaf0!important;box-shadow:none!important;font-size:13px!important;font-weight:560!important;text-align:left!important;cursor:pointer!important}
+#appPage .ap5-v3-subnav .nav-symbol{font-size:20px!important;color:#dce6ec!important;min-width:22px!important;text-align:center!important}
+#appPage .ap5-v3-subnav:hover,#appPage .ap5-v3-subnav:focus-visible{background:#ffffff17!important;color:#fff!important;outline-color:#23c99d!important}
+
 #appPage #hubSettings{background:#1d3144!important;border:1px solid #476073!important}
 #appPage .sidebar-user{background:transparent!important;border:0!important}
 #appPage .main{background:var(--panel,#fff)!important}
