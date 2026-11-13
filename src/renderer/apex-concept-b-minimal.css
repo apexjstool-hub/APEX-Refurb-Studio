@@ -107,3 +107,5 @@ html[data-apex-design="minimal"] .topbar .theme-switch{background:#F8FAFD!import
 @media (max-width:1100px){#apexDesignSwitch{padding:7px!important}#apexDesignSwitch .apex-design-label{display:none}}
 @media (max-width:720px){html[data-apex-design="minimal"] .topbar{min-height:55px!important}html[data-apex-design="minimal"] .page-intro h1{font-size:25px!important}}
 @media print{html[data-apex-design="minimal"] .app-shell,html[data-apex-design="minimal"] #opsPrintArea{background:white!important}html[data-apex-design="minimal"] #opsPrintArea *{color:inherit}}
+
+@media(prefers-reduced-motion:reduce){html[data-apex-design="minimal"] *,html[data-apex-design="minimal"] *::before,html[data-apex-design="minimal"] *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
