@@ -55,87 +55,7 @@ html[data-apex-design="minimal"] #assetPage #apexDeviceActions button.primary:ho
 html[data-apex-design="minimal"] #assetPage:not([data-section="overview"]) #apexDeviceSave{
  display:none!important;
 }
-html[data-apex-design="minimal"] #assetPage #assetSummary.mock-summary{
- --device-card-bg:#FFFFFF;
- --device-card-soft:#F2F7FE;
- --device-card-line:#D9E5F3;
- --device-card-ink:#18334F;
- --device-card-muted:#5F758E;
- --device-card-accent:#205EA8;
- --device-card-accent-soft:#EAF3FF;
- --device-card-green:#18714E;
- --device-card-green-soft:#E7F7EE;
- --device-card-green-line:#BDE6CE;
- --device-card-amber:#936018;
- --device-card-amber-soft:#FFF5E5;
- --device-card-amber-line:#F0D8AB;
- display:block!important;
- padding:18px 20px!important;margin:0 0 15px!important;
- min-height:0!important;
- background:#FFFFFF!important;color:#18334F!important;
- border:1px solid #D9E5F3!important;border-radius:14px!important;
- box-shadow:0 4px 17px rgba(29,63,102,.05)!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-top{
- display:flex;gap:20px!important;align-items:flex-start!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-art{
- background:#EFF6FF!important;border:1px solid #D7E7F8!important;
- border-radius:12px!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-main{
- flex:1;min-width:0;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-heading{
- display:flex;align-items:flex-start;justify-content:space-between;gap:15px;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-heading h2{
- color:#142F4E!important;font-weight:840!important;
- font-size:clamp(20px,2.25vw,27px)!important;letter-spacing:-.55px!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-type{
- display:inline-flex;border-radius:6px!important;
- background:#EAF3FF!important;color:#205EA8!important;
- font-weight:750!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary #assetPrintLabel{
- background:#EFF6FF!important;border:1px solid #C9DCF3!important;
- border-radius:8px!important;color:#1C5BA3!important;
- font-size:12px!important;font-weight:750!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{
- display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
- gap:12px!important;margin-top:15px!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact{
- min-width:0;padding:7px 10px!important;
- border:1px solid #E6EDF6!important;border-radius:9px!important;
- background:#FAFCFF!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact>svg{
- color:#5581AE!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact small{
- color:#627B94!important;font-size:10.5px!important;font-weight:700!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-fact strong{
- color:#173858!important;font-weight:760!important;font-size:12.5px!important;
- overflow-wrap:anywhere;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{
- display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
- gap:10px!important;margin-top:15px!important;
- padding-top:14px!important;border-top:1px solid #DFE8F3!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-status{
- color:#18714E!important;background:#E7F7EE!important;border-color:#BDE6CE!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-status.is-awaiting{
- color:#936018!important;background:#FFF5E5!important;border-color:#F0D8AB!important;
-}
-html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-location{
- background:#EAF3FF!important;color:#205EA8!important;
-}
+/* Keep the original APEX device summary layout and navy card intact in both modes. */
 html[data-apex-design="minimal"] #assetPage .v3-asset-tabs{
  position:sticky!important;top:69px!important;z-index:7!important;
  display:flex!important;flex-wrap:nowrap!important;gap:6px!important;
@@ -258,8 +178,6 @@ html[data-apex-design="minimal"] #assetPage .v63-history-event time{
  color:#607891!important;font-size:11px!important;
 }
 @media(max-width:1150px){
- html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{grid-template-columns:repeat(2,minmax(0,1fr))}
- html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
 @media(max-width:900px){
  html[data-apex-design="minimal"] #assetPage .v34-editor-columns{grid-template-columns:1fr!important}
@@ -267,9 +185,6 @@ html[data-apex-design="minimal"] #assetPage .v63-history-event time{
  html[data-apex-design="minimal"] #assetPage .v3-asset-tabs{top:0!important}
 }
 @media(max-width:620px){
- html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-top{flex-direction:column}
- html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-primary{grid-template-columns:1fr}
- html[data-apex-design="minimal"] #assetPage #assetSummary .device-card-workflow{grid-template-columns:1fr!important}
  html[data-apex-design="minimal"] #assetPage #apexDeviceActions .apex-device-action-buttons{width:100%}
 }
 @media(prefers-reduced-motion:reduce){
