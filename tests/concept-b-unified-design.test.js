@@ -6,7 +6,7 @@ const css=fs.readFileSync(path.join(__dirname,'../src/renderer/apex-concept-b-sy
 const html=fs.readFileSync(path.join(__dirname,'../src/renderer/index.html'),'utf8');
 test('unified design system loads after original Concept B style',()=>{
  assert.match(html,/apex-concept-b-minimal\.css"><link rel="stylesheet" href="apex-concept-b-system\.css"/);
- assert.match(html,/id="apexDesignSwitch"/);
+ assert.match(html,/id="topTheme"/);
 });
 test('design tokens and shared controls cover primary, secondary, inputs, tables and dialogs',()=>{
  for(const name of ['--apex-b-radius','--apex-b-blue','button.primary','button.secondary','input','select','textarea','.asset-table','.rw-work-table','.ops-part-progress-table','.inventory-action-menu','#modalLayer .modal-card','.modal-header','.modal-actions'])assert(css.includes(name),name);
