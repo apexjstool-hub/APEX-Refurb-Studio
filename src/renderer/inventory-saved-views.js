@@ -24,6 +24,7 @@
   $('inventorySaveView').onclick=saveDialog;
   $('inventoryRemoveView').onclick=removeDialog;
   refreshViews();
+  window.ApexInventoryRefinement?.decorate();
   return bar;
  }
  function refreshViews(){
