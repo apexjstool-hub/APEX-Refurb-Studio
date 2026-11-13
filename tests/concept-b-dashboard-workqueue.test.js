@@ -35,6 +35,6 @@ test('Design stays scoped and existing workflows persist',()=>{
  for(const key of ['#apexSidebar','#dashboardPage','#refurbWorkspacePage'])assert(css.includes(key));
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/@media print/);
- assert.match(html,/id="apexDesignSwitch"/);
+ assert.match(html,/id="topTheme"/);
  assert.match(queue,/window\.ApexInventoryWorkflow\.index\(s\)/);
 });
