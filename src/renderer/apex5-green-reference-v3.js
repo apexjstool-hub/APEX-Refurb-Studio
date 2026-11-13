@@ -44,7 +44,14 @@
  actions.prepend(reset);
  const sync=byId('ap5V3Sync');
  if(sync)sync.onclick=async()=>{if(sync.disabled)return;sync.disabled=true;const old=sync.innerHTML;sync.textContent='↻  Refreshing…';try{await refresh();}catch(e){console.warn('Demo refresh unavailable',e);}finally{sync.innerHTML=old;sync.disabled=false;}};
- const symbols={dashboard:'▦',inventory:'▱',bulk:'⌗',refurbWorkspace:'↻',dispatch:'⇥',reports:'▤',labelStudio:'▥'};
+ document.querySelectorAll('[data-ap5-v3-view]').forEach(button=>{
+  button.addEventListener('click',()=>{
+   const lane=button.dataset.ap5V3View;
+   if(typeof setPage==='function')setPage('refurbWorkspace');
+   document.querySelector('[data-rw-view="'+lane+'"]')?.click();
+  });
+ });
+ const symbols={dashboard:'▦',inventory:'▱',bulk:'⌗',refurbWorkspace:'↻',dispatch:'⇥',reports:'▤',labelStudio:'▥',pallets:'⬡'};
  for(const item of document.querySelectorAll('#apexSidebar .menu-item')){
   const sym=item.querySelector('.nav-symbol');if(sym&&symbols[item.dataset.page])sym.textContent=symbols[item.dataset.page];
  }
