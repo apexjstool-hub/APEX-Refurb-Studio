@@ -1,0 +1,48 @@
+/* APEX 4.1.22 — compact pallet location detail.
+   Refines existing layout; the original actions and state are not replaced. */
+#palletLocationDetailPage{--pl22-edge:var(--line);--pl22-soft:var(--panel2)}
+#palletLocationDetailPage #plBackToLocations{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--muted)!important;padding:0 2px!important;margin:0 0 9px!important;min-height:25px!important;font-size:11px!important}
+#palletLocationDetailPage #plBackToLocations:hover{color:var(--text)!important;text-decoration:underline}
+#palletLocationDetailPage .pl-location-table-panel{border:1px solid var(--pl22-edge)!important;border-radius:12px!important;max-height:none!important;box-shadow:none!important}
+#palletLocationDetailPage .pl-detail-toolbar{gap:10px!important;padding:13px 16px!important;flex-wrap:wrap}
+#palletLocationDetailPage .pl-eyebrow{font-size:9.5px!important;margin-bottom:3px!important;letter-spacing:.055em!important}
+#palletLocationDetailPage .pl-location-heading{display:flex;flex-direction:column;gap:5px;min-width:220px}
+#palletLocationDetailPage .pl-location-heading h1{font-size:19px!important;line-height:1.2!important;font-weight:800!important;margin:0!important}
+#palletLocationDetailPage .pl-inline-metrics{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+#palletLocationDetailPage .pl-inline-metrics>span{display:inline-flex;align-items:center;gap:4px;min-height:25px;padding:4px 8px;border:1px solid var(--pl22-edge);border-radius:7px;background:var(--pl22-soft);color:var(--muted);font-size:10.5px;line-height:1.2}
+#palletLocationDetailPage .pl-inline-metrics strong{font-size:11px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+#palletLocationDetailPage .pl-inline-metrics .pl-location-type{border-color:#7bace0;color:var(--text);font-weight:730}
+#palletLocationDetailPage .pl-detail-toolbar-actions{gap:6px!important;align-items:center!important}
+#palletLocationDetailPage .pl-detail-toolbar-actions button{min-height:33px!important;padding:6px 10px!important;border-radius:8px!important;font-size:11px!important}
+#palletLocationDetailPage .pl-detail-search{padding:10px 16px!important;display:flex!important;align-items:flex-end!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:10px!important;border-top:1px solid var(--pl22-edge)!important}
+#palletLocationDetailPage .pl-detail-search label{display:flex!important;align-items:center!important;gap:9px!important;font-size:10.5px!important;font-weight:750!important;flex:1 1 400px!important;max-width:560px!important}
+#palletLocationDetailPage #plDetailSearch{width:100%!important;min-width:180px!important;max-width:390px!important;min-height:34px!important;height:34px!important;padding:6px 10px!important;margin:0!important;border-radius:8px!important;font-size:11px!important;background:var(--pl22-soft)!important;color:var(--text)!important}
+#palletLocationDetailPage #plDetailMatches{font-size:10.5px!important;color:var(--muted)!important;white-space:nowrap;margin-bottom:6px}
+#palletLocationDetailPage .md-pallet-selection{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:9px!important;padding:9px 11px!important;margin:0 15px 9px!important;border:1px solid var(--pl22-edge)!important;border-radius:8px!important;background:var(--pl22-soft)!important}
+#palletLocationDetailPage .md-pallet-selection[hidden]{display:none!important}
+#palletLocationDetailPage #plJobSelectionCount{font-size:11px!important;font-weight:700!important;color:var(--text)!important}
+#palletLocationDetailPage #plCreateMicrodreamOrder{min-height:33px!important;padding:6px 10px!important;border-radius:8px!important;font-size:11px!important}
+#palletLocationDetailPage .pl-location-table-scroll{overflow-x:auto!important;max-width:100%!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table{width:100%!important;min-width:770px!important;table-layout:auto!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table th{font-size:10px!important;font-weight:800!important;letter-spacing:0!important;padding:9px 11px!important;white-space:nowrap!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table td{font-size:11px!important;line-height:1.3!important;padding:10px 11px!important;vertical-align:middle!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table tr:hover td{background:color-mix(in srgb,var(--pl22-soft) 68%,var(--panel))!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table td:first-child{min-width:0!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table td:nth-child(2){min-width:130px!important}
+#palletLocationDetailPage .pl-location-table-scroll .asset-table td:last-child{white-space:normal!important;min-width:230px}
+#palletLocationDetailPage .pl-pallet-row td strong{font-size:11.5px!important}
+#palletLocationDetailPage .pl-pallet-row .pl-microdream-status{display:inline-flex!important;font-size:9.5px!important;padding:3px 6px!important;margin:4px 0 0!important;border-radius:6px!important;white-space:normal!important}
+#palletLocationDetailPage .pl-compact-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+#palletLocationDetailPage .pl-view-inventory{display:inline-flex;align-items:center;justify-content:center;min-height:32px!important;padding:6px 10px!important;border-radius:7px!important;background:var(--pl22-soft);border:1px solid var(--pl22-edge);color:var(--text)!important;font-size:10.5px!important;font-weight:780!important;text-decoration:none!important;white-space:nowrap}
+#palletLocationDetailPage .pl-view-inventory:hover{border-color:#629fdd!important}
+#palletLocationDetailPage .pl-actions-toggle{display:inline-flex;gap:7px;align-items:center;justify-content:center;min-height:32px!important;padding:6px 10px!important;border-radius:7px!important;font-size:10.5px!important;white-space:nowrap!important}
+#palletLocationDetailPage .pl-actions-toggle[aria-expanded="true"]{border-color:#629fdd!important}
+.pl-actions-popup{position:fixed;z-index:11000;display:flex;flex-direction:column;gap:2px;min-width:210px;max-width:calc(100vw - 16px);padding:5px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px #0003}
+.pl-actions-popup[hidden]{display:none!important}
+.pl-actions-popup button{display:block;width:100%;min-height:34px;padding:8px 10px;text-align:left;background:transparent!important;color:var(--text)!important;border:0!important;border-radius:7px!important;font-size:11px!important;font-weight:670!important;cursor:pointer;box-shadow:none!important}
+.pl-actions-popup button:hover:not(:disabled),.pl-actions-popup button:focus-visible{background:var(--panel2)!important}
+.pl-actions-popup button:disabled{opacity:.45!important;cursor:not-allowed}
+.pl-actions-popup .pl-action-danger{color:#d0525a!important;border-top:1px solid var(--line)!important;border-radius:0 0 7px 7px!important}
+#palletLocationDetailPage :is(.pl-actions-toggle,.pl-view-inventory,#plBackToLocations,#plDetailSearch):focus-visible,.pl-actions-popup button:focus-visible{outline:2px solid #428de2!important;outline-offset:2px!important}
+@media(max-width:760px){#palletLocationDetailPage .pl-detail-toolbar{align-items:flex-start!important}#palletLocationDetailPage .pl-detail-search label{flex-wrap:wrap!important;flex-basis:100%!important}#palletLocationDetailPage #plDetailSearch{max-width:none!important}#palletLocationDetailPage .pl-location-table-scroll .asset-table{min-width:760px!important}}
+@media(prefers-reduced-motion:reduce){#palletLocationDetailPage *, .pl-actions-popup *{transition:none!important}}
