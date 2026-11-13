@@ -88,6 +88,27 @@
   if(!active())return;
   $('rwHeading').textContent=views[view][0];$('rwSubtitle').textContent=views[view][1];
   $('rwQueue').hidden=view!=='queue';$('rwPurchasingTabs').hidden=view!=='purchasing';
+   const procurement=$('rwPurchasingOverview');
+   if(procurement){
+    const show=view==='purchasing'&&document.documentElement.dataset.apexDesign==='minimal';
+    procurement.hidden=!show;
+    if(show){
+     const rows=entries().filter(r=>!locked(r.job));
+     const replacement=p=>!spray(p);
+     const needed=rows.filter(r=>r.summary.parts.some(p=>replacement(p)&&p.toOrder>0)).length;
+     const awaiting=rows.filter(r=>r.summary.parts.some(p=>replacement(p)&&p.ordered>p.received&&p.fitted<p.required)).length;
+     const resprays=rows.filter(r=>r.summary.parts.some(p=>spray(p)&&p.fitted<p.required)).length;
+     const wf=snapshot();
+     const orders=Array.isArray(wf?.orders)?wf.orders.filter(o=>o.status!=='Draft'&&o.status!=='Received').length:0;
+     const metrics=[['Parts needed',needed,'parts'],['Parts ordered',awaiting,'partsOrdered'],['Open purchase orders',orders,'orders'],['Awaiting respray',resprays,'respray']];
+     procurement.innerHTML=metrics.map(([title,count,key])=>'<button type="button" data-rw-procurement="'+key+'" aria-pressed="'+(purchase===key)+'" title="View '+esc(title)+'"><span>'+esc(title)+'</span><strong>'+count+'</strong></button>').join('');
+     procurement.querySelectorAll('[data-rw-procurement]').forEach(b=>b.onclick=()=>{
+      if(b.dataset.rwProcurement==='respray'){view='queue';filter='respray';page=0;}
+      else purchase=b.dataset.rwProcurement;
+      draw();
+     });
+    }
+   }
   document.querySelectorAll('[data-rw-view]').forEach(b=>{b.classList.toggle('selected',b.dataset.rwView===view);b.setAttribute('aria-current',b.dataset.rwView===view?'page':'false');});
   document.querySelectorAll('[data-rw-purchase]').forEach(b=>b.classList.toggle('selected',b.dataset.rwPurchase===purchase));
   $('breadSub').textContent=views[view][0];
