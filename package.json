@@ -30,13 +30,9 @@
     },
     "files": [
       "src/**/*",
-      "hub/**/*.js",
       "package.json",
       "node_modules/@zxing/**/*",
-      "node_modules/@zxing/browser/**/*",
-      "cloud/sync-bridge.js",
-      "cloud/refurb-parts-bridge.js",
-      "cloud/hub-diagnostics-reentry.js"
+      "node_modules/@zxing/browser/**/*"
     ],
     "win": {
       "target": [
@@ -54,11 +50,6 @@
       "shortcutName": "APEX Management Studio 5 Preview",
       "deleteAppDataOnUninstall": false
     },
-    "extraResources": [
-      {
-        "from": "tools/update-centre-v2/INSTALL-PORTABLE-UPDATE.ps1",
-        "to": "updater/INSTALL-PORTABLE-UPDATE.ps1"
-      }
-    ]
+    "extraResources": []
   }
 }
