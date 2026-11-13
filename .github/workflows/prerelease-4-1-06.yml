@@ -1,0 +1,82 @@
+name: APEX v4.1.06 Beta Windows EXE
+on:
+  push:
+    branches:
+      - feature/concept-b-purchasing-microdream-sidebar-4-1-06
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  beta-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore public cloud login configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Missing APEX_CLOUD_LOGIN_CONFIG repository secret.' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$config.anonKey -match '^sb_secret_') { throw 'Server-only keys are forbidden.' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'), $env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid public cloud login configuration.' }
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify JavaScript syntax
+        run: |
+          Get-ChildItem src,hub,cloud,scripts -Recurse -Filter *.js | ForEach-Object {
+            node --check $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.FullName)" }
+          }
+      - name: Verify core regression tests
+        run: |
+          node --test tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/part-receipts.test.js tests/pallet-locations.test.js tests/admin-centre.test.js tests/device-summary.test.js tests/microdream-reports.test.js tests/repair-work-type.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Core regression tests failed. Do not publish.' }
+      - name: Verify reminder and status tests
+        run: |
+          node --test tests/smart-refurb-reminders.test.js tests/inactivity-reminders.test.js tests/background-reminder-tray.test.js tests/microdream-pallet-respray.test.js tests/inventory-status-display.test.js tests/inventory-time-waiting.test.js tests/inventory-table-cleanup.test.js tests/inventory-header-filters.test.js tests/inventory-bulk-refurb.test.js tests/inventory-saved-views-sort.test.js tests/parts-order-notification.test.js tests/respray-parts-required-status.test.js tests/concept-b-minimal-design.test.js tests/concept-b-sidebar-contrast.test.js tests/concept-b-unified-design.test.js tests/concept-b-dashboard-workqueue.test.js tests/concept-b-procurement-sidebar.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Reminder regression tests failed. Do not publish.' }
+      - name: Build Windows installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm run pack:windows -- --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer build failed.' }
+          # Electron Builder normalizes semantic version 4.1.06 to filename 4.1.0.
+          # Preserve the release's requested 4.1.06 filename explicitly.
+          Move-Item -LiteralPath 'dist/APEX-Refurb-Studio-Setup-4.1.6.exe' -Destination 'dist/APEX-Refurb-Studio-Setup-4.1.06.exe' -ErrorAction Stop
+      - name: Verify packaged sync worker
+        run: |
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          $verification = Start-Process -FilePath ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" -ArgumentList @("scripts/verify-packaged-sync.js") -NoNewWindow -Wait -PassThru
+          if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed: $($verification.ExitCode)" }
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+      - name: Store beta EXE as workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: APEX-Management-Studio-v4.1.06-beta.1-Windows
+          path: dist/APEX-Refurb-Studio-Setup-4.1.06.exe
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $tag = 'v4.1.06-beta.1'
+          $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.06.exe'
+          if (!(Test-Path $installer)) { throw 'Windows EXE not found.' }
+          $exists = gh release view $tag --json isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "Tag $tag already exists. Do not overwrite pre-release." }
+          $notes = "PREVIEW BETA: Fixes Concept B sidebar contrast using a navy background with clearly visible white menu labels, icons, headings and logo lettering; active route has pale-blue selection. Improves Parts and Purchasing with live clickable status metrics and clearer layouts. Adds Microdream respray controls and preview styling. No database schema or core workflow changes. Classic UI switch and v4.1.05 rollback remain available."
+          gh release create $tag $installer --prerelease --target $env:GITHUB_SHA --title 'APEX Management Studio v4.1.06 Beta 1' --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub pre-release publishing failed.' }
