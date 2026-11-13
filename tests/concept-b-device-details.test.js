@@ -8,7 +8,7 @@ test('Device Details 2.0 loads only on Concept B and retains Classic styling',()
  assert.match(html,/apex-concept-b-device-details\.js/);
  assert.match(css,/html\[data-apex-design="minimal"\] #assetPage/);
  assert.match(css,/html:not\(\[data-apex-design="minimal"\]\) #assetPage #apexDeviceActions\{display:none!important\}/);
- assert.match(html,/id="apexDesignSwitch"/);
+ assert.match(html,/id="topTheme"/);
 });
 test('device action bar reuses existing app actions and forms',()=>{
  for(const id of ['apexDeviceActions','apexDeviceBack','apexDevicePrint','apexDeviceParts','apexDeviceSave'])assert(html.includes('id="'+id+'"'),id);
