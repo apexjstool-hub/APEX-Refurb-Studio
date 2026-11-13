@@ -13,14 +13,14 @@
   try{bars=encoder?.code128Svg(text,{preserveCase:true})||'';}catch{}
   const units=Number(bars.match(/viewBox="0 0 ([0-9.]+)/)?.[1]);
   // Preserve a minimum module width for reliable printing instead of squeezing long IDs.
-  const width=Number.isFinite(units)&&units>0?Math.max(28,Math.ceil(units*0.254)):34;
+  const width=Number.isFinite(units)&&units>0?Math.max(22,Math.ceil(units*0.19)):26;
   return '<div class="apex-report-asset-code"><span class="apex-report-asset-id">'+esc(text)+'</span>'+(bars?'<span class="apex-report-bars" style="width:'+width+'mm">'+bars+'</span>':'')+'</div>';
  }
  function td(id,encoder){return '<td class="apex-report-asset-cell">'+inline(id,encoder)+'</td>';}
  const printStyles=`<style id="apexReportBarcodeStyles">
- .apex-report-asset-code{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;break-inside:avoid;page-break-inside:avoid;max-width:100%;vertical-align:middle}
+ .apex-report-asset-code{display:inline-flex;flex-direction:column;align-items:flex-start;gap:0;break-inside:avoid;page-break-inside:avoid;max-width:100%;vertical-align:middle}
  .apex-report-asset-id{display:block;font-weight:700;color:#111;white-space:nowrap;font:700 9pt Arial,sans-serif}
- .apex-report-bars{display:block;width:34mm;height:6.5mm;max-width:none;background:white;overflow:visible}
+ .apex-report-bars{display:block;width:26mm;height:5mm;max-width:none;background:white;overflow:visible}
  .apex-report-bars svg{width:100%!important;height:100%!important;display:block!important;background:white!important}
  .apex-report-asset-cell{vertical-align:middle}
  @media print{.apex-report-asset-code,.apex-report-bars{break-inside:avoid!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}}
