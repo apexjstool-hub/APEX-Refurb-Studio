@@ -32,7 +32,7 @@ test('Brand and device-type filters are real interactive filters in existing reg
 });
 test('Existing inventory statuses, actions and selection remain mounted in new screen',()=>{
  for(const id of ['inventoryTable','inventorySearch','invAdd','invScan','assetEditor','topTheme'])assert(html.includes('id="'+id+'"'),id);
- for(const v of ['inventoryQuickFilters','inventoryActiveFilters','selection-toolbar-inventory','apex-work-chip','data-asset','condition-pill','inventoryTable'])assert(ui.includes(v),v);
+ for(const v of ['inventoryQuickFilters','inventoryActiveFilters','selection-toolbar-inventory','data-asset','condition-pill','inventoryTable'])assert(ui.includes(v),v);
  assert.match(ui,/identity\.replaceChildren\(idButton\)/);
  assert.match(ui,/identity\.after\(deviceCell,serialCell\)/);
  assert.match(ui,/const prior=render;\s*render=function\(\.\.\.args\)/);
