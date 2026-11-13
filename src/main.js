@@ -18,8 +18,11 @@ const updateCentre=require('./update-centre');
 const arrivalTracker=new (require('./inventory-arrivals').InventoryArrivals)();
 let intakeNotification=null,arrivalPollBusy=false,backgroundReminders=null;
 // Use the same app identity and native Windows icon as APEX Laptop Diagnostics.
-app.setName('APEX Refurb Management Studio');
-if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory');
+// Separate demo identity and data directory, never use production app data.
+const PREVIEW_DEMO=true;
+app.setName('APEX Management Studio 5 Preview');
+app.setPath('userData',path.join(app.getPath('appData'),'APEX-Management-Studio-5-Preview-Demo'));
+if(process.platform==='win32') app.setAppUserModelId('com.apex.management.preview5');
 let cloudSession=null;
 const cloudSeenRevisions=new Map();
 let win,authenticated=false,authMode=null,cloudUserRole=null,loginFailures=0,nextAttempt=0,ownedHub=null,cloudProcess=null,cloudRunningSince=null,cloudLastMessage="";
@@ -41,7 +44,7 @@ const safe=fn=>{try{return fn();}catch(e){console.error(e);return {ok:false,erro
 const adminOnly=()=>authMode==='local'||(authMode==='cloud'&&cloudUserRole==='admin');
 const secured=fn=>(evt,...args)=>safe(()=>{if(!authenticated)return {ok:false,error:'Please sign in first.'};if(authMode==='local'&&loadDB().user.mustChangePassword)return {ok:false,error:'Change your temporary admin password first.'};return fn(...args);});
 const adminSecured=fn=>secured((...args)=>adminOnly()?fn(...args):{ok:false,error:'Administrator access required.'});
-function hubConfig(){try{const h=JSON.parse(fs.readFileSync(hubPath(),'utf8'));return h?.url&&h?.token?h:null;}catch{return null;}}
+function hubConfig(){if(PREVIEW_DEMO)return null;try{const h=JSON.parse(fs.readFileSync(hubPath(),'utf8'));return h?.url&&h?.token?h:null;}catch{return null;}}
 const accountSecurity=require('./account-security').createAccountSecurity({authenticated:()=>authenticated,admin:adminOnly,mode:()=>authMode,localUser:()=>loadDB().user,hash,cloud:()=>cloudSession,config:readPrivateCloud,fetch:(...args)=>fetch(...args)});
 const settingsSecured=fn=>adminSecured((...args)=>accountSecurity.isUnlocked()?fn(...args):{ok:false,error:'Unlock Settings with your administrator password first.'});
 
@@ -52,7 +55,7 @@ function validateHub(url,token){const u=new URL(checkInput(url,240));if(u.userna
  if(!token||String(token).trim().length<32)throw Error('Provide the 64-character token from the hub computer.');
  return {url:u.origin,token:String(token).trim()};
 }
-async function hubRequest(method,route,payload,override){const conf=override||hubConfig();if(!conf)return {ok:false,error:'No shared hub is connected.'};
+async function hubRequest(method,route,payload,override){if(PREVIEW_DEMO)return {ok:false,error:'Demo preview cannot connect to hubs.'};const conf=override||hubConfig();if(!conf)return {ok:false,error:'No shared hub is connected.'};
  // Read-only requests can be retried once after a brief network interruption.
  // Never automatically replay writes: the hub may have saved them even when a reply is lost.
  for(let attempt=0;attempt<(method==='GET'?2:1);attempt++){
@@ -100,7 +103,7 @@ async function renewCloudSession(){
  }
  return cloudRenewal;
 }
-async function cloudFetch(endpoint,options={}){
+async function cloudFetch(endpoint,options={}){if(PREVIEW_DEMO)throw Error('Preview cannot access cloud.');
  const current=await renewCloudSession();
  const headers={...options.headers,apikey:current.anonKey,Authorization:'Bearer '+current.token};
  return fetch(current.url+endpoint,{...options,headers});
@@ -336,7 +339,7 @@ function ipv4Addresses(){
  return [...new Set(arr)];
 }
 async function localHubRequest(url){try{const r=await fetch(url+'/health',{signal:AbortSignal.timeout(1200)});return r.ok;}catch{return false;}}
-async function startOwnedHub(){
+async function startOwnedHub(){if(PREVIEW_DEMO)return {ok:false,error:'Hub disabled in preview.'};
  const url='http://127.0.0.1:4217';
  if(ownedHub&&await localHubRequest(url))return {ok:true,url:hubConfig()?.url||url,ips:ipv4Addresses()};
  if(await localHubRequest(url))return {ok:false,error:'Port 4217 already has a running hub. Close the old hub or connect to it using the existing token.'};
@@ -391,7 +394,7 @@ async function cloudCheck(){
  const cloudItems=await response.json();return {ok:true,localAssets:r.items?.length||0,cloudReachable:true,cloudSample:cloudItems?.length||0,warning:(r.items?.length||0)===0?'The connected hub contains no assets. If your laptops are currently stored only in the local Studio, migrate them to the hub before syncing.':''};
  }catch(e){return {ok:false,error:'Supabase unreachable: '+e.message};}
 }
-async function cloudStart(input){
+async function cloudStart(input){if(PREVIEW_DEMO)return {ok:false,error:'Cloud sync disabled in preview.'};
  if(cloudProcess&&cloudProcess.exitCode===null)return cloudStatus();
  const checked=await cloudCheck();if(!checked.ok)return checked;
  if(!input?.confirmed)return {ok:false,error:'Review the first-sync safety notice and confirm before starting.'};
@@ -429,7 +432,7 @@ function readRememberedCloud(){
   return JSON.parse(safeStorage.decryptString(Buffer.from(payload.encrypted,'base64')));
  }catch{return null;}
 }
-async function resumeRememberedCloud(){
+async function resumeRememberedCloud(){if(PREVIEW_DEMO)return {ok:false,remembered:false};
  if(authenticated)return {ok:false,error:'Already signed in.'};
  const saved=readRememberedCloud();if(!saved)return {ok:false,remembered:false};
  const {url,anonKey,email,refreshToken}=saved;
@@ -452,13 +455,13 @@ const cloudLoginPublicFile=()=>path.join(userDir(),'cloud-login-public.json');
 // settings, when present, take precedence; secrets are NEVER packaged here.
 const bundledPublicFile=()=>path.join(__dirname,'cloud-login-distribution.json');
 function readPublicFile(file){try{const value=JSON.parse(fs.readFileSync(file,'utf8'));return value&&typeof value==='object'?value:{};}catch{return {};}}
-function publicCloudLogin(){
+function publicCloudLogin(){if(PREVIEW_DEMO)return {url:'',anonKey:''};
  const local=readPublicFile(cloudLoginPublicFile());
  const bundled=readPublicFile(bundledPublicFile());
  return {url:local.url||bundled.url||'',anonKey:local.anonKey||bundled.anonKey||''};
 }
 function validPublishableKey(s){return /^sb_publishable_[A-Za-z0-9_-]{12,}$/.test(s)||/^eyJ[A-Za-z0-9._-]{40,}$/.test(s);}
-async function cloudStaffLogin(input){
+async function cloudStaffLogin(input){if(PREVIEW_DEMO)return {ok:false,error:'Cloud login disabled in isolated preview.'};
  if(Date.now()<nextAttempt)return {ok:false,error:'Too many login attempts. Try again shortly.'};
  const prior=publicCloudLogin();
  const url=String(input?.url||prior.url||'').trim().replace(/\/$/,'');
@@ -489,11 +492,13 @@ async function cloudStaffLogin(input){
  }catch(e){return {ok:false,error:'Unable to reach Supabase. Check your internet connection and project URL.'};}
 }
 // Update operations require sign-in; installation is an explicit user decision.
-ipcMain.handle('inventory:updateStatus',()=>safe(()=>authenticated?updateCentre.status():{ok:false,error:'Sign in first.'}));
-ipcMain.handle('inventory:updateCheck',()=>safe(()=>authenticated?updateCentre.check(true):{ok:false,error:'Sign in first.'}));
-ipcMain.handle('inventory:updateDownload',()=>safe(()=>authenticated?updateCentre.download():{ok:false,error:'Sign in first.'}));
-ipcMain.handle('inventory:updateInstall',()=>safe(()=>authenticated?updateCentre.install():{ok:false,error:'Sign in first.'}));
+ipcMain.handle('inventory:updateStatus',()=>safe(()=>PREVIEW_DEMO?{ok:false,error:'Updater disabled in preview.'}:authenticated?updateCentre.status():{ok:false,error:'Sign in first.'}));
+ipcMain.handle('inventory:updateCheck',()=>safe(()=>PREVIEW_DEMO?{ok:false,error:'Updater disabled in preview.'}:authenticated?updateCentre.check(true):{ok:false,error:'Sign in first.'}));
+ipcMain.handle('inventory:updateDownload',()=>safe(()=>PREVIEW_DEMO?{ok:false,error:'Updater disabled in preview.'}:authenticated?updateCentre.download():{ok:false,error:'Sign in first.'}));
+ipcMain.handle('inventory:updateInstall',()=>safe(()=>PREVIEW_DEMO?{ok:false,error:'Updater disabled in preview.'}:authenticated?updateCentre.install():{ok:false,error:'Sign in first.'}));
 app.whenReady().then(()=>{
+ globalThis.fetch=async()=>{throw Error('Network disabled: APEX 5 Demo Preview');};
+ session.defaultSession.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*','ws://*/*','wss://*/*']},(_details,callback)=>callback({cancel:true}));
  loadDB();
  session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>{
   const camera=permission==='media'&&(!details?.mediaTypes||(details.mediaTypes.includes('video')&&!details.mediaTypes.includes('audio')));
@@ -518,7 +523,7 @@ app.whenReady().then(()=>{
   authenticated=true;authMode='local';cloudUserRole=null;loginFailures=0;return {ok:true,username,mustChangePassword:db.user.mustChangePassword,authMode:'local'};
  }));
  ipcMain.handle('inventory:cloudLoginInfo',()=>safe(()=>({ok:true,configured:validCloudUrl(publicCloudLogin().url||'')&&validPublishableKey(publicCloudLogin().anonKey||'')})));
- ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{
+ ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{if(PREVIEW_DEMO)return {ok:false,error:'Cloud configuration disabled in preview.'};
   if(!authenticated||!adminOnly()||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Admin Centre with your administrator password first.'};
   const url=String(input?.url||'').trim().replace(/\/$/,'');
   const anonKey=String(input?.anonKey||'').trim();
@@ -648,7 +653,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:cloudStart',settingsSecured(input=>hubAdmin('start',input)));
  ipcMain.handle('inventory:cloudStop',settingsSecured(()=>hubAdmin('stop')));
  ipcMain.handle('inventory:hubStatus',secured(()=>{if(authMode==='cloud')return {ok:true,mode:'cloud',adminHubUrl:hubConfig()?.url||null};const h=hubConfig();return {ok:true,mode:h?'shared':'local',url:h?.url||null};}));
- ipcMain.handle('inventory:hubConnect',settingsSecured(async data=>{
+ ipcMain.handle('inventory:hubConnect',settingsSecured(async data=>{if(PREVIEW_DEMO)return {ok:false,error:'Hub connection disabled in preview.'};
   try{const connection=validateHub(data?.url,data?.token);const r=await hubRequest('GET','/v1/items',null,connection);if(!r.ok)return r;atomic(hubPath(),connection);return {ok:true,mode:'shared',url:connection.url};}
   catch(e){return {ok:false,error:e.message||'Invalid hub connection.'};}
  }));
@@ -669,7 +674,7 @@ app.whenReady().then(()=>{
  // maintains its own snapshots, even when this Studio window is closed.
  const localAutoBackup=()=>{try{if(backupManager.due(userDir()))backupManager.snapshot({root:userDir(),files:localBackupFiles(),reason:'automatic'});}catch(e){console.error('Local backup:',e.message);}};
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
- win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#0c0e17',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+ win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#0c0e17',show:false,title:'APEX Management Studio 5 — DEMO PREVIEW',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer','index.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
@@ -683,7 +688,7 @@ app.whenReady().then(()=>{
   finally{arrivalPollBusy=false;}
  },15000);arrivalTimer.unref();
  win.on('closed',()=>{clearInterval(arrivalTimer);intakeNotification?.close();});
- updateCentre.init(win); // Silent on startup, no automatic installation.
+ if(!PREVIEW_DEMO)updateCentre.init(win); // Preview never starts production updater.
 
  // Re-launch the hub automatically only when this installation previously owned one.
  // Never silently replace an external shared hub or migrate a local database.
