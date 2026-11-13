@@ -20,6 +20,6 @@ assert(!fs.existsSync(path.join(archive,'cloud/refurb-parts-bridge.js')),'Produc
 assert(!fs.existsSync(path.join(archive,'hub/server.js')),'Shared hub server bundled in preview');
 const html=read('src/renderer/index.html');
 const style=read('src/renderer/apex5-professional-preview.css');
-assert(html.includes('APEX 5.0 Preview — Offline Demo'));
+assert(html.includes('APEX 5.0 Redesign Preview 2 — Offline Demo'));
 for(const page of ['#dashboardPage','#inventoryPage','#assetPage'])assert(style.includes(page),'Missing style: '+page);
 console.log('PASS: separate packaged preview identity, demo data directory, no production cloud workers, no network and three Concept A screens.');
