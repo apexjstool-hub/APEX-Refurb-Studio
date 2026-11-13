@@ -28,7 +28,7 @@ test('Microdream badges read workflow records and do not write dispatch or compl
  assert.match(script,/Sent for respray/);
  assert.match(script,/Returned — inspect/);
  assert.match(script,/Respray completed/);
- assert.match(script,/window\.apexInventory\.workflow/);
+ assert.match(script,/window\.apexInventory\?\.workflow/);
  assert.doesNotMatch(script,/workflowAction\(|createPallet\(|deletePallet\(|localStorage|api\.movePallets\(/);
 });
 test('Styles and status enhancement load after existing workflow scripts without replacing them',()=>{
