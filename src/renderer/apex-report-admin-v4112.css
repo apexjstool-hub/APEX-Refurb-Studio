@@ -1,0 +1,84 @@
+/* v4.1.12 Reports & Admin Centre 2.0.
+   Reuses established appearance tokens; dark/light works unchanged. */
+#reportsPage .page-intro,#settingsPage .page-intro{margin-bottom:17px!important}
+#reportsPage .apex-report-shell,#reportsPage .apex-report-more,#reportsPage .report-card,
+#settingsPage :is(.reliability-panel,.verification-panel,.conflict-panel,.apex-cloud-panel,.settings-stack){
+ border-radius:13px!important;border:1px solid var(--line)!important;
+ box-shadow:0 3px 13px rgba(0,0,0,.055)!important;
+}
+#reportsPage .apex-report-heading h1{font-size:clamp(24px,2.5vw,31px)!important;letter-spacing:-.5px!important}
+#reportsPage .apex-report-stats{gap:12px!important;margin:0 0 18px!important}
+#reportsPage .apex-report-stats .report-stat{
+ background:var(--panel)!important;border:1px solid var(--line)!important;
+ border-radius:12px!important;min-height:92px!important;padding:16px 20px!important;
+}
+#reportsPage .apex-report-stats .report-stat span{font-size:12px!important;color:var(--muted)!important;font-weight:700!important}
+#reportsPage .apex-report-stats .report-stat b{font-size:29px!important;font-weight:850!important;color:var(--text)!important}
+#reportsPage .apex-report-shell{padding:20px!important}
+#reportsPage .apex-report-shell-heading h2{font-weight:800!important;color:var(--text)!important}
+#reportsPage .apex-report-barcode-note{
+ padding:11px 14px;margin:0 0 15px!important;border-radius:9px;
+ background:var(--panel2);border:1px solid var(--line);
+ color:var(--text);font-size:12px;line-height:1.55;
+}
+#reportsPage .v3-report-tabs{gap:7px!important}
+#reportsPage .v3-report-tabs button{font-weight:740!important;border-radius:9px!important;padding:9px 13px!important}
+#reportsPage .v3-report-body{gap:16px!important}
+#reportsPage .v3-report-actions button,#reportsPage .report-card button{
+ border-radius:9px!important;min-height:38px!important;font-weight:750!important;
+}
+#reportsPage .report-card{padding:18px!important}
+#reportsPage .report-card h3{font-weight:800!important;color:var(--text)!important}
+#reportsPage .report-card p{color:var(--muted)!important;line-height:1.55!important}
+#reportsPage .apex-report-more summary{padding:17px 20px!important}
+#reportsPage .apex-report-more summary strong{color:var(--text)!important;font-size:14px!important}
+#settingsPage .apex-admin-intro{
+ background:var(--panel);color:var(--text);
+ border:1px solid var(--line);border-radius:13px;
+ padding:21px 22px;margin-bottom:18px;box-shadow:0 3px 13px rgba(0,0,0,.045);
+}
+#settingsPage .apex-admin-intro h1{
+ font-size:clamp(24px,2.4vw,30px);color:var(--text);
+ margin:5px 0 7px;letter-spacing:-.55px;font-weight:850;
+}
+#settingsPage .apex-admin-intro p{
+ color:var(--muted);font-size:12.5px;line-height:1.6;margin:0 0 16px;
+}
+#settingsPage .apex-admin-links{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+#settingsPage .apex-admin-links a{
+ display:inline-flex;align-items:center;min-height:34px;
+ padding:8px 11px;border:1px solid var(--line);border-radius:9px;
+ background:var(--panel2);color:var(--text);font-size:11.5px;
+ font-weight:720;text-decoration:none;transition:background-color .14s,border-color .14s;
+}
+#settingsPage .apex-admin-links a:hover{
+ border-color:#6BA3E3;background:var(--panel);text-decoration:underline;
+}
+#settingsPage .apex-admin-links a:focus-visible,#reportsPage button:focus-visible{
+ outline:2px solid #4389DA!important;outline-offset:3px!important;
+}
+#settingsPage .page-intro h1{font-size:21px!important}
+#settingsPage :is(.apex-cloud-head h2,.reliability-heading h2,.verification-head h2,.conflict-header h2){
+ color:var(--text)!important;font-weight:800!important;
+}
+#settingsPage :is(.settings-row,.reliability-card){border-radius:10px!important}
+#settingsPage :is(.apex-cloud-panel,.reliability-panel,.verification-panel,.conflict-panel){scroll-margin-top:22px}
+#settingsPage :is(button.primary,button.secondary,.appearance-option){border-radius:9px!important;font-weight:750!important}
+#settingsPage :is(input,select){border-radius:8px!important}
+@media(max-width:920px){
+ #reportsPage .apex-report-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #settingsPage .apex-admin-intro{padding:17px!important}
+}
+@media(max-width:600px){
+ #reportsPage .apex-report-stats{grid-template-columns:1fr!important}
+ #reportsPage .report-actions-grid{grid-template-columns:1fr!important}
+ #settingsPage .apex-admin-links a{flex:1 1 auto;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){
+ #reportsPage *,#settingsPage .apex-admin-links a{transition:none!important}
+}
+@media print{
+ #reportsPage .apex-report-barcode-note,#settingsPage .apex-admin-intro{display:none!important}
+}
