@@ -9,3 +9,11 @@
 .ld-studio .ld-barcode-sizing h3{font-size:12px;font-weight:800;margin:0 0 6px;color:var(--text)}
 .ld-studio .ld-barcode-sizing .field{margin:10px 0}
 .ld-studio .ld-barcode-sizing .ld-caption{margin:7px 0 0}
+
+/* 4.1.13 — precision alignment and barcode presets, consistent with existing tokens. */
+.ld-studio .ld-center-buttons button{min-width:0;white-space:normal;line-height:1.3}
+.ld-studio .ld-barcode-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:12px 0 9px}
+.ld-studio .ld-barcode-presets button{padding:7px 5px;font-size:10.5px;line-height:1.3;min-width:0}
+.ld-studio .ld-inspector-inner .ld-center-buttons{margin:8px 0}
+@media(max-width:1250px){.ld-studio .ld-barcode-presets{max-width:600px}}
+@media(max-width:480px){.ld-studio .ld-barcode-presets{grid-template-columns:1fr 1fr}}
