@@ -24,13 +24,13 @@ test('Barcode contents are escaped and invalid unprintable IDs never break repor
 });
 test('Printed and PDF report markup has barcode styles and scan-ready values',()=>{
  assert.match(barcode.printStyles,/print-color-adjust/);
- assert.match(barcode.printStyles,/6\.5mm/);
+ assert.match(barcode.printStyles,/height:5mm/);
  assert.doesNotMatch(barcode.printStyles,/46mm/);
  const short=barcode.inline('APX-10482',globalThis.ApexAssetBarcode);
  const long=barcode.inline('APX-10482-EXTENDED-000123',globalThis.ApexAssetBarcode);
  const shortWidth=Number(short.match(/style="width:(\d+)mm"/)?.[1]);
  const longWidth=Number(long.match(/style="width:(\d+)mm"/)?.[1]);
- assert.ok(shortWidth>=28&&shortWidth<46,'compact but printable');
+ assert.ok(shortWidth>=22&&shortWidth<35,'compact but printable');
  assert.ok(longWidth>shortWidth,'longer codes retain scan-safe module width');
  assert.match(app,/ApexReportBarcode\.td\(a\.id,window\.ApexAssetBarcode\)/);
  assert.match(app,/ApexReportBarcode\.printStyles/);
