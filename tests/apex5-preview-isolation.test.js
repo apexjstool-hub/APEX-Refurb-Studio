@@ -7,7 +7,7 @@ const pkg=JSON.parse(read('package.json'));
 const main=read('src/main.js'),html=read('src/renderer/index.html'),css=read('src/renderer/apex5-professional-preview.css');
 test('Standalone preview has an entirely separate Windows application and installer identity',()=>{
  assert.equal(pkg.name,'apex-management-studio-5-preview');
- assert.equal(pkg.version,'5.0.0-preview.2');
+ assert.equal(pkg.version,'5.0.0-preview.3');
  assert.equal(pkg.build.appId,'com.apex.management.preview5');
  assert.equal(pkg.build.productName,'APEX Management Studio 5 Preview');
  assert.match(pkg.build.win.artifactName,/APEX-Management-Studio-5-Preview-Setup-/);
