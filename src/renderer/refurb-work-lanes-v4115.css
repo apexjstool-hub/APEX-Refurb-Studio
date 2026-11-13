@@ -1,0 +1,36 @@
+/* v4.1.15 — separate refurbishment work queues, shared asset workflow. */
+#refurbWorkspacePage .rw-view-tabs{gap:6px!important;flex-wrap:wrap}
+#refurbWorkspacePage .rw-view-tabs .v3-tab{border-radius:9px!important;padding:9px 13px!important;min-height:36px!important}
+#refurbWorkspacePage .rw-lane-view{min-width:0}
+#refurbWorkspacePage .rw-lane-summary{display:grid;grid-template-columns:repeat(2,minmax(0,190px)) 1fr;align-items:center;gap:10px;margin:0 0 15px}
+#refurbWorkspacePage .rw-lane-summary>div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+#refurbWorkspacePage .rw-lane-summary small{color:var(--muted);font-size:11px}
+#refurbWorkspacePage .rw-lane-summary strong{color:var(--text);font-size:22px;line-height:1.2}
+#refurbWorkspacePage .rw-lane-summary>p{color:var(--muted);font-size:11.5px;line-height:1.55;padding:0 12px;margin:0}
+#refurbWorkspacePage .rw-lane-toolbar{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:0 0 12px}
+#refurbWorkspacePage .rw-lane-search-field{color:var(--muted);font-size:11px;font-weight:650;flex:1;max-width:500px}
+#refurbWorkspacePage #rwLaneSearch{display:block;width:100%;height:38px;margin-top:5px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:8px 12px;font-size:12px}
+#refurbWorkspacePage #rwLaneSearch:focus-visible{outline:2px solid #3479ce;outline-offset:1px}
+#refurbWorkspacePage #rwLaneResults{color:var(--muted);font-size:11px;white-space:nowrap;padding-bottom:10px}
+#refurbWorkspacePage #rwLaneTable{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
+#refurbWorkspacePage .rw-lane-table{width:100%;min-width:800px;border-collapse:collapse;table-layout:fixed}
+#refurbWorkspacePage .rw-lane-table th{background:var(--panel2);color:var(--muted);font-weight:750;font-size:10.5px;text-align:left;padding:12px 15px;border-bottom:1px solid var(--line)}
+#refurbWorkspacePage .rw-lane-table td{padding:13px 15px!important;border-bottom:1px solid var(--line);vertical-align:middle!important;color:var(--text);font-size:11.5px}
+#refurbWorkspacePage .rw-lane-table tr:last-child td{border-bottom:0}
+#refurbWorkspacePage .rw-lane-table th:first-child{width:29%}
+#refurbWorkspacePage .rw-lane-table th:nth-child(2){width:28%}
+#refurbWorkspacePage .rw-lane-table th:nth-child(3){width:20%}
+#refurbWorkspacePage .rw-lane-table tr:hover td{background:color-mix(in srgb,var(--panel) 75%,#3478ca 5%)}
+#refurbWorkspacePage .rw-lane-device{display:block;margin:5px 0 3px;font-size:12px;color:var(--text)}
+#refurbWorkspacePage .rw-lane-meta{display:block;font-size:10.5px;line-height:1.55;color:var(--muted);margin-top:4px}
+#refurbWorkspacePage .rw-lane-tasks{display:flex;align-items:flex-start;flex-direction:column;gap:5px}
+#refurbWorkspacePage .rw-lane-task{font-size:11px;line-height:1.4;color:var(--text)}
+#refurbWorkspacePage .rw-lane-task small{color:var(--muted);white-space:nowrap;margin-left:4px}
+#refurbWorkspacePage .rw-lane-status{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:760;background:var(--panel2);color:var(--text)}
+#refurbWorkspacePage .rw-lane-status-respray{border-color:color-mix(in srgb,#9c69cc 40%,var(--line));background:color-mix(in srgb,#9c69cc 12%,var(--panel))}
+#refurbWorkspacePage .rw-lane-status-parts{border-color:color-mix(in srgb,#4c87c9 40%,var(--line));background:color-mix(in srgb,#4c87c9 11%,var(--panel))}
+#refurbWorkspacePage .rw-lane-both{display:inline-flex;margin-top:7px;border:1px solid color-mix(in srgb,#8766bb 42%,var(--line));color:var(--text);background:var(--panel2);border-radius:6px;padding:3px 7px;font-size:10px;font-weight:750}
+#refurbWorkspacePage .rw-lane-next{display:block;color:var(--muted);font-size:11px;margin-bottom:9px}
+#refurbWorkspacePage .rw-lane-table button.secondary{border-radius:7px!important}
+@media(max-width:1050px){#refurbWorkspacePage .rw-lane-summary{grid-template-columns:1fr 1fr}#refurbWorkspacePage .rw-lane-summary>p{grid-column:1/-1;padding:0}}
+@media(max-width:620px){#refurbWorkspacePage .rw-lane-toolbar{align-items:stretch;flex-direction:column}#refurbWorkspacePage .rw-lane-summary{gap:7px}#refurbWorkspacePage .rw-lane-summary>div{padding:10px}#refurbWorkspacePage .rw-lane-table{min-width:760px}}
