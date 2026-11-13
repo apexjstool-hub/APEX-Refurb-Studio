@@ -86,6 +86,7 @@
    closeActions();
    const wrap=toggle.closest('.pl-actions-wrap'),popup=wrap.querySelector('.pl-actions-popup');
    if(!popup)return;
+   popup.addEventListener('click',event=>{if(event.target.closest('button'))closeActions();},{once:true});
    document.body.appendChild(popup);popup.hidden=false;
    const rect=toggle.getBoundingClientRect(),width=210;
    popup.style.left=Math.max(8,Math.min(rect.right-width,window.innerWidth-width-8))+'px';
