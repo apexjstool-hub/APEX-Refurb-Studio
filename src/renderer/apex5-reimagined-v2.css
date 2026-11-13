@@ -1,0 +1,102 @@
+/* APEX 5.0 / Reimagined Preview 2. Structural visual redesign.
+   Uses the same operational handlers, isolated demo data and original input IDs. */
+#appPage{--ap5v2-blue:#256cbd;--ap5v2-ink:#172b40;--ap5v2-rim:var(--line);--ap5v2-card:var(--panel);--ap5v2-sub:var(--panel2)}
+#appPage .main{background:var(--bg)!important}
+#appPage .ap5-v2-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:0 0 11px;margin:4px 0 18px;letter-spacing:.09em;font-weight:820;font-size:9.5px;color:var(--muted)}
+#appPage .ap5-v2-kicker{color:#377fc9}
+#appPage .ap5-v2-heading-meta{display:flex;gap:8px;align-items:center}
+#appPage .ap5-v2-online-indicator{border:1px solid #70a57b;color:#358555;background:color-mix(in srgb,var(--panel) 83%,#3e9668 17%);border-radius:5px;padding:3px 6px;font-size:9px}
+#appPage :is(.ap5-v2-dashboard,.ap5-v2-inventory,.ap5-v2-device)>.page-intro{margin:0 0 17px!important}
+#appPage :is(.ap5-v2-dashboard,.ap5-v2-inventory,.ap5-v2-device)>.page-intro h1{font-size:31px!important;font-weight:840!important;letter-spacing:-1px!important}
+#dashboardPage .ap5-v2-command-grid{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(300px,.9fr);gap:14px;margin:0 0 16px;align-items:stretch}
+#dashboardPage .ap5-v2-command-grid>.hero-banner{min-width:0;margin:0!important;min-height:310px!important;display:flex!important;align-items:center;box-shadow:none!important;border-radius:17px!important;background:linear-gradient(128deg,#103154 0%,#1a5084 58%,#3979b0 100%)!important}
+#dashboardPage .ap5-v2-command-grid .hero-banner-content{position:relative;z-index:2;max-width:440px;padding:30px!important;color:white!important}
+#dashboardPage .ap5-v2-command-grid .hero-banner h2{font-size:35px!important;letter-spacing:-1.2px!important;color:#fff!important;line-height:1.08!important;margin:14px 0!important}
+#dashboardPage .ap5-v2-command-grid .hero-banner p{font-size:12.5px!important;line-height:1.65!important;color:#d9eafb!important;max-width:340px!important}
+#dashboardPage .ap5-v2-command-grid .hero-banner .banner-tag{background:#ffffff22!important;border:1px solid #ffffff3a!important;color:#f2f8ff!important;border-radius:6px!important;font-size:10px!important}
+#dashboardPage .ap5-v2-command-grid .banner-button{background:#f5f9fe!important;color:#173e6a!important;border-radius:9px!important;font-weight:780!important;padding:11px 15px!important;margin-top:12px!important}
+#dashboardPage .ap5-v2-command-grid .banner-art{opacity:.38!important;transform:scale(1.2)!important}
+#dashboardPage .ap5-v2-briefing{min-width:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:19px;box-shadow:0 7px 22px #152f5210}
+#dashboardPage .ap5-v2-briefing-kicker{font-size:9.5px;color:var(--muted);font-weight:820;letter-spacing:.12em}
+#dashboardPage .ap5-v2-briefing h3{color:var(--text);font-size:20px!important;line-height:1.2;letter-spacing:-.55px;margin:8px 0 5px;font-weight:820}
+#dashboardPage .ap5-v2-briefing>p{font-size:11.5px;color:var(--muted);line-height:1.55;margin:0 0 15px}
+#dashboardPage .ap5-v2-briefing-list{display:flex;flex-direction:column;gap:7px}
+#dashboardPage .ap5-v2-briefing-list button{min-width:0;display:grid;grid-template-columns:36px minmax(0,1fr) 16px;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:9px;cursor:pointer;box-shadow:none}
+#dashboardPage .ap5-v2-briefing-list button:hover{border-color:#6c9ed5;background:color-mix(in srgb,var(--panel2) 83%,#357fd3 17%)}
+#dashboardPage .ap5-v2-briefing-list button>span:nth-child(2){display:flex;flex-direction:column;gap:3px;min-width:0}
+#dashboardPage .ap5-v2-briefing-list strong{font-size:11.5px;line-height:1.25;font-weight:790}
+#dashboardPage .ap5-v2-briefing-list small{font-size:10px;color:var(--muted);line-height:1.35}
+#dashboardPage .ap5-v2-tile-icon{width:36px;height:36px;border:1px solid #8eafe366;background:color-mix(in srgb,var(--panel) 80%,#3e87cd 20%);display:grid;place-items:center;border-radius:8px;color:#3578b9;font-size:18px}
+#dashboardPage .ap5-v2-briefing-foot{margin-top:auto;padding-top:13px;font-size:9px;color:var(--muted);letter-spacing:.08em;font-weight:760}
+#dashboardPage .metrics{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin:0 0 22px!important}
+#dashboardPage .metrics>.metric{border-radius:13px!important;min-height:123px!important;padding:17px!important}
+#dashboardPage .metrics .metric-value{font-size:35px!important;margin:12px 0 6px!important}
+#dashboardPage .ap5-v2-section-overline{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding-bottom:10px;margin:0 0 13px;color:var(--muted);letter-spacing:.095em;font-size:9.5px;font-weight:810}
+#dashboardPage .smart-grid{display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(250px,1fr)!important;gap:14px!important}
+#dashboardPage .section-panel{border-radius:14px!important;box-shadow:none!important}
+#dashboardPage .apex-pulse{border:1px solid var(--line)!important;box-shadow:none!important;margin:17px 0!important}
+#dashboardPage .apex-pulse-heading{padding-bottom:12px;border-bottom:1px solid var(--line)}
+#dashboardPage .apex-pulse-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#inventoryPage .ap5-v2-register-layout{display:grid;grid-template-columns:235px minmax(0,1fr);gap:15px;align-items:start}
+#inventoryPage .ap5-v2-register-rail{background:var(--panel);border:1px solid var(--line);border-radius:14px;min-width:0;overflow:hidden;position:sticky;top:17px}
+#inventoryPage .ap5-v2-rail-header{padding:21px 17px 15px;border-bottom:1px solid var(--line)}
+#inventoryPage .ap5-v2-rail-header>span{font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:820}
+#inventoryPage .ap5-v2-rail-header h2{font-size:19px;margin:8px 0 6px;letter-spacing:-.5px;font-weight:820;line-height:1.2;color:var(--text)}
+#inventoryPage .ap5-v2-rail-header p{font-size:11px;line-height:1.6;color:var(--muted);margin:0}
+#inventoryPage .ap5-v2-rail-nav{padding:12px 9px;display:flex;flex-direction:column;gap:5px}
+#inventoryPage .ap5-v2-rail-nav button{display:flex;align-items:center;gap:8px;min-height:40px;padding:9px 10px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--text);font-size:11.5px;font-weight:730;cursor:pointer;text-align:left}
+#inventoryPage .ap5-v2-rail-nav button span:first-child{flex:1}
+#inventoryPage .ap5-v2-rail-nav button span:last-child{margin-left:auto;font-weight:780;color:var(--muted)}
+#inventoryPage .ap5-v2-rail-nav button:hover{background:var(--panel2)!important}
+#inventoryPage .ap5-v2-rail-nav button.ap5-v2-rail-active{background:color-mix(in srgb,var(--panel2) 74%,#4084cb 26%)!important;border-color:#76abe160;color:var(--text)!important}
+#inventoryPage .ap5-v2-rail-callout{margin:5px 10px 12px;padding:13px;border:1px solid #77a7d35c;border-radius:10px;background:color-mix(in srgb,var(--panel2) 88%,#2d7ac4 12%);display:flex;flex-direction:column;gap:6px}
+#inventoryPage .ap5-v2-rail-callout>span{font-size:9px;color:var(--muted);font-weight:780;letter-spacing:.1em}
+#inventoryPage .ap5-v2-rail-callout strong{font-size:12px;color:var(--text)}
+#inventoryPage .ap5-v2-rail-callout p{font-size:10.5px;color:var(--muted);line-height:1.5;margin:0}
+#inventoryPage .ap5-v2-register-main{min-width:0;display:flex;flex-direction:column;gap:13px}
+#inventoryPage .ap5-v2-register-main>.inventory-overview{display:flex;align-items:center;justify-content:space-between;padding:13px 17px!important;margin:0!important;min-height:82px!important;background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:13px!important;box-shadow:none!important}
+#inventoryPage .ap5-v2-register-main .overview-number{font-size:30px!important;color:var(--text)!important}
+#inventoryPage .ap5-v2-register-main>.section-panel{border-radius:13px!important;box-shadow:none!important;min-width:0;overflow:visible!important}
+#inventoryPage .ap5-v2-register-main .section-panel-head{display:flex;flex-direction:column;align-items:stretch!important;gap:13px;padding:17px!important}
+#inventoryPage .ap5-v2-register-main .section-panel-head h3{font-size:17px!important;letter-spacing:-.4px!important}
+#inventoryPage .ap5-v2-register-main .toolbar{display:grid!important;grid-template-columns:minmax(130px,1.4fr) repeat(3,minmax(110px,1fr));gap:8px!important;width:100%;align-items:center}
+#inventoryPage .ap5-v2-register-main .toolbar .table-search{min-width:0;width:100%!important}
+#inventoryPage .ap5-v2-register-main .toolbar input{width:100%;min-width:0}
+#inventoryPage .ap5-v2-register-main .toolbar select{min-width:0!important;width:100%!important;max-width:none!important}
+#inventoryPage .ap5-v2-register-main .apex-inventory-results{padding:9px 16px!important;border-bottom:1px solid var(--line)}
+#inventoryPage .ap5-v2-register-main #inventoryTable{width:100%!important;overflow-x:hidden!important;min-width:0}
+#inventoryPage .ap5-v2-register-main #inventoryTable>.asset-table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+#inventoryPage #inventoryTable .asset-table th{padding:11px 6px!important;font-size:9px!important}
+#inventoryPage #inventoryTable .asset-table tbody>tr:not(.inventory-repair-row)>td{padding:11px 6px!important;font-size:10.5px!important}
+#inventoryPage #inventoryTable .asset-table .apex-device-identity{min-width:0!important;max-width:100%!important}
+#inventoryPage #inventoryTable .asset-table .inventory-repair-cell{min-width:0!important;width:auto!important}
+#inventoryPage #inventoryTable .apex-work-chip{font-size:8.7px!important;padding:3px 4px!important}
+#assetPage .ap5-v2-device-grid{display:grid;grid-template-columns:minmax(270px,.8fr) minmax(0,1.8fr);gap:17px;align-items:start;margin-top:11px}
+#assetPage .ap5-v2-device-rail{display:flex;flex-direction:column;min-width:0;gap:13px;position:sticky;top:18px}
+#assetPage .ap5-v2-rail-overline{font-size:9.5px;letter-spacing:.11em;color:var(--muted);font-weight:850;padding:0 0 8px;border-bottom:1px solid var(--line)}
+#assetPage .ap5-v2-device-rail #assetSummary{margin:0!important;width:100%!important;max-width:100%!important;min-width:0!important;border-radius:15px!important;overflow:hidden!important;box-shadow:none!important}
+#assetPage .ap5-v2-device-rail #assetSummary :is(.asset-summary-body,.apex-device-card){max-width:100%!important;min-width:0!important}
+#assetPage .ap5-v2-device-help{padding:15px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:7px}
+#assetPage .ap5-v2-device-help>span{font-size:9px;color:var(--muted);font-weight:830;letter-spacing:.1em;padding:0 5px 4px}
+#assetPage .ap5-v2-device-help button{display:flex;align-items:center;gap:8px;padding:10px 11px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);font-size:11px;font-weight:740;text-align:left;cursor:pointer}
+#assetPage .ap5-v2-device-help button span{margin-left:auto}
+#assetPage .ap5-v2-device-main{min-width:0;display:flex;flex-direction:column;gap:13px}
+#assetPage .ap5-v2-edit-section-title{padding:0 0 10px;border-bottom:1px solid var(--line)}
+#assetPage .ap5-v2-edit-section-title span{font-size:9px;color:#4085c9;font-weight:840;letter-spacing:.1em}
+#assetPage .ap5-v2-edit-section-title h2{font-size:22px;color:var(--text);letter-spacing:-.6px;font-weight:820;line-height:1.2;margin:7px 0 4px}
+#assetPage .ap5-v2-edit-section-title p{font-size:11.5px;color:var(--muted);line-height:1.4;margin:0}
+#assetPage .ap5-v2-device-main #assetEditor{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important}
+#assetPage .ap5-v2-device-main #apexAssetDetailsSection{margin:0!important}
+#assetPage .ap5-v2-device-main .flat-fields{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}
+#assetPage .ap5-v2-device-main .field.compact-field{min-width:0!important;width:auto!important}
+#assetPage .ap5-v2-device-main .field.compact-field :is(input,select){width:100%!important;min-width:0!important;max-width:100%!important}
+#assetPage .ap5-v2-device-main #apexAssetDiagnosticsSection,#assetPage .ap5-v2-device-main #apexAssetRefurbSection,#assetPage .ap5-v2-device-main #apexAssetRepairsSection{margin:0!important;border-radius:13px!important;min-width:0}
+#assetPage #apexDeviceActions{position:static!important;margin:0 0 12px!important;padding:12px!important;border-radius:12px!important}
+#assetPage #apexDeviceActions .apex-device-action-buttons{gap:6px!important}
+#assetPage #apexDeviceActions .apex-device-action-buttons button{padding:8px 11px!important;font-size:10.5px!important}
+#assetPage .compact-breadcrumb{margin:0 0 9px!important}
+@media(max-width:1320px){#dashboardPage .apex-pulse-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}#inventoryPage .ap5-v2-register-layout{grid-template-columns:195px minmax(0,1fr)}#assetPage .ap5-v2-device-grid{grid-template-columns:minmax(235px,.85fr) minmax(0,1.5fr)}}
+@media(max-width:1100px){#dashboardPage .ap5-v2-command-grid{grid-template-columns:minmax(0,1fr)}#dashboardPage .ap5-v2-briefing-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}#dashboardPage .ap5-v2-briefing-list button{grid-template-columns:32px minmax(0,1fr)}#dashboardPage .ap5-v2-briefing-list button>span:last-child{display:none}#dashboardPage .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}#inventoryPage .ap5-v2-register-layout{grid-template-columns:1fr}#inventoryPage .ap5-v2-register-rail{position:static;display:grid;grid-template-columns:180px minmax(0,1fr)}#inventoryPage .ap5-v2-rail-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#inventoryPage .ap5-v2-rail-callout{display:none}}
+@media(max-width:830px){#assetPage .ap5-v2-device-grid{grid-template-columns:1fr}#assetPage .ap5-v2-device-rail{position:static}#assetPage .ap5-v2-device-help{display:none}#assetPage .ap5-v2-device-main .flat-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}#dashboardPage .smart-grid{grid-template-columns:1fr!important}#dashboardPage .ap5-v2-briefing-list{grid-template-columns:1fr}}
+@media(max-width:650px){#inventoryPage .ap5-v2-register-rail{grid-template-columns:1fr}#inventoryPage .ap5-v2-register-main .toolbar{grid-template-columns:repeat(2,minmax(0,1fr))!important}#assetPage .ap5-v2-device-main .flat-fields{grid-template-columns:1fr!important}#dashboardPage .metrics{grid-template-columns:1fr!important}#appPage .ap5-v2-heading-meta{display:none}}
+@media print{#assetPage .ap5-v2-device-grid,#inventoryPage .ap5-v2-register-layout,#dashboardPage .ap5-v2-command-grid{display:block!important}#assetPage .ap5-v2-device-rail{position:static!important}}
