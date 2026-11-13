@@ -17,5 +17,5 @@ test('the visual override remains scoped to minimal sidebar',()=>{
  const selectors=section.split('\n').filter(l=>l.startsWith('html['));
  assert(selectors.length>8);
  assert(selectors.every(l=>l.includes('data-apex-design="minimal"')&&l.includes('.sidebar')),JSON.stringify(selectors));
- assert.match(html,/id="apexDesignSwitch"/);
+ assert.match(html,/id="topTheme"/);
 });
