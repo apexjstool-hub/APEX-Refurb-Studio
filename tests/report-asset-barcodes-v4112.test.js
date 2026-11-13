@@ -1,0 +1,49 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+require('../src/renderer/asset-label-barcode.js');
+const barcode=require('../src/report-asset-barcode.js');
+const assignment=require('../src/assignment-documents.js');
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+const app=read('src/renderer/app.js'),ops=read('src/renderer/refurb-ui.js'),html=read('src/renderer/index.html'),manifest=read('src/assignment-documents.js');
+test('Barcode helper includes printed Asset ID and a real Code 128-B SVG',()=>{
+ const result=barcode.inline('APX-10482',globalThis.ApexAssetBarcode);
+ assert.match(result,/APX-10482/);
+ assert.match(result,/class="apex-report-bars"/);
+ assert.match(result,/<svg/);
+ assert.match(result,/Code 128 barcode for asset APX-10482/);
+ assert.match(result,/viewBox/);
+ assert.match(result,/rect/);
+ assert.match(barcode.td('67997',globalThis.ApexAssetBarcode),/<td class="apex-report-asset-cell">/);
+});
+test('Barcode contents are escaped and invalid unprintable IDs never break report rendering',()=>{
+ assert.doesNotMatch(barcode.inline('<script>',globalThis.ApexAssetBarcode),/<script>/);
+ assert.match(barcode.inline('<script>',globalThis.ApexAssetBarcode),/&lt;script&gt;/);
+ assert.doesNotThrow(()=>barcode.inline('bad\ncontrol',globalThis.ApexAssetBarcode));
+ assert.doesNotMatch(barcode.inline('bad\ncontrol',globalThis.ApexAssetBarcode),/<svg/);
+});
+test('Printed and PDF report markup has barcode styles and scan-ready values',()=>{
+ assert.match(barcode.printStyles,/print-color-adjust/);
+ assert.match(barcode.printStyles,/46mm/);
+ assert.match(app,/ApexReportBarcode\.td\(a\.id,window\.ApexAssetBarcode\)/);
+ assert.match(app,/ApexReportBarcode\.printStyles/);
+ assert.match(ops,/markup=window\.ApexReportBarcode\.printStyles\+markup/);
+ assert.match(ops,/ApexReportBarcode\.inline\(a\.id,window\.ApexAssetBarcode\)/);
+ assert.match(ops,/ApexReportBarcode\.inline\(id,window\.ApexAssetBarcode\)/);
+ assert.match(ops,/ApexReportBarcode\.td\(l\.assetId,window\.ApexAssetBarcode\)/);
+ assert.match(ops,/ApexReportBarcode\.td\(x\.assetId,window\.ApexAssetBarcode\)/);
+});
+test('Pallet manifest embeds barcode beside each asset identifier',()=>{
+ const meta={kind:'pallet',name:'PALLET-01',assets:[{id:'67997',manufacturer:'Dell',model:'Latitude 5550',serial:'BCJD974',ram:'16 GB',storage:'512 GB',condition:'B',status:'Processed'}]};
+ const page=assignment.manifestDocument(meta);
+ assert.match(page,/manifest-asset-barcode/);
+ assert.match(page,/Code 128 barcode for asset 67997/);
+ assert.match(page,/67997/);
+ assert.match(manifest,/preserveCase:true/);
+});
+test('Admin Centre keeps sensitive tools and dark/light mode while improving navigation',()=>{
+ for(const id of ['reliabilityPanel','apexReminderSettings','apexUpdateCentre','apexSharedAccountPanel','verificationPanel','conflictPanel','apexAdminAppearance','topTheme'])assert(html.includes(id),id);
+ assert.doesNotMatch(html,/id="apexDesignSwitch"/);
+ assert.match(html,/report-asset-barcode\.js/);
+ assert.match(html,/apex-report-admin-v4112\.css/);
+});
