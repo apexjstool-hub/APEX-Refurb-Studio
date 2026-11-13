@@ -1,0 +1,228 @@
+/* APEX Concept B — Unified Design System v4.1.04.
+   Presentation-only, opt-in, scoped to html[data-apex-design=minimal].
+   Class names, IDs, control behavior and database calls are unchanged.
+   Avoid print areas, canvases, barcode/QR renderers and browser-native widgets. */
+html[data-apex-design="minimal"]{
+ --apex-b-radius:9px;
+ --apex-b-field-height:37px;
+ --apex-b-border:#D8E2ED;
+ --apex-b-border-strong:#C7D5E5;
+ --apex-b-muted:#64758B;
+ --apex-b-blue:#2467BF;
+ --apex-b-blue-hover:#1857A5;
+ --apex-b-focus:#2B76D2;
+ --apex-b-surface:#FFFFFF;
+ --apex-b-soft:#F6F9FD;
+ --apex-b-shadow:0 2px 12px rgba(29,59,97,.045);
+}
+html[data-apex-design="minimal"] .app-shell :is(.primary,.secondary,.v3-tab,.rw-filters button,.inventory-quick-chip,.inventory-action-menu button,.inventory-filter-menu button,.ops-toolbar button,.management-toolbar button){
+ font-family:inherit;
+ letter-spacing:0;
+ line-height:1.3;
+ transition:background-color .12s ease,border-color .12s ease,color .12s ease,box-shadow .12s ease;
+}
+html[data-apex-design="minimal"] .app-shell :is(button.primary,button.secondary,button.v3-tab,button.inventory-quick-chip,button.inventory-filter-button){
+ border-radius:var(--apex-b-radius)!important;
+ text-transform:none!important;
+ box-shadow:none!important;
+ font-size:12px;
+ font-weight:700!important;
+}
+html[data-apex-design="minimal"] .app-shell button.primary{
+ background:var(--apex-b-blue)!important;
+ border:1px solid var(--apex-b-blue)!important;
+ color:#FFFFFF!important;
+}
+html[data-apex-design="minimal"] .app-shell button.primary:hover:not(:disabled){
+ background:var(--apex-b-blue-hover)!important;
+ border-color:var(--apex-b-blue-hover)!important;
+}
+html[data-apex-design="minimal"] .app-shell button.secondary{
+ background:#FFFFFF!important;
+ color:#344C69!important;
+ border:1px solid var(--apex-b-border)!important;
+}
+html[data-apex-design="minimal"] .app-shell button.secondary:hover:not(:disabled){
+ background:#F1F6FD!important;
+ border-color:#B6CDE8!important;
+ color:#174D96!important;
+}
+html[data-apex-design="minimal"] .app-shell button:disabled{
+ opacity:.47!important;cursor:not-allowed!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(button,input,select,textarea,[tabindex]):focus-visible{
+ outline:2px solid var(--apex-b-focus)!important;
+ outline-offset:2px!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){
+ color:#20364F!important;
+ background:#FFFFFF!important;
+ border:1px solid var(--apex-b-border-strong)!important;
+ border-radius:var(--apex-b-radius)!important;
+ box-shadow:none!important;
+ font-size:12px;
+ line-height:1.4;
+}
+html[data-apex-design="minimal"] .app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select):not([type=hidden]){
+ min-height:var(--apex-b-field-height);
+}
+html[data-apex-design="minimal"] .app-shell :is(input,select,textarea):disabled{
+ background:#F3F6FA!important;
+ color:#8290A2!important;
+ cursor:not-allowed;
+}
+html[data-apex-design="minimal"] .app-shell :is(input,select,textarea):focus{
+ border-color:#3D80D5!important;
+ box-shadow:0 0 0 3px rgba(46,111,201,.12)!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(input,textarea)::placeholder{color:#8C9AAE!important}
+html[data-apex-design="minimal"] .app-shell :is(.field,.compact-field,.ops-form-grid label,.inventory-filter-fields label){
+ color:#475B74!important;
+ font-size:12px;
+ font-weight:680;
+}
+html[data-apex-design="minimal"] .app-shell :is(.field,.compact-field,.ops-form-grid label) small{
+ color:var(--apex-b-muted)!important;
+ font-weight:500;
+}
+html[data-apex-design="minimal"] .app-shell :is(input[type=checkbox],input[type=radio]){
+ accent-color:var(--apex-b-blue);
+ cursor:pointer;
+}
+html[data-apex-design="minimal"] .app-shell :is(.section-panel,.ops-table-wrap,.v3-panel,.apex-cloud-panel,.report-card,.inventory-overview,.flat-editor,.device-summary-card){
+ border:1px solid #DFE7F1!important;
+ border-radius:12px!important;
+ background:var(--apex-b-surface)!important;
+ box-shadow:var(--apex-b-shadow)!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table,.ops-part-progress-table){
+ border-collapse:separate!important;
+ border-spacing:0!important;
+ color:#293E57!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table,.ops-part-progress-table) thead th{
+ background:#F6F9FD!important;
+ color:#566C86!important;
+ font-size:11px!important;
+ font-weight:760!important;
+ letter-spacing:0!important;
+ text-transform:none!important;
+ border-bottom:1px solid #DFE7F1!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table,.ops-part-progress-table) tbody td{
+ border-bottom:1px solid #EDF1F6!important;
+ color:#2A405B!important;
+ line-height:1.45;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table,.ops-part-progress-table) tbody tr:hover>td{
+ background:#F4F8FE!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table) tbody tr.inventory-row-selected>td{
+ background:#EAF3FF!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table) .asset-link{
+ color:#1E62B5!important;
+ text-decoration:none;
+ font-weight:750;
+}
+html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table) .asset-link:hover{
+ color:#0E458C!important;
+ text-decoration:underline;
+}
+html[data-apex-design="minimal"] .app-shell :is(.ops-part-progress-badge,.inventory-stage,.status,.grade-badge){
+ border-radius:999px!important;
+ font-weight:700;
+ box-shadow:none!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.v3-tab,.rw-view-tabs .v3-tab,.rw-purchasing-tabs .v3-tab){
+ border-radius:8px!important;
+ font-weight:700!important;
+ color:#536981!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.v3-tab.active,.v3-tab.selected,.v3-tab[aria-selected=true]){
+ color:#1E5FB0!important;
+ border-color:#BDD4F3!important;
+ background:#EAF3FF!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.inventory-action-menu,.inventory-filter-menu){
+ background:#FFFFFF!important;
+ color:#344960!important;
+ border:1px solid var(--apex-b-border)!important;
+ border-radius:10px!important;
+ padding:6px!important;
+ box-shadow:0 12px 32px rgba(25,57,91,.14)!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.inventory-action-menu,.inventory-filter-menu) button{
+ border-radius:7px!important;
+ color:#314760!important;
+ font-size:12px;
+}
+html[data-apex-design="minimal"] .app-shell :is(.inventory-action-menu,.inventory-filter-menu) button:hover:not(:disabled){
+ background:#EFF5FD!important;
+}
+html[data-apex-design="minimal"] #modalLayer .modal-card{
+ background:#FFFFFF!important;
+ color:#21374F!important;
+ border:1px solid #D9E3EE!important;
+ border-radius:14px!important;
+ box-shadow:0 22px 62px rgba(21,48,78,.19)!important;
+}
+html[data-apex-design="minimal"] #modalLayer :is(.modal-header,.modal-actions){
+ border-color:#E6EBF3!important;
+}
+html[data-apex-design="minimal"] #modalLayer .modal-header h2{
+ color:#1E3551!important;
+ font-weight:780!important;
+ letter-spacing:-.25px;
+}
+html[data-apex-design="minimal"] #modalLayer :is(.modal-body,.modal-body p){
+ color:#4D627C!important;
+ line-height:1.55;
+}
+html[data-apex-design="minimal"] #modalLayer :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+ background:#FFFFFF!important;
+ color:#243B54!important;
+ border:1px solid #C7D6E6!important;
+ border-radius:9px!important;
+}
+html[data-apex-design="minimal"] #modalLayer button.primary{
+ background:var(--apex-b-blue)!important;
+ border-color:var(--apex-b-blue)!important;
+ color:white!important;
+ border-radius:8px!important;
+}
+html[data-apex-design="minimal"] #modalLayer button.secondary{
+ background:#FFFFFF!important;
+ border:1px solid #D9E2EC!important;
+ color:#344D68!important;
+ border-radius:8px!important;
+}
+html[data-apex-design="minimal"] #modalLayer :is(input,select,textarea,button):focus-visible{
+ outline:2px solid var(--apex-b-focus)!important;outline-offset:2px!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.management-toolbar,.inventory-selection-toolbar,.ops-toolbar,.rw-selection-bar){
+ background:#FFFFFF!important;
+ border-color:#E0E7F0!important;
+ border-radius:10px!important;
+ box-shadow:none!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.section-panel-head h3,.ops-parts-heading b,.management-toolbar-title h3){
+ color:#1D344F!important;
+ font-weight:780!important;
+}
+html[data-apex-design="minimal"] .app-shell :is(.section-note,.ops-parts-summary .section-note,.apex-reminder-hint){
+ color:#65778F!important;
+ line-height:1.55;
+}
+@media(max-width:850px){
+ html[data-apex-design="minimal"] .app-shell :is(.management-toolbar,.inventory-selection-toolbar,.ops-toolbar){row-gap:10px}
+ html[data-apex-design="minimal"] .app-shell :is(.asset-table,.rw-work-table){font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-apex-design="minimal"] .app-shell :is(button,input,select,textarea){transition:none!important}
+}
+@media print{
+ /* Do not restyle printable content: the existing report and label print
+    templates, QR/barcode canvases and paper dimensions stay authoritative. */
+ html[data-apex-design="minimal"] #modalLayer .modal-card{box-shadow:none!important}
+}
