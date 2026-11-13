@@ -120,7 +120,7 @@
      const metrics=[['Parts needed',needed,'parts'],['Parts ordered',awaiting,'partsOrdered'],['Open purchase orders',orders,'orders'],['Awaiting respray',resprays,'respray']];
      procurement.innerHTML=metrics.map(([title,count,key])=>'<button type="button" data-rw-procurement="'+key+'" aria-pressed="'+(purchase===key)+'" title="View '+esc(title)+'"><span>'+esc(title)+'</span><strong>'+count+'</strong></button>').join('');
      procurement.querySelectorAll('[data-rw-procurement]').forEach(b=>b.onclick=()=>{
-      if(b.dataset.rwProcurement==='respray'){view='resprayLane';page=0;}
+      if(b.dataset.rwProcurement==='respray'){view='queue';filter='respray';page=0;}
       else purchase=b.dataset.rwProcurement;
       draw();
      });
