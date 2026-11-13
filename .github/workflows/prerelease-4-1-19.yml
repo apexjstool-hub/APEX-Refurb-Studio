@@ -1,0 +1,109 @@
+name: APEX v4.1.19 Device Details 3.0 Beta Windows EXE
+on:
+  push:
+    branches:
+      - feature/device-details-3-v4-1-19
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  beta-windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore public cloud login configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Missing APEX_CLOUD_LOGIN_CONFIG repository secret.' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$config.anonKey -match '^sb_secret_') { throw 'Server-only keys are forbidden.' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'), $env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid public cloud login configuration.' }
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify JavaScript syntax
+        run: |
+          Get-ChildItem src,hub,cloud,scripts -Recurse -Filter *.js | ForEach-Object {
+            node --check $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.FullName)" }
+          }
+      - name: Verify core regression tests
+        run: |
+          node --test tests/refurb-workflow.test.js tests/bulk-parts-board.test.js tests/part-receipts.test.js tests/pallet-locations.test.js tests/admin-centre.test.js tests/device-summary.test.js tests/microdream-reports.test.js tests/repair-work-type.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Core regression tests failed. Do not publish.' }
+      - name: Verify reminder and status tests
+        run: |
+          node --test tests/smart-refurb-reminders.test.js tests/inactivity-reminders.test.js tests/background-reminder-tray.test.js tests/microdream-pallet-respray.test.js tests/inventory-status-display.test.js tests/inventory-time-waiting.test.js tests/inventory-table-cleanup.test.js tests/inventory-header-filters.test.js tests/inventory-bulk-refurb.test.js tests/inventory-saved-views-sort.test.js tests/parts-order-notification.test.js tests/respray-parts-required-status.test.js tests/concept-b-minimal-design.test.js tests/concept-b-sidebar-contrast.test.js tests/concept-b-unified-design.test.js tests/concept-b-dashboard-workqueue.test.js tests/concept-b-procurement-sidebar.test.js tests/concept-b-device-details.test.js tests/native-theme-original-device-card.test.js tests/label-designer.test.js tests/label-barcode-sizing.test.js tests/pallet-locations.test.js tests/pallet-locations-v4111-ui.test.js tests/report-asset-barcodes-v4112.test.js tests/label-maker-v4113.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Reminder regression tests failed. Do not publish.' }
+      - name: Verify label maker source and layout tests
+        run: |
+          node --test tests/label-designer.test.js tests/custom-labels.test.js tests/label-print.test.js tests/label-maker-v4113.test.js tests/report-asset-barcodes-v4112.test.js tests/inventory-ui-v4114.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Label maker regression tests failed. Do not publish.' }
+      - name: Verify Inventory layout and functionality regression tests
+        run: |
+          node --test tests/inventory-ui-v4114.test.js tests/refurb-work-lanes-v4115.test.js tests/dispatch-centre-v4116.test.js tests/refurb-professional-v4117.test.js tests/pallets-locations-v4118.test.js tests/device-details-professional-v4119.test.js tests/inventory-table-cleanup.test.js tests/inventory-header-filters.test.js tests/inventory-saved-views-sort.test.js tests/inventory-bulk-refurb.test.js tests/inventory-status-display.test.js tests/inventory-time-waiting.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Inventory regression tests failed. Do not publish.' }
+      - name: Verify separate respray and parts queues
+        run: |
+          node --test tests/refurb-work-lanes-v4115.test.js tests/repair-work-type.test.js tests/microdream-pallet-respray.test.js tests/refurb-workflow.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Parts/Respray queue regression tests failed. Do not publish.' }
+      - name: Verify dispatch and independent completion
+        run: |
+          node --test tests/dispatch-centre-v4116.test.js tests/microdream-pallet-respray.test.js tests/refurb-workflow.test.js tests/refurb-work-lanes-v4115.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Dispatch/completion regression tests failed. Do not publish.' }
+      - name: Verify Professional Refurbishment UI and retained workflows
+        run: |
+          node --test tests/refurb-professional-v4117.test.js tests/refurb-work-lanes-v4115.test.js tests/dispatch-centre-v4116.test.js tests/refurb-workflow.test.js tests/concept-b-procurement-sidebar.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Refurbishment UI regression tests failed. Do not publish.' }
+      - name: Verify Pallets, Locations, Microdream and scanning regressions
+        run: |
+          node --test tests/pallets-locations-v4118.test.js tests/pallet-locations-v4111-ui.test.js tests/pallet-locations.test.js tests/microdream-pallet-respray.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Pallet and Microdream regression tests failed. Do not publish.' }
+      - name: Verify Device Details, repairs and labels are preserved
+        run: |
+          node --test tests/device-details-professional-v4119.test.js tests/concept-b-device-details.test.js tests/native-theme-original-device-card.test.js tests/device-summary.test.js tests/repair-work-type.test.js tests/report-asset-barcodes-v4112.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Device Details regression tests failed. Do not publish.' }
+      - name: Build Windows installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm run pack:windows -- --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer build failed.' }
+          # 4.1.12 is a canonical semver and Electron Builder produces that filename directly.
+          if (!(Test-Path 'dist/APEX-Refurb-Studio-Setup-4.1.19.exe')) { throw 'Expected Windows EXE not found.' }
+      - name: Verify packaged sync worker
+        run: |
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          $verification = Start-Process -FilePath ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" -ArgumentList @("scripts/verify-packaged-sync.js") -NoNewWindow -Wait -PassThru
+          if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed: $($verification.ExitCode)" }
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+      - name: Store beta EXE as workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: APEX-Management-Studio-v4.1.19-beta.1-Windows
+          path: dist/APEX-Refurb-Studio-Setup-4.1.19.exe
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $tag = 'v4.1.19-beta.1'
+          $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.19.exe'
+          if (!(Test-Path $installer)) { throw 'Windows EXE not found.' }
+          $exists = gh release view $tag --json isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "Tag $tag already exists. Do not overwrite pre-release." }
+          $notes = "BETA: Device Details 3.0 built directly on v4.1.18 Beta 1. More polished device actions, editable asset specifications, section spacing, repair/parts and respray progress, QC, notes and history with responsive layouts and consistent dark/light theme styling. Preserves original navy Device Summary design, all barcode and report print functions, working save forms, inventory routing, Microdream, pallets, dispatch, cloud data and repair workflows. Styling isolated to Device Details, without database migrations. Requires regression tests and Windows packaging verification before release. Test visually on Windows before production use."
+          gh release create $tag $installer --prerelease --target $env:GITHUB_SHA --title 'APEX Management Studio v4.1.19 Beta 1' --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub pre-release publishing failed.' }
