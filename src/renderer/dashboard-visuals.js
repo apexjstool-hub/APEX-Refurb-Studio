@@ -42,6 +42,14 @@
   const stageCount=key=>live.filter(([,s])=>!['hold','completed'].includes(s.key)&&(key==='fit'?s.toFit>0:key==='order'?s.needsOrdering>0:key==='delivery'?s.awaitingDelivery>0:s.key===key)).length;
   const panel=document.createElement('section');panel.className='dashboard-repair-strip';panel.setAttribute('aria-label','Repair stage shortcuts');panel.innerHTML=stages.map(([label,key])=>'<button type="button" data-dash-stage="'+key+'"><span class="dashboard-stage-dot stage-'+key+'"></span><span>'+label+'</span><b>'+ (wf?stageCount(key):'—') +'</b></button>').join('');
   dash.querySelector('.v34-stat-grid').after(panel);panel.querySelectorAll('[data-dash-stage]').forEach(b=>b.onclick=()=>go({repair:b.dataset.dashStage}));
+  // Concept B operational quick actions use existing, authenticated navigation.
+  // Hidden in Classic UI; no additional data reads or mutations.
+  const quick=document.createElement('nav');
+  quick.className='apex-b-dashboard-actions';
+  quick.setAttribute('aria-label','Operational quick actions');
+  quick.innerHTML='<div><strong>Move work forward</strong><small>Jump directly to the next task in your refurbishment workflow.</small></div><div class="apex-b-dashboard-actions-links"><button type="button" data-apex-b-open="refurbJobs">Open work queue →</button><button type="button" data-apex-b-open="parts">Parts required</button><button type="button" data-apex-b-open="inventory">Find a device</button></div>';
+  panel.after(quick);
+  quick.querySelectorAll('[data-apex-b-open]').forEach(b=>b.onclick=()=>setPage(b.dataset.apexBOpen));
   const table=dash.querySelector('.v34-recent table');if(table){const th=document.createElement('th');th.textContent='Repair progress';table.tHead.rows[0].insertBefore(th,table.tHead.rows[0].lastElementChild);for(const row of table.tBodies[0].rows){const b=row.querySelector('[data-v34-open]');if(!b){row.cells[0].colSpan=5;continue;}const summary=lookup.get(b.dataset.v34Open),cell=document.createElement('td');cell.className='dashboard-recent-progress';cell.innerHTML=summary?'<span>'+esc(summary.stage)+'</span>'+ (summary.required?'<div class="dashboard-mini-track" role="progressbar" aria-label="Fitted parts" aria-valuenow="'+Math.min(summary.fitted,summary.required)+'" aria-valuemin="0" aria-valuemax="'+summary.required+'"><i style="width:'+Math.min(100,summary.fitted/summary.required*100)+'%"></i></div><small>'+summary.fitted+' / '+summary.required+' fitted</small>':'') :'<span class="section-note">'+(wf?'No refurb job':'Workflow loading')+'</span>';row.insertBefore(cell,row.lastElementChild);const a=assets.get(b.dataset.v34Open);if(a?.pallet)row.lastElementChild.textContent=a.pallet;}}
  }
  const previousRender=render;render=function(...args){const out=previousRender(...args);paint();return out;};
