@@ -31,7 +31,7 @@
 #palletLocationDetailPage .pl-location-table-scroll .asset-table td:nth-child(2){min-width:130px!important}
 #palletLocationDetailPage .pl-location-table-scroll .asset-table td:last-child{white-space:normal!important;min-width:230px}
 #palletLocationDetailPage .pl-pallet-row td strong{font-size:11.5px!important}
-#palletLocationDetailPage .pl-pallet-row .pl-microdream-status{display:inline-flex!important;font-size:9.5px!important;padding:3px 6px!important;margin:4px 0 0!important;border-radius:6px!important;white-space:normal!important}
+#palletLocationDetailPage .pl-pallet-row .pl-microdream-status{display:flex!important;align-items:center!important;justify-content:center!important;width:max-content!important;max-width:100%!important;box-sizing:border-box!important;font-size:9.5px!important;line-height:1.3!important;padding:4px 7px!important;margin:6px 0 0!important;border-radius:6px!important;white-space:normal!important}
 #palletLocationDetailPage .pl-compact-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap;white-space:nowrap}
 #palletLocationDetailPage .pl-view-inventory{display:inline-flex;align-items:center;justify-content:center;min-height:32px!important;padding:6px 10px!important;border-radius:7px!important;background:var(--pl22-soft);border:1px solid var(--pl22-edge);color:var(--text)!important;font-size:10.5px!important;font-weight:780!important;text-decoration:none!important;white-space:nowrap}
 #palletLocationDetailPage .pl-view-inventory:hover{border-color:#629fdd!important}
