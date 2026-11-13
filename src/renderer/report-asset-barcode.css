@@ -1,0 +1,7 @@
+/* Report barcodes: external CSS is required because APEX preview CSP blocks inline style. */
+.apex-report-asset-code{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;vertical-align:middle;break-inside:avoid;page-break-inside:avoid;max-width:100%}
+.apex-report-asset-id{display:block;color:#111;font:700 9pt Arial,sans-serif;white-space:nowrap}
+.apex-report-bars{display:block;width:max-content;height:7mm;line-height:0;background:#fff;overflow:visible;break-inside:avoid}
+.apex-report-bars>svg{display:block!important;width:auto!important;height:7mm!important;max-width:none!important;background:#fff!important}
+.apex-report-asset-cell{vertical-align:middle}
+@media print{.apex-report-asset-code,.apex-report-bars{break-inside:avoid!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}}
