@@ -23,7 +23,7 @@ test('Location labels omit creation text while pallet labels retain recorded dat
 test('A4 pallet barcode uses a scannable Code128 SVG on one portrait sheet',()=>{
  const meta=docs.select(data,'pallet','PALLET-0001');
  const html=docs.a4BarcodeDocument(meta);
- assert.match(html,/@page\\{size:A4 portrait;margin:0\\}/);
+ assert.match(html,/@page\{size:A4 portrait;margin:0\}/);
  assert.match(html,/width:210mm;height:297mm/);
  assert.match(html,/class="barcode"/);
  assert.match(html,/PALLET-0001/);
@@ -35,6 +35,6 @@ test('A4 pallet barcode uses a scannable Code128 SVG on one portrait sheet',()=>
 });
 test('A4 pallet barcode escapes user-controlled display strings',()=>{
  const html=docs.a4BarcodeDocument({kind:'pallet',name:'PALLET-0001',label:'<img src=x onerror=alert(1)>',createdAt:''});
- assert.match(html,/&lt;img src=x onerror=alert\\(1\\)&gt;/);
+ assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);
  assert.doesNotMatch(html,/<img src=x/);
 });
