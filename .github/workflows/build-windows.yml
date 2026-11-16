@@ -1,7 +1,7 @@
 name: Build APEX Windows Update
 on:
   push:
-    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode']
+    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode', 'preview/4.1.22-typography']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -15,8 +15,8 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' && 'apex-a4-pallet-test' || 'apex-windows-release' }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
+  group: ${{ (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography') && 'apex-a4-pallet-test' || 'apex-windows-release' }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography' || github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
 jobs:
   pallet-storage:
     runs-on: ubuntu-latest
@@ -91,6 +91,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Sign-in configuration validation failed.' }
       - name: Install locked dependencies
         run: npm ci
+      - name: Prepare offline Inter and Plus Jakarta Sans fonts
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to bundle offline typography fonts.' }
+          foreach ($file in @('Inter-Variable.ttf','PlusJakartaSans-Variable.ttf')) { if (!(Test-Path "src/renderer/fonts/$file")) { throw "Missing font file: $file" } }
       - name: Verify source and core workflows
         timeout-minutes: 5
         run: |
@@ -155,14 +160,14 @@ jobs:
           & .\\node_modules\\.bin\\electron.cmd tests/check-login-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Sign-in layout verification failed.' }
       - name: Verify pallet labels and A4 manifests
-        if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode'
+        if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode' && github.ref != 'refs/heads/preview/4.1.22-typography'
         continue-on-error: ${{ (github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode') }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-assignment-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Pallet label/manifest verification failed.' }
       - name: Verify single-page A4 pallet barcode
-        if: github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode'
+        if: (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography')
         continue-on-error: true
         timeout-minutes: 1
         run: |
@@ -227,11 +232,11 @@ jobs:
           $tag = 'v4.1.22-supplier-optional-test.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test prerelease tag already exists. Manual review required.' }
-          $notes = 'TEST PRE-RELEASE: Bulk Parts Ordered, Received and Fitted no longer require supplier details. Preserves purchase records, inventory and other workflows. Core Node tests and packaged sync verification required before upload. Legacy headless UI smoke checks may contain warnings; install on a test Windows PC and verify workflows before production rollout. APEX 4.1.22 Beta 4 remains available and unchanged.'
+          $notes = 'TYPOGRAPHY PREVIEW: Plus Jakarta Sans headings and Inter interface text bundled locally for offline use. No inventory, sync or workflow changes. Based on v4.1.22 Inventory Cleanup. Real-device visual review recommended before production.\'
           gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 Supplier Optional - TEST INSTALLER' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish isolated test installer.' }
       - name: Upload A4 pallet barcode test installer
-        if: github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode'
+        if: (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography')
         uses: actions/upload-artifact@v6
         with:
           name: APEX-4.1.22-A4-Pallet-Barcode-Windows-Installer
@@ -239,18 +244,18 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Publish A4 pallet barcode installer test prerelease
-        if: github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode'
+        if: github.ref == 'refs/heads/preview/4.1.22-typography'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Windows installer missing.' }
-          $tag = 'v4.1.22-inventory-cleanup-test.1'
+          $tag = 'v4.1.22-typography-preview.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
           $notes = 'TEST PRE-RELEASE based on v4.1.22 supplier-optional: Pallet barcode printing now supports A4 portrait with a large Code 128 barcode, Save PDF and live preview. Removes the Saved view toolbar while preserving Inventory sorting and filtering. Adds Smart Data Cleaner with before/after review, safe selection, manufacturer/model/processor/RAM/storage formatting and optional serial uppercasing and notes adjustments, plus single-line wider device names. Existing 2x1 and 4x2 thermal labels and A4 manifests remain available. Requires testing on a real A4 printer before production rollout; some legacy headless UI smoke checks are warnings.'
-          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Inventory Toolbar Cleanup TEST' --notes $notes
+          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Typography Preview' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
         if: github.ref == 'refs/heads/main'
