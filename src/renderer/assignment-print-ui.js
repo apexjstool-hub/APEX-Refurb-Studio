@@ -20,13 +20,24 @@
      const meta=window.ApexAssignmentDocuments.select(data,kind,value);
      $id('assignmentPrintFacts').innerHTML='<div><small>Created</small><strong>'+esc(window.ApexAssignmentDocuments.date(meta.createdAt))+'</strong></div><div><small>Devices</small><strong>'+meta.assets.length+'</strong></div>'+(meta.label?'<p>'+esc(meta.label)+'</p>':'');
      if(document==='barcode'){
-      const size=$id('assignmentLabelSize').value,dpi=Number($id('assignmentLabelDpi').value),dimensions=window.ApexAssignmentDocuments.sizes[size],frame=window.document.createElement('iframe');frame.className='assignment-barcode-preview';frame.title='Barcode label preview';frame.setAttribute('sandbox','allow-scripts allow-same-origin');frame.style.width=dimensions[0]*96/25.4+'px';frame.style.height=dimensions[1]*96/25.4+'px';window.ApexAssignmentDocuments.barcodeGeometry(meta.name,size,dpi);const url=new URL('assignment-label-preview.html',window.location.href);url.searchParams.set('label',JSON.stringify({name:meta.name,kind:meta.kind,label:meta.label,createdAt:meta.createdAt,size,dpi}));frame.src=url.href;$id('assignmentDocumentPreview').appendChild(frame);
+      const size=$id('assignmentLabelSize').value,dpi=Number($id('assignmentLabelDpi').value),frame=window.document.createElement('iframe');frame.className='assignment-barcode-preview';frame.title=size==='a4'?'A4 pallet barcode preview':'Barcode label preview';
+      if(size==='a4'){
+       // Preview the same A4 HTML as print/PDF, scaled down on screen only.
+       frame.setAttribute('sandbox','');frame.style.width='420px';frame.style.maxWidth='100%';frame.style.height='594px';
+       frame.srcdoc=window.ApexAssignmentDocuments.a4BarcodeDocument(meta).replace('</style>','@media screen{html{zoom:0.5292}}</style>');
+      }else{
+       const dimensions=window.ApexAssignmentDocuments.sizes[size];frame.setAttribute('sandbox','allow-scripts allow-same-origin');
+       frame.style.width=dimensions[0]*96/25.4+'px';frame.style.height=dimensions[1]*96/25.4+'px';
+       window.ApexAssignmentDocuments.barcodeGeometry(meta.name,size,dpi);
+       const url=new URL('assignment-label-preview.html',window.location.href);url.searchParams.set('label',JSON.stringify({name:meta.name,kind:meta.kind,label:meta.label,createdAt:meta.createdAt,size,dpi}));frame.src=url.href;
+      }
+      $id('assignmentDocumentPreview').appendChild(frame);
      }else $id('assignmentDocumentPreview').innerHTML='<p class="section-note">A4 portrait · '+meta.assets.length+' devices · all rows included in print/PDF</p><div class="assignment-manifest-preview"><table class="asset-table"><thead><tr><th>Asset ID</th><th>Device</th><th>Serial</th></tr></thead><tbody>'+meta.assets.slice(0,8).map(a=>'<tr><td>'+esc(a.id)+'</td><td>'+esc(deviceName(a))+'</td><td>'+esc(a.serial||'—')+'</td></tr>').join('')+'</tbody></table>'+(meta.assets.length>8?'<p>… and '+(meta.assets.length-8)+' more devices</p>':!meta.assets.length?'<p>This pallet is empty.</p>':'')+'</div>';
      valid=true;
     }catch(e){$id('assignmentPrintError').textContent=e.message;}
     finally{$id('assignmentSavePdf').disabled=!valid;$id('assignmentPrintGo').disabled=!valid;}
    }
-   $id('assignmentPrintChoice').onchange=preview;for(const id of ['assignmentLabelSize','assignmentLabelDpi'])if($id(id))$id(id).onchange=preview;
+   $id('assignmentPrintChoice').onchange=preview;for(const id of ['assignmentLabelSize','assignmentLabelDpi'])if($id(id))$id(id).onchange=()=>{if($id('assignmentLabelDpi'))$id('assignmentLabelDpi').disabled=$id('assignmentLabelSize')?.value==='a4';preview();};
    $id('assignmentPrintCancel').onclick=closeModal;
    async function output(mode){
     const buttons=[$id('assignmentSavePdf'),$id('assignmentPrintGo')];buttons.forEach(b=>b.disabled=true);
