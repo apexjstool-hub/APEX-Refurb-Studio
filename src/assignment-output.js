@@ -4,9 +4,10 @@ async function renderDocument(input,data){
  if(!input||!['barcode','manifest'].includes(input.document))throw Error('Choose a barcode label or pallet manifest.');
  const names=Array.isArray(input.names)?input.names:[input.name];if(!names.length||names.length>300)throw Error('Select between 1 and 300 locations or pallets.');
  const metas=[...new Set(names)].map(name=>docs.select(data,input.kind,name)),meta=metas[0],size=input.size||'2x1',dpi=Number(input.dpi)||203;
- let markup=input.document==='manifest'?docs.manifestDocument(meta):docs.labelDocument(meta,size,dpi);
+ if(size==='a4'&&(input.document!=='barcode'||input.kind!=='pallet'))throw Error('A4 barcode is available for pallets only.');
+ let markup=input.document==='manifest'?docs.manifestDocument(meta):size==='a4'?docs.a4BarcodeDocument(meta):docs.labelDocument(meta,size,dpi);
  if(metas.length>1){
-  const body=metas.map(m=>(input.document==='manifest'?docs.manifestDocument(m):docs.labelDocument(m,size,dpi)).match(/<body>([\s\S]*)<\/body>/)[1]);
+  const body=metas.map(m=>(input.document==='manifest'?docs.manifestDocument(m):size==='a4'?docs.a4BarcodeDocument(m):docs.labelDocument(m,size,dpi)).match(/<body>([\s\S]*)<\/body>/)[1]);
   markup=markup.replace(/<body>[\s\S]*<\/body>/,'<body>'+body.map(html=>'<section class="assignment-batch-sheet">'+html+'</section>').join('')+'</body>').replace('</style>','html,body{height:auto}.assignment-batch-sheet{break-after:page;page-break-after:always}.assignment-batch-sheet:last-child{break-after:auto;page-break-after:auto}</style>');
  }
 
@@ -15,7 +16,7 @@ async function renderDocument(input,data){
  try{await win.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(markup));await win.webContents.executeJavaScript("document.fonts.ready.then(()=>true)");return {window:win,meta,size,dpi,document:input.document};}
  catch(e){win.destroy();throw e;}
 }
-function pdfOptions(document){const [w,h]=docs.sizes[document.size]||[];return document.document==='manifest'?{pageSize:'A4',preferCSSPageSize:true,printBackground:true,landscape:false,displayHeaderFooter:false}:labelOutput.pdfOptions(w,h);}
+function pdfOptions(document){const [w,h]=docs.sizes[document.size]||[];return (document.document==='manifest'||document.size==='a4')?{pageSize:'A4',preferCSSPageSize:true,printBackground:true,landscape:false,displayHeaderFooter:false}:labelOutput.pdfOptions(w,h);}
 async function output(input,parent,data){
  let document;
  try{
@@ -23,12 +24,12 @@ async function output(input,parent,data){
   document=await renderDocument(input,data);const {window:win,meta,size,dpi}=document,manifest=input.document==='manifest';
   const [w,h]=docs.sizes[size]||[];
   if(input.mode==='pdf'){
-   const selected=await dialog.showSaveDialog(parent,{title:manifest?'Save A4 pallet manifest':'Save barcode label PDF',defaultPath:'APEX-'+meta.name.replace(/[^a-zA-Z0-9_-]/g,'_')+'-'+(manifest?'manifest':'barcode')+'.pdf',filters:[{name:'PDF',extensions:['pdf']}]});
+   const selected=await dialog.showSaveDialog(parent,{title:manifest?'Save A4 pallet manifest':size==='a4'?'Save A4 pallet barcode':'Save barcode label PDF',defaultPath:'APEX-'+meta.name.replace(/[^a-zA-Z0-9_-]/g,'_')+'-'+(manifest?'manifest':'barcode')+'.pdf',filters:[{name:'PDF',extensions:['pdf']}]});
    if(selected.canceled||!selected.filePath)return {ok:false,cancelled:true};
    const options=pdfOptions(document);
    const pdf=await win.webContents.printToPDF(options);await fs.promises.writeFile(selected.filePath,pdf);return {ok:true,count:meta.assets.length};
   }
-  const options=manifest?{silent:false,pageSize:'A4',landscape:false,printBackground:true,scaleFactor:100}:labelOutput.printerOptions(w,h,dpi);
+  const options=(manifest||size==='a4')?{silent:false,pageSize:'A4',landscape:false,printBackground:true,scaleFactor:100}:labelOutput.printerOptions(w,h,dpi);
   return await new Promise(resolve=>win.webContents.print(options,(ok,reason)=>resolve(ok?{ok:true,count:meta.assets.length}:{ok:false,error:reason||'Printing was cancelled.'})));
  }catch(e){return {ok:false,error:e.message};}
  finally{if(document&&!document.window.isDestroyed())document.window.destroy();}
