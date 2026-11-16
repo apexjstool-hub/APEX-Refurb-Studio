@@ -251,10 +251,10 @@ jobs:
         run: |
           $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Windows installer missing.' }
-          $tag = 'v4.1.22-refurb-last-row-fix-test.1'
+          $tag = 'v4.1.22-refurb-last-row-fix-test.2'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
-          $notes = 'TEST PRE-RELEASE based on v4.1.22 Smart Barcode Workstation. Fixes the final row being clipped in Refurbishment Parts and Respray views by adding safe bottom scroll clearance and last-row padding. No inventory data or workflows changed. Existing barcode workstation, Smart Data Cleaner, typography and A4 printing retained. Check actual Windows display at your working screen size before using broadly.'
+          $notes = 'TEST PRE-RELEASE based on v4.1.22 Smart Barcode Workstation. Fixes the actual global 64vh panel height limit clipping Refurbishment Parts and Respray lists; keeps the page as vertical scroll owner and preserves last-row clearance. No inventory data or workflows changed. Existing barcode workstation, Smart Data Cleaner, typography and A4 printing retained. Check actual Windows display at your working screen size before using broadly.'
           gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Refurbishment Last Row Fix TEST' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
