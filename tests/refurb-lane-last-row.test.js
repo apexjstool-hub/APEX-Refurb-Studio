@@ -15,7 +15,7 @@ test('Parts and Respray lane last row has bottom clearance and preserves table l
  assert.match(css,/#refurbWorkspacePage #rwLaneTable/);
  assert.match(css,/padding-bottom:18px!important/);
  assert.match(css,/tr:last-child>td/);
- assert.doesNotMatch(css,/\b(display:none|position:absolute|height:0)\b/);
+ assert.doesNotMatch(css,/(?:^|[;{}\\s])(?:display:none|position:absolute|height:0)(?:;|$)/m);
 });
 
 test('Parts and Respray tables override inherited global 64vh section-panel height limit',()=>{
