@@ -232,14 +232,14 @@ jobs:
           $tag = 'v4.1.22-supplier-optional-test.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test prerelease tag already exists. Manual review required.' }
-          $notes = 'TYPOGRAPHY PREVIEW: Plus Jakarta Sans headings and Inter interface text bundled locally for offline use. No inventory, sync or workflow changes. Based on v4.1.22 Inventory Cleanup. Real-device visual review recommended before production.\'
+          $notes = 'Supplier-optional bulk parts updates; previous test release remains unchanged.'
           gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 Supplier Optional - TEST INSTALLER' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish isolated test installer.' }
       - name: Upload A4 pallet barcode test installer
         if: (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography')
         uses: actions/upload-artifact@v6
         with:
-          name: APEX-4.1.22-A4-Pallet-Barcode-Windows-Installer
+          name: APEX-4.1.22-Typography-Windows-Preview
           path: dist/APEX-Refurb-Studio-Setup-4.1.22.exe
           if-no-files-found: error
           retention-days: 14
@@ -254,7 +254,7 @@ jobs:
           $tag = 'v4.1.22-typography-preview.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
-          $notes = 'TEST PRE-RELEASE based on v4.1.22 supplier-optional: Pallet barcode printing now supports A4 portrait with a large Code 128 barcode, Save PDF and live preview. Removes the Saved view toolbar while preserving Inventory sorting and filtering. Adds Smart Data Cleaner with before/after review, safe selection, manufacturer/model/processor/RAM/storage formatting and optional serial uppercasing and notes adjustments, plus single-line wider device names. Existing 2x1 and 4x2 thermal labels and A4 manifests remain available. Requires testing on a real A4 printer before production rollout; some legacy headless UI smoke checks are warnings.'
+          $notes = 'TYPOGRAPHY TEST PREVIEW: Plus Jakarta Sans headings and Inter interface text bundled for offline use. Based on 4.1.22 Inventory Cleanup. Existing workflows, data model, Inventory controls, A4 pallet barcodes and Smart Data Cleaner unchanged. Verify visuals on the actual Windows workstation before production use.'
           gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Typography Preview' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
