@@ -22,3 +22,24 @@
 #refurbWorkspacePage #rwLaneTable .rw-lane-table>tbody>tr:last-child{
  scroll-margin-bottom:30px;
 }
+
+/* Root cause: apex-studio-bundle-v10.css gives EVERY .section-panel
+   max-height:min(64vh,710px); this caps Parts/Respray mid-row.
+   Let the existing Refurbishment page be the vertical scroll owner. */
+#refurbWorkspacePage #rwLaneTable.section-panel {
+  max-height:none!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  padding-bottom:0!important;
+}
+#refurbWorkspacePage #rwLaneTable>.rw-table-scroll{
+  max-height:none!important;
+  height:auto!important;
+  overflow-x:auto!important;
+}
+#refurbWorkspacePage #rwLaneView:not([hidden]){
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
