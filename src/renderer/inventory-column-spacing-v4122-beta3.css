@@ -12,13 +12,13 @@
 }
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(1){width:3.5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(2){width:6.5%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(3){width:13%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(4){width:9%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(5){width:9%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(3){width:18%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(4){width:8%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(5){width:8%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(6){width:9%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(7){width:12%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:23%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(9){width:10%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:21%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(9){width:9%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(10){width:5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td{
  padding-left:9px!important;
@@ -80,4 +80,13 @@
 }
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){
  padding-left:14px!important;
+}
+
+/* Keep full device models on one line, without expanding the inventory table. */
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td:nth-child(3){min-width:0!important;overflow:hidden!important}
+#inventoryPage #inventoryTable .apex-device-identity,
+#inventoryPage #inventoryTable .apex-device-model{min-width:0!important;max-width:100%!important}
+#inventoryPage #inventoryTable .apex-device-model,
+#inventoryPage #inventoryTable .apex-device-model b{
+ display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
 }
