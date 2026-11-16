@@ -152,16 +152,47 @@
   else if(name==='notes')window.ApexOps.openJob(selected);
   else if(name==='qc')window.ApexOps.quality(selected);
   else if(name==='worksheet')window.ApexOps.printWorksheet(selected);
-  else if(name==='details')openAsset(selected);
+  else if(name==='label'){if(typeof openAssetPrintDialog==='function')openAssetPrintDialog(selected);else message('Open Device Details to print labels.',true);}
+  else if(name==='details'){document.documentElement.removeAttribute('data-ws-focus');openAsset(selected);}
   else if(name==='orderAll')markAll();
   else if(name==='pallet')movePallet();
   else if(name==='next')reset();
   else if(name==='refresh')reload();
  }
- $('wsScanForm').addEventListener('submit',e=>{e.preventDefault();loadCode($('wsScanInput').value);});
+ function toggleFocus(force){
+  const next=force===undefined?document.documentElement.dataset.wsFocus!=='true':Boolean(force);
+  if(next)document.documentElement.dataset.wsFocus='true';
+  else document.documentElement.removeAttribute('data-ws-focus');
+  $('wsFocusMode').setAttribute('aria-pressed',String(next));
+  $('wsFocusMode').textContent=next?'↙ Exit focus mode':'⛶ Focus mode';
+  $('wsScanInput').focus();
+ }
+ $('wsFocusMode').addEventListener('click',()=>toggleFocus());
+  $('wsScanForm').addEventListener('submit',e=>{e.preventDefault();loadCode($('wsScanInput').value);});
+ // Existing APEX modal dialogs own receipt, fitting, QC and job edits.
+ // Re-read the canonical workflow after each dialog closes.
+ const layer=$('modalLayer');
+ if(layer&&typeof MutationObserver!=='undefined'){
+  let wasOpen=!layer.classList.contains('hidden');
+  new MutationObserver(()=>{
+   const nowOpen=!layer.classList.contains('hidden');
+   if(wasOpen&&!nowOpen&&active()&&selected&&!commandBusy)reload();
+   wasOpen=nowOpen;
+  }).observe(layer,{attributes:true,attributeFilter:['class']});
+ }
+
  root.addEventListener('click',e=>{const button=e.target.closest('[data-ws-action]');if(button&&!button.disabled)action(button.dataset.wsAction,button.dataset.part);});
  const initialRender=render;
  render=function(...args){const result=initialRender(...args);if(active())renderWorkstation();return result;};
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target===$('wsScanInput'))reset();});
+ const previousSetPage=setPage;
+ setPage=function(page,...args){
+  if(page!=='workstation'){
+   document.documentElement.removeAttribute('data-ws-focus');
+   $('wsFocusMode').setAttribute('aria-pressed','false');
+   $('wsFocusMode').textContent='⛶ Focus mode';
+  }
+  return previousSetPage(page,...args);
+ };
  window.ApexWorkstation={open:()=>{setPage('workstation');$('wsScanInput').focus();},load:loadCode,refresh:reload};
 })();
