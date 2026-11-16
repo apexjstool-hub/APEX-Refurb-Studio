@@ -19,7 +19,7 @@
  function processor(s){
   let x=tidy(s);if(!x)return x;
   x=x.replace(/\bintel\b/gi,'Intel').replace(/\bcore\b/gi,'Core').replace(/\bamd\b/gi,'AMD').replace(/\bryzen\b/gi,'Ryzen').replace(/\bapple\b/gi,'Apple');
-  x=x.replace(/\b([iI][3579])\s+(\d{4,5}[a-zA-Z]{0,3})\b/g,(_,i,n)=>i.toLowerCase()+'-'+n.toUpperCase());
+  x=x.replace(/\b([iI][3579])\s+(\d{4,5}[a-zA-Z0-9]{0,3})\b/g,(_,i,n)=>i.toLowerCase()+'-'+n.toUpperCase());
   x=x.replace(/\b(i[3579])-([0-9]{4,5})([a-z]{1,3})\b/gi,(_,i,n,suffix)=>i.toLowerCase()+'-'+n+suffix.toUpperCase());
   return x;
  }
