@@ -155,11 +155,19 @@ jobs:
           & .\\node_modules\\.bin\\electron.cmd tests/check-login-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Sign-in layout verification failed.' }
       - name: Verify pallet labels and A4 manifests
+        if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode'
         continue-on-error: ${{ (github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode') }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-assignment-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Pallet label/manifest verification failed.' }
+      - name: Verify single-page A4 pallet barcode
+        if: github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode'
+        timeout-minutes: 3
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\\node_modules\\.bin\\electron.cmd tests/check-a4-pallet-print.js
+          if ($LASTEXITCODE -ne 0) { throw 'A4 pallet barcode PDF verification failed.' }
       - name: Verify Microdream template grouping and landscape PDF pagination
         continue-on-error: ${{ (github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode') }}
         run: |
