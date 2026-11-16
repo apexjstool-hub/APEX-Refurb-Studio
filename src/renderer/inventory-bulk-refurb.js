@@ -15,7 +15,7 @@
    <div class="apex-bulk-summary"><strong id="apexBulkCount">0 devices selected</strong><button type="button" class="secondary" id="apexBulkClear">Clear batch</button></div>
    <div id="apexBulkDevices" class="apex-bulk-devices" aria-live="polite"></div>
    <label class="field">Update replacement part status<select id="apexBulkStage"><option value="ordered">Parts ordered</option><option value="received">Parts received</option><option value="fitted">Parts fitted</option></select></label>
-   <div id="apexBulkOrderInfo"><label class="field">Supplier / order reference<input id="apexBulkSupplier" maxlength="120" placeholder="Supplier name or your purchase reference"></label><label class="field">Additional reference (optional)<input id="apexBulkReference" maxlength="90"></label><p class="section-note">Recording Parts Ordered confirms an existing purchase; APEX will not send an order to any supplier.</p></div>
+   <div id="apexBulkOrderInfo"><label class="field">Supplier (optional)<input id="apexBulkSupplier" maxlength="120" placeholder="Optional supplier name"></label><label class="field">Additional reference (optional)<input id="apexBulkReference" maxlength="90"></label><p class="section-note">Recording Parts Ordered confirms an existing purchase; APEX will not send an order to any supplier.</p></div>
    <div id="apexBulkReview" class="apex-bulk-review" role="status">Loading refurbishment records…</div>
    <p class="section-note">Only replacement parts are affected. Use the Microdream pallet QR to return and complete resprays.</p>
    <p class="form-error" id="apexBulkError" role="alert"></p>
@@ -66,7 +66,6 @@
   }
   apply.onclick=async()=>{
    if(busy||!plan||plan.invalid.length||!plan.lines.length)return;
-   if(stage.value==='ordered'&&!$('apexBulkSupplier').value.trim()){$('apexBulkError').textContent='Enter the supplier or existing order reference.';return;}
    // Refresh immediately before saving. The server validates the same plan
    // signature against the current database, blocking stale changes.
    busy=true;apply.disabled=true;$('apexBulkCancel').disabled=true;
