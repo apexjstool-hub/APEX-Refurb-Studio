@@ -217,7 +217,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Publish isolated supplier-optional installer prerelease
-        if: (github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode')
+        if: github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
