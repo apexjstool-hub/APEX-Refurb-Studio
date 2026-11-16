@@ -17,3 +17,12 @@ test('Parts and Respray lane last row has bottom clearance and preserves table l
  assert.match(css,/tr:last-child>td/);
  assert.doesNotMatch(css,/\b(display:none|position:absolute|height:0)\b/);
 });
+
+test('Parts and Respray tables override inherited global 64vh section-panel height limit',()=>{
+ const base=fs.readFileSync(path.join(root,'apex-studio-bundle-v10.css'),'utf8');
+ const fix=fs.readFileSync(path.join(root,'refurb-lane-last-row-fix.css'),'utf8');
+ assert.match(base,/\.ops-table-wrap,\.section-panel,\.table-overflow\{max-height:min\(64vh,710px\)/);
+ assert.match(fix,/#refurbWorkspacePage #rwLaneTable\.section-panel\s*\{[^}]*max-height:none!important/);
+ assert.match(fix,/#refurbWorkspacePage #rwLaneTable\.section-panel\s*\{[^}]*overflow:visible!important/);
+ assert.match(fix,/#refurbWorkspacePage #rwLaneView:not\(\[hidden\]\)\s*\{[^}]*max-height:none!important/);
+});
