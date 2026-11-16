@@ -15,7 +15,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: apex-windows-release
+  group: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' && 'apex-a4-pallet-test' || 'apex-windows-release' }}
   cancel-in-progress: ${{ github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
 jobs:
   pallet-storage:
