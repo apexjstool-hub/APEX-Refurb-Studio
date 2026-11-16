@@ -12,12 +12,12 @@
 }
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(1){width:3.5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(2){width:6.5%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(3){width:15%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(3){width:13%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(4){width:9%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(5){width:9%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(6){width:10%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(7){width:8%!important}
-#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:24%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(6){width:9%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(7){width:12%!important}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){width:23%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(9){width:10%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(10){width:5%!important}
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td{
@@ -61,4 +61,23 @@
 #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) .apex-work-chip{max-width:100%!important}
 @media print{
  #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child){table-layout:auto!important;min-width:0!important}
+}
+
+/* v4.1.22 follow-up: a status such as "Awaiting Processing" must stay
+   entirely inside column 7, never touch column 8's repair badges. */
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td:nth-child(7){
+ overflow:hidden!important;
+ overflow-wrap:normal!important;
+}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td:nth-child(7) :is(.status,.status-badge,.badge,.v3-status){
+ max-width:100%!important;
+ white-space:normal!important;
+ overflow-wrap:break-word!important;
+ box-sizing:border-box!important;
+}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>tbody>tr:not(.inventory-repair-row)>td:nth-child(8){
+ padding-left:14px!important;
+}
+#inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child)>thead>tr>th:nth-child(8){
+ padding-left:14px!important;
 }
