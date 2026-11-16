@@ -1,0 +1,34 @@
+/* APEX Typography Preview 4.1.22 — presentation only.
+   Fonts are packaged locally for offline use; Segoe UI is safe fallback.
+   Print outputs, code previews, barcodes and generated documents are unchanged. */
+@font-face{font-family:"APEX Inter";src:url("./fonts/Inter-Variable.ttf") format("truetype");font-style:normal;font-weight:100 900;font-display:swap}
+@font-face{font-family:"APEX Jakarta";src:url("./fonts/PlusJakartaSans-Variable.ttf") format("truetype");font-style:normal;font-weight:200 800;font-display:swap}
+:root{
+ --apex-ui-font:"APEX Inter","Segoe UI Variable Text","Segoe UI",Arial,sans-serif;
+ --apex-heading-font:"APEX Jakarta","Segoe UI Variable Display","Segoe UI",Arial,sans-serif;
+}
+body:has(.app-shell) :is(.app-shell,.login-page),
+.app-shell :is(button,input,textarea,select,option),
+.login-page :is(button,input,textarea,select){
+ font-family:var(--apex-ui-font)!important;
+ font-optical-sizing:auto;
+}
+.app-shell :is(h1,h2,h3,.page-intro h1,.section-panel-head h3,.apex-admin-intro h1,.dashboard-kpi-value,.metric-value,.topbar-title,.wordmark),
+.login-page :is(h1,h2,h3,.login-hero h1){
+ font-family:var(--apex-heading-font)!important;
+ letter-spacing:-.018em;
+}
+.app-shell :is(.asset-table,.rw-work-table,.inventory-parts-table,.ops-part-progress-table){
+ font-family:var(--apex-ui-font)!important;
+ font-variant-numeric:tabular-nums;
+}
+.app-shell :is(.asset-link,.apex-device-model,.apex-device-model b){
+ letter-spacing:-.005em;
+}
+.app-shell :is(.apex-work-chip,.status,.grade-badge,.condition-pill,.inventory-quick-chip){
+ letter-spacing:0;
+}
+.app-shell :is(.page-intro h1,.apex-admin-intro h1){line-height:1.2}
+.app-shell :is(.section-note,.sidebar .menu-item,.inventory-view-controls label){line-height:1.45}
+/* Respect the existing label designer, A4 print styles and any print preview windows. */
+@media print{body:has(.app-shell) .app-shell{font-family:inherit!important}}
