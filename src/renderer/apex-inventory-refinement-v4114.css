@@ -26,7 +26,9 @@
 #inventoryPage #inventoryTable .apex-device-identity{min-width:160px!important;max-width:310px!important;gap:2px!important}
 #inventoryPage #inventoryTable .apex-device-model b{font-size:12px!important;line-height:1.25!important}
 #inventoryPage #inventoryTable .apex-device-serial{font-size:10.5px!important}
-#inventoryPage #inventoryTable .inventory-repair-cell{width:240px!important;min-width:215px!important}
+/* Keep Status and Repair progress badges visibly separate at all table widths. */
+#inventoryPage #inventoryTable .asset-table tbody tr:not(.inventory-repair-row)>td.inventory-repair-cell{width:260px!important;min-width:245px!important;padding-left:24px!important}
+#inventoryPage #inventoryTable .asset-table thead th:nth-last-child(3){padding-left:24px!important}
 #inventoryPage #inventoryTable .apex-status-stack{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:4px 5px!important;width:auto!important;max-width:100%!important}
 #inventoryPage #inventoryTable .apex-work-chip{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:4px 7px!important;line-height:1.15!important;font-size:10.25px!important;font-weight:720!important;border-radius:6px!important;white-space:nowrap!important}
 #inventoryPage #inventoryTable .apex-work-chip i{width:5px!important;height:5px!important;flex-basis:5px!important}
