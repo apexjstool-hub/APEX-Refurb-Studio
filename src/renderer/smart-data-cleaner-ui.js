@@ -56,9 +56,11 @@
   build();
  }
  function install(){
-  const bar=$('selection-toolbar-inventory');if(!bar||$('apexSmartCleanButton'))return;
-  const button=document.createElement('button');button.id='apexSmartCleanButton';button.type='button';button.className='secondary apex-smart-clean-button';button.textContent='✦ Clean & Standardise';button.title='Preview and standardise device names, serials and specifications';
-  button.onclick=open;const bulk=$('inventoryBulkRefurbButton');(bulk||bar.querySelector('.inventory-selection-scan'))?.after(button);
+  // Administrative maintenance action, not an everyday Inventory toolbar control.
+  const button=$('apexSmartCleanSettingsButton');
+  if(button)button.onclick=open;
+  // Remove an earlier injected action if a hot-reloaded renderer retained it.
+  $('apexSmartCleanButton')?.remove();
  }
  const original=render;render=function(...args){const out=original(...args);install();return out;};
  window.ApexSmartCleanerUI={open,install};install();
