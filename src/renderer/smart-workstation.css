@@ -44,3 +44,10 @@
 #workstationPage .ws-side select{max-width:100%}
 @media(max-width:1100px){#workstationPage .ws-layout{grid-template-columns:1fr}#workstationPage .ws-side{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){#workstationPage .ws-scan-line{flex-direction:column}#workstationPage .ws-scan-line button{width:100%}#workstationPage .ws-device-heading,.ws-section-head{flex-wrap:wrap}#workstationPage .ws-specs{grid-template-columns:repeat(2,minmax(0,1fr))}#workstationPage .ws-side{grid-template-columns:1fr}#workstationPage .ws-part{align-items:flex-start;flex-direction:column}#workstationPage .ws-part-actions{width:100%}}
+
+/* Compact distraction-free bench mode; restore navigation with Exit focus mode. */
+html[data-ws-focus="true"] .app-shell :is(.sidebar,.topbar,.v3-topline){display:none!important}
+html[data-ws-focus="true"] .app-shell .main{width:100%;max-width:none;flex:1 1 auto!important}
+html[data-ws-focus="true"] #workstationPage{max-width:1750px}
+html[data-ws-focus="true"] #workstationPage .ws-scan-panel{border-color:var(--violet)}
+#workstationPage #wsFocusMode{white-space:nowrap}
