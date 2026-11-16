@@ -1,0 +1,24 @@
+/* APEX 4.1.22 — Refurbishment Parts / Respray last-row visibility fix.
+   Presentation-only: preserve table dimensions, rounded corners, workflows and scrollbars. */
+#refurbWorkspacePage #rwLaneView:not([hidden]){
+ min-width:0;
+ padding-bottom:64px;
+ box-sizing:border-box;
+}
+/* The table panel clips to rounded corners; leave deliberate space after its
+   last row so scrolling never stops with row controls against the bottom edge. */
+#refurbWorkspacePage #rwLaneTable{
+ box-sizing:border-box;
+ padding-bottom:18px!important;
+}
+#refurbWorkspacePage #rwLaneTable>.rw-table-scroll{
+ box-sizing:border-box;
+ padding-bottom:4px;
+}
+#refurbWorkspacePage #rwLaneTable .rw-lane-table>tbody>tr:last-child>td{
+ padding-bottom:20px!important;
+}
+/* Scroll target clearance for smaller laptop screens and Windows display scaling. */
+#refurbWorkspacePage #rwLaneTable .rw-lane-table>tbody>tr:last-child{
+ scroll-margin-bottom:30px;
+}
