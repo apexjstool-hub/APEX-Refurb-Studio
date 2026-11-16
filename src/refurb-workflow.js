@@ -168,11 +168,10 @@ function apply(state,assets,cmd,by='Administrator'){
   if(cmd.expectedSignature!==plan.signature)throw Error('Parts or purchase records have changed. Refresh the selection before saving.');
   if(!plan.lines.length)throw Error('No replacement parts need updating.');
   const supplier=clip(cmd.supplier,120);
-  if(cmd.stage==='ordered'&&!supplier)throw Error('Enter the supplier or purchase reference before recording parts as ordered.');
   // All checks happen before any mutation. The caller commits this document in
   // one optimistic-concurrency transaction, not one write per asset.
   if(cmd.stage==='ordered'){
-   const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,reference:clip(cmd.reference,90),notes:'Bulk purchase/order record confirmed by an operator. No order was transmitted automatically.',status:'Ordered',expectedAt:'',cost:0,currency:'GBP',tracking:'',createdAt:stamp(),updatedAt:stamp(),lines:plan.lines.map(l=>({...l,received:0}))};
+   const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,reference:clip(cmd.reference,90),notes:'Bulk parts marked as ordered by an operator. Supplier optional; no order was transmitted automatically.',status:'Ordered',expectedAt:'',cost:0,currency:'GBP',tracking:'',createdAt:stamp(),updatedAt:stamp(),lines:plan.lines.map(l=>({...l,received:0}))};
    s.orders.unshift(order);
    for(const line of plan.lines){const j=s.jobs[line.assetId];if(['Received','Inspected','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,'Part ordered',line.name+' × '+line.qty+' · '+order.id,line.assetId,by);}
   }else{
