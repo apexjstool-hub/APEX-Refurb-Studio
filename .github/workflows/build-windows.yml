@@ -246,11 +246,11 @@ jobs:
         run: |
           $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Windows installer missing.' }
-          $tag = 'v4.1.22-smart-cleaner-test.2'
+          $tag = 'v4.1.22-inventory-cleanup-test.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
-          $notes = 'TEST PRE-RELEASE based on v4.1.22 supplier-optional: Pallet barcode printing now supports A4 portrait with a large Code 128 barcode, Save PDF and live preview. Adds Smart Data Cleaner with before/after review, safe selection, manufacturer/model/processor/RAM/storage formatting and optional serial uppercasing and notes adjustments, plus single-line wider device names. Existing 2x1 and 4x2 thermal labels and A4 manifests remain available. Requires testing on a real A4 printer before production rollout; some legacy headless UI smoke checks are warnings.'
-          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Cleaner in Admin Centre TEST' --notes $notes
+          $notes = 'TEST PRE-RELEASE based on v4.1.22 supplier-optional: Pallet barcode printing now supports A4 portrait with a large Code 128 barcode, Save PDF and live preview. Removes the Saved view toolbar while preserving Inventory sorting and filtering. Adds Smart Data Cleaner with before/after review, safe selection, manufacturer/model/processor/RAM/storage formatting and optional serial uppercasing and notes adjustments, plus single-line wider device names. Existing 2x1 and 4x2 thermal labels and A4 manifests remain available. Requires testing on a real A4 printer before production rollout; some legacy headless UI smoke checks are warnings.'
+          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Inventory Toolbar Cleanup TEST' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
         if: github.ref == 'refs/heads/main'
