@@ -130,8 +130,7 @@ jobs:
           & .\node_modules\.bin\electron.cmd tests/check-inventory-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Inventory print/PDF verification failed.' }
       - name: Verify Inventory workflow rendering and receipt action
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' }}
-        continue-on-error: ${{ (github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode') }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-inventory-tracker.js
