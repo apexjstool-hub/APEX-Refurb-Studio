@@ -28,7 +28,15 @@ function rows(data,actions){
 function deviceName(a){const maker=String(a.manufacturer||'').trim(),model=String(a.model||'').trim();return !maker?model||'New asset':model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:maker+(model?' '+model:'');}
 function conditionBadge(c){const cls=['A','Excellent'].includes(c)?'cond-good':['D'].includes(c)?'cond-bad':['C','Fair'].includes(c)?'cond-warn':'cond-neutral';return `<span class="condition-pill ${cls}">${html(c||'Not assessed')}</span>`;}
 function render(){
- const index=inventoryIndex||(inventoryIndex=window.ApexInventoryPerformance.build(items));
+ const index=(typeof inventoryIndex!=='undefined'&&window.ApexInventoryPerformance)
+  ?(inventoryIndex||(inventoryIndex=window.ApexInventoryPerformance.build(items)))
+  :{sorted:[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)),
+    stats:{processed:items.filter(a=>a.status==='Processed').length,awaiting:items.filter(a=>a.status==='Awaiting Processing').length,
+      needsRepair:items.filter(a=>a.grade==='D'||a.condition==='D').length},
+    filter:({query='',location='',grade='',status='All statuses',matches}={})=>items.filter(a=>
+      (!location||a.location===location)&&(!grade||a.grade===grade)&&(status==='All statuses'||a.status===status)&&
+      (!query||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(query)))&&
+      (!matches||matches(a)))};
  const sorted=index.sorted;
  $('sideCount').textContent=$('mTotal').textContent=$('inventoryCount').textContent=items.length;
  $('mReady').textContent=index.stats.processed;
