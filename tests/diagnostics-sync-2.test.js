@@ -36,7 +36,7 @@ test('same test results and notes do not create duplicate history; changed comme
  assert.equal(result.action,'updated');
  assert.equal(result.item.diagnosticTests.keyboard.comment,'Retested: W key not registering');
  assert.equal(result.item.diagnosticTests.display.status,'pass');
- assert.equal(result.item.history.filter(x=>x.type==='Diagnostic results').length,2);
+ assert.equal(result.item.history.filter(x=>x.type==='Diagnostic results').length,1); // first registration has a separate intake event
 });
 test('diagnostic results never overwrite manual refurbishment notes or job notes',()=>{
  const items=[];let result=importDiagnostic(items,{...first,refurbNotes:'Untrusted injection'});
