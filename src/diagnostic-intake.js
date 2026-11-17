@@ -22,14 +22,14 @@ function importDiagnostic(items,payload){
   if(next.batteryPercentage!==undefined&&next.batteryPercentage!==null&&/^(100|[1-9]?\d)$/.test(String(next.batteryPercentage).trim()))patch.batteryPercentage=String(next.batteryPercentage).trim();
   const changedHardware=Object.entries(patch).some(([key,value])=>String(existing[key]??'')!==String(value));
   const currentTests=existing.diagnosticTests||{};
-  const testChanges=Object.entries(submittedTests).filter(([key,value])=>currentTests[key]?.status!==value.status);
+  const testChanges=Object.entries(submittedTests).filter(([key,value])=>{const previous=currentTests[key];return (previous?.status||previous)!==value.status||String(previous?.comment||'')!==value.comment;});
   const changed=changedHardware||testChanges.length>0;
   const result=core.update(items,id,patch);
   if(!result.ok)return result;
   if(testChanges.length){
     result.item.diagnosticTests={...(result.item.diagnosticTests||{}),...submittedTests};
     result.item.updatedAt=new Date().toISOString();
-    result.item.history.push({type:'Diagnostic results',detail:testChanges.map(([id,value])=>`${testModule.names[id]}: ${value.status.toUpperCase()}`).join(' · ').slice(0,450),at:result.item.updatedAt});
+    result.item.history.push({type:'Diagnostic results',detail:testChanges.map(([id,value])=>`${testModule.names[id]}: ${value.status.toUpperCase()}${value.comment?' (comment updated)':''}`).join(' · ').slice(0,450),at:result.item.updatedAt});
   }
   if(changedHardware){result.item.history.push({type:'APEX Diagnostics',detail:'Hardware specifications updated from laptop diagnostics',at:new Date().toISOString()});}
   if(changed)result.item.history=result.item.history.slice(-120);
