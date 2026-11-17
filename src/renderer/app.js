@@ -3,6 +3,7 @@ const api=window.apexInventory;
 const core=window.ApexInventoryCore;
 const $=id=>document.getElementById(id);
 let cloudRefreshFailed=false,cloudLastRefresh=0;
+let inventoryIndex=null;
 let items=[],managedLocations=[],managedPallets=[],currentPage='dashboard',activeAssetId=null,dirty=false,toastTimer,scannerControls=null,cameraStream=null,scanRunning=false,syncMode='local',syncBusy=false,inventoryPageIndex=0,lastHubVersion=null,lastFullRefreshAt=0;
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
@@ -27,11 +28,12 @@ function rows(data,actions){
 function deviceName(a){const maker=String(a.manufacturer||'').trim(),model=String(a.model||'').trim();return !maker?model||'New asset':model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:maker+(model?' '+model:'');}
 function conditionBadge(c){const cls=['A','Excellent'].includes(c)?'cond-good':['D'].includes(c)?'cond-bad':['C','Fair'].includes(c)?'cond-warn':'cond-neutral';return `<span class="condition-pill ${cls}">${html(c||'Not assessed')}</span>`;}
 function render(){
- const sorted=[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+ const index=inventoryIndex||(inventoryIndex=window.ApexInventoryPerformance.build(items));
+ const sorted=index.sorted;
  $('sideCount').textContent=$('mTotal').textContent=$('inventoryCount').textContent=items.length;
- $('mReady').textContent=items.filter(a=>a.status==='Processed').length;
- $('mTesting').textContent=items.filter(a=>a.status==='Awaiting Processing').length;
- $('mRepair').textContent=items.filter(a=>a.grade==='D'||a.condition==='D').length;
+ $('mReady').textContent=index.stats.processed;
+ $('mTesting').textContent=index.stats.awaiting;
+ $('mRepair').textContent=index.stats.needsRepair;
  $('recentTable').innerHTML=rows(sorted.slice(0,4),false);
  const locationCounts=new Map(managedLocations.map(name=>[name,0]));
  for(const asset of items){const name=asset.location||'Unassigned';locationCounts.set(name,(locationCounts.get(name)||0)+1);}
@@ -42,7 +44,7 @@ function render(){
  for(const asset of items)gradeCounts.set(asset.grade,(gradeCounts.get(asset.grade)||0)+1);
  $('gradeSummary').innerHTML=['A','B','C','D','Pending'].map(g=>`<div class="grade-tile"><b>${g}</b><small>${gradeCounts.get(g)||0} assets</small></div>`).join('');
  const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
- const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
+ const filtered=index.filter({query:q,location:loc,grade:g,status:s,matches:window.ApexInventoryTracker?a=>window.ApexInventoryTracker.matches(a):null});
  // Only draw the current page. Exports and scans still use the entire items array.
  const ordered=window.ApexInventorySort?window.ApexInventorySort.sort(filtered,window.ApexWorkflowSnapshot):filtered;
  const pageSize=100, pageCount=Math.max(1,Math.ceil(ordered.length/pageSize));
@@ -139,6 +141,7 @@ async function refresh(silent=false){
    if(r.unchanged){updateConnection(true);return;}
    if(!Array.isArray(r.items))throw Error('Inventory response is missing asset records.');
    items=r.items.map(core.normalize);
+   inventoryIndex=null;
    managedLocations=Array.isArray(r.locations)?r.locations:[];
    managedPallets=Array.isArray(r.pallets)?r.pallets:[];
    window.ApexPalletLocationData={names:Array.isArray(r.palletLocations)?r.palletLocations:[],available:r.mode==='local'||Array.isArray(r.palletLocations)&&r.palletLocationsAvailable!==false};
@@ -324,7 +327,7 @@ let inventoryLookupTimer;
 $('inventorySearch').addEventListener('input',()=>{clearTimeout(inventoryLookupTimer);const value=$('inventorySearch').value.trim();if(!value)return;inventoryLookupTimer=setTimeout(()=>{const code=(window.ApexAssetLabelQR?.readAssetId(value)||value).toUpperCase(),found=items.some(a=>a.id===code);if(found)inventoryLookupFeedback(true);else if(!items.some(a=>[a.id,a.model,a.manufacturer,a.serial].some(v=>String(v||'').toLowerCase().includes(value.toLowerCase()))))inventoryLookupFeedback(false);},650);});
 api.onInventoryArrived?.(event=>{if(currentPage==='asset'&&dirty)return;if(!$('modalLayer').classList.contains('hidden'))return;refresh(true);if(event?.open)setPage('inventory');});
 $('globalSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();resolveScan(e.target.value);e.target.value='';}};
-$('sidebarUser').onclick=async()=>{if(currentPage==='asset'&&dirty&&!confirm('Sign out without saving changes?'))return;stopCamera();closeModal();await api.logout();items=[];syncMode='local';lastHubVersion=null;dirty=false;$('appPage').classList.add('hidden');$('loginPage').classList.remove('hidden');$('loginPass').focus();};
+$('sidebarUser').onclick=async()=>{if(currentPage==='asset'&&dirty&&!confirm('Sign out without saving changes?'))return;stopCamera();closeModal();await api.logout();items=[];inventoryIndex=null;syncMode='local';lastHubVersion=null;dirty=false;$('appPage').classList.add('hidden');$('loginPage').classList.remove('hidden');$('loginPass').focus();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modalLayer').classList.contains('hidden')&&!$('modalClose').classList.contains('hidden'))closeModal();});
 // Refresh only while the workspace is in use. Background windows do not need
 // repeated IPC/network requests; resuming the window triggers a fresh check.
