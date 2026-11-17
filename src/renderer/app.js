@@ -43,6 +43,7 @@ function render(){
  const gradeCounts=new Map();
  for(const asset of items)gradeCounts.set(asset.grade,(gradeCounts.get(asset.grade)||0)+1);
  $('gradeSummary').innerHTML=['A','B','C','D','Pending'].map(g=>`<div class="grade-tile"><b>${g}</b><small>${gradeCounts.get(g)||0} assets</small></div>`).join('');
+ if(currentPage==='inventory'){
  const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
  const filtered=index.filter({query:q,location:loc,grade:g,status:s,matches:window.ApexInventoryTracker?a=>window.ApexInventoryTracker.matches(a):null});
  // Only draw the current page. Exports and scans still use the entire items array.
@@ -56,11 +57,15 @@ function render(){
    inventoryPageIndex+=button.dataset.inventoryPage==='next'?1:-1;
    render();
  });
+ }
  document.querySelectorAll('[data-asset]').forEach(b=>b.onclick=()=>openAsset(b.dataset.asset));
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
- renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
+ if(['locations','reports','settings','dashboard'].includes(currentPage))renderSupplementalPages();
+ if(currentPage==='inventory'){window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();}
+ if(currentPage==='pallets')window.ApexPalletPage?.render();
+ if(['palletLocations','palletLocationDetail'].includes(currentPage))window.ApexPalletLocations?.render();
 }
 function summarizeLocations(){
  const map=new Map(managedLocations.filter(name=>String(name).trim().toLowerCase()!=='unassigned').map(name=>[name,[]]));
