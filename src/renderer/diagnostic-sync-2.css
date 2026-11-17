@@ -1,0 +1,10 @@
+/* APEX Diagnostics Sync 2.0 — read-only imported engineer and refurb notes. */
+#refurbWorkspacePage .apex-diagnostic-imported-notes,
+#assetPage .apex-diagnostic-imported-notes{margin:14px 0;padding:14px 16px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text)}
+#assetPage .apex-diagnostic-imported-notes:empty{display:none}
+#assetPage .apex-diagnostic-imported-notes h4{font-size:13px;margin:0 0 10px}
+#assetPage .apex-diagnostic-imported-notes p{font-size:12px;line-height:1.55;padding:9px 0;margin:0;border-top:1px solid var(--line)}
+#assetPage .apex-diagnostic-imported-notes p strong{display:block;margin-bottom:3px}
+#assetPage .apex-diagnostic-imported-notes p span{display:block;white-space:pre-wrap;overflow-wrap:anywhere}
+#assetPage .apex-diagnostic-imported-notes>small{display:block;margin-top:9px;color:var(--muted)}
+#assetPage .apex-test-comment{display:block;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;margin-top:6px;font-weight:400;color:var(--muted)}
