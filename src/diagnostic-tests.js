@@ -11,7 +11,7 @@ function sanitise(raw){
   if(!['pass','fail','unsupported','not-tested'].includes(status))continue;
   const comment=String(typeof entry==='object'&&entry!==null?entry.comment||'':'').trim().slice(0,1200);
   if(status==='not-tested'&&!comment)continue;
-  output[id]={status,source:'APEX Diagnostics',comment};
+  output[id]={status,source:'APEX Diagnostics',...(comment?{comment}:{})};
  }
  return output;
 }
