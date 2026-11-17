@@ -69,7 +69,8 @@
   $('wsGrade').textContent=a.condition||'Not assessed';
   $('wsSpecs').innerHTML=specs.map(([k,v])=>'<div class="ws-spec"><small>'+esc(k)+'</small><b>'+esc(v)+'</b></div>').join('');
   $('wsJobStatus').textContent=j?.status||'No refurbishment job';
-  $('wsNotes').textContent=j?.notes||'No engineer notes on this job.';
+  const imported=Object.entries(a.diagnosticTests||{}).filter(([,t])=>typeof t==='object'&&String(t?.comment||'').trim()).map(([id,t])=>(({'display':'Display / LCD','touchscreen':'Touchscreen','keyboard':'Keyboard','pointer':'Touchpad','audio':'Speakers','microphone':'Microphone','camera':'Webcam','wifi':'Wi-Fi','bluetooth':'Bluetooth','battery':'Battery','physical':'Ports','system':'Internal hardware','hardware':'Hardware checks','health':'Windows health','gauntlet':'Stability','advanced':'Advanced','cosmetics':'Cosmetics'})[id]||id)+' — '+String(t.status||'').toUpperCase()+': '+t.comment).join('\n');
+  $('wsNotes').textContent=[j?.notes||'',imported?'Imported diagnostic engineer notes:\n'+imported:''].filter(Boolean).join('\n\n')||'No engineer notes on this job.';
   const parts=j?.parts||[];
   const tbody=$('wsParts');
   tbody.innerHTML=parts.length?parts.map(p=>{
