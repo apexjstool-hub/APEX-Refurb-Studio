@@ -126,6 +126,23 @@ async function cloudReadAllAssets(){
  }
  return {ok:false,error:'Cloud inventory exceeds safe loading limit. No partial inventory shown.'};
 }
+// Lightweight background checks transfer only asset IDs/revisions. A changed revision
+// triggers the existing full, validated cloud load. Never reuse a partial page.
+let lastCloudInventorySignature=null,lastCloudMetaRevision=null,lastCloudIdentity=null;
+function cloudInventorySignature(rows){
+ return rows.map(row=>String(row.id??row.payload?.id??'')+'@'+String(row.revision)).join('\n');
+}
+async function cloudReadAssetRevisions(){
+ const all=[],pageSize=500,maxPages=200;
+ for(let page=0;page<maxPages;page++){
+  const result=await cloudRead('apex_assets?select=id,revision&order=id.asc&limit='+pageSize+'&offset='+(page*pageSize));
+  if(!result.ok)return result;
+  if(!Array.isArray(result.rows)||result.rows.some(row=>!row.id||!Number.isSafeInteger(Number(row.revision))))return {ok:false,error:'Invalid cloud revision page.'};
+  all.push(...result.rows);
+  if(result.rows.length<pageSize)return {ok:true,rows:all};
+ }
+ return {ok:false,error:'Cloud revision index exceeds safe limit.'};
+}
 async function cloudWrite(fn,args){
  try{
   const res=await cloudFetch('/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token,'Content-Type':'application/json'},body:JSON.stringify(args),signal:AbortSignal.timeout(12000)});
@@ -308,6 +325,26 @@ async function cloudInventoryCall(method,route,payload){
   return saved;
  }
  if(method!=='GET'||!route.startsWith('/v1/items'))return {ok:false,error:'This operation is not available in cloud mode yet. No local data was changed.'};
+ const backgroundRefresh=route.startsWith('/v1/items?background=1');
+ const identity=String(cloudSession.url||'')+'|'+String(cloudSession.userId||'');
+ if(identity!==lastCloudIdentity){
+  lastCloudInventorySignature=null;lastCloudMetaRevision=null;lastCloudIdentity=identity;
+ }
+ let refreshedMeta=null;
+ if(backgroundRefresh&&lastCloudInventorySignature!==null){
+  const probe=await cloudReadAssetRevisions();
+  if(probe.ok){
+   const metaProbe=await cloudMeta();
+   if(metaProbe.ok){
+    const signature=cloudInventorySignature(probe.rows);
+    if(signature===lastCloudInventorySignature&&String(metaProbe.data.revision)===lastCloudMetaRevision){
+     return {ok:true,unchanged:true,mode:'cloud'};
+    }
+    refreshedMeta=metaProbe;
+   }
+  }
+ }
+
  try{
   const result=await cloudReadAllAssets();
   if(!result.ok)return result;
@@ -315,11 +352,14 @@ async function cloudInventoryCall(method,route,payload){
   if(rows.some(row=>!row?.payload?.id||!Number.isSafeInteger(Number(row.revision))))
    return {ok:false,error:'Cloud returned an invalid asset. Inventory was not refreshed.'};
   const items=rows.map(r=>core.normalize(r.payload));
-  const meta=await cloudMeta();
+  const meta=refreshedMeta||await cloudMeta();
   if(!meta.ok)return meta;
   const nextRevisions=new Map(rows.map(row=>[row.payload.id,Number(row.revision)]));
   cloudSeenRevisions.clear();
   for(const [id,revision] of nextRevisions)cloudSeenRevisions.set(id,revision);
+  // Set the baseline only after every page and metadata has been validated.
+  lastCloudInventorySignature=cloudInventorySignature(rows);
+  lastCloudMetaRevision=String(meta.data.revision);
   const locations=[...new Set([...(meta.data.locations||[]),...items.map(x=>x.location).filter(Boolean)])];
   const pallets=palletManagement.listPallets({items,locations,pallets:meta.data.pallets||[]});
   return {ok:true,items:items.filter(x=>!x.deletedAt),locations,pallets,palletLocations:palletManagement.palletLocations({pallets,palletLocations:meta.data.palletLocations||[]}),palletLocationsAvailable:Array.isArray(meta.data.palletLocations),mode:'cloud'};
@@ -545,7 +585,8 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:list',secured(async knownVersion=>{
   // A version hint is a read-only optimisation, not a way to skip authentication.
   const valid=Number.isSafeInteger(knownVersion)&&knownVersion>=0;
-  const route=valid?'/v1/items?knownVersion='+knownVersion:'/v1/items';
+  const background=knownVersion&&typeof knownVersion==='object'&&knownVersion.background===true;
+  const route=valid?'/v1/items?knownVersion='+knownVersion:background?'/v1/items?background=1':'/v1/items';
   const workspace=arrivalWorkspace();const result=await inventoryCall('GET',route,null,()=>localList());return workspace===arrivalWorkspace()?observeArrivals(result):result;
  }));
  ipcMain.handle('inventory:addLocation',secured(input=>inventoryCall('POST','/v1/locations',{name:input},()=>{const db=loadDB();const name=String(input||'').trim().replace(/\s+/g,' ').slice(0,90);if(!name||/[<>\r\n]/.test(name))return {ok:false,error:'Enter a valid location name.'};if(db.locations.some(n=>n.toLowerCase()===name.toLowerCase()))return {ok:false,error:'Location already exists.'};db.locations.push(name);atomic(dbPath(),db);return {ok:true,locations:db.locations};})));
