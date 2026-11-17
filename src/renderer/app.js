@@ -27,7 +27,42 @@ function rows(data,actions){
 }
 function deviceName(a){const maker=String(a.manufacturer||'').trim(),model=String(a.model||'').trim();return !maker?model||'New asset':model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:maker+(model?' '+model:'');}
 function conditionBadge(c){const cls=['A','Excellent'].includes(c)?'cond-good':['D'].includes(c)?'cond-bad':['C','Fair'].includes(c)?'cond-warn':'cond-neutral';return `<span class="condition-pill ${cls}">${html(c||'Not assessed')}</span>`;}
+function legacyInventoryRender(){
+ const sorted=[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+ $('sideCount').textContent=$('mTotal').textContent=$('inventoryCount').textContent=items.length;
+ $('mReady').textContent=items.filter(a=>a.status==='Processed').length;
+ $('mTesting').textContent=items.filter(a=>a.status==='Awaiting Processing').length;
+ $('mRepair').textContent=items.filter(a=>a.grade==='D'||a.condition==='D').length;
+ $('recentTable').innerHTML=rows(sorted.slice(0,4),false);
+ const locationCounts=new Map(managedLocations.map(name=>[name,0]));
+ for(const asset of items){const name=asset.location||'Unassigned';locationCounts.set(name,(locationCounts.get(name)||0)+1);}
+ const locations=[...locationCounts.keys()].sort();const previous=$('locationFilter').value;
+ $('locationFilter').innerHTML='<option value="">All locations</option>'+locations.map(l=>`<option value="${html(l)}">${html(l)}</option>`).join('');$('locationFilter').value=locations.includes(previous)?previous:'';
+ $('locationSummary').innerHTML=locations.length?locations.map(loc=>`<button class="location-chip" data-location="${html(loc)}"><span>${html(loc)}</span><strong>${locationCounts.get(loc)||0}</strong></button>`).join(''):'<span class="section-note">No locations yet.</span>';
+ const gradeCounts=new Map();
+ for(const asset of items)gradeCounts.set(asset.grade,(gradeCounts.get(asset.grade)||0)+1);
+ $('gradeSummary').innerHTML=['A','B','C','D','Pending'].map(g=>`<div class="grade-tile"><b>${g}</b><small>${gradeCounts.get(g)||0} assets</small></div>`).join('');
+ const q=$('inventorySearch').value.trim().toLowerCase(),loc=$('locationFilter').value,g=$('gradeFilter').value,s=$('statusFilter').value;
+ const filtered=sorted.filter(a=>(!loc||a.location===loc)&&(!g||a.grade===g)&&(s==='All statuses'||a.status===s)&&(!q||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(q)))&&(!window.ApexInventoryTracker||window.ApexInventoryTracker.matches(a)));
+ // Only draw the current page. Exports and scans still use the entire items array.
+ const ordered=window.ApexInventorySort?window.ApexInventorySort.sort(filtered,window.ApexWorkflowSnapshot):filtered;
+ const pageSize=100, pageCount=Math.max(1,Math.ceil(ordered.length/pageSize));
+ inventoryPageIndex=Math.min(Math.max(0,inventoryPageIndex),pageCount-1);
+ const first=inventoryPageIndex*pageSize;
+ $('inventoryTable').innerHTML=rows(ordered.slice(first,first+pageSize),true)+
+  `<div class="v395-pagebar" role="navigation" aria-label="Inventory pages"><span>${filtered.length?`${first+1}–${Math.min(filtered.length,first+pageSize)} of ${filtered.length} devices`:'0 devices'} · Page ${inventoryPageIndex+1} of ${pageCount}</span><div><button type="button" data-inventory-page="prev" ${inventoryPageIndex===0?'disabled':''} aria-label="Previous page">← Previous</button><button type="button" data-inventory-page="next" ${inventoryPageIndex>=pageCount-1?'disabled':''} aria-label="Next page">Next →</button></div></div>`;
+ $('inventoryTable').querySelectorAll('[data-inventory-page]').forEach(button=>button.onclick=()=>{
+   inventoryPageIndex+=button.dataset.inventoryPage==='next'?1:-1;
+   render();
+ });
+ document.querySelectorAll('[data-asset]').forEach(b=>b.onclick=()=>openAsset(b.dataset.asset));
+ document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
+ document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
+ document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
+}
 function render(){
+ if(typeof inventoryIndex==='undefined'||!window.ApexInventoryPerformance)return legacyInventoryRender();
  const index=(typeof inventoryIndex!=='undefined'&&window.ApexInventoryPerformance)
   ?(inventoryIndex||(inventoryIndex=window.ApexInventoryPerformance.build(items)))
   :{sorted:[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)),
