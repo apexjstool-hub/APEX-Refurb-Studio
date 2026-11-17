@@ -70,10 +70,7 @@ function render(){
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
- if(['locations','reports','settings','dashboard'].includes(currentPage))renderSupplementalPages();
- if(currentPage==='inventory'){window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();}
- if(currentPage==='pallets')window.ApexPalletPage?.render();
- if(['palletLocations','palletLocationDetail'].includes(currentPage))window.ApexPalletLocations?.render();
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
 }
 function summarizeLocations(){
  const map=new Map(managedLocations.filter(name=>String(name).trim().toLowerCase()!=='unassigned').map(name=>[name,[]]));
