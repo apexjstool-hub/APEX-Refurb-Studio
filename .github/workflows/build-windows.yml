@@ -1,7 +1,7 @@
 name: Build APEX Windows Update
 on:
   push:
-    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode', 'preview/4.1.22-typography', 'feature/4.1.22-smart-workstation', 'fix/4.1.22-refurb-bottom-clipping']
+    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode', 'preview/4.1.22-typography', 'feature/4.1.22-smart-workstation', 'fix/4.1.22-refurb-bottom-clipping', 'feature/4.1.22-diagnostics-sync-2']
     paths:
       - 'package.json'
       - 'package-lock.json'
@@ -15,8 +15,8 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: ${{ github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' && 'apex-refurb-clipping-test' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' && 'apex-smart-workstation-test' || (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography') && 'apex-a4-pallet-test' || 'apex-windows-release' }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
+  group: ${{ github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' && 'apex-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' && 'apex-refurb-clipping-test' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' && 'apex-smart-workstation-test' || (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography') && 'apex-a4-pallet-test' || 'apex-windows-release' }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.event.head_commit.message == 'Retry stalled 4.0.75 Windows verification' }}
 jobs:
   pallet-storage:
     runs-on: ubuntu-latest
@@ -103,71 +103,71 @@ jobs:
             node --check $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "Syntax check failed: $($_.Name)" }
           }
-          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/custom-labels.test.js tests/label-designer.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/refurb-lane-last-row.test.js tests/smart-workstation.test.js tests/smart-data-cleaner.test.js tests/assignment-documents.test.js tests/refurb-workflow.test.js tests/bulk-supplier-optional.test.js tests/granular-deletion.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
+          node --test --test-timeout=120000 tests/hub-diagnostics-reentry.test.js tests/inventory-arrivals.test.js tests/device-summary.test.js tests/grade-projection.test.js tests/repair-work-type.test.js tests/assignment-documents.test.js tests/inventory-tracker.test.js tests/template-parts-export.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/part-receipts.test.js tests/refurb-parts-bridge.test.js tests/admin-centre.test.js tests/account-security.test.js tests/label-print.test.js tests/custom-labels.test.js tests/label-designer.test.js tests/history-only-visibility.test.js tests/asset-activity.test.js tests/diagnostic-intake.test.js tests/diagnostics-sync-2.test.js tests/refurb-lane-last-row.test.js tests/smart-workstation.test.js tests/smart-data-cleaner.test.js tests/assignment-documents.test.js tests/refurb-workflow.test.js tests/bulk-supplier-optional.test.js tests/granular-deletion.test.js tests/bulk-parts-board.test.js tests/pallet-locations.test.js tests/smart-inventory.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
       - name: Verify thermal label layout and single-page PDF output
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-label-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Thermal label layout checks failed.' }
       - name: Verify custom asset labels and QA stickers
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-custom-labels.js
           if ($LASTEXITCODE -ne 0) { throw 'Custom label and QA sticker verification failed.' }
       - name: Verify free-position label designer and matching print geometry
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-label-designer.js
           if ($LASTEXITCODE -ne 0) { throw 'Label designer verification failed.' }
       - name: Verify inventory report PDF rendering
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-inventory-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Inventory print/PDF verification failed.' }
       - name: Verify Inventory workflow rendering and receipt action
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-inventory-tracker.js
           if ($LASTEXITCODE -ne 0) { throw 'Inventory workflow UI checks failed.' }
       - name: Verify additive Refurbishment workspace and original Inventory views
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-refurb-workspace.js
           if ($LASTEXITCODE -ne 0) { throw 'Refurbishment workspace checks failed.' }
       - name: Verify Device Details parts layout and existing actions
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-device-repair-details.js
           if ($LASTEXITCODE -ne 0) { throw 'Device Details repair layout checks failed.' }
       - name: Verify theme-aware Device Details summary and print action
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-device-summary-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Device summary layout and contrast checks failed.' }
       - name: Verify sign-in layout and manual saved login
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-login-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Sign-in layout verification failed.' }
       - name: Verify pallet labels and A4 manifests
         if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode' && github.ref != 'refs/heads/preview/4.1.22-typography' && github.ref != 'refs/heads/feature/4.1.22-smart-workstation' && github.ref != 'refs/heads/fix/4.1.22-refurb-bottom-clipping'
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\\node_modules\\.bin\\electron.cmd tests/check-assignment-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Pallet label/manifest verification failed.' }
       - name: Verify single-page A4 pallet barcode
-        if: (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping')
+        if: (github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' || github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2')
         continue-on-error: true
         timeout-minutes: 1
         run: |
@@ -175,19 +175,19 @@ jobs:
           & .\\node_modules\\.bin\\electron.cmd tests/check-a4-pallet-print.js
           if ($LASTEXITCODE -ne 0) { throw 'A4 pallet barcode PDF verification failed.' }
       - name: Verify Microdream template grouping and landscape PDF pagination
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-microdream-print.js
           if ($LASTEXITCODE -ne 0) { throw 'Microdream job request print checks failed.' }
       - name: Verify saved Microdream report UI and pallet selection spacing
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-microdream-reports.js
           if ($LASTEXITCODE -ne 0) { throw 'Saved Microdream report UI verification failed.' }
       - name: Verify branded desktop notification and report layouts
-        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
+        continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           & .\node_modules\.bin\electron.cmd tests/check-notification-reports.js
@@ -235,27 +235,27 @@ jobs:
           $notes = 'Supplier-optional bulk parts updates; previous test release remains unchanged.'
           gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 Supplier Optional - TEST INSTALLER' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish isolated test installer.' }
-      - name: Upload Refurbishment Last Row Fix installer
-        if: github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping'
+      - name: Upload Diagnostics Sync 2 installer
+        if: github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2'
         uses: actions/upload-artifact@v6
         with:
-          name: APEX-4.1.22-Refurb-Last-Row-Fix
+          name: APEX-4.1.22-Diagnostics-Sync-2
           path: dist/APEX-Refurb-Studio-Setup-4.1.22.exe
           if-no-files-found: error
           retention-days: 14
-      - name: Publish isolated Refurbishment Last Row Fix release
-        if: github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping'
+      - name: Publish isolated Diagnostics Sync 2 test release
+        if: github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Windows installer missing.' }
-          $tag = 'v4.1.22-refurb-last-row-fix-test.2'
+          $tag = 'v4.1.22-diagnostics-sync-2-test.1'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
-          $notes = 'TEST PRE-RELEASE based on v4.1.22 Smart Barcode Workstation. Fixes the actual global 64vh panel height limit clipping Refurbishment Parts and Respray lists; keeps the page as vertical scroll owner and preserves last-row clearance. No inventory data or workflows changed. Existing barcode workstation, Smart Data Cleaner, typography and A4 printing retained. Check actual Windows display at your working screen size before using broadly.'
-          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Refurbishment Last Row Fix TEST' --notes $notes
+          $notes = 'TEST PRE-RELEASE: Diagnostics Sync 2 displays every imported Pass/Fail plus Unsupported where applicable. Technician comments appear in Engineer Notes, failed results appear beside manual Refurb Notes, and Smart Barcode Workstation shows imported comments. Existing editable notes stay untouched. LAN Hub must also run the upgraded hub source; Supabase cloud intake requires separate migration cloud/diagnostics-sync-2-notes-migration.sql before comments persist in cloud. Do not use in production until tested.'
+          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.1.22 - Diagnostics Sync 2 TEST' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
         if: github.ref == 'refs/heads/main'
