@@ -39,7 +39,7 @@ app.whenReady().then(async()=>{
   if(!attached)throw Error('Actions menu is not attached directly below its button.');
   await win.webContents.executeJavaScript("$('selection-actions-inventory').querySelector('[data-selection-group=reports]').click();$('selection-actions-inventory').querySelector('[data-selection-action=diagnostics]').click();void 0;");
   for(let i=0;i<60;i++){if(await win.webContents.executeJavaScript("$('selectionReportPreview')?.contentWindow?.apexReportPreviewReady===true"))break;await new Promise(r=>setTimeout(r,50));}
-  const reportCheck=await win.webContents.executeJavaScript("(()=>{const frame=$('selectionReportPreview');return {found:frame?.contentDocument?.body?.textContent?.includes('TEST-TRACKER')||false,ready:frame?.contentWindow?.apexReportPreviewReady===true,disabled:$('selectionReportPrint')?.disabled,src:frame?.getAttribute('src'),snippet:String(frame?.contentDocument?.body?.textContent||'').slice(0,250),selected:[...(window.ApexInventorySelection?.selected?.inventory||[])]}})()");if(!reportCheck.found||reportCheck.disabled)throw Error('Selected diagnostics report did not preview before printing: '+JSON.stringify(reportCheck));
+  if(!await win.webContents.executeJavaScript("$('selectionReportPreview').contentDocument.body.textContent.includes('TEST-TRACKER')&&!$('selectionReportPrint').disabled"))throw Error('Selected diagnostics report did not preview before printing.');
   await win.webContents.executeJavaScript("closeModal();void 0;");
 
   await win.webContents.executeJavaScript("window.ApexAssignmentPrint.open('pallet','PALLET-0001','manifest');void 0;");
