@@ -8,8 +8,10 @@ function sanitise(raw){
  const output={};
  for(const id of allowed){
   const entry=raw[id],status=String(typeof entry==='string'?entry:entry?.status||'').toLowerCase();
-  if(!['pass','fail','unsupported'].includes(status))continue;
-  output[id]={status,source:'APEX Diagnostics',comment:String(typeof entry==='object'&&entry!==null?entry.comment||'':'').trim().slice(0,1200)};
+  if(!['pass','fail','unsupported','not-tested'].includes(status))continue;
+  const comment=String(typeof entry==='object'&&entry!==null?entry.comment||'':'').trim().slice(0,1200);
+  if(status==='not-tested'&&!comment)continue;
+  output[id]={status,source:'APEX Diagnostics',comment};
  }
  return output;
 }
