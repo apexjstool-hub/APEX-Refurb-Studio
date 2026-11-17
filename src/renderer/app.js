@@ -154,13 +154,23 @@ function showModal(title,eyebrow,content,closable=true){$('modalTitle').textCont
 function closeModal(){$('modalLayer').classList.add('hidden');$('modalContent').innerHTML='';}
 const optionHtml=(name,values,selected)=>`<select name="${html(name)}">${values.map(v=>`<option ${v===selected?'selected':''}>${html(v)}</option>`).join('')}</select>`;
 function fillOptions(id,choices,value){$(id).innerHTML=choices.map(v=>`<option value="${html(v)}" ${v===value?'selected':''}>${html(v)}</option>`).join('');}
-const APEX_TEST_LABELS={"display":"Display / LCD","touchscreen":"Touchscreen","keyboard":"Keyboard","pointer":"Touchpad","audio":"Speakers","microphone":"Microphone","camera":"Webcam","wifi":"Wi-Fi","bluetooth":"Bluetooth","battery":"Battery","physical":"Ports / connections","system":"Storage / internal hardware","hardware":"Hardware checks","health":"Windows health","gauntlet":"Stability test","advanced":"Advanced diagnostics"};
+const APEX_TEST_LABELS={"display":"Display / LCD","touchscreen":"Touchscreen","keyboard":"Keyboard","pointer":"Touchpad","audio":"Speakers","microphone":"Microphone","camera":"Webcam","wifi":"Wi-Fi","bluetooth":"Bluetooth","battery":"Battery","physical":"Ports / connections","system":"Storage / internal hardware","hardware":"Hardware checks","health":"Windows health","gauntlet":"Stability test","advanced":"Advanced diagnostics","cosmetics":"Cosmetic inspection"};
 function renderImportedTests(asset){
- const recorded=Object.entries(asset.diagnosticTests||{}).filter(([key,value])=>APEX_TEST_LABELS[key]&&['pass','fail'].includes(value?.status||value));
- const passed=recorded.filter(([k,v])=>(v?.status||v)==='pass').length;
- const failed=recorded.length-passed;
- $('apexTestTotals').innerHTML=`<span class="apex-test-total apex-test-total-pass"><strong>${passed}</strong><small>Passed</small></span><span class="apex-test-total apex-test-total-fail"><strong>${failed}</strong><small>Failed</small></span>`;
- $('apexTestList').innerHTML=recorded.length?recorded.map(([id,value])=>{const ok=(value?.status||value)==='pass';return `<div class="apex-test-tile ${ok?'apex-test-tile-ok':'apex-test-tile-bad'}"><span class="apex-test-symbol" aria-hidden="true">${ok?'✓':'!'}</span><span class="apex-test-name">${html(APEX_TEST_LABELS[id])}</span><b class="apex-test-result ${ok?'apex-test-pass':'apex-test-fail'}">${ok?'PASS':'FAIL'}</b></div>`;}).join(''):'<div class="apex-test-empty"><span class="apex-test-empty-icon">▦</span><div><strong>No tests received yet</strong><p>Enter this Asset ID in APEX Diagnostics, connect to the hub and mark completed checks Pass or Fail.</p></div></div>';
+ const recorded=Object.entries(asset.diagnosticTests||{}).filter(([key,value])=>APEX_TEST_LABELS[key]&&['pass','fail','unsupported'].includes(value?.status||value));
+ const passed=recorded.filter(([,v])=>(v?.status||v)==='pass').length;
+ const failed=recorded.filter(([,v])=>(v?.status||v)==='fail').length;
+ const unsupported=recorded.length-passed-failed;
+ $('apexTestTotals').innerHTML=`<span class="apex-test-total apex-test-total-pass"><strong>${passed}</strong><small>Passed</small></span><span class="apex-test-total apex-test-total-fail"><strong>${failed}</strong><small>Failed</small></span>${unsupported?`<span class="apex-test-total"><strong>${unsupported}</strong><small>Unsupported</small></span>`:''}`;
+ $('apexTestList').innerHTML=recorded.length?recorded.map(([id,value])=>{
+  const outcome=value?.status||value,ok=outcome==='pass',na=outcome==='unsupported',comment=typeof value==='object'&&value?String(value.comment||''):'';
+  return `<div class="apex-test-tile ${ok?'apex-test-tile-ok':na?'':'apex-test-tile-bad'}"><span class="apex-test-symbol" aria-hidden="true">${ok?'✓':na?'–':'!'}</span><span class="apex-test-name">${html(APEX_TEST_LABELS[id])}${comment?`<small class="apex-test-comment">${html(comment)}</small>`:''}</span><b class="apex-test-result ${ok?'apex-test-pass':na?'':'apex-test-fail'}">${outcome.toUpperCase()}</b></div>`;
+ }).join(''):'<div class="apex-test-empty"><span class="apex-test-empty-icon">▦</span><div><strong>No tests received yet</strong><p>Enter this Asset ID in APEX Diagnostics, connect to the hub and mark completed checks Pass or Fail.</p></div></div>';
+ const commented=recorded.filter(([,value])=>typeof value==='object'&&String(value.comment||'').trim());
+ const faults=recorded.filter(([,value])=>(value?.status||value)==='fail');
+ const notes=rows=>rows.map(([id,value])=>`<p><strong>${html(APEX_TEST_LABELS[id])} — ${html((value?.status||value).toUpperCase())}</strong>${typeof value==='object'&&value?.comment?`<span>${html(value.comment)}</span>`:''}</p>`).join('');
+ const engineer=$('apexDiagnosticEngineerNotes'),refurb=$('apexDiagnosticRefurbNotes');
+ if(engineer)engineer.innerHTML=commented.length?`<h4>Imported engineer notes from Diagnostics</h4>${notes(commented)}<small>Read-only diagnostic evidence. Edit test comments in Diagnostics.</small>`:'';
+ if(refurb)refurb.innerHTML=faults.length?`<h4>Diagnostic faults for refurbishment</h4>${notes(faults)}<small>Automatically updated from failed tests. Your editable refurbishment notes above are preserved.</small>`:'';
 }
 function renderRefurbishment(asset){
  const box=$('refurbContent'),status=$('refurbSyncLabel');
