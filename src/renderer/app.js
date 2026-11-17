@@ -165,7 +165,7 @@ function renderImportedTests(asset){
   const outcome=value?.status||value,ok=outcome==='pass',na=outcome==='unsupported',comment=typeof value==='object'&&value?String(value.comment||''):'';
   return `<div class="apex-test-tile ${ok?'apex-test-tile-ok':na?'':'apex-test-tile-bad'}"><span class="apex-test-symbol" aria-hidden="true">${ok?'✓':na?'–':'!'}</span><span class="apex-test-name">${html(APEX_TEST_LABELS[id])}${comment?`<small class="apex-test-comment">${html(comment)}</small>`:''}</span><b class="apex-test-result ${ok?'apex-test-pass':na?'':'apex-test-fail'}">${outcome.toUpperCase()}</b></div>`;
  }).join(''):'<div class="apex-test-empty"><span class="apex-test-empty-icon">▦</span><div><strong>No tests received yet</strong><p>Enter this Asset ID in APEX Diagnostics, connect to the hub and mark completed checks Pass or Fail.</p></div></div>';
- const commented=recorded.filter(([,value])=>typeof value==='object'&&String(value.comment||'').trim());
+ const commented=Object.entries(asset.diagnosticTests||{}).filter(([id,value])=>APEX_TEST_LABELS[id]&&typeof value==='object'&&String(value.comment||'').trim());
  const faults=recorded.filter(([,value])=>(value?.status||value)==='fail');
  const notes=rows=>rows.map(([id,value])=>`<p><strong>${html(APEX_TEST_LABELS[id])} — ${html((value?.status||value).toUpperCase())}</strong>${typeof value==='object'&&value?.comment?`<span>${html(value.comment)}</span>`:''}</p>`).join('');
  const engineer=$('apexDiagnosticEngineerNotes'),refurb=$('apexDiagnosticRefurbNotes');
