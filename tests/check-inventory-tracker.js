@@ -39,7 +39,11 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript("$('selection-toolbar-inventory').querySelector('[data-selection-menu=actions]').click();void 0;");
   const attached=await win.webContents.executeJavaScript("(()=>{const b=$('selection-toolbar-inventory').querySelector('[data-selection-menu=actions]').getBoundingClientRect(),m=$('selection-actions-inventory').getBoundingClientRect();return Math.abs(b.left-m.left)<2&&Math.abs(b.bottom-m.top)<2;})()");
   if(!attached)throw Error('Actions menu is not attached directly below its button.');
+  await win.webContents.executeJavaScript("window.__diagActionErrors=[];window.addEventListener('error',e=>window.__diagActionErrors.push(String(e.message||e.error)));void 0;");
+  const previewBefore=await win.webContents.executeJavaScript("(()=>{const m=$('selection-actions-inventory');const b=m.querySelector('[data-selection-action=diagnostics]');return {selected:[...window.ApexInventorySelection.selected.inventory],disabled:b.disabled,visible:!b.hidden,menuHidden:m.hidden,assetIds:items.map(a=>a.id),page:currentPage}})()");
   await win.webContents.executeJavaScript("$('selection-actions-inventory').querySelector('[data-selection-group=reports]').click();$('selection-actions-inventory').querySelector('[data-selection-action=diagnostics]').click();void 0;");
+  const previewAfter=await win.webContents.executeJavaScript("(()=>({modal:!$('modalLayer').classList.contains('hidden'),title:$('modalTitle').textContent,hasPreview:!!$('selectionReportPreview'),toast:$('toast').textContent,errors:window.__diagActionErrors,actionExists:!!window.ApexSelectionPreviews,opsExists:!!window.ApexOps?.printDiagnosticsReports}))()");
+  console.log('DIAGNOSTICS_PREVIEW_DEBUG',JSON.stringify({previewBefore,previewAfter}));
   for(let i=0;i<60;i++){if(await win.webContents.executeJavaScript("$('selectionReportPreview')?.contentWindow?.apexReportPreviewReady===true"))break;await new Promise(r=>setTimeout(r,50));}
   if(!await win.webContents.executeJavaScript("$('selectionReportPreview').contentDocument.body.textContent.includes('TEST-TRACKER')&&!$('selectionReportPrint').disabled"))throw Error('Selected diagnostics report did not preview before printing.');
   await win.webContents.executeJavaScript("closeModal();void 0;");
