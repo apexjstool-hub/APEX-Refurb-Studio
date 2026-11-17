@@ -33,7 +33,7 @@ function render(){
   :{sorted:[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)),
     stats:{processed:items.filter(a=>a.status==='Processed').length,awaiting:items.filter(a=>a.status==='Awaiting Processing').length,
       needsRepair:items.filter(a=>a.grade==='D'||a.condition==='D').length},
-    filter:({query='',location='',grade='',status='All statuses',matches}={})=>items.filter(a=>
+    filter:({query='',location='',grade='',status='All statuses',matches}={})=>sorted.filter(a=>
       (!location||a.location===location)&&(!grade||a.grade===grade)&&(status==='All statuses'||a.status===status)&&
       (!query||[a.id,a.model,a.manufacturer,a.serial,a.location,a.pallet,a.sku,a.processor,a.gpu,a.productType].some(v=>String(v??'').toLowerCase().includes(query)))&&
       (!matches||matches(a)))};
