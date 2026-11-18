@@ -251,11 +251,11 @@ jobs:
         run: |
           $installer = 'dist/APEX-Refurb-Studio-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Windows installer missing.' }
-          $tag = 'v4.1.22-performance-preview-test.1'
+          $tag = 'v4.1.22-performance-preview-test.2'
           $existing = gh release view $tag --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Test release already exists; review before overwriting.' }
-          $notes = 'TEST PRE-RELEASE: APEX 4.2 Performance Preview based on the Diagnostics Sync 2 test build. Adds preindexed inventory search and sorting, reduces hidden-page rerenders, uses lightweight Supabase revision checks before full inventory downloads, and keeps cloud write/permission/diagnostics workflows unchanged. Benchmark test uses 12,000 assets. Existing production release unchanged. Install and test against a backup before daily use.'
-          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.2 - Performance Preview TEST' --notes $notes
+          $notes = 'TEST PRE-RELEASE: APEX 4.2 Performance Preview with Device Repair Worksheet notes fix. Shows saved Device Details refurbishment comments and refurbishment job repair notes, plus existing inspection and cosmetic notes, on individual and batch A4 worksheets. Preserves existing inventory performance, Diagnostics Sync 2, application design and cloud data. This is a preview installer and uses the existing application ID; back up the existing installation before installing.'
+          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.2 - Worksheet Notes + Performance Preview TEST 2' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish A4 test installer.' }
       - name: Verify installer and create draft release
         if: github.ref == 'refs/heads/main'
