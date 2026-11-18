@@ -50,3 +50,18 @@ test('cloud lightweight checks remain opt-in and retain normal full-snapshot pat
  assert.match(renderer,/silent&&syncMode==='cloud'\?\{background:true\}/);
  assert.match(renderer,/inventoryIndex=null/);
 });
+
+test('repair worksheet includes saved Device Details refurb comments and repair job notes',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../src/renderer/refurb-ui.js'),'utf8');
+ const start=source.indexOf('function worksheetMarkup(id)');
+ const end=source.indexOf('let printCleanup=null;',start);
+ assert.ok(start>=0&&end>start,'worksheet renderer exists');
+ const worksheet=source.slice(start,end);
+ assert.match(worksheet,/\['Refurbishment comments',a\.refurbNotes\]/);
+ assert.match(worksheet,/\['Repair job notes',j\?\.notes\]/);
+ assert.match(worksheet,/\['Cosmetic findings',cos\]/);
+ assert.match(worksheet,/\['Inspection notes',notes\]/);
+ assert.match(worksheet,/esc\(String\(value\)\.trim\(\)\)/,'user-provided comments must be HTML escaped');
+ assert.match(worksheet,/worksheetNotesMarkup/,'print view must insert all saved notes');
+ assert.match(source,/list\.map\(worksheetMarkup\)/,'batch worksheets share the same renderer');
+});
