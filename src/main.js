@@ -36,7 +36,16 @@ const demoItems=[
 ].map(core.normalize);
 const hash=(p,s)=>crypto.scryptSync(p,s,64).toString('hex');
 function atomic(file,obj){if(Array.isArray(obj?.items))assetActivity.capture(obj);fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(obj,null,2),{mode:0o600});fs.renameSync(tmp,file);}
-function loadDB(){if(!fs.existsSync(dbPath())){const salt=crypto.randomBytes(24).toString('hex');atomic(dbPath(),{user:{username:'admin',salt,passwordHash:hash('Admin123!',salt),mustChangePassword:true},items:demoItems});}
+function loadDB(){if(!fs.existsSync(dbPath())){
+ const salt=crypto.randomBytes(24).toString('hex');
+ // Preview-only demonstration assets. Never read or copy production records.
+ const demoJobs={
+  'APX-10482':{assetId:'APX-10482',status:'Repair In Progress',priority:'Normal',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-lcd',name:'LCD panel',qty:1,received:1,fitted:0},{id:'demo-spray',name:'Full respray',qty:1,received:1,fitted:0}],qc:{},updatedAt:new Date().toISOString()},
+  'APX-10483':{assetId:'APX-10483',status:'Awaiting Parts',priority:'High',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-keyboard',name:'UK keyboard',qty:1,received:0,fitted:0}],qc:{},updatedAt:new Date().toISOString()},
+  'APX-10484':{assetId:'APX-10484',status:'Quality Control',priority:'Normal',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-battery',name:'Battery replacement',qty:1,received:1,fitted:1}],qc:{'Required parts fitted':true},updatedAt:new Date().toISOString()}
+ };
+ atomic(dbPath(),{user:{username:'admin',salt,passwordHash:hash('Admin123!',salt),mustChangePassword:true},items:demoItems,operations:{jobs:demoJobs,orders:[],audit:[]}});
+}
  const db=JSON.parse(fs.readFileSync(dbPath(),'utf8'));if(!db.user?.passwordHash||!Array.isArray(db.items))throw Error('Invalid inventory database');assetActivity.capture(db);db.items=db.items.map(core.normalize);db.locations=Array.isArray(db.locations)?db.locations:[...new Set(db.items.map(a=>a.location).filter(Boolean))];db.operations=workflow.init(db.operations);db.pallets=Array.isArray(db.pallets)?db.pallets:[];return db;}
 function checkInput(v,max){return String(v??'').trim().slice(0,max);}
 const safe=fn=>{try{return fn();}catch(e){console.error(e);return {ok:false,error:'Unable to complete the operation. Check the application log.'};}};
