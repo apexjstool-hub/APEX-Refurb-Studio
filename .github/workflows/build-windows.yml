@@ -318,11 +318,11 @@ jobs:
         run: |
           $installer = 'dist/APEX-Refurb-4.3-Preview-Setup-4.1.22.exe'
           if (!(Test-Path $installer)) { throw 'Isolated Windows preview installer missing.' }
-          $tag = 'v4.3-refurb-simplification-preview.1'
+          $tag = 'v4.3-refurb-simplification-preview.2'
           gh release view $tag --json tagName *> $null
           if ($LASTEXITCODE -eq 0) { throw 'Existing test release must not be overwritten.' }
-          $notes = 'APEX 4.3 REFINEMENT PREVIEW, demo-only: separate installer, app ID and local user-data profile; shared Hub and cloud data are disabled. Simplified Refurbishment tabs, Work Queue single-device entry, Bulk Refurbishment as dedicated workspace, Parts and Purchasing grouped, one separated Device Details repair view. Existing Microdream and source workflow code retained. Preview is populated with demo-only laptops and repair jobs. Production source backup: backup/pre-4.3-refurb-simplification-2026-11-19. No live Supabase backups are included.'
-          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.3 - Isolated Refurbishment Simplification Preview' --notes $notes
+          $notes = 'APEX 4.3 REFINEMENT PREVIEW, demo-only: separate installer, app ID and local user-data profile; shared Hub and cloud data are disabled. Simplified Refurbishment tabs, Work Queue single-device entry, Bulk Refurbishment as dedicated workspace, Parts and Purchasing grouped, one separated Device Details repair view. Existing Microdream and source workflow code retained. Preview is populated with demo-only laptops and repair jobs. The login is local admin only (admin / Admin123! on a fresh preview profile); no cloud email is required. Production source backup: backup/pre-4.3-refurb-simplification-2026-11-19. No live Supabase backups are included.'
+          gh release create $tag $installer --target $env:GITHUB_SHA --prerelease --latest=false --title 'APEX 4.3 - Refurbishment Preview (Local Demo Login Fix)' --notes $notes
           if ($LASTEXITCODE -ne 0) { throw 'Could not publish isolated refurbishment preview.' }
       - name: Verify installer and create draft release
         if: github.ref == 'refs/heads/main'
