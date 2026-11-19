@@ -49,3 +49,10 @@ test('Bulk inventory UI calls location-only API, not destructive pallet bulkMove
  assert.match(main,/palletsPreserved:true/);
  assert.match(html,/inventory-bulk-location\.js/);
 });
+
+test('Set asset locations button is attached only after bulk refurbishment button is mounted',()=>{
+ const nav=read('src/renderer/inventory-selection.js');
+ const attach=nav.indexOf("scan?.after(bulk);bulk.after(location);");
+ assert.ok(attach>0,'Location button must be appended to the live DOM after bulk refurbishment');
+ assert.ok(nav.indexOf("location.onclick=()=>window.ApexBulkAssetLocation?.open")<attach);
+});
