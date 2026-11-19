@@ -1,6 +1,6 @@
 {
   "name": "apex-inventory-studio",
-  "version": "4.1.22",
+  "version": "4.3.0-rc.1",
   "description": "APEX Refurb Management Studio — inventory, refurbishment and pallet storage management, A4 and Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
@@ -24,8 +24,8 @@
     "electron-builder": "^26.0.12"
   },
   "build": {
-    "appId": "com.apex.inventory.refurb43preview",
-    "productName": "APEX Refurb 4.3 Preview",
+    "appId": "com.apex.inventory",
+    "productName": "APEX Refurb Management Studio",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -44,7 +44,7 @@
       "target": [
         "nsis"
       ],
-      "artifactName": "APEX-Refurb-4.3-Preview-Setup-${version}.${ext}",
+      "artifactName": "APEX-Refurb-Studio-Setup-${version}.${ext}",
       "icon": "build/icon.ico"
     },
     "icon": "build/icon.png",
@@ -61,7 +61,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "APEX Refurb 4.3 Preview",
+      "shortcutName": "APEX Refurb Management Studio",
       "deleteAppDataOnUninstall": false
     },
     "extraResources": [
