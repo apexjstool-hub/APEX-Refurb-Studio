@@ -46,3 +46,41 @@ test('Receive all orders excludes un-ordered quantities and rejects changed orde
  const r=W.apply(s,assets,cmd);assert.equal(r.ok,true);assert.equal(r.workflow.jobs.A.parts[0].received,2);assert.equal(r.workflow.jobs.A.status,'Awaiting Parts');
  const changed=structuredClone(s);changed.orders[0].lines[0].qty=3;const before=JSON.stringify(changed);assert.equal(W.apply(changed,assets,cmd).ok,false);assert.equal(JSON.stringify(changed),before);
 });
+
+test('Undo Fitted restores received-but-not-fitted status with audit and QC protection',()=>{
+ const assets=[{id:'ASSET-90'}],part={id:'p1',name:'LCD panel',qty:3,received:3,fitted:3};
+ const state=W.init({jobs:{'ASSET-90':{assetId:'ASSET-90',status:'Quality Control',parts:[part],qc:{'Required parts fitted':true,'Visual inspection':true}}},orders:[],audit:[]});
+ const result=W.apply(state,assets,{type:'undoFittedPart',assetId:'ASSET-90',partId:'p1',qty:2,reason:'Marked fitted by mistake',expectedFitted:3,expectedReceived:3},'Tester');
+ assert.equal(result.ok,true,result.error);
+ const job=result.workflow.jobs['ASSET-90'];
+ assert.equal(job.parts[0].fitted,1);
+ assert.equal(job.parts[0].received,3);
+ assert.equal(job.status,'Repair In Progress');
+ assert.equal(job.qc['Required parts fitted'],false);
+ assert.equal(job.qc['Visual inspection'],true);
+ assert.match(result.workflow.audit.find(e=>e.type==='Part fitted reversed').detail,/Marked fitted by mistake/);
+});
+test('Undo Fitted blocks mismatched quantities, cosmetic parts, completed jobs, and invalid requests',()=>{
+ const assets=[{id:'ASSET-90'}];
+ const make=()=>W.init({jobs:{'ASSET-90':{assetId:'ASSET-90',status:'Repair In Progress',parts:[{id:'p1',name:'Battery',qty:2,received:2,fitted:2}],qc:{}}},orders:[],audit:[]});
+ for(const patch of [
+  {expectedFitted:1},{expectedReceived:1},{qty:3},{qty:0},{reason:' '}
+ ]){
+  const state=make(),before=JSON.stringify(state);
+  const response=W.apply(state,assets,{type:'undoFittedPart',assetId:'ASSET-90',partId:'p1',qty:1,reason:'Error',expectedFitted:2,expectedReceived:2,...patch},'Tester');
+  assert.equal(response.ok,false);
+  assert.equal(JSON.stringify(state),before,'failed request must not alter workflow');
+ }
+ const locked=make();locked.jobs['ASSET-90'].status='Completed';
+ assert.equal(W.apply(locked,assets,{type:'undoFittedPart',assetId:'ASSET-90',partId:'p1',qty:1,reason:'Error',expectedFitted:2,expectedReceived:2}).ok,false);
+ const cosmetic=make();cosmetic.jobs['ASSET-90'].parts[0].name='Full respray';
+ assert.equal(W.apply(cosmetic,assets,{type:'undoFittedPart',assetId:'ASSET-90',partId:'p1',qty:1,reason:'Error',expectedFitted:2,expectedReceived:2}).ok,false);
+});
+test('Undo Fitted control is present for both Device Details repair layouts',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const ui=fs.readFileSync(path.join(__dirname,'../src/renderer/refurb-ui.js'),'utf8');
+ assert.match(ui,/btn\('Undo Fitted','undoFit'/);
+ assert.match(ui,/function undoFitModal\(ref\)/);
+ assert.match(ui,/type:'undoFittedPart'/);
+ assert.match(ui,/expectedFitted,expectedReceived/);
+});
