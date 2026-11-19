@@ -568,19 +568,11 @@ app.whenReady().then(()=>{
   }
   authenticated=true;authMode='local';cloudUserRole=null;loginFailures=0;return {ok:true,username,mustChangePassword:db.user.mustChangePassword,authMode:'local'};
  }));
- ipcMain.handle('inventory:cloudLoginInfo',()=>safe(()=>({ok:true,configured:validCloudUrl(publicCloudLogin().url||'')&&validPublishableKey(publicCloudLogin().anonKey||'')})));
- ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{
-  if(!authenticated||!adminOnly()||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Admin Centre with your administrator password first.'};
-  const url=String(input?.url||'').trim().replace(/\/$/,'');
-  const anonKey=String(input?.anonKey||'').trim();
-  if(!validCloudUrl(url)||!validPublishableKey(anonKey))return {ok:false,error:'Enter a valid Supabase URL and publishable key.'};
-  if(authMode==='cloud'&&url!==cloudSession.url)return {ok:false,error:'Your administrator account can configure this cloud project only.'};
-  atomic(cloudLoginPublicFile(),{url,anonKey});
-  return {ok:true,configured:true};
- }));
- ipcMain.handle('inventory:cloudStaffLogin',()=>({ok:false,error:'Preview is demo-only. Use the production APEX application for cloud sign-in.'}));
+ ipcMain.handle('inventory:cloudLoginInfo',()=>({ok:true,configured:false}));
+ ipcMain.handle('inventory:cloudLoginConfigure',()=>({ok:false,error:'Preview is demo-only. Cloud setup is disabled.'}));
+  ipcMain.handle('inventory:cloudStaffLogin',()=>({ok:false,error:'Preview is demo-only. Use the production APEX application for cloud sign-in.'}));
  ipcMain.handle('inventory:cloudResume',()=>({ok:false,error:'Preview does not connect to production cloud accounts.'}));
- ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
+ ipcMain.handle('inventory:cloudRememberedInfo',()=>({ok:true,remembered:false,email:''}));
  ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
   if(!authenticated||authMode!=='local')return {ok:false,error:'Local password changes require local admin sign-in.'};const db=loadDB();if(hash(String(oldPass),db.user.salt)!==db.user.passwordHash)return {ok:false,error:'Current password is incorrect.'};
