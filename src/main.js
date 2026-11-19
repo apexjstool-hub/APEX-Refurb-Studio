@@ -598,28 +598,85 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:createPallet',secured(input=>inventoryCall('POST','/v1/pallets',input,()=>{const db=loadDB();const result=palletManagement.createPallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:renamePallet',secured(input=>inventoryCall('POST','/v1/pallets/rename',input,()=>{const db=loadDB();const result=palletManagement.renamePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:deletePallet',secured(input=>inventoryCall('POST','/v1/pallets/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+
+ const bulkLocationLogPath=()=>path.join(userDir(),'asset-location-batches.json');
+ function readBulkLocationLog(){try{const d=JSON.parse(fs.readFileSync(bulkLocationLogPath(),'utf8'));return Array.isArray(d.batches)?d.batches:[];}catch{return [];}}
+ function saveBulkLocationLog(batches){atomic(bulkLocationLogPath(),{batches:batches.slice(-20)});}
+ function lastBulkLocationLog(){const workspace=arrivalWorkspace();return readBulkLocationLog().filter(b=>b.workspace===workspace&&b.changes?.some(e=>!e.undone)).at(-1)||null;}
+ function logLocationUpdates(id,location,changes){
+  if(!changes.length)return;
+  const workspace=arrivalWorkspace(),batches=readBulkLocationLog();
+  let batch=batches.find(b=>b.id===id&&b.workspace===workspace);
+  if(!batch){batch={id,workspace,location,at:new Date().toISOString(),changes:[]};batches.push(batch);}
+  for(const entry of changes)if(!batch.changes.some(e=>e.id===entry.id))batch.changes.push({...entry,undone:false});
+  saveBulkLocationLog(batches);
+ }
+
+ ipcMain.handle('inventory:lastBulkAssetLocation',secured(()=>{
+  const batch=lastBulkLocationLog();
+  return {ok:true,batch:batch?{id:batch.id,location:batch.location,at:batch.at,count:batch.changes.filter(e=>!e.undone).length}:null};
+ }));
  ipcMain.handle('inventory:bulkSetAssetLocation',secured(async input=>{
-  // Separate from pallet transfer. Only patch the direct asset location.
-  // Local changes commit together; remote writes have revision guards.
+  const batchId=/^[a-zA-Z0-9-]{8,80}$/.test(String(input?.groupId||''))?input.groupId:crypto.randomUUID();
+  const workspace=arrivalWorkspace();
+  const existing=readBulkLocationLog().find(b=>b.id===batchId);
+  if(existing&&(existing.workspace!==workspace||existing.location!==input.location))return {ok:false,error:'Batch ID belongs to another workspace or location.'};
+  const command={...input,batchId};
   if(authMode!=='cloud'&&!hubConfig()){
-   const db=loadDB(),result=bulkAssetLocation.apply(db,input);
-   if(result.ok&&result.updated>0)atomic(dbPath(),db);
-   return result;
+   const db=loadDB(),result=bulkAssetLocation.apply(db,command);
+   if(result.ok&&result.updated>0){
+    atomic(dbPath(),db);
+    logLocationUpdates(batchId,result.location,result.changes);
+   }
+   return {...result,batchId};
   }
   const current=await inventoryCall('GET','/v1/items',null,()=>localList());
   if(!current.ok)return current;
-  const check=bulkAssetLocation.validate({items:current.items,locations:current.locations},input);
+  const check=bulkAssetLocation.validate({items:current.items,locations:current.locations},command);
   if(!check.ok)return check;
   let updated=0,unchanged=0;
   const changedIds=[];
   for(const old of check.originals){
    if(String(old.location||'').trim()===check.location){unchanged++;continue;}
-   const r=await inventoryCall('PATCH','/v1/items/'+encodeURIComponent(old.id),{location:check.location},()=>({ok:false,error:'Local assignment pathway unavailable.'}));
-   if(!r.ok)return {ok:false,partial:updated>0,updated,unchanged,changedIds,error:'Updated '+updated+' asset(s), then stopped at '+old.id+': '+(r.error||'Remote update failed.')+' Refresh inventory to review any partial changes.'};
-   if(r.item&&String(r.item.pallet||'')!==String(old.pallet||''))return {ok:false,partial:true,updated:updated+1,changedIds:[...changedIds,old.id],error:'Unexpected pallet change detected on '+old.id+'. Stop and review inventory.'};
+   const result=await inventoryCall('PATCH','/v1/items/'+encodeURIComponent(old.id),{location:check.location,locationBatch:{id:batchId,action:'apply'}},()=>({ok:false,error:'Local assignment pathway unavailable.'}));
+   if(!result.ok)return {ok:false,partial:updated>0,updated,unchanged,changedIds,batchId,error:'Updated '+updated+' asset(s), then stopped at '+old.id+': '+(result.error||'Remote update failed.')+' Refresh and review the batch before retrying.'};
+   const changed=result.item;
+   if(changed&&String(changed.pallet||'')!==String(old.pallet||''))return {ok:false,partial:true,updated:updated+1,changedIds:[...changedIds,old.id],batchId,error:'Unexpected pallet change detected. Stop and review '+old.id+'.'};
+   logLocationUpdates(batchId,check.location,[{id:old.id,from:old.location,to:check.location,pallet:old.pallet||'',afterUpdatedAt:changed?.updatedAt||null}]);
    changedIds.push(old.id);updated++;
   }
-  return {ok:true,updated,unchanged,ids:check.ids,location:check.location,palletsPreserved:true};
+  return {ok:true,updated,unchanged,ids:check.ids,location:check.location,palletsPreserved:true,batchId};
+ }));
+ ipcMain.handle('inventory:undoLastBulkAssetLocation',secured(async()=>{
+  const batch=lastBulkLocationLog();if(!batch)return {ok:false,error:'There is no location batch available to undo on this PC.'};
+  const remaining=batch.changes.filter(e=>!e.undone);
+  // Validate every affected asset before performing any undo writes.
+  const current=authMode==='cloud'||hubConfig()?await inventoryCall('GET','/v1/items',null,()=>localList()):{ok:true,...loadDB()};
+  if(!current.ok)return current;
+  const byId=new Map(current.items.filter(a=>!a.deletedAt).map(a=>[a.id,a]));
+  for(const entry of remaining){
+   const now=byId.get(entry.id);
+   if(!now||String(now.location||'')!==String(entry.to||'')||String(now.pallet||'')!==String(entry.pallet||'')||(entry.afterUpdatedAt&&now.updatedAt!==entry.afterUpdatedAt))
+    return {ok:false,error:'Cannot undo: '+entry.id+' has been edited, moved, or removed since this batch. Nothing was undone.'};
+  }
+  if(authMode!=='cloud'&&!hubConfig()){
+   const db=loadDB(),r=bulkAssetLocation.undo(db,{...batch,changes:remaining});
+   if(!r.ok)return r;
+   atomic(dbPath(),db);
+   const batches=readBulkLocationLog(),saved=batches.find(b=>b.id===batch.id&&b.workspace===batch.workspace);
+   if(saved){for(const e of saved.changes)e.undone=true;saveBulkLocationLog(batches);}
+   return {...r,batchId:batch.id};
+  }
+  let restored=0;
+  for(const entry of [...remaining].reverse()){
+   const r=await inventoryCall('PATCH','/v1/items/'+encodeURIComponent(entry.id),{location:entry.from,locationBatch:{id:batch.id,action:'undo'}},()=>({ok:false,error:'Local undo pathway unavailable.'}));
+   if(!r.ok)return {ok:false,partial:restored>0,restored,error:'Restored '+restored+' asset(s), then stopped at '+entry.id+': '+(r.error||'Remote update failed.')+' Review the remaining batch before retrying.'};
+   if(r.item&&String(r.item.pallet||'')!==String(entry.pallet||''))return {ok:false,partial:true,restored:restored+1,error:'Pallet change detected. Stop and inspect '+entry.id+'.'};
+   const batches=readBulkLocationLog(),saved=batches.find(b=>b.id===batch.id&&b.workspace===batch.workspace);
+   if(saved){const e=saved.changes.find(x=>x.id===entry.id);if(e)e.undone=true;saveBulkLocationLog(batches);}
+   restored++;
+  }
+  return {ok:true,restored,batchId:batch.id,palletsPreserved:true};
  }));
  ipcMain.handle('inventory:bulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-move',input,()=>{const db=loadDB();const result=palletManagement.moveBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:undoBulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-restore',input,()=>{const db=loadDB();const result=palletManagement.restoreBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;}))); 
