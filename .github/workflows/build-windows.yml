@@ -160,7 +160,7 @@ jobs:
           & .\\node_modules\\.bin\\electron.cmd tests/check-login-layout.js
           if ($LASTEXITCODE -ne 0) { throw 'Sign-in layout verification failed.' }
       - name: Verify pallet labels and A4 manifests
-        if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode' && github.ref != 'refs/heads/preview/4.1.22-typography' && github.ref != 'refs/heads/feature/4.1.22-smart-workstation' && github.ref != 'refs/heads/fix/4.1.22-refurb-bottom-clipping' && github.ref != 'refs/heads/feature/4.1.22-diagnostics-sync-2' && github.ref != 'refs/heads/feature/4.2-performance-preview'
+        if: github.ref != 'refs/heads/feature/4.1.22-a4-pallet-barcode' && github.ref != 'refs/heads/preview/4.1.22-typography' && github.ref != 'refs/heads/feature/4.1.22-smart-workstation' && github.ref != 'refs/heads/fix/4.1.22-refurb-bottom-clipping' && github.ref != 'refs/heads/feature/4.1.22-diagnostics-sync-2' && github.ref != 'refs/heads/feature/4.2-performance-preview' && github.ref != 'refs/heads/feature/4.2-bulk-respray-complete'
         continue-on-error: ${{ github.ref == 'refs/heads/preview/4.1.22-typography' || github.ref == 'refs/heads/feature/4.1.22-smart-workstation' || github.ref == 'refs/heads/fix/4.1.22-refurb-bottom-clipping' || github.ref == 'refs/heads/feature/4.1.22-diagnostics-sync-2' || github.ref == 'refs/heads/feature/4.2-performance-preview' || github.ref == 'refs/heads/feature/4.2-bulk-respray-complete' || github.ref == 'refs/heads/fix/4.1.22-bulk-supplier-optional' || github.ref == 'refs/heads/feature/4.1.22-a4-pallet-barcode' }}
         run: |
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
