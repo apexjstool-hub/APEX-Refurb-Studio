@@ -53,3 +53,47 @@ test('missing supplier or locked job blocks entire batch',()=>{
  state.jobs.B.status='On Hold';
  assert.equal(planner.prepare(state,assets,['A','B'],'ordered').invalid.length,1);
 });
+
+test('bulk respray completion updates selected cosmetic tasks only and writes audit trail',()=>{
+ const state=initial();
+ state.jobs.B.parts.push(make('b2','Top lid repaint'));
+ const before=planner.prepare(state,assets,['A','B'],'resprayComplete');
+ assert.equal(before.invalid.length,0,JSON.stringify(before.invalid));
+ assert.equal(before.lines.length,2);
+ const result=flow.apply(state,assets,{type:'bulkPartsStage',stage:'resprayComplete',assetIds:['A','B'],expectedSignature:before.signature,confirmChecked:true},'Engineer');
+ assert.equal(result.ok,true,result.error);
+ assert.equal(result.affected,2);
+ assert.equal(result.workflow.jobs.A.parts[1].received,1);
+ assert.equal(result.workflow.jobs.A.parts[1].fitted,1);
+ assert.equal(result.workflow.jobs.B.parts[1].fitted,1);
+ assert.equal(result.workflow.jobs.A.parts[0].fitted,0);
+ assert.equal(result.workflow.jobs.B.parts[0].received,0);
+ assert.notEqual(result.workflow.jobs.A.status,'Completed');
+ assert.equal(result.workflow.audit.filter(e=>e.type==='Respray Completed').length,2);
+});
+test('bulk respray completion requires confirmation, valid selection, and prevents repeats',()=>{
+ const state=initial(),one=planner.prepare(state,assets,['A'],'resprayComplete');
+ assert.equal(one.invalid.length,0);
+ const before=JSON.stringify(state);
+ let result=flow.apply(state,assets,{type:'bulkPartsStage',stage:'resprayComplete',assetIds:['A'],expectedSignature:one.signature},'Engineer');
+ assert.equal(result.ok,false);
+ assert.equal(JSON.stringify(state),before);
+ result=flow.apply(state,assets,{type:'bulkPartsStage',stage:'resprayComplete',assetIds:['A','B'],expectedSignature:one.signature,confirmChecked:true},'Engineer');
+ assert.equal(result.ok,false);
+ assert.equal(JSON.stringify(state),before);
+ result=flow.apply(state,assets,{type:'bulkPartsStage',stage:'resprayComplete',assetIds:['A'],expectedSignature:one.signature,confirmChecked:true},'Engineer');
+ assert.equal(result.ok,true,result.error);
+ const repeated=planner.prepare(result.workflow,assets,['A'],'resprayComplete');
+ assert.equal(repeated.invalid.length,1);
+ assert.match(repeated.invalid[0].reason,/already complete/i);
+});
+test('bulk respray updates existing order receipt lines without creating new orders',()=>{
+ const state=initial();
+ state.orders=[{id:'PO-1',status:'Ordered',lines:[{assetId:'A',partId:'a2',qty:1,received:0}],updatedAt:'2026-01-01'}];
+ const plan=planner.prepare(state,assets,['A'],'resprayComplete');
+ assert.equal(plan.invalid.length,0);
+ const result=flow.apply(state,assets,{type:'bulkPartsStage',stage:'resprayComplete',assetIds:['A'],expectedSignature:plan.signature,confirmChecked:true},'Engineer');
+ assert.equal(result.ok,true,result.error);
+ assert.equal(result.workflow.orders.length,1);
+ assert.equal(result.workflow.orders[0].lines[0].received,1);
+});
