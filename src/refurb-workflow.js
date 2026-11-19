@@ -285,6 +285,26 @@ function apply(state,assets,cmd,by='Administrator'){
   for(const row of rows){const keep=job.parts.find(p=>p.id===row.keepId),removed=job.parts.find(p=>p.id===row.removeId);keep.hubSourceKeys=[...new Set([...(keep.hubSourceKeys||[]),removed.sourceKey,...(removed.hubSourceKeys||[])])];}
   const removed=new Set(chosen);job.parts=job.parts.filter(p=>!removed.has(p.id));
   history(s,'Duplicate requirements reviewed',`Removed ${chosen.length} unused imported duplicates; original requirements and progress retained`,id,by);
+ }else if(type==='undoFittedPart'){
+  if(['Completed','On Hold'].includes(job.status))throw Error('Reopen this job before correcting fitted parts.');
+  const p=job.parts.find(x=>x.id===cmd.partId);
+  if(!p)throw Error('Part not found. Refresh the device before correcting fitting.');
+  if(isCosmetic(p.name))throw Error('Use the respray workflow to correct cosmetic work, not Undo Fitted.');
+  const current=Number(p.fitted),received=Number(p.received);
+  if(!Number.isSafeInteger(current)||current<=0||!Number.isSafeInteger(received)||received<current)throw Error('This part has no valid fitted quantity to reverse.');
+  if(cmd.expectedFitted!==current||cmd.expectedReceived!==received)throw Error('The fitted quantity changed. Refresh the device before undoing it.');
+  const quantity=asQty(cmd.qty,1);
+  if(quantity>current)throw Error('Cannot undo more units than are fitted.');
+  const note=clip(cmd.reason,200);
+  if(!note)throw Error('Enter the reason for this fitting correction.');
+  p.fitted=current-quantity;
+  p.lastProgressAt=stamp();p.lastProgressBy=by;
+  if(job.qc?.['Required parts fitted']===true){
+   job.qc['Required parts fitted']=false;
+   history(s,'Quality control reset','Required parts fitted check reset after fitted quantity correction',id,by);
+  }
+  if(job.status==='Quality Control')job.status='Repair In Progress';
+  history(s,'Part fitted reversed',p.name+' × '+quantity+' · '+current+' → '+p.fitted+' fitted; '+note,id,by);
  }else if(type==='fitPart'){
   const p=job.parts.find(x=>x.id===cmd.partId);if(!p)throw Error('Part not found.');if(cmd.cosmeticEvent==='check'&&(!isCosmetic(p.name)||['Completed','On Hold'].includes(job.status)))throw Error('This cosmetic work is locked or no longer available.');if(cmd.cosmeticEvent==='check'&&(cmd.expectedFitted!==p.fitted||cmd.expectedReceived!==p.received))throw Error('Cosmetic progress changed. Refresh before checking this work again.');const qty=asQty(cmd.qty,1);
   if(qty+p.fitted>p.received)throw Error('Cannot fit more parts than have been received.');p.fitted+=qty;
