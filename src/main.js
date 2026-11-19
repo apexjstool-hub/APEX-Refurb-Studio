@@ -718,6 +718,7 @@ app.whenReady().then(()=>{
  function localBackupFiles(){return [
    {name:'inventory-db.json',path:dbPath()},
    {name:'label-studio-settings.json',path:path.join(userDir(),'label-studio-settings.json'),required:false},
+    {name:'asset-location-batches.json',path:bulkLocationLogPath(),required:false},
    {name:'hub-connection.json',path:hubPath(),required:false}
  ];}
  function localBackup(){return backupManager.snapshot({root:userDir(),files:localBackupFiles()});}
