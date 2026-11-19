@@ -170,6 +170,26 @@ function apply(state,assets,cmd,by='Administrator'){
   const supplier=clip(cmd.supplier,120);
   // All checks happen before any mutation. The caller commits this document in
   // one optimistic-concurrency transaction, not one write per asset.
+  if(cmd.stage==='resprayComplete'){
+   // Explicit operator confirmation is required by the UI. The planner checks
+   // the whole batch before any mutation; the workflow is saved atomically.
+   // Only cosmetic work is completed, not unrelated parts or final QC.
+   for(const line of plan.lines){
+    const j=s.jobs[line.assetId],p=j.parts.find(x=>x.id===line.partId);
+    let remaining=p.qty-p.received;
+    for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const orderLine of order.lines||[]){
+     if(orderLine.assetId!==line.assetId||orderLine.partId!==line.partId||remaining<=0)continue;
+     const fill=Math.min(remaining,Math.max(0,orderLine.qty-orderLine.received));
+     if(fill){orderLine.received+=fill;remaining-=fill;order.updatedAt=stamp();}
+    }
+    p.received=p.qty;p.fitted=p.qty;
+    p.lastReceivedAt=stamp();p.lastReceivedBy=by;
+    p.lastProgressAt=stamp();p.lastProgressBy=by;
+    j.updatedAt=stamp();
+    history(s,'Respray Completed',p.name+' × '+p.qty+' · bulk refurbishment',line.assetId,by);
+   }
+   return {ok:true,workflow:s,affected:plan.eligible.length,partLines:plan.lines.length};
+  }
   if(cmd.stage==='ordered'){
    const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,reference:clip(cmd.reference,90),notes:'Bulk parts marked as ordered by an operator. Supplier optional; no order was transmitted automatically.',status:'Ordered',expectedAt:'',cost:0,currency:'GBP',tracking:'',createdAt:stamp(),updatedAt:stamp(),lines:plan.lines.map(l=>({...l,received:0}))};
    s.orders.unshift(order);
