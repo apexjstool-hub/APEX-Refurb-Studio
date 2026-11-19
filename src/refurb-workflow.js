@@ -171,6 +171,7 @@ function apply(state,assets,cmd,by='Administrator'){
   // All checks happen before any mutation. The caller commits this document in
   // one optimistic-concurrency transaction, not one write per asset.
   if(cmd.stage==='resprayComplete'){
+   if(cmd.confirmChecked!==true)throw Error('Confirm that selected resprays have been physically inspected and completed.');
    // Explicit operator confirmation is required by the UI. The planner checks
    // the whole batch before any mutation; the workflow is saved atomically.
    // Only cosmetic work is completed, not unrelated parts or final QC.
