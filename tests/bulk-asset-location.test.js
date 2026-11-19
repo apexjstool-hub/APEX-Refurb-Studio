@@ -56,3 +56,33 @@ test('Set asset locations button is attached only after bulk refurbishment butto
  assert.ok(attach>0,'Location button must be appended to the live DOM after bulk refurbishment');
  assert.ok(nav.indexOf("location.onclick=()=>window.ApexBulkAssetLocation?.open")<attach);
 });
+
+test('Undo Last Location Update restores direct location but leaves both pallet fields unchanged',()=>{
+ const d=db(),oldPallets=JSON.stringify(d.pallets),snap=input(d,['ASSET-1','ASSET-2']);
+ const apply=bulk.apply(d,{...snap,batchId:'loc-test-2026'});
+ assert.equal(apply.ok,true);assert.equal(apply.changes.length,2);
+ const undone=bulk.undo(d,{id:'loc-test-2026',changes:apply.changes});
+ assert.equal(undone.ok,true,undone.error);
+ assert.deepEqual(d.items.slice(0,2).map(a=>a.location),['Warehouse A','Testing']);
+ assert.deepEqual(d.items.slice(0,2).map(a=>a.pallet),['PALLET-1','PALLET-2']);
+ assert.equal(JSON.stringify(d.pallets),oldPallets);
+ assert.ok(d.items[0].history.some(h=>h.type==='Bulk location update'));
+ assert.ok(d.items[0].history.some(h=>h.type==='Bulk location undo'));
+});
+test('Undo refuses later changes and does not partly revert a local batch',()=>{
+ const d=db(),apply=bulk.apply(d,{...input(d,['ASSET-1','ASSET-2']),batchId:'loc-test-2026'});
+ assert.equal(apply.ok,true);
+ const result=core.update(d.items,'ASSET-2',{location:'Testing'});
+ assert.equal(result.ok,true);
+ const before=JSON.stringify(d);
+ const undo=bulk.undo(d,{id:'loc-test-2026',changes:apply.changes});
+ assert.equal(undo.ok,false);assert.equal(JSON.stringify(d),before);
+});
+test('Bulk location UI previews old/new/pallet, creates a new location and exposes undo',()=>{
+ const ui=read('src/renderer/inventory-bulk-location.js'),main=read('src/main.js'),preload=read('src/preload.js');
+ for(const id of ['apexLocationReview','apexLocationCreate','apexLocationUndo','apexLocationUndoSummary'])assert.ok(ui.includes(id));
+ assert.match(ui,/Current location/);assert.match(ui,/New location/);assert.match(ui,/Pallet \(unchanged\)/);
+ assert.match(ui,/api\.addLocation/);assert.match(ui,/api\.undoLastBulkAssetLocation/);assert.match(ui,/groupId:batchGroup/);
+ assert.match(preload,/undoLastBulkAssetLocation/);assert.match(main,/inventory:undoLastBulkAssetLocation/);
+ assert.match(main,/logLocationUpdates/);
+});
