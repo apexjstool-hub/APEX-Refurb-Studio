@@ -18,8 +18,10 @@ const updateCentre=require('./update-centre');
 const arrivalTracker=new (require('./inventory-arrivals').InventoryArrivals)();
 let intakeNotification=null,arrivalPollBusy=false,backgroundReminders=null;
 // Use the same app identity and native Windows icon as APEX Laptop Diagnostics.
-app.setName('APEX Refurb Management Studio');
-if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory');
+app.setName('APEX Refurb 4.3 Preview');
+// Isolated local demo profile. Never reuse the installed production user-data folder.
+app.setPath('userData',path.join(app.getPath('appData'),'APEX Refurb 4.3 Preview'));
+if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory.refurb43preview');
 let cloudSession=null;
 const cloudSeenRevisions=new Map();
 let win,authenticated=false,authMode=null,cloudUserRole=null,loginFailures=0,nextAttempt=0,ownedHub=null,cloudProcess=null,cloudRunningSince=null,cloudLastMessage="";
@@ -367,7 +369,7 @@ async function cloudInventoryCall(method,route,payload){
 }
 function arrivalWorkspace(){return authMode==='cloud'?'cloud:'+cloudSession?.url+':'+cloudSession?.userId:'hub:'+(hubConfig()?.url||'local');}
 function observeArrivals(result){if(!authenticated)return result;const added=arrivalTracker.observe(result,arrivalWorkspace());if(added.length)intakeNotification?.show(added).catch(error=>console.warn('Inventory notification:',error.message));return result;}
-async function inventoryCall(method,route,payload,local){if(authMode==='cloud')return cloudInventoryCall(method,route,payload);const h=hubConfig();if(h)return hubRequest(method,route,payload,h);return local();}
+async function inventoryCall(method,route,payload,local){if(authMode==='cloud'||hubConfig())return {ok:false,error:'APEX 4.3 Preview is demo-only. Shared cloud and Hub inventory are disabled to protect production data.'};return local();}
 function ipv4Addresses(){
  const arr=[];
  for(const list of Object.values(os.networkInterfaces()))for(const item of list||[]){
@@ -567,8 +569,8 @@ app.whenReady().then(()=>{
   atomic(cloudLoginPublicFile(),{url,anonKey});
   return {ok:true,configured:true};
  }));
- ipcMain.handle('inventory:cloudStaffLogin',(evt,input)=>safe(()=>cloudStaffLogin(input)));
- ipcMain.handle('inventory:cloudResume',()=>safe(()=>resumeRememberedCloud()));
+ ipcMain.handle('inventory:cloudStaffLogin',()=>({ok:false,error:'Preview is demo-only. Use the production APEX application for cloud sign-in.'}));
+ ipcMain.handle('inventory:cloudResume',()=>({ok:false,error:'Preview does not connect to production cloud accounts.'}));
  ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
  ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
