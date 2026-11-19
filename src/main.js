@@ -11,6 +11,7 @@ const assetActivity=require('./asset-activity');
 const maintenance=require('./record-maintenance');
 const locationManagement=require('./location-management');
 const palletManagement=require('./pallet-management');
+const bulkAssetLocation=require('./bulk-asset-location');
 const xlsx=require('./xlsx-export');
 const backupManager=require('./backup-manager');
 const {shell}=require('electron');
@@ -597,6 +598,29 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:createPallet',secured(input=>inventoryCall('POST','/v1/pallets',input,()=>{const db=loadDB();const result=palletManagement.createPallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:renamePallet',secured(input=>inventoryCall('POST','/v1/pallets/rename',input,()=>{const db=loadDB();const result=palletManagement.renamePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:deletePallet',secured(input=>inventoryCall('POST','/v1/pallets/delete',input,()=>{const db=loadDB();const result=palletManagement.deletePallet(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
+ ipcMain.handle('inventory:bulkSetAssetLocation',secured(async input=>{
+  // Separate from pallet transfer. Only patch the direct asset location.
+  // Local changes commit together; remote writes have revision guards.
+  if(authMode!=='cloud'&&!hubConfig()){
+   const db=loadDB(),result=bulkAssetLocation.apply(db,input);
+   if(result.ok&&result.updated>0)atomic(dbPath(),db);
+   return result;
+  }
+  const current=await inventoryCall('GET','/v1/items',null,()=>localList());
+  if(!current.ok)return current;
+  const check=bulkAssetLocation.validate({items:current.items,locations:current.locations},input);
+  if(!check.ok)return check;
+  let updated=0,unchanged=0;
+  const changedIds=[];
+  for(const old of check.originals){
+   if(String(old.location||'').trim()===check.location){unchanged++;continue;}
+   const r=await inventoryCall('PATCH','/v1/items/'+encodeURIComponent(old.id),{location:check.location},()=>({ok:false,error:'Local assignment pathway unavailable.'}));
+   if(!r.ok)return {ok:false,partial:updated>0,updated,unchanged,changedIds,error:'Updated '+updated+' asset(s), then stopped at '+old.id+': '+(r.error||'Remote update failed.')+' Refresh inventory to review any partial changes.'};
+   if(r.item&&String(r.item.pallet||'')!==String(old.pallet||''))return {ok:false,partial:true,updated:updated+1,changedIds:[...changedIds,old.id],error:'Unexpected pallet change detected on '+old.id+'. Stop and review inventory.'};
+   changedIds.push(old.id);updated++;
+  }
+  return {ok:true,updated,unchanged,ids:check.ids,location:check.location,palletsPreserved:true};
+ }));
  ipcMain.handle('inventory:bulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-move',input,()=>{const db=loadDB();const result=palletManagement.moveBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;})));
  ipcMain.handle('inventory:undoBulkMove',secured(input=>inventoryCall('POST','/v1/items/bulk-restore',input,()=>{const db=loadDB();const result=palletManagement.restoreBatch(db,input);if(result.ok)atomic(dbPath(),db);return result;}))); 
  ipcMain.handle('inventory:add',secured(async data=>{const result=await inventoryCall('POST','/v1/items',data,()=>{const db=loadDB();const r=core.add(db.items,data);if(r.ok)atomic(dbPath(),db);return r;});if(result.ok)arrivalTracker.remember(result.item?.id||data?.id);return result;}));
