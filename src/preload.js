@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  createPallet:input=>ipcRenderer.invoke('inventory:createPallet',input),
  deletePallet:input=>ipcRenderer.invoke('inventory:deletePallet',input),
  bulkMove:input=>ipcRenderer.invoke('inventory:bulkMove',input),
+ bulkSetAssetLocation:input=>ipcRenderer.invoke('inventory:bulkSetAssetLocation',input),
  undoBulkMove:input=>ipcRenderer.invoke('inventory:undoBulkMove',input),
  assetActivity:input=>ipcRenderer.invoke('inventory:assetActivity',input),
  workflow:()=>ipcRenderer.invoke('inventory:workflow'),
