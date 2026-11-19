@@ -39,7 +39,7 @@ function apply(db,input={}){
  return {ok:true,updated:updates.length,unchanged:check.originals.length-updates.length,ids:check.ids,location:check.location,palletsPreserved:true,changes:updates.map(copy=>{const previous=check.originals.find(a=>key(a.id)===key(copy.id));return {id:copy.id,from:previous.location,to:copy.location,pallet:previous.pallet||'',afterUpdatedAt:copy.updatedAt};})};
 }
 function undo(db,batch){
- if(!batch||!Array.isArray(batch.changes)||!batch.changes.length||batch.changes.length>300)return {ok:false,error:'No recorded batch to undo.'};
+ if(!batch||!Array.isArray(batch.changes)||!batch.changes.length )return {ok:false,error:'No recorded batch to undo.'};
  const next=[];
  for(const entry of batch.changes){
   const original=(db.items||[]).find(a=>key(a.id)===key(entry.id)&&!a.deletedAt);
