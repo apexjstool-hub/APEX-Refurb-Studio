@@ -5,7 +5,7 @@ test('4.3 release preserves production identity, Supabase sign-in, and existing 
  const pkg=JSON.parse(read('package.json')),main=read('src/main.js'),ui=read('src/renderer/app.js');
  assert.equal(pkg.build.appId,'com.apex.inventory');
  assert.equal(pkg.build.productName,'APEX Refurb Management Studio');
- assert.ok(['4.3.0-rc.1','4.3.0-rc.2','4.3.0-rc.3','4.3.0-rc.4'].includes(pkg.version));
+ assert.ok(['4.3.0-rc.1','4.3.0-rc.2','4.3.0-rc.3','4.3.0-rc.4','4.3.0-rc.5'].includes(pkg.version));
  assert.match(main,/app\.setName\('APEX Refurb Management Studio'\)/);
  assert.match(main,/function inventoryCall\(method,route,payload,local\)/);
  assert.match(main,/cloudStaffLogin\(input\)/);
