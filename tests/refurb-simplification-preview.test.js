@@ -36,3 +36,15 @@ test('Preview installer and user data do not share the production identity',()=>
  assert.match(main,/Preview is demo-only/);
  assert.match(main,/demoJobs=/);
 });
+
+test('Preview login cannot switch to cloud email and advertises local credentials',()=>{
+ const ui=read('src/renderer/app.js');
+ const html=read('src/renderer/index.html');
+ const main=read('src/main.js');
+ assert.match(ui,/function selectLoginMode\(mode\)\{mode='local';apexLoginMode='local';const cloud=false;/);
+ assert.match(ui,/\$\('loginCloudMode'\)\.disabled=true/);
+ assert.match(html,/id="loginCloudMode" hidden disabled/);
+ assert.match(html,/admin<\/b> \/ <b>Admin123!/);
+ assert.match(main,/inventory:cloudLoginInfo',\(\)=>\(\{ok:true,configured:false\}\)/);
+ assert.match(main,/inventory:cloudRememberedInfo',\(\)=>\(\{ok:true,remembered:false,email:''\}\)/);
+});
