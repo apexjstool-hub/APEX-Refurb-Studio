@@ -55,9 +55,8 @@
   };
   $('apexLocationCreate').onclick=async()=>{
    if(busy)return;
-   const name=prompt('New asset location name (maximum 90 characters):');
-   if(name===null)return;
-   const value=name.trim().replace(/\\s+/g,' ');
+   // Use the name already typed into the Location field; avoid browser prompts.
+   const value=target.value.trim().replace(/\s+/g,' ');
    if(!value||value.length>90){$('apexLocationError').textContent='Enter a location name of 1–90 characters.';return;}
    try{
     const r=await api.addLocation(value);
@@ -106,7 +105,7 @@
     notify(total+' asset location(s) updated. Pallets unchanged.');
     await refresh();await loadUndo();closeModal();
    }catch(error){
-    $('apexLocationError').textContent=error.message+' Changes already saved to the cloud cannot be automatically rolled back.';
+    $('apexLocationError').textContent=error.message+' If any assets were changed, use Undo Last Location Update after reviewing them. An interrupted batch may be partially applied.';
     await refresh().catch(()=>{});
    }finally{
     busy=false;if($('apexLocationCancel'))$('apexLocationCancel').disabled=false;
