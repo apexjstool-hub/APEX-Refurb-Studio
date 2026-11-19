@@ -80,7 +80,7 @@
     notify(answer.restored+' asset location(s) restored; pallets unchanged.');
     await refresh();render();await loadUndo();
    }catch(e){$('apexLocationError').textContent=e.message;await loadUndo();}
-   finally{busy=false;render();}
+   finally{busy=false;render();await loadUndo();}
   };
     $('apexLocationCancel').onclick=()=>{if(!busy)closeModal();};
   apply.onclick=async()=>{
