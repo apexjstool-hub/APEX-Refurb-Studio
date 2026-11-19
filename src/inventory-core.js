@@ -51,7 +51,7 @@
    const events=[];
    const fields={manufacturer:90,model:140,serial:90,processor:140,gpu:140,ram:70,storage:140,operatingSystem:140,location:90,pallet:80,sku:90,notes:500,refurbNotes:5000};
    for(const [key,max] of Object.entries(fields))if(patch?.[key]!==undefined){const value=trim(patch[key],max);if(['model','location'].includes(key)&&!value)return {ok:false,error:`${key==='model'?'Model':'Location'} is required.`};if(!stringEq(i[key],value)){
-     if(key==='location')events.push({type:'Transfer',detail:`${i.location} → ${value}`});
+     if(key==='location'){events.push({type:'Transfer',detail:`${i.location} → ${value}`});const batch=patch?.locationBatch;if(batch&&/^[a-zA-Z0-9-]{8,80}$/.test(String(batch.id||''))&&['apply','undo'].includes(batch.action)){events.push({type:'Bulk location '+(batch.action==='undo'?'undo':'update'),detail:`Batch ${batch.id}: ${i.location} → ${value}; pallet ${i.pallet||'none'} retained`});}}
      else if(key==='pallet')events.push({type:'Pallet assignment',detail:`${i.pallet||'No pallet'} → ${value||'No pallet'}`});
      else if(key==='refurbNotes')events.push({type:'Refurb notes',detail:value?'Refurb notes updated: '+value:'Refurb notes cleared'});
      else if(key!=='notes')events.push({type:'Specification',detail:`${key}: ${value||'—'}`});
