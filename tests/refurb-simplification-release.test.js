@@ -1,0 +1,31 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+test('4.3 release preserves production identity, Supabase sign-in, and existing local database',()=>{
+ const pkg=JSON.parse(read('package.json')),main=read('src/main.js'),ui=read('src/renderer/app.js');
+ assert.equal(pkg.build.appId,'com.apex.inventory');
+ assert.equal(pkg.build.productName,'APEX Refurb Management Studio');
+ assert.equal(pkg.version,'4.3.0-rc.1');
+ assert.match(main,/app\.setName\('APEX Refurb Management Studio'\)/);
+ assert.match(main,/function inventoryCall\(method,route,payload,local\)/);
+ assert.match(main,/cloudStaffLogin\(input\)/);
+ assert.doesNotMatch(main,/Preview is demo-only/);
+ assert.doesNotMatch(main,/APEX Refurb 4\.3 Preview/);
+ assert.match(ui,/selectLoginMode\(r\?\.ok&&r\.configured\?'cloud':'local'\)/);
+ assert.match(ui,/api\.cloudStaffLogin/);
+});
+test('4.3 release has simplified workspace, selected-asset bulk scanner, and retained QC/parts screens',()=>{
+ const html=read('src/renderer/index.html'),js=read('src/renderer/refurb-workspace.js'),bulk=read('src/renderer/inventory-bulk-refurb.js'),repairs=read('src/renderer/refurb-ui.js');
+ for(const v of ['queue','bulk','purchasing','qc','completed'])assert.match(html,new RegExp('data-rw-view="'+v+'"'));
+ assert.match(html,/id="rwBulkOpen"/);
+ assert.match(js,/ApexBulkRefurb\.open\(\[\.\.\.selected\]\)/);
+ assert.match(js,/ApexBulkRefurb\.open\(\)/);
+ assert.doesNotMatch(js,/data-rw-expand/);
+ assert.match(js,/Open device/);
+ assert.match(bulk,/Respray Complete/);
+ assert.match(bulk,/Parts fitted/);
+ assert.match(repairs,/renderSeparatedAsset\(\)/);
+ assert.match(repairs,/btn\('Undo Fitted','undoFit'/);
+ assert.match(html,/id="loginCloudMode"/);
+ assert.doesNotMatch(html,/id="loginCloudMode" hidden disabled/);
+});
