@@ -31,11 +31,27 @@ function apply(db,input={}){
  for(const old of check.originals){
   if(norm(old.location)===norm(check.location))continue;
   const copy=structuredClone(old);
-  const updated=core.update([copy],copy.id,{location:check.location});if(!updated.ok)return updated;
+  const updated=core.update([copy],copy.id,{location:check.location,...(input.batchId?{locationBatch:{id:input.batchId,action:'apply'}}:{})});if(!updated.ok)return updated;
   if(key(copy.pallet)!==key(old.pallet))return {ok:false,error:'Pallet assignment changed unexpectedly. No records updated.'};
   updates.push(copy);
  }
  for(const copy of updates){const index=db.items.findIndex(x=>key(x.id)===key(copy.id));db.items[index]=copy;}
- return {ok:true,updated:updates.length,unchanged:check.originals.length-updates.length,ids:check.ids,location:check.location,palletsPreserved:true};
+ return {ok:true,updated:updates.length,unchanged:check.originals.length-updates.length,ids:check.ids,location:check.location,palletsPreserved:true,changes:updates.map(copy=>{const previous=check.originals.find(a=>key(a.id)===key(copy.id));return {id:copy.id,from:previous.location,to:copy.location,pallet:previous.pallet||'',afterUpdatedAt:copy.updatedAt};})};
 }
-module.exports={validate,apply};
+function undo(db,batch){
+ if(!batch||!Array.isArray(batch.changes)||!batch.changes.length||batch.changes.length>300)return {ok:false,error:'No recorded batch to undo.'};
+ const next=[];
+ for(const entry of batch.changes){
+  const original=(db.items||[]).find(a=>key(a.id)===key(entry.id)&&!a.deletedAt);
+  if(!original||norm(original.location)!==norm(entry.to)||norm(original.pallet)!==norm(entry.pallet)||(entry.afterUpdatedAt&&original.updatedAt!==entry.afterUpdatedAt))
+   return {ok:false,error:'Asset '+entry.id+' has changed since the batch. No locations were restored.'};
+  const copy=structuredClone(original);
+  const result=core.update([copy],copy.id,{location:entry.from,locationBatch:{id:batch.id,action:'undo'}});
+  if(!result.ok)return result;
+  if(norm(copy.pallet)!==norm(original.pallet))return {ok:false,error:'Pallet safety validation failed.'};
+  next.push(copy);
+ }
+ for(const copy of next){const i=db.items.findIndex(a=>key(a.id)===key(copy.id));db.items[i]=copy;}
+ return {ok:true,restored:next.length,ids:next.map(a=>a.id),palletsPreserved:true};
+}
+module.exports={validate,apply,undo};
