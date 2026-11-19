@@ -207,7 +207,8 @@ jobs:
       - name: Verify sync worker inside the packaged Windows application
         run: |
           $env:ELECTRON_RUN_AS_NODE = '1'
-          $verification = Start-Process -FilePath ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" -ArgumentList @("scripts/verify-packaged-sync.js") -NoNewWindow -Wait -PassThru
+          $exe = if ($env:GITHUB_REF -eq 'refs/heads/feature/4.3-refurb-simplification-preview') { ".\\dist\\win-unpacked\\APEX Refurb 4.3 Preview.exe" } else { ".\\dist\\win-unpacked\\APEX Refurb Management Studio.exe" }
+          $verification = Start-Process -FilePath $exe -ArgumentList @("scripts/verify-packaged-sync.js") -NoNewWindow -Wait -PassThru
           if ($verification.ExitCode -ne 0) { throw "Packaged sync worker verification failed (exit $($verification.ExitCode)). No release will be uploaded." }
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
       - name: Upload supplier-optional test installer
