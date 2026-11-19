@@ -18,10 +18,8 @@ const updateCentre=require('./update-centre');
 const arrivalTracker=new (require('./inventory-arrivals').InventoryArrivals)();
 let intakeNotification=null,arrivalPollBusy=false,backgroundReminders=null;
 // Use the same app identity and native Windows icon as APEX Laptop Diagnostics.
-app.setName('APEX Refurb 4.3 Preview');
-// Isolated local demo profile. Never reuse the installed production user-data folder.
-app.setPath('userData',path.join(app.getPath('appData'),'APEX Refurb 4.3 Preview'));
-if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory.refurb43preview');
+app.setName('APEX Refurb Management Studio');
+if(process.platform==='win32') app.setAppUserModelId('com.apex.inventory');
 let cloudSession=null;
 const cloudSeenRevisions=new Map();
 let win,authenticated=false,authMode=null,cloudUserRole=null,loginFailures=0,nextAttempt=0,ownedHub=null,cloudProcess=null,cloudRunningSince=null,cloudLastMessage="";
@@ -36,16 +34,7 @@ const demoItems=[
 ].map(core.normalize);
 const hash=(p,s)=>crypto.scryptSync(p,s,64).toString('hex');
 function atomic(file,obj){if(Array.isArray(obj?.items))assetActivity.capture(obj);fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify(obj,null,2),{mode:0o600});fs.renameSync(tmp,file);}
-function loadDB(){if(!fs.existsSync(dbPath())){
- const salt=crypto.randomBytes(24).toString('hex');
- // Preview-only demonstration assets. Never read or copy production records.
- const demoJobs={
-  'APX-10482':{assetId:'APX-10482',status:'Repair In Progress',priority:'Normal',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-lcd',name:'LCD panel',qty:1,received:1,fitted:0},{id:'demo-spray',name:'Full respray',qty:1,received:1,fitted:0}],qc:{},updatedAt:new Date().toISOString()},
-  'APX-10483':{assetId:'APX-10483',status:'Awaiting Parts',priority:'High',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-keyboard',name:'UK keyboard',qty:1,received:0,fitted:0}],qc:{},updatedAt:new Date().toISOString()},
-  'APX-10484':{assetId:'APX-10484',status:'Quality Control',priority:'Normal',technician:'Demo Technician',notes:'Demonstration record only',parts:[{id:'demo-battery',name:'Battery replacement',qty:1,received:1,fitted:1}],qc:{'Required parts fitted':true},updatedAt:new Date().toISOString()}
- };
- atomic(dbPath(),{user:{username:'admin',salt,passwordHash:hash('Admin123!',salt),mustChangePassword:true},items:demoItems,operations:{jobs:demoJobs,orders:[],audit:[]}});
-}
+function loadDB(){if(!fs.existsSync(dbPath())){const salt=crypto.randomBytes(24).toString('hex');atomic(dbPath(),{user:{username:'admin',salt,passwordHash:hash('Admin123!',salt),mustChangePassword:true},items:demoItems});}
  const db=JSON.parse(fs.readFileSync(dbPath(),'utf8'));if(!db.user?.passwordHash||!Array.isArray(db.items))throw Error('Invalid inventory database');assetActivity.capture(db);db.items=db.items.map(core.normalize);db.locations=Array.isArray(db.locations)?db.locations:[...new Set(db.items.map(a=>a.location).filter(Boolean))];db.operations=workflow.init(db.operations);db.pallets=Array.isArray(db.pallets)?db.pallets:[];return db;}
 function checkInput(v,max){return String(v??'').trim().slice(0,max);}
 const safe=fn=>{try{return fn();}catch(e){console.error(e);return {ok:false,error:'Unable to complete the operation. Check the application log.'};}};
@@ -378,7 +367,7 @@ async function cloudInventoryCall(method,route,payload){
 }
 function arrivalWorkspace(){return authMode==='cloud'?'cloud:'+cloudSession?.url+':'+cloudSession?.userId:'hub:'+(hubConfig()?.url||'local');}
 function observeArrivals(result){if(!authenticated)return result;const added=arrivalTracker.observe(result,arrivalWorkspace());if(added.length)intakeNotification?.show(added).catch(error=>console.warn('Inventory notification:',error.message));return result;}
-async function inventoryCall(method,route,payload,local){if(authMode==='cloud'||hubConfig())return {ok:false,error:'APEX 4.3 Preview is demo-only. Shared cloud and Hub inventory are disabled to protect production data.'};return local();}
+async function inventoryCall(method,route,payload,local){if(authMode==='cloud')return cloudInventoryCall(method,route,payload);const h=hubConfig();if(h)return hubRequest(method,route,payload,h);return local();}
 function ipv4Addresses(){
  const arr=[];
  for(const list of Object.values(os.networkInterfaces()))for(const item of list||[]){
@@ -568,11 +557,19 @@ app.whenReady().then(()=>{
   }
   authenticated=true;authMode='local';cloudUserRole=null;loginFailures=0;return {ok:true,username,mustChangePassword:db.user.mustChangePassword,authMode:'local'};
  }));
- ipcMain.handle('inventory:cloudLoginInfo',()=>({ok:true,configured:false}));
- ipcMain.handle('inventory:cloudLoginConfigure',()=>({ok:false,error:'Preview is demo-only. Cloud setup is disabled.'}));
-  ipcMain.handle('inventory:cloudStaffLogin',()=>({ok:false,error:'Preview is demo-only. Use the production APEX application for cloud sign-in.'}));
- ipcMain.handle('inventory:cloudResume',()=>({ok:false,error:'Preview does not connect to production cloud accounts.'}));
- ipcMain.handle('inventory:cloudRememberedInfo',()=>({ok:true,remembered:false,email:''}));
+ ipcMain.handle('inventory:cloudLoginInfo',()=>safe(()=>({ok:true,configured:validCloudUrl(publicCloudLogin().url||'')&&validPublishableKey(publicCloudLogin().anonKey||'')})));
+ ipcMain.handle('inventory:cloudLoginConfigure',(evt,input)=>safe(()=>{
+  if(!authenticated||!adminOnly()||!accountSecurity.isUnlocked())return {ok:false,error:'Unlock Admin Centre with your administrator password first.'};
+  const url=String(input?.url||'').trim().replace(/\/$/,'');
+  const anonKey=String(input?.anonKey||'').trim();
+  if(!validCloudUrl(url)||!validPublishableKey(anonKey))return {ok:false,error:'Enter a valid Supabase URL and publishable key.'};
+  if(authMode==='cloud'&&url!==cloudSession.url)return {ok:false,error:'Your administrator account can configure this cloud project only.'};
+  atomic(cloudLoginPublicFile(),{url,anonKey});
+  return {ok:true,configured:true};
+ }));
+ ipcMain.handle('inventory:cloudStaffLogin',(evt,input)=>safe(()=>cloudStaffLogin(input)));
+ ipcMain.handle('inventory:cloudResume',()=>safe(()=>resumeRememberedCloud()));
+ ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
  ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
   if(!authenticated||authMode!=='local')return {ok:false,error:'Local password changes require local admin sign-in.'};const db=loadDB();if(hash(String(oldPass),db.user.salt)!==db.user.passwordHash)return {ok:false,error:'Current password is incorrect.'};
