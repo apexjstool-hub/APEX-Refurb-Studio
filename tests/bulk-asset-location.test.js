@@ -86,3 +86,35 @@ test('Bulk location UI previews old/new/pallet, creates a new location and expos
  assert.match(preload,/undoLastBulkAssetLocation/);assert.match(main,/inventory:undoLastBulkAssetLocation/);
  assert.match(main,/logLocationUpdates/);
 });
+
+test('Pallet scan selects all active pallet assets and preserves mixed individual selections',()=>{
+ const scan=require('../src/renderer/pallet-location-scan');
+ const assets=[
+  {id:'A1',pallet:'PALLET-001',location:'Testing'},
+  {id:'A2',pallet:'pallet-001',location:'Inspection'},
+  {id:'A3',pallet:'PALLET-001',deletedAt:'2026-11-01T10:00:00Z'},
+  {id:'B1',pallet:'PALLET-002',location:'Testing'},
+  {id:'C1',pallet:'',location:'Testing'}
+ ];
+ const pallets=[{name:'PALLET-001',storageLocation:'Rack A'},{name:'PALLET-002',storageLocation:'Rack B'}];
+ for(const value of ['pallet-001',' PALLET-001 ','PALLET:PALLET-001','{"pallet":"PALLET-001"}']){
+  const result=scan.resolve(value,assets,pallets);
+  assert.equal(result.ok,true,value);assert.equal(result.type,'pallet');
+  assert.deepEqual(result.ids,['A1','A2']);
+ }
+ assert.deepEqual(scan.resolve('C1',assets,pallets).ids,['C1']);
+ assert.deepEqual(scan.resolve('pallet-002',assets,pallets).ids,['B1']);
+ assert.equal(scan.resolve('UNKNOWN',assets,pallets).ok,false);
+ assert.equal(scan.resolve('A3',assets,pallets).ok,false,'Archived laptops cannot be scanned as active assets');
+ assert.equal(scan.resolve('PALLET-EMPTY',assets,[...pallets,{name:'PALLET-EMPTY'}]).ok,false);
+});
+test('Pallet barcode scan is a read-only selection and location save remains separately confirmed',()=>{
+ const ui=read('src/renderer/inventory-bulk-location.js'),helper=read('src/renderer/pallet-location-scan.js'),html=read('src/renderer/index.html');
+ assert.ok(html.indexOf('pallet-location-scan.js')<html.indexOf('inventory-bulk-location.js'));
+ assert.match(ui,/ApexPalletLocationScan\?\.resolve\(scanned,valid\(\),managedPallets\)/);
+ assert.match(ui,/for\(const id of result\.ids\)chosen\.add/);
+ assert.match(ui,/scope\.value='selected'/);
+ assert.doesNotMatch(ui,/if\(!chosen\.size\)scope\.value='all'/);
+ assert.match(ui,/apexLocationConfirm'\)\.checked=false/);
+ assert.doesNotMatch(helper,/api\.bulkMove|core\.update/);
+});
