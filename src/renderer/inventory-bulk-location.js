@@ -12,9 +12,10 @@
   const chosen=new Set(initial.map(read).filter(Boolean));
   let savedLocations=[...new Set([...managedLocations,...valid().map(a=>a.location)].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   showModal('Bulk set asset location','INVENTORY / LOCATION ONLY',`<div class="modal-body apex-bulk-modal">
-   <p class="section-note">Set the <strong>Location</strong> field on many laptops at once. Existing pallet numbers and pallet storage locations are preserved. This does not physically move pallets.</p>
+   <p class="section-note">Scan a <strong>pallet barcode</strong> to select every active asset assigned to it, or scan individual asset barcodes. Set the <strong>Location</strong> field on many laptops at once. Existing pallet numbers and pallet storage locations are preserved. This does not physically move pallets.</p>
    <label class="field">Which assets?<select id="apexLocationScope"><option value="selected">Selected / scanned assets</option><option value="all">All active inventory assets</option></select></label>
-   <form id="apexLocationScanForm" class="apex-bulk-scan"><label class="field" for="apexLocationScan">Scan / enter Asset ID<input id="apexLocationScan" autocomplete="off" spellcheck="false" placeholder="Scan barcode then press Enter"></label><button type="submit" class="secondary">Add</button></form>
+   <form id="apexLocationScanForm" class="apex-bulk-scan"><label class="field" for="apexLocationScan">Scan / enter Asset ID or pallet<input id="apexLocationScan" autocomplete="off" spellcheck="false" placeholder="Scan pallet or asset barcode, then press Enter"></label><button type="submit" class="secondary">Add</button></form>
+   <p class="section-note" id="apexLocationScanStatus" role="status">Pallet scans add every active asset assigned to that pallet without changing the pallet itself.</p>
    <div class="apex-bulk-summary"><strong id="apexLocationCount"></strong><button type="button" class="secondary" id="apexLocationClear">Clear selection</button></div>
    <div class="apex-bulk-devices" id="apexLocationDevices" aria-live="polite"></div>
    <label class="field" for="apexLocationTarget">New asset location<input id="apexLocationTarget" list="apexLocationOptions" maxlength="90" placeholder="Choose or enter an existing location" autocomplete="off" required></label>
@@ -26,7 +27,8 @@
    <div class="modal-actions"><button type="button" class="secondary" id="apexLocationCancel">Cancel</button><button type="button" class="primary" id="apexLocationApply" disabled>Update asset locations</button></div>
   </div>`);
   const scope=$('apexLocationScope'),target=$('apexLocationTarget'),apply=$('apexLocationApply'),scan=$('apexLocationScan');
-  if(!chosen.size)scope.value='all';
+  // Start in scan/select mode even with no initial selection. Selecting ALL must be explicit.
+  scope.value='selected';
   const batchGroup='loc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12);
   async function loadUndo(){const result=await api.lastBulkAssetLocation();const batch=result?.batch;$('apexLocationUndo').disabled=busy||!batch;$('apexLocationUndoSummary').textContent=batch?'Latest reversible batch: '+batch.count+' asset(s) → '+batch.location+' · '+new Date(batch.at).toLocaleString('en-GB')+'. This undo is available on this PC only.':'No location batch available to undo from this PC.';}
   const chosenAssets=()=>scope.value==='all'?valid():valid().filter(a=>chosen.has(read(a.id)));
@@ -48,10 +50,22 @@
   $('apexLocationDevices').onclick=e=>{const b=e.target.closest('[data-location-remove]');if(b){chosen.delete(b.dataset.locationRemove);render();}};
   $('apexLocationScanForm').onsubmit=e=>{
    e.preventDefault();
-   const id=read(scan.value);scan.value='';
-   if(!id)return;const asset=valid().find(a=>read(a.id)===id);
-   if(!asset){$('apexLocationError').textContent='Asset '+id+' is not in the current inventory.';return;}
-   chosen.add(id);$('apexLocationError').textContent='';render();scan.focus();
+   if(busy)return;
+   const scanned=scan.value;scan.value='';
+   const result=window.ApexPalletLocationScan?.resolve(scanned,valid(),managedPallets);
+   if(!result?.ok){
+    $('apexLocationError').textContent=result?.error||'Could not read this asset or pallet barcode.';
+    scan.focus();return;
+   }
+   const previous=chosen.size;
+   for(const id of result.ids)chosen.add(read(id));
+   const added=chosen.size-previous;
+   $('apexLocationScanStatus').textContent=result.type==='pallet'
+    ?'Pallet '+result.pallet+': '+result.count+' active asset(s) found; '+added+' added to this batch. Existing selections kept.'
+    :'Asset '+result.ids[0]+(added?' added to batch.':' is already selected.');
+   $('apexLocationError').textContent='';
+   $('apexLocationConfirm').checked=false; // Force a fresh review when the batch changes.
+   render();scan.focus();
   };
   $('apexLocationCreate').onclick=async()=>{
    if(busy)return;
