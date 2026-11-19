@@ -47,11 +47,13 @@ test('stale batch snapshots are rejected',()=>{
  assert.equal(saved.ok,false);
  assert.equal(state.orders.length,0);
 });
-test('missing supplier or locked job blocks entire batch',()=>{
+test('supplier is optional but a locked job blocks entire batch',()=>{
  const state=initial(),plan=planner.prepare(state,assets,['A','B'],'ordered');
- assert.equal(flow.apply(state,assets,{type:'bulkPartsStage',stage:'ordered',assetIds:['A','B'],expectedSignature:plan.signature}).ok,false);
- state.jobs.B.status='On Hold';
- assert.equal(planner.prepare(state,assets,['A','B'],'ordered').invalid.length,1);
+ const saved=flow.apply(state,assets,{type:'bulkPartsStage',stage:'ordered',assetIds:['A','B'],expectedSignature:plan.signature});
+ assert.equal(saved.ok,true,saved.error);
+ assert.equal(saved.workflow.orders[0].supplier,'');
+ saved.workflow.jobs.B.status='On Hold';
+ assert.equal(planner.prepare(saved.workflow,assets,['A','B'],'received').invalid.length,1);
 });
 
 test('bulk respray completion updates selected cosmetic tasks only and writes audit trail',()=>{
