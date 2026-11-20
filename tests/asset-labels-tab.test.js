@@ -10,7 +10,7 @@ test('Asset Labels appear as a third Labels & Printing tab, existing Custom and 
 });
 test('Asset Labels use offline Code 128, display asset number and manufacturer/model without APEX ASSET TAG heading',()=>{
  const code=read('src/renderer/asset-label-print.js');
- const context={window:{ApexAssetBarcode:{code128Svg:id=>'<svg viewBox="0 0 70 32"><rect width="2" height="32"/></svg>'},ApexAssetLabelQR:{deviceName:a=>a.model,qrCodeSvg:()=>'<svg viewBox="0 0 32 32"></svg>',makePayload:a=>a}},console};
+ const context={window:{ApexAssetBarcode:{code128Svg:id=>'<svg viewBox="0 0 70 32"><rect width="2" height="32"/></svg>'},ApexAssetLabelQR:{deviceName:a=>a.model.toLowerCase().startsWith(String(a.manufacturer||'').toLowerCase()+' ')?a.model:[a.manufacturer,a.model].filter(Boolean).join(' '),qrCodeSvg:()=>'<svg viewBox="0 0 32 32"></svg>',makePayload:a=>a}},console};
  vm.createContext(context);
  vm.runInContext(code+'\nthis.output=makeLabelMarkup({id:"85543",manufacturer:"Dell",model:"Latitude 5420"},"assetDevice","2x1",203);',context);
  const label=context.output;
@@ -19,6 +19,8 @@ test('Asset Labels use offline Code 128, display asset number and manufacturer/m
  assert.match(label,/85543/);
  assert.match(label,/Dell Latitude 5420/);
  assert.doesNotMatch(label,/APEX ASSET TAG/);
+ vm.runInContext('this.fullModel=makeLabelMarkup({id:"85544",manufacturer:"Dell",model:"Dell Latitude 5420"},"assetDevice","2x1",203);',context);
+ assert.doesNotMatch(context.fullModel,/Dell Dell Latitude/);
  assert.match(label,/shape-rendering|viewBox=/);
  vm.runInContext('this.original=makeLabelMarkup({id:"85543",manufacturer:"Dell",model:"Latitude 5420"},"asset","2x1",203);',context);
  assert.match(context.original,/APEX ASSET TAG/,'Original Asset Tag Barcode style is retained');
