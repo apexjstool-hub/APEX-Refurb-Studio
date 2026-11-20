@@ -25,6 +25,8 @@
   const stock=sheet?.querySelector?.('.apex-device-barcode-label');if(!stock)return {ok:false,error:'Asset label markup is unavailable.'};
   // Note: the label is intentionally fixed in millimetres, and overflow stays visible
   // until validation; never treat clipped/hidden text as a successful label.
+  const dots=Number(stock.dataset.moduleDots||0);
+  if(dots>0&&dots<2)return {ok:false,error:'The barcode is only one printer dot per narrow bar. Choose a wider label (such as 80 × 30 mm) or a shorter asset number for reliable scanning.'};
   const box=stock.getBoundingClientRect(),parts=[...stock.querySelectorAll('.apex-barcode-image,.apex-barcode-human,.apex-device-label-name,.apex-device-label-detail')];
   const overflow=parts.some(part=>{
    const r=part.getBoundingClientRect();
