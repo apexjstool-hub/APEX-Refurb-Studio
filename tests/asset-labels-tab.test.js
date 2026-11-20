@@ -33,7 +33,7 @@ test('Asset Labels require saved device model, existing asset ID, and keep therm
  assert.match(ui,/ApexAssetLabelQR\?\.readAssetId/);
  assert.match(ui,/items\.filter\(a=>!a\.deletedAt&&a\.id\)/);
  assert.match(ui,/type:'assetDevice'/);
- assert.match(ui,/makeLabelMarkup\(p\.records\[0\],p\.type,p\.size,p\.dpi,p\)/);
+ assert.match(ui,/makeLabelMarkup\(row,p\.type,p\.size,p\.dpi,p\)/);
  assert.match(ui,/assetLabelsPreviewSheet/);
  assert.doesNotMatch(ui,/<iframe id="assetLabelsPreview"/);
  assert.match(ui,/data-asset-label-field="serial"/);
