@@ -57,7 +57,7 @@
   el('assetLabelsBarcodeHeight').value=prefs.barcodeHeight;el('assetLabelsAlign').value=prefs.align;el('assetLabelsDetailSize').value=prefs.detailSize;
   for(const input of host.querySelectorAll('[data-asset-label-field]'))input.checked=prefs.fields.includes(input.dataset.assetLabelField);
   el('assetLabelsSelection').onclick=e=>{const btn=e.target.closest('[data-remove-label-asset]');if(btn){selected=selected.filter(id=>id!==btn.dataset.removeLabelAsset);draw();}};
-  el('assetLabelsFitSize').onclick=()=>{el('assetLabelsSize').value='60x40';draw();};
+  el('assetLabelsFitSize').onclick=()=>{el('assetLabelsSize').value=el('assetLabelsFitSize').dataset.target||'60x40';draw();};
   el('assetLabelsPrint').onclick=()=>output('print');
   el('assetLabelsPdf').onclick=()=>output('pdf');
   el('assetLabelsSize').value='2x1';
@@ -94,6 +94,7 @@
   const advice=ApexDeviceLabelFit.recommendation(p.size,row,p.assetOptions);
   const fitSizeButton=el('assetLabelsFitSize');
   fitSizeButton.hidden=!advice.tooSmall;
+  fitSizeButton.dataset.target='60x40';fitSizeButton.textContent='Use 60 × 40 mm for all details';
   const sizeWarning='This label is too small for the selected details. Use 60 × 40 mm (recommended) or remove specifications.';
   try{
    // Render the exact print markup on this page, and use the same physical fit
@@ -106,7 +107,10 @@
    positionPreview(preview,sheet,w,h);
    const result=ApexDeviceLabelFit.fit(sheet);
    if(!result.ok){
-    message((valid?'Cannot print yet. ':'Example does not fit. ')+sizeWarning,true);
+    const tooNarrow=/one printer dot/.test(result.error||'');
+    fitSizeButton.dataset.target=tooNarrow?'80x30':'60x40';
+    fitSizeButton.textContent=tooNarrow?'Use wider 80 × 30 mm label':'Use 60 × 40 mm for all details';
+    message((valid?'Cannot print yet. ':'Example does not fit. ')+(result.error||sizeWarning),true);
     el('assetLabelsPrint').disabled=el('assetLabelsPdf').disabled=true;
     fitSizeButton.hidden=false;
    }else if(valid){
