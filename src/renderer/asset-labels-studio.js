@@ -15,6 +15,16 @@
   return active().find(a=>String(a.id).trim().toLowerCase()===value);
  };
  function message(s,bad=false){if(el('assetLabelsStatus')){el('assetLabelsStatus').textContent=s;el('assetLabelsStatus').dataset.error=bad?'true':'false';}}
+ function positionPreview(preview,sheet,w,h){
+  if(!preview?.isConnected)return;
+  const scale=Math.min(2.8,Math.max(.1,(preview.clientWidth-40)/(w*96/25.4)),240/(h*96/25.4));
+  sheet.style.transform='translate(-50%, -50%) scale('+scale+')';
+  preview.style.height=Math.ceil(Math.max(170,h*96/25.4*scale+42))+'px';
+ }
+ window.addEventListener('resize',()=>{
+  const preview=el('assetLabelsPreview'),sheet=el('assetLabelsPreviewSheet'),size=el('assetLabelsSize')?.value;
+  if(preview&&sheet&&APEX_LABEL_SIZES[size])positionPreview(preview,sheet,...APEX_LABEL_SIZES[size]);
+ });
  function render(){
   if(!host.isConnected)return;
   host.innerHTML=`<div class="label-studio apex-asset-label-studio"><div class="ls-heading"><h1>Asset Labels</h1><p>Scan, type or select an inventory asset. Each label prints its Code 128 barcode, Asset ID and real device name—without the APEX Asset Tag heading.</p></div>
@@ -93,9 +103,7 @@
    preview.dataset.example=String(!valid);
    preview.dataset.size=p.size;
    // CSS positioning is centred. Scaling changes appearance only, never print geometry.
-   const scale=Math.min(2.8,Math.max(.1,(preview.clientWidth-40)/(w*96/25.4)),240/(h*96/25.4));
-   sheet.style.transform='translate(-50%, -50%) scale('+scale+')';
-   preview.style.height=Math.ceil(Math.max(170,h*96/25.4*scale+42))+'px';
+   positionPreview(preview,sheet,w,h);
    const result=ApexDeviceLabelFit.fit(sheet);
    if(!result.ok){
     message((valid?'Cannot print yet. ':'Example does not fit. ')+sizeWarning,true);
