@@ -11,7 +11,17 @@ async function check(win,size,selected,record=base){
  const actual=await win.webContents.executeJavaScript(`(async()=>{
   await window.apexLabelReady;
   const stock=document.querySelector('.apex-device-barcode-label');
-  if(!stock)return {error:window.apexLabelError||document.getElementById('labelSheet')?.textContent||'Missing label stock',count:-1};
+  if(!stock){
+   const p=JSON.parse(new URLSearchParams(location.search).get('label'));
+   const sheet=document.getElementById('labelSheet');
+   sheet.innerHTML=makeLabelMarkup(p.record,p.type,p.size,p.dpi,p);
+   const result=ApexDeviceLabelFit.fit(sheet),node=sheet.querySelector('.apex-device-barcode-label');
+   const box=node.getBoundingClientRect();
+   const elements=[...node.querySelectorAll('.apex-barcode-image,.apex-barcode-human,.apex-device-label-name,.apex-device-label-details,.apex-device-label-detail')].map(e=>({
+    cls:e.className,rect:{top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom,left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right},scrollH:e.scrollHeight,clientH:e.clientHeight,scrollW:e.scrollWidth,clientW:e.clientWidth,font:getComputedStyle(e).fontSize
+   }));
+   return {error:window.apexLabelError||'Missing label stock',fitting:result,stage:node.dataset.fitStage,box:{top:box.top,bottom:box.bottom,left:box.left,right:box.right},stockScroll:node.scrollHeight,stockClient:node.clientHeight,elements};
+  }
   const code=stock?.querySelector('.apex-barcode-image svg');
   const box=stock?.getBoundingClientRect();
   const details=[...stock.querySelectorAll('.apex-device-label-detail')];
