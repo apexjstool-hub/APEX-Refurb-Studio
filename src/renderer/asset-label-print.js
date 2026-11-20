@@ -45,7 +45,11 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
    const details=present.map(key=>'<div class="apex-device-label-detail" data-field="'+key+'"><strong>'+rows[key][0]+':</strong> '+labelEscape(rows[key][1])+'</div>').join('');
    const geometry=labelCodeGeometry(record,style,size,dpi);
    let svg=geometry.svg;
+   // Code 128 is a one-dimensional symbol: lock its measured horizontal module
+   // width and only adjust bar height. Default SVG aspect-ratio fitting would
+   // otherwise silently shrink the barcode horizontally on short labels.
    svg=svg.replace(/height="[^"]+"/,'height="'+barHeight+'mm"');
+   svg=svg.replace(/\\s+preserveAspectRatio="[^"]*"/g,'').replace('<svg ','<svg preserveAspectRatio="none" ');
    const device=full;
    const styleVars='--device-label-bar-height:'+barHeight+'mm;--device-label-align:'+align+';--device-label-detail-size:'+font+'pt';
    return `<div class="apex-label-stock apex-device-barcode-label" data-module-dots="${geometry.dots}" data-size="${size}" data-density="${density}" data-fields="${present.length}" data-align="${align}" style="${styleVars}" role="img" aria-label="Asset ${asset}, device ${device}">
