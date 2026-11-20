@@ -49,7 +49,7 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
    // width and only adjust bar height. Default SVG aspect-ratio fitting would
    // otherwise silently shrink the barcode horizontally on short labels.
    svg=svg.replace(/height="[^"]+"/,'height="'+barHeight+'mm"');
-   svg=svg.replace(/\\s+preserveAspectRatio="[^"]*"/g,'').replace('<svg ','<svg preserveAspectRatio="none" ');
+   svg=svg.replace(/\s+preserveAspectRatio="[^"]*"/g,'').replace('<svg ','<svg preserveAspectRatio="none" ');
    const device=full;
    const styleVars='--device-label-bar-height:'+barHeight+'mm;--device-label-align:'+align+';--device-label-detail-size:'+font+'pt';
    return `<div class="apex-label-stock apex-device-barcode-label" data-module-dots="${geometry.dots}" data-size="${size}" data-density="${density}" data-fields="${present.length}" data-align="${align}" style="${styleVars}" role="img" aria-label="Asset ${asset}, device ${device}">
