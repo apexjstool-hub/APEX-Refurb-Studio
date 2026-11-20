@@ -147,3 +147,21 @@
 .apex-device-barcode-label[data-size="50x25"][data-fit-stage="tight"] .apex-barcode-image svg{
  height:4.4mm!important;
 }
+
+/* Browser font metrics require a little leading: the previous 1.0 / 1.02
+   line-heights caused text scrollHeight to exceed clientHeight by 2px even
+   though the ink stayed safely inside the physical 2x1 sheet. */
+.apex-device-barcode-label[data-size="2x1"] .apex-barcode-human,
+.apex-device-barcode-label[data-size="50x25"] .apex-barcode-human{
+ line-height:1.28;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-name,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-name,
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="tight"] .apex-device-label-name,
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="tight"] .apex-device-label-name{
+ line-height:1.25;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-detail,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-detail{
+ line-height:1.19;
+}
