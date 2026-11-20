@@ -33,7 +33,7 @@
    bulk.className='primary inventory-bulk-refurb-launch';bulk.textContent='Bulk refurbishment';
    bulk.title='Scan or select multiple laptops, then update their replacement-part status';
    bulk.onclick=()=>window.ApexBulkRefurb?.open([...selected.inventory]);
-    const location=document.createElement('button');location.type='button';location.id='inventoryBulkAssetLocationButton';location.className='secondary';location.textContent='Set asset locations';location.title='Update the Location field on selected, scanned or all assets without removing pallet assignments';location.onclick=()=>window.ApexBulkAssetLocation?.open([...selected.inventory]);
+    const location=document.createElement('button');location.type='button';location.id='inventoryBulkAssetLocationButton';location.className='secondary';location.textContent='Scan & assign locations';location.title='Open Scan workspace for pallet transfers and asset locations while preserving pallet assignments for location-only changes';location.onclick=()=>window.ApexScanWorkspace?.openSelection([...selected.inventory]);
    const scan=bar.querySelector('.inventory-selection-scan');scan?.after(bulk);bulk.after(location);
   }
   if(kind!=='inventory'){
