@@ -128,3 +128,22 @@
 }
 /* preserveAspectRatio=none is set only on the 1D asset-device Code128 SVG.
    It keeps its computed width intact when we shorten bar height. */
+
+/* Inline default barcode height is set by saved label options. Fit-stage
+   overrides must win against that inline variable on the stock element. */
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="compact"] .apex-barcode-image,
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="compact"] .apex-barcode-image{
+ flex:0 0 5.1mm!important;height:5.1mm!important;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="tight"] .apex-barcode-image,
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="tight"] .apex-barcode-image{
+ flex:0 0 4.4mm!important;height:4.4mm!important;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="compact"] .apex-barcode-image svg,
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="compact"] .apex-barcode-image svg{
+ height:5.1mm!important;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="tight"] .apex-barcode-image svg,
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="tight"] .apex-barcode-image svg{
+ height:4.4mm!important;
+}
