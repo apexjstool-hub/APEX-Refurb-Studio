@@ -82,3 +82,49 @@
 .apex-device-barcode-label[data-density="spacious"][data-size="50x25"] .apex-barcode-human{font-size:10pt}
 .apex-device-barcode-label[data-density="dense"][data-size="2x1"] .apex-device-label-detail,
 .apex-device-barcode-label[data-density="dense"][data-size="50x25"] .apex-device-label-detail{font-size:5.7pt;line-height:1.02}
+
+/* 4.3.3: compact true-size 2×1 labels. The Code 128 horizontal
+   module width remains unchanged while vertical bar height and spacing adapt. */
+.apex-device-barcode-label[data-size="2x1"],
+.apex-device-barcode-label[data-size="50x25"]{
+ box-sizing:border-box;
+ justify-content:center;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fields="3"] .apex-device-label-details,
+.apex-device-barcode-label[data-size="50x25"][data-fields="3"] .apex-device-label-details{
+ row-gap:.12mm;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-detail,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-detail{
+ overflow-wrap:break-word;
+ word-break:normal;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="compact"],
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="compact"]{
+ gap:.08mm;
+ padding:.45mm 1.1mm;
+ --device-label-bar-height:5.1mm;
+}
+.apex-device-barcode-label[data-size="2x1"][data-fit-stage="tight"],
+.apex-device-barcode-label[data-size="50x25"][data-fit-stage="tight"]{
+ gap:0;
+ padding:.35mm 1mm;
+ --device-label-bar-height:4.4mm;
+}
+.apex-device-barcode-label[data-fit-stage="compact"] .apex-device-label-details,
+.apex-device-barcode-label[data-fit-stage="tight"] .apex-device-label-details{
+ row-gap:0;column-gap:.45mm;
+}
+.apex-device-barcode-label[data-fit-stage="compact"] .apex-device-label-detail,
+.apex-device-barcode-label[data-fit-stage="tight"] .apex-device-label-detail{
+ line-height:1.02;
+}
+.apex-device-barcode-label[data-fit-stage="tight"] .apex-device-label-name{
+ line-height:1;
+}
+.apex-device-barcode-label[data-fit-stage="compact"] .apex-barcode-image svg,
+.apex-device-barcode-label[data-fit-stage="tight"] .apex-barcode-image svg{
+ height:100%;
+}
+/* preserveAspectRatio=none is set only on the 1D asset-device Code128 SVG.
+   It keeps its computed width intact when we shorten bar height. */
