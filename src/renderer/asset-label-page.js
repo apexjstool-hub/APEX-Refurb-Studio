@@ -2,7 +2,7 @@
 window.apexLabelReady=(async()=>{
  try{
   const payload=JSON.parse(new URLSearchParams(location.search).get('label')||'null');
-  if(!payload||!APEX_LABEL_SIZES[payload.size]||!['asset','refurb','custom','qa'].includes(payload.type)||![203,300,600].includes(payload.dpi))throw Error('Invalid label settings.');
+  if(!payload||!APEX_LABEL_SIZES[payload.size]||!['asset','assetDevice','refurb','custom','qa'].includes(payload.type)||![203,300,600].includes(payload.dpi))throw Error('Invalid label settings.');
   if(payload.type==='custom'&&payload.template?.designerVersion===2&&(payload.template.size!==payload.size||Number(payload.template.dpi)!==payload.dpi))throw Error('Design and print settings do not match.');
   const [w,h]=APEX_LABEL_SIZES[payload.size];
   const root=document.documentElement;root.dataset.preview=String(payload.preview===true);root.dataset.size=payload.size;root.style.setProperty('--label-width',w+'mm');root.style.setProperty('--label-height',h+'mm');
@@ -15,7 +15,7 @@ window.apexLabelReady=(async()=>{
   await loaded;await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   // Fit only the human text; never stretch or shrink a machine-readable code.
   for(const sheet of sheets){if(['custom','qa'].includes(payload.type))continue;const fits=()=>{const copy=sheet.querySelector('.apex-label-copy');const human=sheet.querySelector('.apex-barcode-human');return copy?copy.scrollHeight<=sheet.clientHeight-8:human.scrollWidth<=human.clientWidth;};
-  const texts=[...sheet.querySelectorAll('.apex-label-asset,.apex-label-name,.apex-barcode-human')];
+  const texts=[...sheet.querySelectorAll('.apex-label-asset,.apex-label-name,.apex-device-label-name,.apex-barcode-human')];
   while(!fits()){
    let changed=false;for(const el of texts){const px=parseFloat(getComputedStyle(el).fontSize);if(px>8){el.style.fontSize=Math.max(8,px-.5)+'px';changed=true;}}
    if(!changed)throw Error('Device text does not fit. Choose a larger label.');
