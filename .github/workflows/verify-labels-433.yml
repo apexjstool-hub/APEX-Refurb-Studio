@@ -1,0 +1,72 @@
+name: Verify APEX 4.3.3 Labels (no release)
+on:
+  push:
+    branches:
+      - fix/4.3.3-2x1-adaptive-labels
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check app identity and new label source syntax
+        run: |
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '4.3.3' -or $pkg.build.appId -ne 'com.apex.inventory') { throw 'Unexpected package version or app identity.' }
+          foreach ($file in @('src/renderer/asset-device-label-fit.js','src/renderer/asset-label-print.js','tests/asset-labels-2x1-fit-433.test.js','tests/check-asset-labels-2x1-433.js')) {
+            node --check $file
+            if ($LASTEXITCODE -ne 0) { throw "Syntax check failed $file" }
+          }
+      - name: Verify new and existing asset-label unit tests
+        run: |
+          node --test tests/asset-labels-2x1-fit-433.test.js tests/asset-labels-tab.test.js tests/label-print.test.js tests/label-barcode-sizing.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Label unit tests failed.' }
+      - name: Verify actual Electron 2x1 geometry and PDF
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\\node_modules\\.bin\\electron.cmd tests/check-asset-labels-2x1-433.js
+          if ($LASTEXITCODE -ne 0) { throw 'Physical 2x1 label verification failed.' }
+          & .\\node_modules\\.bin\\electron.cmd tests/check-label-layout.js
+          if ($LASTEXITCODE -ne 0) { throw 'Existing thermal label regression failed.' }
+      - name: Restore public application sign-in configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Existing distribution configuration secret is required.' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$config.anonKey -match '^sb_secret_') { throw 'Never bundle a server-only key.' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'), $env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Distribution login check failed.' }
+      - name: Prepare offline typography assets
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Typography bundling failed.' }
+      - name: Build Windows test installer (do not publish)
+        run: |
+          npm run pack:windows
+          if ($LASTEXITCODE -ne 0) { throw 'Windows packaging failed.' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Installer metadata verification failed.' }
+      - name: Upload 4.3.3 installer as testing artifact only
+        uses: actions/upload-artifact@v6
+        with:
+          name: APEX-4.3.3-Label-Hotfix-TEST-ONLY
+          path: |
+            dist/APEX-Refurb-Studio-Setup-4.3.3.exe
+            dist/APEX-Refurb-Studio-Setup-4.3.3.exe.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+          retention-days: 14
