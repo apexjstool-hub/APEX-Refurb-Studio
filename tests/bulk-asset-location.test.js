@@ -42,19 +42,13 @@ test('Bulk inventory UI calls location-only API, not destructive pallet bulkMove
  assert.doesNotMatch(ui,/api\.bulkMove\(/);
  assert.match(ui,/All active inventory assets/);
  assert.match(ui,/selected \/ scanned assets/i);
- assert.match(nav,/inventoryBulkAssetLocationButton/);
+ assert.match(nav,/inventory-selection-scan/);
+ assert.doesNotMatch(nav,/inventoryBulkAssetLocationButton|Scan & assign locations/);
  assert.match(preload,/inventory:bulkSetAssetLocation/);
  assert.match(main,/const bulkAssetLocation=require\('\.\/bulk-asset-location'\)/);
  assert.match(main,/location:check\.location/);
  assert.match(main,/palletsPreserved:true/);
  assert.match(html,/inventory-bulk-location\.js/);
-});
-
-test('Set asset locations button is attached only after bulk refurbishment button is mounted',()=>{
- const nav=read('src/renderer/inventory-selection.js');
- const attach=nav.indexOf("scan?.after(bulk);bulk.after(location);");
- assert.ok(attach>0,'Location button must be appended to the live DOM after bulk refurbishment');
- assert.ok(nav.indexOf("location.onclick=()=>window.ApexBulkAssetLocation?.open")<attach);
 });
 
 test('Undo Last Location Update restores direct location but leaves both pallet fields unchanged',()=>{
