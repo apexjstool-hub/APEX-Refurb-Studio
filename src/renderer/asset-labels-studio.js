@@ -37,7 +37,7 @@
     <label class="field">Copies per selected asset<input id="assetLabelsCopies" type="number" min="1" max="20" value="1"></label>
     <p class="section-note">Print at Actual size / 100%, no margins. Match the selected paper size and DPI to your thermal printer.</p>
    </section>
-   <section class="ls-panel"><div class="ls-preview-title">LIVE ASSET LABEL PREVIEW</div><div class="ls-preview-surface"><div id="assetLabelsPreview" class="apex-live-label-preview" role="img" aria-label="Exact-size asset label preview"><div id="assetLabelsPreviewSheet"></div></div></div><p id="assetLabelsStatus" class="ls-status" role="status">Add an asset to preview its label.</p><div class="ls-actions"><button type="button" class="secondary" id="assetLabelsPdf" disabled>Save label PDF</button><button type="button" class="primary" id="assetLabelsPrint" disabled>Print asset labels</button></div></section>
+   <section class="ls-panel"><div class="ls-preview-title">LIVE ASSET LABEL PREVIEW</div><div class="ls-preview-surface"><div id="assetLabelsPreview" class="apex-live-label-preview" role="img" aria-label="Exact-size asset label preview"><div id="assetLabelsPreviewSheet"></div></div></div><p id="assetLabelsStatus" class="ls-status" role="status">Select an asset to replace the example label with live inventory data.</p><button type="button" class="secondary" id="assetLabelsFitSize" hidden>Use 60 × 40 mm for all details</button><div class="ls-actions"><button type="button" class="secondary" id="assetLabelsPdf" disabled>Save label PDF</button><button type="button" class="primary" id="assetLabelsPrint" disabled>Print asset labels</button></div></section>
   </div></div>`;
   el('assetLabelsForm').onsubmit=e=>{e.preventDefault();add(el('assetLabelsInput').value);el('assetLabelsInput').value='';el('assetLabelsInput').focus();};
   el('assetLabelsPicker').onchange=e=>{if(e.target.value)add(e.target.value);e.target.value='';};
@@ -47,6 +47,7 @@
   el('assetLabelsBarcodeHeight').value=prefs.barcodeHeight;el('assetLabelsAlign').value=prefs.align;el('assetLabelsDetailSize').value=prefs.detailSize;
   for(const input of host.querySelectorAll('[data-asset-label-field]'))input.checked=prefs.fields.includes(input.dataset.assetLabelField);
   el('assetLabelsSelection').onclick=e=>{const btn=e.target.closest('[data-remove-label-asset]');if(btn){selected=selected.filter(id=>id!==btn.dataset.removeLabelAsset);draw();}};
+  el('assetLabelsFitSize').onclick=()=>{el('assetLabelsSize').value='60x40';draw();};
   el('assetLabelsPrint').onclick=()=>output('print');
   el('assetLabelsPdf').onclick=()=>output('pdf');
   el('assetLabelsSize').value='2x1';
@@ -76,25 +77,40 @@
   el('assetLabelsSelection').innerHTML=selected.length?selected.map(id=>{const a=active().find(x=>x.id===id);return '<div class="apex-asset-label-row"><span><strong>'+esc(id)+'</strong><small>'+esc(a?name(a):'Asset unavailable')+'</small></span><button type="button" class="secondary" data-remove-label-asset="'+esc(id)+'">Remove</button></div>';}).join(''):'<p class="section-note">No assets selected yet.</p>';
   el('assetLabelsPrint').disabled=el('assetLabelsPdf').disabled=!valid;
   const preview=el('assetLabelsPreview'),sheet=el('assetLabelsPreviewSheet');
-  if(!valid){sheet.innerHTML='';preview.style.height='160px';message(assets?.length&&!count?'Choose 1–20 copies per asset.':assets?.length&&assets.length*count>300?'Maximum 300 labels per batch.':'Select an asset to preview its scannable barcode and device name.',!count);return;}
-  const p=payload(true),[w,h]=APEX_LABEL_SIZES[p.size];
+  const example={id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'ABC123456',processor:'Intel Core i5',ram:'8GB',storage:'512GB SSD',condition:'Good'};
+  const p=valid?payload(true):{type:'assetDevice',records:[example],size:el('assetLabelsSize').value,dpi:Number(el('assetLabelsDpi').value),assetOptions:{...prefs},preview:true};
+  const [w,h]=APEX_LABEL_SIZES[p.size];
+  const row=p.records[0];
+  const advice=ApexDeviceLabelFit.recommendation(p.size,row,p.assetOptions);
+  const fitSizeButton=el('assetLabelsFitSize');
+  fitSizeButton.hidden=!advice.tooSmall;
+  const sizeWarning='This label is too small for the selected details. Use 60 × 40 mm (recommended) or remove specifications.';
   try{
-   // Build preview directly in the live page using the exact same markup and
-   // shared physical CSS used by the thermal/PDF renderer. No iframe lifecycle.
-   const content=makeLabelMarkup(p.records[0],p.type,p.size,p.dpi,p);
-   sheet.innerHTML=content;
+   // Render the exact print markup on this page, and use the same physical fit
+   // validator as PDF/thermal output. Never reduce barcode module width.
+   sheet.innerHTML=makeLabelMarkup(row,p.type,p.size,p.dpi,p);
    sheet.style.width=w+'mm';sheet.style.height=h+'mm';
-   sheet.style.transformOrigin='top left';
-   function fit(){
-    if(!preview.isConnected)return;
-    const width=w*96/25.4,height=h*96/25.4;
-    const scale=Math.min(2.2,(Math.max(preview.clientWidth,180)-24)/width,280/height);
-    sheet.style.transform='scale('+scale+')';
-    preview.style.height=Math.ceil(height*scale+20)+'px';
+   preview.dataset.example=String(!valid);
+   preview.dataset.size=p.size;
+   // CSS positioning is centred. Scaling changes appearance only, never print geometry.
+   const scale=Math.min(2.8,Math.max(.1,(preview.clientWidth-40)/(w*96/25.4)),240/(h*96/25.4));
+   sheet.style.transform='translate(-50%, -50%) scale('+scale+')';
+   preview.style.height=Math.ceil(Math.max(170,h*96/25.4*scale+42))+'px';
+   const result=ApexDeviceLabelFit.fit(sheet);
+   if(!result.ok){
+    message((valid?'Cannot print yet. ':'Example does not fit. ')+sizeWarning,true);
+    el('assetLabelsPrint').disabled=el('assetLabelsPdf').disabled=true;
+    fitSizeButton.hidden=false;
+   }else if(valid){
+    message(assets.length+' asset(s) selected · '+(assets.length*count)+' label(s). Preview is fitted to the selected label stock and reflects printing.');
+   }else{
+    message('Example label shown. Scan or select an asset to preview its real details.');
    }
-   fit();
-   message(assets.length+' asset(s) selected · '+(assets.length*count)+' label(s) ready. Preview shows the first label and updates as you change settings.');
-  }catch(error){sheet.innerHTML='';message('Preview error: '+error.message,true);el('assetLabelsPrint').disabled=el('assetLabelsPdf').disabled=true;}
+  }catch(error){
+   sheet.innerHTML='<div class="apex-preview-empty">Preview unavailable: '+esc(error.message)+'</div>';
+   message('Unable to preview label: '+error.message,true);
+   el('assetLabelsPrint').disabled=el('assetLabelsPdf').disabled=true;
+  }
 
  }
  async function output(mode){
