@@ -43,3 +43,42 @@
 .apex-device-barcode-label[data-align="left"] .apex-device-label-detail{text-align:left}
 .apex-device-barcode-label[data-align="left"] .apex-device-label-name{text-align:left}
 .apex-device-barcode-label[data-align="center"] .apex-device-label-name{text-align:center}
+
+/* APEX 4.3.2 adaptive 2x1 templates.
+   Content fits the SAME physical 50.8 x 25.4 mm canvas in live preview and
+   thermal/PDF output; never scale or stretch the barcode across its modules. */
+.apex-device-barcode-label[data-size="2x1"],
+.apex-device-barcode-label[data-size="50x25"]{
+ justify-content:center;
+ gap:.17mm;
+ padding:.55mm 1.25mm;
+ overflow:visible;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-barcode-human,
+.apex-device-barcode-label[data-size="50x25"] .apex-barcode-human{
+ font-size:8.3pt;line-height:1;font-weight:900;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-name,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-name{
+ font-size:7.5pt;line-height:1.05;font-weight:800;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-details,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-details{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ column-gap:.6mm;row-gap:.1mm;
+}
+.apex-device-barcode-label[data-size="2x1"] .apex-device-label-detail,
+.apex-device-barcode-label[data-size="50x25"] .apex-device-label-detail{
+ font-size:var(--device-label-detail-size,6pt);
+ line-height:1.03;overflow-wrap:anywhere;hyphens:none;
+}
+.apex-device-barcode-label[data-density="dense"][data-size="2x1"] .apex-device-label-name,
+.apex-device-barcode-label[data-density="dense"][data-size="50x25"] .apex-device-label-name{font-size:7pt;line-height:1.02}
+.apex-device-barcode-label[data-density="dense"][data-size="2x1"] .apex-barcode-human,
+.apex-device-barcode-label[data-density="dense"][data-size="50x25"] .apex-barcode-human{font-size:8pt}
+.apex-device-barcode-label[data-density="spacious"][data-size="2x1"] .apex-device-label-name,
+.apex-device-barcode-label[data-density="spacious"][data-size="50x25"] .apex-device-label-name{font-size:9pt}
+.apex-device-barcode-label[data-density="spacious"][data-size="2x1"] .apex-barcode-human,
+.apex-device-barcode-label[data-density="spacious"][data-size="50x25"] .apex-barcode-human{font-size:10pt}
+.apex-device-barcode-label[data-density="dense"][data-size="2x1"] .apex-device-label-detail,
+.apex-device-barcode-label[data-density="dense"][data-size="50x25"] .apex-device-label-detail{font-size:5.7pt;line-height:1.02}
