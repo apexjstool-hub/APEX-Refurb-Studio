@@ -33,7 +33,41 @@ test('Asset Labels require saved device model, existing asset ID, and keep therm
  assert.match(ui,/ApexAssetLabelQR\?\.readAssetId/);
  assert.match(ui,/items\.filter\(a=>!a\.deletedAt&&a\.id\)/);
  assert.match(ui,/type:'assetDevice'/);
+ assert.match(ui,/makeLabelMarkup\(p\.records\[0\],p\.type,p\.size,p\.dpi,p\)/);
+ assert.match(ui,/assetLabelsPreviewSheet/);
+ assert.doesNotMatch(ui,/<iframe id="assetLabelsPreview"/);
+ assert.match(ui,/data-asset-label-field="serial"/);
+ assert.match(ui,/data-asset-label-field="processor"/);
+ assert.match(ui,/data-asset-label-field="ram"/);
+ assert.match(ui,/data-asset-label-field="storage"/);
+ assert.match(ui,/data-asset-label-field="condition"/);
+ assert.match(ui,/assetLabelsBarcodeHeight/);
+ assert.match(ui,/assetLabelsAlign/);
+ assert.match(ui,/assetLabelsDetailSize/);
  assert.match(ui,/api\.saveLabelPdf\(p\)/);assert.match(ui,/api\.printAssetLabel\(p\)/);
  assert.match(ui,/Asset .* has no saved model/);
  assert.doesNotMatch(ui,/core\.update\(|api\.update\(/,'Label creation must never modify inventory records');
+});
+
+test('Asset Labels print specified serial, CPU, memory, storage and grade only when selected',()=>{
+ const code=read('src/renderer/asset-label-print.js');
+ const context={window:{ApexAssetBarcode:{code128Svg:()=>'<svg viewBox="0 0 80 32"><rect width="2" height="32"/></svg>'},ApexAssetLabelQR:{deviceName:a=>'Dell Latitude 5420',qrCodeSvg:()=>'<svg viewBox="0 0 32 32"></svg>'}}};
+ vm.createContext(context);
+ vm.runInContext(code+`\nthis.custom=makeLabelMarkup({id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'ABC123',processor:'Intel Core i5',ram:'8GB',storage:'512GB SSD',condition:'Good'},'assetDevice','60x40',203,{assetOptions:{fields:['serial','processor','ram','storage','condition'],align:'left',barcodeHeight:'small',detailSize:'compact'}});`,context);
+ const html=context.custom;
+ for(const text of ['ABC123','Intel Core i5','8GB','512GB SSD','Good','Dell Latitude 5420','85543'])assert.ok(html.includes(text),text);
+ assert.match(html,/data-align="left"/);
+ assert.match(html,/--device-label-bar-height:6mm/);
+ assert.doesNotMatch(html,/APEX ASSET TAG/);
+ vm.runInContext(code+`\nthis.plain=makeLabelMarkup({id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'PRIVATE-SERIAL'},'assetDevice','2x1',203,{});`,context);
+ assert.doesNotMatch(context.plain,/PRIVATE-SERIAL/,'Hidden fields must stay off the label');
+});
+test('Shared preview and thermal print load one physical Asset Label style',()=>{
+ const html=read('src/renderer/index.html'),page=read('src/renderer/asset-label-page.html');
+ assert.match(html,/asset-device-label-layout\.css/);
+ assert.match(page,/asset-device-label-layout\.css/);
+ const output=read('src/label-output.js');
+ for(const key of ['serial','processor','ram','storage','condition'])assert.match(output,new RegExp(key+':'));
+ assert.match(output,/assetOptions/);
+ assert.match(output,/fields:fields\.slice\(0,5\)/);
 });
