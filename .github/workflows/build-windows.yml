@@ -1,7 +1,7 @@
 name: Build APEX Windows Update
 on:
   push:
-    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode', 'preview/4.1.22-typography', 'feature/4.1.22-smart-workstation', 'fix/4.1.22-refurb-bottom-clipping', 'feature/4.1.22-diagnostics-sync-2', 'feature/4.2-performance-preview', 'feature/4.2-bulk-respray-complete', 'feature/4.2-undo-parts-fitted', 'feature/4.3-refurb-simplification-preview', 'release/4.3-refurb-simplification-rc1', 'feature/4.3-bulk-asset-location-preserve-pallet', 'fix/4.3-rc3-bulk-location-button', 'feature/4.3-rc4-location-batch-undo', 'feature/4.3-rc5-pallet-scan-asset-location', 'feature/4.3-rc6-unified-scan-locations', 'fix/4.3-rc7-remove-duplicate-scan-button', 'release/4.3.0-stable-update-channel', 'feature/4.3.1-asset-labels-tab', 'feature/4.3.1-rc2-live-preview-custom-asset-labels'
+    branches: [main, 'fix/4.1.22-bulk-supplier-optional', 'feature/4.1.22-a4-pallet-barcode', 'preview/4.1.22-typography', 'feature/4.1.22-smart-workstation', 'fix/4.1.22-refurb-bottom-clipping', 'feature/4.1.22-diagnostics-sync-2', 'feature/4.2-performance-preview', 'feature/4.2-bulk-respray-complete', 'feature/4.2-undo-parts-fitted', 'feature/4.3-refurb-simplification-preview', 'release/4.3-refurb-simplification-rc1', 'feature/4.3-bulk-asset-location-preserve-pallet', 'fix/4.3-rc3-bulk-location-button', 'feature/4.3-rc4-location-batch-undo', 'feature/4.3-rc5-pallet-scan-asset-location', 'feature/4.3-rc6-unified-scan-locations', 'fix/4.3-rc7-remove-duplicate-scan-button', 'release/4.3.0-stable-update-channel', 'feature/4.3.1-asset-labels-tab', 'feature/4.3.1-rc2-live-preview-custom-asset-labels']
     paths:
       - 'package.json'
       - 'package-lock.json'
