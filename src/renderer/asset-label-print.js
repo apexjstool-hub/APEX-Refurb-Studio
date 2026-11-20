@@ -7,15 +7,15 @@ let apexLabelChoice='asset',apexLabelSize='2x1',apexLabelData=null,apexLabelClea
 const labelEscape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 function labelCodeGeometry(record,style,size=apexLabelSize,dpi=apexLabelDpi,bounds={}){
  const [w,h]=APEX_LABEL_SIZES[size]||APEX_LABEL_SIZES['2x1'];
- const svg=style==='asset'?window.ApexAssetBarcode.code128Svg(record.id):window.ApexAssetLabelQR.qrCodeSvg(window.ApexAssetLabelQR.makePayload(record));
+ const svg=['asset','assetDevice'].includes(style)?window.ApexAssetBarcode.code128Svg(record.id):window.ApexAssetLabelQR.qrCodeSvg(window.ApexAssetLabelQR.makePayload(record));
  const box=svg.match(/viewBox="0 0 ([0-9]+) ([0-9]+)"/);
  if(!box)throw Error('Code geometry is missing.');
  const units=Number(box[1]);
- const available=Math.min(style==='asset'?w-3:Math.min(h-2,w*0.48),bounds.maxMm||Infinity);
+ const available=Math.min(['asset','assetDevice'].includes(style)?w-3:Math.min(h-2,w*0.48),bounds.maxMm||Infinity);
  const dots=Math.floor(available*dpi/25.4/units);
  if(dots<1)throw Error('This code is too dense for this label. Choose a larger label.');
  const mm=units*dots*25.4/dpi;
- const height=style==='asset'?Math.max(8,(h-2)*0.55):mm;
+ const height=style==='assetDevice'?Math.max(6,(h-2)*0.39):style==='asset'?Math.max(8,(h-2)*0.55):mm;
  return {svg:svg.replace('<svg ',`<svg width="${mm.toFixed(4)}mm" height="${height.toFixed(4)}mm" `),dots,mm,height,dpi};
 }
 function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,options={}){
@@ -27,6 +27,17 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
  const model=labelEscape(record.model||'Unknown model');
  const maker=labelEscape(record.manufacturer||'');
  const serial=labelEscape(record.serial||'—');
+ if(style==='assetDevice'){
+   if(!window.ApexAssetBarcode)throw Error('Barcode encoder missing.');
+   if(!record.id||!record.model)throw Error('An asset ID and device model are required for Asset Labels.');
+   const svg=labelCodeGeometry(record,style,size,dpi).svg;
+   const device=labelEscape([record.manufacturer,record.model].filter(Boolean).join(' ').trim());
+   return `<div class="apex-label-stock apex-device-barcode-label" role="img" aria-label="Asset ${asset}, device ${device}">
+     <div class="apex-barcode-image">${svg}</div>
+     <div class="apex-barcode-human">${asset}</div>
+     <div class="apex-device-label-name">${device}</div>
+   </div>`;
+ }
  if(style==='asset'){
    if(!window.ApexAssetBarcode)throw Error('Barcode encoder missing.');
    const svg=labelCodeGeometry(record,style,size,dpi).svg;
