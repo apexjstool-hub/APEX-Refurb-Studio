@@ -1,0 +1,86 @@
+name: Publish verified APEX 4.3.3 Stable Update
+on:
+  push:
+    branches:
+      - release/4.3.3-stable
+    paths:
+      - .github/workflows/publish-433.yml
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: apex-433-stable-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Verify exact previously tested build and stable identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $testedSha = '33e85e60093245c9037da5c2f513470a44bfb94c'
+          git merge-base --is-ancestor $testedSha HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Stable branch is not based on the validated build.' }
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '4.3.3' -or $pkg.build.appId -ne 'com.apex.inventory' -or $pkg.build.publish[0].releaseType -ne 'release') { throw 'Incorrect stable version, identity, or update channel.' }
+          $result = gh api repos/$env:GITHUB_REPOSITORY/actions/runs/44813437147 --jq '{conclusion:.conclusion,head_sha:.head_sha}'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not validate the original Windows CI run.' }
+          $verified = $result | ConvertFrom-Json
+          if ($verified.conclusion -ne 'success' -or $verified.head_sha -ne $testedSha) { throw 'Source was not verified by the successful Windows test run.' }
+          gh release view v4.3.3 --repo $env:GITHUB_REPOSITORY --json tagName *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Release v4.3.3 already exists. Never overwrite or duplicate.' }
+      - name: Retrieve identical tested EXE, blockmap, and update manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force dist | Out-Null
+          gh run download 44813437147 --repo $env:GITHUB_REPOSITORY --name APEX-4.3.3-Label-Hotfix-TEST-ONLY --dir dist
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to retrieve the previously validated 4.3.3 artifact.' }
+          foreach ($name in @('APEX-Refurb-Studio-Setup-4.3.3.exe','APEX-Refurb-Studio-Setup-4.3.3.exe.blockmap','latest.yml')) {
+            if (!(Test-Path (Join-Path dist $name))) { throw "Missing expected update bundle file: $name" }
+          }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Update manifest/integrity validation failed. Do not publish.' }
+      - name: Publish official stable GitHub release used by Settings updater
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release view v4.3.3 --repo $env:GITHUB_REPOSITORY --json tagName *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Stable release already exists.' }
+          $notes = @'
+          APEX Management Studio 4.3.3 — Stable 2×1 Asset Labels Hotfix
+
+          Fixes the false text-overflow warning that prevented printing normal 50.8 × 25.4 mm labels with multiple optional specification fields. Improves real text line boxes, adaptive density, evenly spaced detail rows, and print/PDF matching. Preserves the measured Code 128 barcode module width while allowing shorter bar heights. Maintains the printer-dot and genuine-overflow checks.
+
+          Windows automated checks passed: existing and new unit tests, real Electron rendering of labels with 0–5 optional fields, varied 3-field combinations, PDF page dimensions, print geometry regression tests, installer build, and release metadata verification.
+
+          Existing app ID, user settings, Supabase connectivity and normal GitHub update channel remain unchanged; no database migration is needed. The prior v4.3.2 remains available for rollback. Save work and back up important local/cloud data before installing. In APEX, open Settings → APEX Update Centre → Check for updates, then install 4.3.3. After installation, print one 2×1 test sticker and verify the barcode scans on your physical printer before bulk printing.
+          '@
+          gh release create v4.3.3 dist/APEX-Refurb-Studio-Setup-4.3.3.exe dist/APEX-Refurb-Studio-Setup-4.3.3.exe.blockmap dist/latest.yml --repo $env:GITHUB_REPOSITORY --target 33e85e60093245c9037da5c2f513470a44bfb94c --latest --title 'APEX Management Studio 4.3.3 - Stable 2x1 Label Printing Fix' --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'Stable release publication failed.' }
+      - name: Confirm download assets and published latest channel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $item = gh release view v4.3.3 --repo $env:GITHUB_REPOSITORY --json tagName,isDraft,isPrerelease,assets
+          if ($LASTEXITCODE -ne 0) { throw 'Release not accessible.' }
+          $release = $item | ConvertFrom-Json
+          if ($release.tagName -ne 'v4.3.3' -or $release.isDraft -or $release.isPrerelease) { throw 'Release is not a stable public release.' }
+          $names = @($release.assets | ForEach-Object { $_.name })
+          foreach ($name in @('APEX-Refurb-Studio-Setup-4.3.3.exe','APEX-Refurb-Studio-Setup-4.3.3.exe.blockmap','latest.yml')) {
+            if ($names -notcontains $name) { throw "Published stable release is missing $name" }
+          }
+          Write-Host 'Verified: stable v4.3.3 published with Windows EXE, blockmap, and latest.yml.'
