@@ -1,0 +1,22 @@
+/* Shared physical layout: identical in the print renderer and on-screen live preview. */
+.apex-device-barcode-label{
+ display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+ gap:var(--device-label-gap,.35mm);padding:1mm 1.4mm;text-align:var(--device-label-align,center);
+ width:100%;height:100%;min-width:0;overflow:hidden;background:#fff;color:#000;
+ font-family:Arial,sans-serif;
+}
+.apex-device-barcode-label .apex-barcode-image{
+ display:flex;justify-content:center;align-items:center;width:100%;min-height:0;
+ flex:0 0 var(--device-label-bar-height,9mm);max-height:var(--device-label-bar-height,9mm);overflow:hidden;
+}
+.apex-device-barcode-label .apex-barcode-image svg{display:block;flex:none;max-width:100%;shape-rendering:crispEdges}
+.apex-device-barcode-label .apex-barcode-human{font-size:var(--device-label-id-size,11pt);font-weight:900;line-height:1.05;white-space:nowrap;max-width:100%;min-width:0;text-align:center}
+.apex-device-barcode-label .apex-device-label-name{font-size:var(--device-label-model-size,8pt);font-weight:750;line-height:1.1;max-width:100%;text-align:inherit;overflow-wrap:anywhere}
+.apex-device-barcode-label .apex-device-label-details{display:flex;flex-direction:column;gap:.2mm;min-height:0;max-width:100%;overflow:hidden}
+.apex-device-barcode-label .apex-device-label-detail{font-size:var(--device-label-detail-size,6pt);line-height:1.09;overflow-wrap:anywhere;font-weight:600;max-width:100%}
+.apex-device-barcode-label .apex-device-label-detail strong{font-weight:800}
+.apex-device-barcode-label .apex-device-label-details:empty{display:none}
+.apex-device-barcode-label[data-align="center"] .apex-device-label-detail{text-align:center}
+.apex-device-barcode-label[data-align="left"] .apex-device-label-detail{text-align:left}
+.apex-device-barcode-label[data-align="center"] .apex-device-label-name{text-align:center}
+.apex-device-barcode-label[data-align="left"] .apex-device-label-name{text-align:left}
