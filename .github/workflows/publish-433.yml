@@ -39,8 +39,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Could not validate the original Windows CI run.' }
           $verified = $result | ConvertFrom-Json
           if ($verified.conclusion -ne 'success' -or $verified.head_sha -ne $testedSha) { throw 'Source was not verified by the successful Windows test run.' }
-          gh release view v4.3.3 --repo $env:GITHUB_REPOSITORY --json tagName *> $null
-          if ($LASTEXITCODE -eq 0) { throw 'Release v4.3.3 already exists. Never overwrite or duplicate.' }
+          $existing = @(gh release list --repo $env:GITHUB_REPOSITORY --json tagName --limit 100 | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check existing releases.' }
+          if (@($existing | ForEach-Object { $_.tagName }) -contains 'v4.3.3') { throw 'Release v4.3.3 already exists. Never overwrite or duplicate.' }
       - name: Retrieve identical tested EXE, blockmap, and update manifest
         env:
           GH_TOKEN: ${{ github.token }}
@@ -59,8 +60,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          gh release view v4.3.3 --repo $env:GITHUB_REPOSITORY --json tagName *> $null
-          if ($LASTEXITCODE -eq 0) { throw 'Stable release already exists.' }
+          $existing = @(gh release list --repo $env:GITHUB_REPOSITORY --json tagName --limit 100 | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check existing releases.' }
+          if (@($existing | ForEach-Object { $_.tagName }) -contains 'v4.3.3') { throw 'Stable release already exists.' }
           $notes = @'
           APEX Management Studio 4.3.3 — Stable 2×1 Asset Labels Hotfix
 
