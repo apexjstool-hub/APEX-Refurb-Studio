@@ -31,7 +31,7 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
    if(!window.ApexAssetBarcode)throw Error('Barcode encoder missing.');
    if(!record.id||!record.model)throw Error('An asset ID and device model are required for Asset Labels.');
    const svg=labelCodeGeometry(record,style,size,dpi).svg;
-   const device=labelEscape([record.manufacturer,record.model].filter(Boolean).join(' ').trim());
+   const device=full; // Use existing deviceName helper to avoid duplicating Dell/Acer when Model already contains manufacturer.
    return `<div class="apex-label-stock apex-device-barcode-label" role="img" aria-label="Asset ${asset}, device ${device}">
      <div class="apex-barcode-image">${svg}</div>
      <div class="apex-barcode-human">${asset}</div>
