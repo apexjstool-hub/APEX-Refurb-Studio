@@ -3,11 +3,16 @@ const {BrowserWindow,dialog}=require('electron'),path=require('node:path'),fs=re
 const sizes={'2x1':[50.8,25.4],'50x25':[50,25],'50x30':[50,30],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
 function sanitise(input){
  if(!input||!sizes[input.size]||!['asset','assetDevice','refurb','custom','qa'].includes(input.type)||![203,300,600].includes(input.dpi))throw Error('Invalid label settings.');
- const normalise=raw=>{const record={};for(const [key,max] of Object.entries({id:80,manufacturer:90,model:140,serial:90,condition:90,pallet:80}))record[key]=String(raw?.[key]??'').trim().slice(0,max);
+ const normalise=raw=>{const record={};for(const [key,max] of Object.entries({id:80,manufacturer:90,model:140,serial:90,processor:140,ram:70,storage:140,condition:90,pallet:80}))record[key]=String(raw?.[key]??'').trim().slice(0,max);
  if(!record.id&&input.type!=='qa')throw Error('Asset ID is required.');if(input.type==='assetDevice'&&!record.model)throw Error('Device model is required for Asset Labels.');return record;};
  const records=Array.isArray(input.records)?input.records:[input.record];if(!records.length||records.length>300)throw Error('Select between 1 and 300 devices for labels.');
  if(input.type==='custom'&&input.template?.designerVersion===2&&(input.template.size!==input.size||Number(input.template.dpi)!==input.dpi))throw Error('The design paper size and DPI must match the print settings.');
- const cleaned=records.map(normalise);return {record:cleaned[0],...(cleaned.length>1?{records:cleaned}:{}),size:input.size,type:input.type,dpi:input.dpi,preview:false,...(input.type==='custom'?{template:require('./custom-labels').template(input.template)}:{}),...(input.type==='qa'?{qa:require('./custom-labels').qa(input.qa)}:{})};
+ const assetOptions=input.type==='assetDevice'?(()=>{
+  const allowed=['serial','processor','ram','storage','condition'],raw=input.assetOptions||{};
+  const fields=Array.isArray(raw.fields)?[...new Set(raw.fields.filter(x=>allowed.includes(x)))]:[];
+  return {fields:fields.slice(0,5),barcodeHeight:['small','medium','large'].includes(raw.barcodeHeight)?raw.barcodeHeight:'medium',align:raw.align==='left'?'left':'center',detailSize:['compact','normal','large'].includes(raw.detailSize)?raw.detailSize:'normal'};
+ })():null;
+ const cleaned=records.map(normalise);return {record:cleaned[0],...(cleaned.length>1?{records:cleaned}:{}),size:input.size,type:input.type,dpi:input.dpi,preview:false,...(input.type==='custom'?{template:require('./custom-labels').template(input.template)}:{}),...(input.type==='qa'?{qa:require('./custom-labels').qa(input.qa)}:{}),...(assetOptions?{assetOptions}:{})};
 }
 async function renderLabelDocument(input){
  const payload=sanitise(input),[w,h]=sizes[payload.size];
