@@ -16,9 +16,10 @@
  function recommendation(size,record={},raw={}){
   const [width,height]=sizes[size]||sizes['2x1'],o=options(raw);
   const present=o.fields.filter(k=>String(record[k]||'').trim());
-  const highDensity=present.length>=4;
-  const suggested=highDensity?'60x40':present.length>=3?'50x30':size;
-  const tooSmall=highDensity&&height<30||present.length>=3&&height<25.4;
+  // Selection count alone must never flag 2x1 stock as unprintable.
+  // The actual DOM fit and printer-module checks decide if it is safe.
+  const tooSmall=false;
+  const suggested=size;
   return {tooSmall,suggested,fields:present.length,paper:`${width} × ${height} mm`};
  }
  function fits(sheet){
@@ -35,18 +36,19 @@
   });
   const detail=stock.querySelector('.apex-device-label-details');
   return {ok:!overflow&&(!detail||detail.scrollHeight<=detail.clientHeight+1)&&stock.scrollHeight<=stock.clientHeight+1,
-   error:'These specifications do not fit at a legible size. Choose 60 × 40 mm or a larger label, select Compact text, or remove a field.'};
+   error:'The selected details genuinely overflow this label. Try shorter values, compact details, or a larger label. The barcode will not be distorted.'};
  }
  function fit(sheet){
   const stock=sheet?.querySelector?.('.apex-device-barcode-label');
   if(!stock)return {ok:false,error:'No device asset label is available.'};
-  // Maintain a minimum readable size. The Code 128 SVG geometry is never resized.
+  // Fit text only; never scale or distort the Code 128 SVG geometry.
   const details=[...stock.querySelectorAll('.apex-device-label-detail')];
   const model=stock.querySelector('.apex-device-label-name');
   const id=stock.querySelector('.apex-barcode-human');
-  const minimum=new Map(details.map(el=>[el,8.8])); // 6.6 pt floor
-  if(model)minimum.set(model,10.7); // 8 pt floor
-  if(id)minimum.set(id,13.35); // 10 pt floor
+  const compact=['2x1','50x25'].includes(stock.dataset.size);
+  const minimum=new Map(details.map(el=>[el,compact?7.4:8.8])); // 5.55pt / 6.6pt floor
+  if(model)minimum.set(model,compact?9.2:10.7);
+  if(id)minimum.set(id,compact?10.2:13.35);
   let check=fits(sheet);
   for(let attempt=0;!check.ok&&attempt<12;attempt++){
    let changed=false;
