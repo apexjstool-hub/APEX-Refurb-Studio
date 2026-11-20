@@ -30,7 +30,7 @@ async function check(win,size,selected,record=base){
    barcodeW:code.getBoundingClientRect().width,barcodeH:code.getBoundingClientRect().height,
    moduleDots:stock.dataset.moduleDots,options:details.map(x=>x.dataset.field)};
  })()`);
- if(actual.error)throw Error(size+' '+selected.join(',')+': '+actual.error);
+ if(actual.error)throw Error(size+' '+selected.join(',')+': '+JSON.stringify(actual));
  if(actual.count!==selected.length)throw Error('Missing details '+JSON.stringify(actual));
  const expectedW=(size==='2x1'?50.8:50)*96/25.4,expectedH=(size==='2x1'?25.4:25)*96/25.4;
  if(Math.abs(actual.paperW-expectedW)>2||Math.abs(actual.paperH-expectedH)>2)throw Error('Wrong paper geometry '+JSON.stringify(actual));
