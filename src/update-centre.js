@@ -23,7 +23,7 @@ function init(win){
   updater.on('error',err=>set({state:'error',error:String(err.message||err).slice(0,280)}));
   // Startup checks are silent; do not notify for success or up-to-date.
   win.webContents.once('did-finish-load',()=>{setTimeout(()=>check(false),12000);});
-  const periodic=setInterval(()=>check(false),6*60*60*1000);periodic.unref?.();
+  const periodic=setInterval(()=>check(false),60*60*1000); // Check GitHub hourly while APEX is open.periodic.unref?.();
  }catch(err){set({state:'error',error:'Updater failed to initialise: '+err.message});}
 }
 function status(){return {...data};}
