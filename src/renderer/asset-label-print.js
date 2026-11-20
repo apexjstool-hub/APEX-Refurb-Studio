@@ -34,9 +34,9 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
    const include=Array.isArray(settings.fields)?settings.fields.filter(x=>['serial','processor','ram','storage','condition'].includes(x)).slice(0,5):[];
    const barHeight=({small:6,medium:8,large:10})[settings.barcodeHeight]||8;
    const align=settings.align==='left'?'left':'center';
-   const font=({compact:6,normal:7,large:8})[settings.detailSize]||7;
+   const font=({compact:7,normal:7.5,large:8.5})[settings.detailSize]||7.5;
    const rows={serial:['Serial',record.serial],processor:['CPU',record.processor],ram:['RAM',record.ram],storage:['Storage',record.storage],condition:['Grade',record.condition]};
-   const details=include.filter(key=>String(rows[key][1]||'').trim()).map(key=>'<div class="apex-device-label-detail"><strong>'+rows[key][0]+':</strong> '+labelEscape(rows[key][1])+'</div>').join('');
+   const details=include.filter(key=>String(rows[key][1]||'').trim()).map(key=>'<div class="apex-device-label-detail" data-field="'+key+'"><strong>'+rows[key][0]+':</strong> '+labelEscape(rows[key][1])+'</div>').join('');
    let svg=labelCodeGeometry(record,style,size,dpi).svg;
    svg=svg.replace(/height="[^"]+"/,'height="'+barHeight+'mm"');
    const device=full;
