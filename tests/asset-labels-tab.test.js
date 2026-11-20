@@ -32,6 +32,6 @@ test('Asset Labels require saved device model, existing asset ID, and keep therm
  assert.match(ui,/items\.filter\(a=>!a\.deletedAt&&a\.id\)/);
  assert.match(ui,/type:'assetDevice'/);
  assert.match(ui,/api\.saveLabelPdf\(p\)/);assert.match(ui,/api\.printAssetLabel\(p\)/);
- assert.match(ui,/model\|\|'\)\.trim\(\)/);
+ assert.match(ui,/Asset .* has no saved model/);
  assert.doesNotMatch(ui,/core\.update\(|api\.update\(/,'Label creation must never modify inventory records');
 });
