@@ -14,7 +14,7 @@ window.apexLabelReady=(async()=>{
   if(payload.type==='custom'&&payload.template?.designerVersion===2)for(const target of sheets)ApexLabelDesigner.applyLayout(target,payload.template);
   await loaded;await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   // Fit only the human text; never stretch or shrink a machine-readable code.
-  for(const sheet of sheets){if(['custom','qa'].includes(payload.type))continue;const fits=()=>{const copy=sheet.querySelector('.apex-label-copy');const human=sheet.querySelector('.apex-barcode-human');return copy?copy.scrollHeight<=sheet.clientHeight-8:human.scrollWidth<=human.clientWidth;};
+  for(const sheet of sheets){if(['custom','qa'].includes(payload.type))continue;const fits=()=>{const copy=sheet.querySelector('.apex-label-copy');const human=sheet.querySelector('.apex-barcode-human');const name=sheet.querySelector('.apex-device-label-name');if(name){const bounds=sheet.getBoundingClientRect(),r=name.getBoundingClientRect();return human.scrollWidth<=human.clientWidth+.5&&name.scrollWidth<=name.clientWidth+.5&&r.bottom<=bounds.bottom+1;}return copy?copy.scrollHeight<=sheet.clientHeight-8:human.scrollWidth<=human.clientWidth;};
   const texts=[...sheet.querySelectorAll('.apex-label-asset,.apex-label-name,.apex-device-label-name,.apex-barcode-human')];
   while(!fits()){
    let changed=false;for(const el of texts){const px=parseFloat(getComputedStyle(el).fontSize);if(px>8){el.style.fontSize=Math.max(8,px-.5)+'px';changed=true;}}
