@@ -59,7 +59,7 @@ test('Asset Labels print specified serial, CPU, memory, storage and grade only w
  assert.match(html,/data-align="left"/);
  assert.match(html,/--device-label-bar-height:6mm/);
  assert.doesNotMatch(html,/APEX ASSET TAG/);
- vm.runInContext(code+`\nthis.plain=makeLabelMarkup({id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'PRIVATE-SERIAL'},'assetDevice','2x1',203,{});`,context);
+ vm.runInContext(`this.plain=makeLabelMarkup({id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'PRIVATE-SERIAL'},'assetDevice','2x1',203,{});`,context);
  assert.doesNotMatch(context.plain,/PRIVATE-SERIAL/,'Hidden fields must stay off the label');
 });
 test('Shared preview and thermal print load one physical Asset Label style',()=>{
