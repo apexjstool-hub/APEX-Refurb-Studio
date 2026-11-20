@@ -97,8 +97,46 @@ test('No blank preview: show demo label if no asset, centred live preview, and s
  const fit=require('../src/renderer/asset-device-label-fit');
  const record={serial:'123',processor:'Core i5',ram:'8GB',storage:'512GB',condition:'Good'};
  const opts={fields:['serial','processor','ram','storage','condition']};
- assert.equal(fit.recommendation('50x25',record,opts).tooSmall,true);
- assert.equal(fit.recommendation('50x25',record,opts).suggested,'60x40');
+ assert.equal(fit.recommendation('50x25',record,opts).tooSmall,false);
+ assert.equal(fit.recommendation('50x25',record,opts).suggested,'50x25');
  assert.equal(fit.recommendation('60x40',record,opts).tooSmall,false);
  assert.deepEqual(fit.options({fields:['ram','ram','invalid','serial']}).fields,['ram','serial']);
+});
+
+test('Adaptive 2x1 labels support one through five optional fields without forcing a paper-size upgrade',()=>{
+ const code=read('src/renderer/asset-label-print.js');
+ const record={id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'ABC123456',processor:'Intel Core i5',ram:'8GB',storage:'512GB SSD',condition:'Good'};
+ const names=['serial','processor','ram','storage','condition'];
+ const context={window:{
+  ApexAssetBarcode:{code128Svg:()=>'<svg viewBox="0 0 90 32"><rect width="2" height="32"/></svg>'},
+  ApexAssetLabelQR:{deviceName:r=>r.manufacturer+' '+r.model}
+ }};
+ vm.createContext(context);vm.runInContext(code,context);
+ for(let n=1;n<=5;n++){
+  context.item=record;context.fields=names.slice(0,n);
+  vm.runInContext("this.rendered=makeLabelMarkup(item,'assetDevice','2x1',203,{assetOptions:{fields,barcodeHeight:'medium',detailSize:'normal'}})",context);
+  const html=context.rendered;
+  assert.match(html,new RegExp('data-fields="'+n+'"'),n+' fields');
+  assert.match(html,/data-size="2x1"/);
+  assert.match(html,/Dell Latitude 5420/);
+  assert.match(html,/85543/);
+  for(const field of names.slice(0,n))assert.match(html,new RegExp('data-field="'+field+'"'));
+  for(const field of names.slice(n))assert.doesNotMatch(html,new RegExp('data-field="'+field+'"'));
+  assert.match(html,/apex-barcode-image/);
+  assert.doesNotMatch(html,/APEX ASSET TAG/);
+  assert.ok(/--device-label-bar-height:(5|5.7|6.8)mm/.test(html),'2x1 uses content-aware barcode height');
+ }
+ const css=read('src/renderer/asset-device-label-layout.css');
+ assert.match(css,/data-density="dense"/);
+ assert.match(css,/grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+});
+test('Auto-fit does not categorically block 2x1 with all five normal specifications',()=>{
+ const fit=require('../src/renderer/asset-device-label-fit');
+ const record={serial:'ABC123456',processor:'Intel Core i5',ram:'8GB',storage:'512GB SSD',condition:'Good'};
+ const chosen={fields:['serial','processor','ram','storage','condition']};
+ assert.equal(fit.recommendation('2x1',record,chosen).tooSmall,false);
+ const js=read('src/renderer/asset-labels-studio.js');
+ assert.match(js,/if\(!result\.ok\)/);
+ assert.match(js,/fitSizeButton\.hidden=!advice\.tooSmall/);
+ assert.match(read('src/renderer/asset-label-page.js'),/ApexDeviceLabelFit\.fit\(sheet\)/);
 });
