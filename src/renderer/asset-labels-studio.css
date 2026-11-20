@@ -1,0 +1,12 @@
+/* Standalone Asset Labels screen, using the existing Label Studio theme. */
+.apex-asset-label-studio .apex-label-search{display:flex;align-items:end;gap:10px;margin:14px 0}
+.apex-asset-label-studio .apex-label-search .field{flex:1;min-width:0;margin:0}
+.apex-asset-label-studio .apex-label-search button{flex:none;min-height:40px}
+.apex-asset-label-studio .apex-asset-label-selection{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin:12px 0;padding:8px}
+.apex-asset-label-studio .apex-asset-label-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px;border-bottom:1px solid var(--line)}
+.apex-asset-label-studio .apex-asset-label-row:last-child{border-bottom:none}
+.apex-asset-label-studio .apex-asset-label-row strong{display:block;font-weight:800}
+.apex-asset-label-studio .apex-asset-label-row small{display:block;font-size:11px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.apex-asset-label-studio #assetLabelsPreview{width:100%;max-width:100%;display:block;border:0;background:#fff}
+.apex-asset-label-studio #assetLabelsStatus[data-error=true]{color:#cb5151}
+@media(max-width:640px){.apex-asset-label-studio .apex-label-search{flex-direction:column;align-items:stretch}.apex-asset-label-studio .apex-label-search button{width:100%}}
