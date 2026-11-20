@@ -11,6 +11,7 @@ async function check(win,size,selected,record=base){
  const actual=await win.webContents.executeJavaScript(`(async()=>{
   await window.apexLabelReady;
   const stock=document.querySelector('.apex-device-barcode-label');
+  if(!stock)return {error:window.apexLabelError||document.getElementById('labelSheet')?.textContent||'Missing label stock',count:-1};
   const code=stock?.querySelector('.apex-barcode-image svg');
   const box=stock?.getBoundingClientRect();
   const details=[...stock.querySelectorAll('.apex-device-label-detail')];
