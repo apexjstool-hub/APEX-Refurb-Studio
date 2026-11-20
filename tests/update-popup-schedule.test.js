@@ -1,0 +1,43 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
+const policy=require('../src/renderer/update-notification-policy');
+test('New stable update triggers notification, later/scheduling suppress it until correct time',()=>{
+ const state={state:'available',availableVersion:'4.3.2',currentVersion:'4.3.1'};
+ const now=Date.parse('2026-11-20T12:00:00Z');
+ assert.equal(policy.eligible(state,null,now),true);
+ const later=policy.choice('4.3.2','later',now);
+ assert.equal(policy.eligible(state,later,now+1000),false);
+ assert.equal(policy.eligible(state,later,now+86400001),true);
+ const scheduled=policy.choice('4.3.2','schedule',now,now+3600000);
+ assert.equal(policy.eligible(state,scheduled,now+3599000),false);
+ assert.equal(policy.eligible(state,scheduled,now+3600001),true);
+ assert.equal(policy.eligible({...state,availableVersion:'4.3.3'},scheduled,now+100),true);
+ assert.equal(policy.eligible({state:'current',availableVersion:null},null,now),false);
+});
+test('Schedule refuses invalid times and never forces app installation',()=>{
+ const now=Date.parse('2026-11-20T12:00:00Z');
+ assert.throws(()=>policy.choice('4.3.2','schedule',now,now+30000),/between 2 minutes and 90 days/);
+ assert.throws(()=>policy.choice('4.3.2','schedule',now,now+100*86400000),/between 2 minutes and 90 days/);
+ assert.throws(()=>policy.choice('bad-version','later',now),/unknown update/);
+ const ui=read('src/renderer/update-notifications.js');
+ assert.match(ui,/datetime-local/);
+ assert.match(ui,/apexUpdateNoticeScheduleForm/);
+ assert.match(ui,/apexUpdateNoticeLater/);
+ assert.match(ui,/api\.updateDownload\(\)/);
+ assert.match(ui,/api\.updateInstall\(\)/);
+ assert.match(ui,/window\.confirm\('Save all open work before restarting APEX/);
+ assert.doesNotMatch(ui,/setTimeout\([^)]*updateInstall|setInterval\([^)]*updateInstall/);
+ assert.match(ui,/Nothing is installed without your confirmation/);
+});
+test('Updater keeps stable releases only, hourly polling and existing manual download policy',()=>{
+ const server=read('src/update-centre.js'),html=read('src/renderer/index.html'),centre=read('src/renderer/apex-update-v18.js');
+ assert.match(server,/allowPrerelease=false/);
+ assert.match(server,/autoDownload=false/);
+ assert.match(server,/autoInstallOnAppQuit=false/);
+ assert.match(server,/setInterval\(\(\)=>check\(false\),60\*60\*1000\)/);
+ assert.match(html,/update-notification-policy\.js/);
+ assert.match(html,/update-notifications\.js/);
+ assert.match(html,/update-notifications\.css/);
+ assert.match(centre,/ApexUpdateNotifications\?\.update\(state\)/);
+});
