@@ -30,12 +30,22 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
  if(style==='assetDevice'){
    if(!window.ApexAssetBarcode)throw Error('Barcode encoder missing.');
    if(!record.id||!record.model)throw Error('An asset ID and device model are required for Asset Labels.');
-   const svg=labelCodeGeometry(record,style,size,dpi).svg;
-   const device=full; // Use existing deviceName helper to avoid duplicating Dell/Acer when Model already contains manufacturer.
-   return `<div class="apex-label-stock apex-device-barcode-label" role="img" aria-label="Asset ${asset}, device ${device}">
+   const settings=options.assetOptions||{};
+   const include=Array.isArray(settings.fields)?settings.fields.filter(x=>['serial','processor','ram','storage','condition'].includes(x)).slice(0,5):[];
+   const barHeight=({small:6,medium:8,large:10})[settings.barcodeHeight]||8;
+   const align=settings.align==='left'?'left':'center';
+   const font=({compact:6,normal:7,large:8})[settings.detailSize]||7;
+   const rows={serial:['Serial',record.serial],processor:['CPU',record.processor],ram:['RAM',record.ram],storage:['Storage',record.storage],condition:['Grade',record.condition]};
+   const details=include.filter(key=>String(rows[key][1]||'').trim()).map(key=>'<div class="apex-device-label-detail"><strong>'+rows[key][0]+':</strong> '+labelEscape(rows[key][1])+'</div>').join('');
+   let svg=labelCodeGeometry(record,style,size,dpi).svg;
+   svg=svg.replace(/height="[^"]+"/,'height="'+barHeight+'mm"');
+   const device=full;
+   const styleVars='--device-label-bar-height:'+barHeight+'mm;--device-label-align:'+align+';--device-label-detail-size:'+font+'pt';
+   return `<div class="apex-label-stock apex-device-barcode-label" data-align="${align}" style="${styleVars}" role="img" aria-label="Asset ${asset}, device ${device}">
      <div class="apex-barcode-image">${svg}</div>
      <div class="apex-barcode-human">${asset}</div>
      <div class="apex-device-label-name">${device}</div>
+     <div class="apex-device-label-details">${details}</div>
    </div>`;
  }
  if(style==='asset'){
