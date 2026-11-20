@@ -28,7 +28,8 @@ test('Pallet create fills pallet input and separate location action preserves pa
  assert.match(js,/api\.lastBulkAssetLocation\(\)/);
  assert.match(js,/api\.undoLastBulkAssetLocation\(\)/);
  assert.match(js,/api\.addLocation\(name\)/);
- assert.match(selection,/ApexScanWorkspace\?\.openSelection\(\[\.\.\.selected\.inventory\]\)/);
+ assert.match(selection,/inventory-selection-scan'\)\.onclick=\(\)=>\{closeMenus\(\);setPage\('bulk'\);\}/);
+ assert.doesNotMatch(selection,/inventoryBulkAssetLocationButton|Scan & assign locations/);
  assert.doesNotMatch(selection,/ApexBulkAssetLocation\?\.open/);
  assert.match(main,/inventory:bulkSetAssetLocation/);
  assert.match(main,/bulkAssetLocation\.apply/);
