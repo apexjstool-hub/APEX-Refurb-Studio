@@ -27,7 +27,7 @@ async function check(win,size,selected,record=base){
  const rendered=await renderLabelDocument(payload);
  try{
   const pdf=await rendered.window.webContents.printToPDF(pdfOptions(size==='2x1'?50.8:50,size==='2x1'?25.4:25));
-  const pages=pdf.toString('latin1').split('/Type /Page').length-1;
+  const pages=pdf.toString('latin1').split('/Type /Page').slice(1).filter(part=>!part.startsWith('s')).length;
   if(pages!==1)throw Error('Expected one PDF page; got '+pages);
  }finally{rendered.window.destroy();}
  console.log('PASS',size,selected.length,'fields',actual.stage,actual.barcodeH.toFixed(1)+'px');
