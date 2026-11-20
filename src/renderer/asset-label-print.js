@@ -37,11 +37,12 @@ function makeLabelMarkup(record,style,size=apexLabelSize,dpi=apexLabelDpi,option
    const font=({compact:7,normal:7.5,large:8.5})[settings.detailSize]||7.5;
    const rows={serial:['Serial',record.serial],processor:['CPU',record.processor],ram:['RAM',record.ram],storage:['Storage',record.storage],condition:['Grade',record.condition]};
    const details=include.filter(key=>String(rows[key][1]||'').trim()).map(key=>'<div class="apex-device-label-detail" data-field="'+key+'"><strong>'+rows[key][0]+':</strong> '+labelEscape(rows[key][1])+'</div>').join('');
-   let svg=labelCodeGeometry(record,style,size,dpi).svg;
+   const geometry=labelCodeGeometry(record,style,size,dpi);
+   let svg=geometry.svg;
    svg=svg.replace(/height="[^"]+"/,'height="'+barHeight+'mm"');
    const device=full;
    const styleVars='--device-label-bar-height:'+barHeight+'mm;--device-label-align:'+align+';--device-label-detail-size:'+font+'pt';
-   return `<div class="apex-label-stock apex-device-barcode-label" data-align="${align}" style="${styleVars}" role="img" aria-label="Asset ${asset}, device ${device}">
+   return `<div class="apex-label-stock apex-device-barcode-label" data-module-dots="${geometry.dots}" data-align="${align}" style="${styleVars}" role="img" aria-label="Asset ${asset}, device ${device}">
      <div class="apex-barcode-image">${svg}</div>
      <div class="apex-barcode-human">${asset}</div>
      <div class="apex-device-label-name">${device}</div>
