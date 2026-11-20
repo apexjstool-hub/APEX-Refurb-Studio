@@ -1,0 +1,25 @@
+/* User-controlled GitHub update notification, consistent with APEX themes. */
+.apex-update-notice{position:fixed;inset:0;z-index:21000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(12,22,39,.60);backdrop-filter:blur(4px)}
+.apex-update-notice.hidden{display:none!important}
+.apex-update-notice-card{width:min(100%,540px);max-height:min(85vh,750px);overflow-y:auto;border:1px solid var(--line,#cad3de);border-radius:16px;padding:23px;background:var(--panel,#fff);color:var(--text,#17263f);box-shadow:0 22px 72px #0004}
+.apex-update-notice-head{display:flex;gap:12px;align-items:center}
+.apex-update-notice-head>div{flex:1;min-width:0}
+.apex-update-notice-icon{display:grid;place-items:center;height:43px;width:43px;border-radius:12px;background:var(--panel2,#ebf1fb);font-size:27px;font-weight:700;color:var(--text,#1d3761)}
+.apex-update-notice-eyebrow{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:var(--muted,#62738b)}
+.apex-update-notice-head h2{margin:3px 0 0;font-size:20px;line-height:1.2;color:var(--text,#182b45)}
+#apexUpdateNoticeClose{border:0;background:transparent;color:var(--muted,#596e88);font-size:28px;cursor:pointer;line-height:1;padding:5px}
+.apex-update-notice-version{font-weight:750;margin:22px 0 7px}
+.apex-update-notice-description{font-size:13px;color:var(--muted,#51647d);line-height:1.55;margin:8px 0 20px}
+.apex-update-notice-actions{display:flex;flex-wrap:wrap;gap:9px}
+.apex-update-notice-actions button{flex:1 1 140px;min-height:38px}
+.apex-update-notice-progress{margin-bottom:15px}
+.apex-update-progress-track{height:8px;background:var(--line,#dce4ef);border-radius:100px;overflow:hidden}
+#apexUpdateNoticeBar{display:block;height:100%;width:0;background:#5487ce;transition:width .2s}
+#apexUpdateNoticePercent{display:block;font-size:12px;color:var(--muted,#50657d);margin-top:5px}
+.apex-update-notice-schedule{margin-top:18px;padding:14px;border:1px solid var(--line,#d7dfed);border-radius:10px;background:var(--panel2,#f5f7fa)}
+.apex-update-notice-schedule[hidden]{display:none!important}
+.apex-update-notice-schedule>label{display:block;font-weight:700;font-size:12px;margin-bottom:7px}
+.apex-update-notice-schedule input{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line,#c6d2e3);border-radius:8px;color:var(--text,#253751);background:var(--panel,#fff);font:inherit}
+.apex-update-notice-schedule-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.apex-update-notice-schedule p,#apexUpdateNoticeFeedback{font-size:12px;line-height:1.5;color:var(--muted,#566983)}
+@media(max-width:550px){.apex-update-notice{padding:12px}.apex-update-notice-card{padding:16px}.apex-update-notice-actions{display:grid;grid-template-columns:1fr}.apex-update-notice-actions button{width:100%}}
