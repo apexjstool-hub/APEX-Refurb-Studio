@@ -71,3 +71,34 @@ test('Shared preview and thermal print load one physical Asset Label style',()=>
  assert.match(output,/assetOptions/);
  assert.match(output,/fields:fields\.slice\(0,5\)/);
 });
+
+test('Smart Asset Labels preserve Code128 height and arrange every spec into readable grid rows',()=>{
+ const code=read('src/renderer/asset-label-print.js');
+ const context={window:{ApexAssetBarcode:{code128Svg:()=>'<svg viewBox="0 0 80 32"><rect width="2" height="32"/></svg>'},ApexAssetLabelQR:{deviceName:a=>[a.manufacturer,a.model].join(' ')}}};
+ vm.createContext(context);
+ vm.runInContext(code+`\nthis.label=makeLabelMarkup({id:'85543',manufacturer:'Dell',model:'Latitude 5420',serial:'ABCDE123',processor:'Intel Core i5 10th Gen',ram:'8GB',storage:'512GB SSD',condition:'Good'},'assetDevice','60x40',203,{assetOptions:{fields:['serial','processor','ram','storage','condition'],barcodeHeight:'medium',detailSize:'normal'}});`,context);
+ const label=context.label;
+ for(const detail of ['serial','processor','ram','storage','condition'])assert.match(label,new RegExp('data-field="'+detail+'"'));
+ for(const value of ['ABCDE123','Intel Core i5 10th Gen','8GB','512GB SSD','Good','Dell Latitude 5420'])assert.ok(label.includes(value),value);
+ assert.match(label,/--device-label-bar-height:8mm/);
+ assert.match(read('src/renderer/asset-device-label-layout.css'),/grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+ assert.match(read('src/renderer/asset-device-label-layout.css'),/data-field="processor"/);
+ assert.match(read('src/renderer/asset-label-page.js'),/ApexDeviceLabelFit\.fit\(sheet\)/);
+});
+test('No blank preview: show demo label if no asset, centred live preview, and safety recommendation for crowded paper',()=>{
+ const ui=read('src/renderer/asset-labels-studio.js'),css=read('src/renderer/asset-labels-studio.css');
+ assert.match(ui,/const example=\{id:'85543'/);
+ assert.match(ui,/makeLabelMarkup\(row,p\.type,p\.size,p\.dpi,p\)/);
+ assert.match(ui,/ApexDeviceLabelFit\.fit\(sheet\)/);
+ assert.match(ui,/assetLabelsFitSize/);
+ assert.match(ui,/positionPreview\(preview,sheet,w,h\)/);
+ assert.match(css,/left:50%;top:50%/);
+ assert.match(css,/transform-origin:center center/);
+ const fit=require('../src/renderer/asset-device-label-fit');
+ const record={serial:'123',processor:'Core i5',ram:'8GB',storage:'512GB',condition:'Good'};
+ const opts={fields:['serial','processor','ram','storage','condition']};
+ assert.equal(fit.recommendation('50x25',record,opts).tooSmall,true);
+ assert.equal(fit.recommendation('50x25',record,opts).suggested,'60x40');
+ assert.equal(fit.recommendation('60x40',record,opts).tooSmall,false);
+ assert.deepEqual(fit.options({fields:['ram','ram','invalid','serial']}).fields,['ram','serial']);
+});
