@@ -1,0 +1,59 @@
+name: APEX Workstation 2 Preview - Isolated Windows Build
+on:
+  push:
+    branches:
+      - preview/4.4-workstation-2
+    paths:
+      - 'previews/workstation-2/**'
+      - 'tests/workstation-2-preview.test.js'
+      - '.github/workflows/workstation-2-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apex-workstation-44-preview
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked Electron build dependencies
+        run: npm ci
+      - name: Check isolated preview source syntax and safety tests
+        run: |
+          foreach ($file in @('previews/workstation-2/main.js','previews/workstation-2/preload.js','previews/workstation-2/rules.js','previews/workstation-2/renderer.js')) {
+            node --check $file
+            if ($LASTEXITCODE -ne 0) { throw "Invalid JavaScript: $file" }
+          }
+          node --test tests/workstation-2-preview.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Workstation preview tests failed.' }
+      - name: Ensure production identity and update channel stay isolated
+        run: |
+          $prod=Get-Content package.json -Raw | ConvertFrom-Json
+          $preview=Get-Content previews/workstation-2/package.json -Raw | ConvertFrom-Json
+          if ($prod.version -ne '4.3.3' -or $prod.build.appId -ne 'com.apex.inventory') { throw 'Production application identity unexpectedly changed.' }
+          if ($preview.build.appId -eq $prod.build.appId) { throw 'Preview must have its own app ID.' }
+          if ($preview.build.publish -or $preview.dependencies) { throw 'Preview must not have a production update or cloud dependency.' }
+      - name: Build separate Windows preview installer (no publication)
+        run: |
+          & .\node_modules\.bin\electron-builder.cmd --projectDir previews/workstation-2 --win nsis --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Isolated Windows preview build failed.' }
+          $exe=Get-ChildItem dist-workstation-preview -Recurse -Filter '*Setup*.exe' | Select-Object -First 1
+          if (!$exe) { throw 'Preview EXE missing.' }
+          Write-Host "Built isolated preview: $($exe.Name)"
+      - name: Upload Windows preview EXE as Actions artifact only
+        uses: actions/upload-artifact@v6
+        with:
+          name: APEX-Workstation-2-Preview-Windows
+          path: dist-workstation-preview/*.exe
+          retention-days: 30
+          if-no-files-found: error
