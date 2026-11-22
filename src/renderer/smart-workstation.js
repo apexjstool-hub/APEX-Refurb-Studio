@@ -55,6 +55,38 @@
   try{await refresh(true);await fetchWorkflow();renderWorkstation();message('Device and job information refreshed.');}
   catch(e){message(e?.message||'Refresh failed.',true);}
  }
+ function renderGuidance(a,j){
+  const advisor=window.ApexWorkstation2;
+  if(!advisor?.assess)return;
+  const insight=advisor.assess(a,j,workflow?.orders||[]);
+  const set=(id,value)=>{const node=$(id);if(node)node.textContent=String(value);};
+  set('ws2DiagnosticsCount',insight.noResults?'No results':insight.failed.length+' failed · '+insight.tests.length+' recorded');
+  set('ws2RepairCount',insight.required.length+' outstanding');
+  set('ws2QCCount',insight.qcDone+'/'+insight.qcTotal+' confirmed');
+  set('ws2Readiness',insight.canReviewCompletion?'Completion review':insight.qcReady?'QC in progress':'Action required');
+  set('ws2NextTitle',insight.title);
+  set('ws2NextReason',insight.reason);
+  set('ws2DiagnosticStatus',insight.failed.length?insight.failed.length+' FAILED':insight.noResults?'NO RESULTS':insight.untested.length?insight.untested.length+' NOT TESTED':'RECORDED');
+  const list=$('ws2DiagnosticList');
+  if(list)list.innerHTML=insight.tests.length?insight.tests.map(t=>{
+   const detail=t.comment?'<small>'+esc(t.comment)+'</small>':'';
+   return '<div class="ws2-test"><div><b>'+esc(t.label)+'</b>'+detail+'</div><span class="ws2-result ws2-'+esc(t.status)+'">'+esc(t.status.toUpperCase())+'</span></div>';
+  }).join(''):'<p class="section-note">No explicit diagnostics test results are saved for this asset. Do not assume it passed.</p>';
+  const qcList=$('ws2QCChecklist');
+  if(qcList)qcList.innerHTML=insight.QC.map(check=>{
+   const checked=j?.qc?.[check]===true;
+   return '<div class="ws2-qc-line"><span>'+esc(check)+'</span><strong class="'+(checked?'ws2-confirmed':'ws2-pending')+'">'+(checked?'Confirmed':'Pending')+'</strong></div>';
+  }).join('');
+  set('ws2QCGuide',!j?'Open a refurbishment job before quality control.':insight.qcReady?'Recorded repairs are clear; verify QC checks in the existing authorised checklist.':'QC readiness blocked: review diagnostics and outstanding repairs first.');
+  const recommended=$('ws2NextButton');
+  if(recommended){
+   recommended.disabled=insight.kind==='done'||insight.kind==='hold'||insight.kind==='wait';
+   recommended.dataset.wsGuided=insight.kind;
+   recommended.textContent=insight.kind==='order'?'Manage outstanding parts':insight.kind==='fit'?'Open repair actions':insight.kind==='qc'||insight.kind==='review'?'Open QC checklist':insight.kind==='diagnostics'||insight.kind==='retest'?'Review diagnostic results':'Open refurbishment job';
+  }
+  const qcButton=$('wsQC');
+  if(qcButton)qcButton.title=insight.qcReady?'Open existing APEX QC checklist':'Review the recorded failures and outstanding repairs before approving QC.';
+ }
  function renderWorkstation(){
   const a=asset(),j=job(),box=$('wsCurrentAsset');
   $('wsEmpty').hidden=!!a;
@@ -90,6 +122,7 @@
   $('wsManage').disabled=false;
   $('wsOrderAll').disabled=!j||locked()||!parts.some(p=>status(p).toOrder>0);
   $('wsJobNotes').disabled=!j;
+  renderGuidance(a,j);
  }
  async function markOrder(partId){
   const j=job(),part=j?.parts.find(p=>p.id===partId);
@@ -149,6 +182,13 @@
   if(name==='order')markOrder(part);
   else if(name==='receive'){window.ApexOps.receivePart(selected+'|'+part);message('Confirm the physical receipt in the existing APEX dialog, then press Refresh.');}
   else if(name==='fit'){window.ApexOps.fitPart(selected+'|'+part);message('Confirm fitting in the existing APEX dialog, then press Refresh.');}
+  else if(name==='guided'){
+   const kind=$('ws2NextButton')?.dataset.wsGuided;
+   if(kind==='qc'||kind==='review')window.ApexOps.quality(selected);
+   else if(kind==='diagnostics'||kind==='retest'){message('Review the recorded diagnostic results above. Retest in APEX Diagnostics and press Sync; results are not edited here.');$('ws2DiagnosticList')?.scrollIntoView({behavior:'smooth',block:'center'});}
+   else if(kind==='fit'||kind==='order'||kind==='cosmetic'){$('wsParts')?.scrollIntoView({behavior:'smooth',block:'center'});message('Use the existing authorised parts and respray actions below.');}
+   else window.ApexOps.openJob(selected);
+  }
   else if(name==='manage')window.ApexOps.openJob(selected);
   else if(name==='notes')window.ApexOps.openJob(selected);
   else if(name==='qc')window.ApexOps.quality(selected);
