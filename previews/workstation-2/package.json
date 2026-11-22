@@ -1,0 +1,38 @@
+{
+  "name": "apex-workstation-2-preview",
+  "version": "4.4.0-preview.1",
+  "private": true,
+  "description": "APEX Smart Refurbishment Workstation 2.0 — isolated demo preview",
+  "main": "main.js",
+  "author": "APEX",
+  "build": {
+    "appId": "com.apex.inventory.workstation44.preview",
+    "productName": "APEX Workstation 2 Preview",
+    "directories": {
+      "output": "../../dist-workstation-preview"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "rules.js",
+      "index.html",
+      "renderer.js",
+      "style.css",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "APEX-Workstation-2-Preview-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "APEX Workstation 2 Preview",
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "scripts": {}
+}
