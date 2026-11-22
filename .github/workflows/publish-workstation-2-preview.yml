@@ -1,0 +1,49 @@
+name: Publish Isolated Workstation 2 Preview (Pre-release only)
+on:
+  push:
+    branches:
+      - preview/4.4-workstation-2
+    paths:
+      - '.github/workflows/publish-workstation-2-preview.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate verified preview and stable channel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node -p "require('./package.json').version")" = "4.3.3"
+          test "$(node -p "require('./previews/workstation-2/package.json').build.appId")" = "com.apex.inventory.workstation44.preview"
+          test "$(gh api repos/$GITHUB_REPOSITORY/actions/runs/45037389248 --jq .conclusion)" = "success"
+          test "$(gh api repos/$GITHUB_REPOSITORY/actions/runs/45037389248 --jq .head_sha)" = "620163296ce57b671accee7e67cdc560b98aa8e1"
+          if gh release list --repo "$GITHUB_REPOSITORY" --json tagName --limit 100 --jq '.[].tagName' | grep -Fxq 'v4.4.0-workstation-preview.1'; then
+            echo "Preview release tag already exists; refusing overwrite"
+            exit 1
+          fi
+      - name: Download tested Windows EXE artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p preview-dist
+          gh run download 45037389248 --repo "$GITHUB_REPOSITORY" --name APEX-Workstation-2-Preview-Windows --dir preview-dist
+          test -s preview-dist/APEX-Workstation-2-Preview-Setup-4.4.0-preview.1.exe
+          sha256sum preview-dist/APEX-Workstation-2-Preview-Setup-4.4.0-preview.1.exe
+      - name: Publish clearly isolated prerelease without changing latest stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v4.4.0-workstation-preview.1 preview-dist/APEX-Workstation-2-Preview-Setup-4.4.0-preview.1.exe --repo "$GITHUB_REPOSITORY" --target 620163296ce57b671accee7e67cdc560b98aa8e1 --prerelease --latest=false --title "APEX Workstation 2.0 — Isolated Windows Preview" --notes "DEMO ONLY. This is a separate Windows test application with its own application ID and user-data directory. It does not connect to production Supabase, does not update the live APEX app and does not persist demo repairs. Includes barcode-demo asset selection, smart next-action rules, diagnostics, repair parts, notes, QC readiness and activity timeline. No live inventory edits or automatic test pass/fail decisions. Existing APEX 4.3.3 stable installation and Settings updater remain unchanged."
+          test "$(gh api repos/$GITHUB_REPOSITORY/releases/latest --jq .tag_name)" = "v4.3.3"
+          echo "Preview published without changing stable update channel."
