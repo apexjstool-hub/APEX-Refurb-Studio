@@ -1,0 +1,85 @@
+name: Verify APEX 4.4.0 Workstation 2.0 Windows Build
+on:
+  push:
+    branches:
+      - release/4.4.0-workstation-2
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/verify-workstation-440.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apex-440-workstation-build
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install reproducible dependencies
+        run: npm ci
+      - name: Confirm official app identity and stable update channel
+        run: |
+          $p=Get-Content package.json -Raw | ConvertFrom-Json
+          if ($p.version -ne '4.4.0' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Wrong version or application identity.' }
+          if ($p.build.publish[0].releaseType -ne 'release') { throw 'Expected normal stable GitHub updates.' }
+      - name: Verify Workstation 2.0, Diagnostics Sync, labels and refurbishment
+        run: |
+          foreach ($f in @('src/renderer/workstation-2-engine.js','src/renderer/smart-workstation.js','src/renderer/app.js')) {
+            node --check $f
+            if ($LASTEXITCODE -ne 0) { throw "Syntax error in $f" }
+          }
+          node --test tests/workstation-2-integration.test.js tests/smart-workstation.test.js tests/refurb-workflow.test.js tests/diagnostics-sync-2.test.js tests/asset-labels-tab.test.js tests/asset-labels-2x1-fit-433.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'App regression tests failed.' }
+      - name: Verify real Electron Workstation, refurbishment and 2x1 PDF
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          foreach ($f in @('tests/check-workstation-2-integration.js','tests/check-refurb-workspace.js','tests/check-label-layout.js','tests/check-asset-labels-2x1-433.js')) {
+            & .\node_modules\.bin\electron.cmd $f
+            if ($LASTEXITCODE -ne 0) { throw "Electron regression failed: $f" }
+          }
+      - name: Restore existing public cloud login configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Distribution sign-in configuration missing.' }
+          $config=$env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$config.anonKey -match '^sb_secret_') { throw 'A secret database key must not be bundled.' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'),$env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Cloud public login validation failed.' }
+      - name: Prepare local fonts used by the existing application
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Offline font bundling failed.' }
+      - name: Build real APEX 4.4.0 Setup EXE without publishing
+        run: |
+          & .\node_modules\.bin\electron-builder.cmd --win nsis --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer build failed.' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Installer/update manifest integrity failed.' }
+          foreach ($f in @('dist/APEX-Refurb-Studio-Setup-4.4.0.exe','dist/APEX-Refurb-Studio-Setup-4.4.0.exe.blockmap','dist/latest.yml')) {
+            if (!(Test-Path $f)) { throw "Required update file missing: $f" }
+          }
+      - uses: actions/upload-artifact@v6
+        name: Upload verified Windows candidate, not a live release
+        with:
+          name: APEX-4.4.0-Workstation-2-Verified-Candidate
+          path: |
+            dist/APEX-Refurb-Studio-Setup-4.4.0.exe
+            dist/APEX-Refurb-Studio-Setup-4.4.0.exe.blockmap
+            dist/latest.yml
+          retention-days: 30
+          if-no-files-found: error
