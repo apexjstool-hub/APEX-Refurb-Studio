@@ -36,7 +36,7 @@ test('New UI elements and CSS only exist inside workstation page',()=>{
  assert(start>=0&&end>start);
  const section=html.slice(start,end);
  for(const id of ['ws2Summary','ws2DiagnosticsCount','ws2RepairCount','ws2QCCount','ws2Readiness','ws2NextButton','ws2DiagnosticList','ws2QCChecklist'])assert(section.includes('id="'+id+'"'));
- assert.match(html,/src="workstation-2-engine.js"/);assert.match(html,/src="workstation-2.css"/);
+ assert.match(html,/src="workstation-2-engine.js"/);assert.match(html,/href="workstation-2.css"/);
  assert(html.indexOf('src="workstation-2-engine.js"')<html.indexOf('src="smart-workstation.js"'));
  assert.match(css,/#workstationPage/);
  for(const rule of css.split('\n').filter(x=>x.trim()&&!x.trim().startsWith('/*')&&!x.trim().startsWith('*'))){if(rule.includes('{')&&!rule.trim().startsWith('@'))assert(rule.includes('#workstationPage'),'Unscoped CSS: '+rule);}
