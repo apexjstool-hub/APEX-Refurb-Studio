@@ -1,0 +1,93 @@
+name: Publish APEX 4.4.0 Workstation 2.0 Stable
+on:
+  push:
+    branches:
+      - release/4.4.0-workstation-2
+    paths:
+      - '.github/workflows/publish-workstation-440.yml'
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: apex-440-stable-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Confirm verified unchanged production identity and update feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tested = 'c2dd0e071a774fc1818ab29f81287a7b2197fb7d'
+          git merge-base --is-ancestor $tested HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Release branch does not descend from the verified build.' }
+          $p = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($p.version -ne '4.4.0' -or $p.build.appId -ne 'com.apex.inventory' -or $p.build.publish[0].releaseType -ne 'release') { throw 'Incorrect stable update channel or app identity.' }
+          $verification = gh api repos/$env:GITHUB_REPOSITORY/actions/runs/45039140969 --jq '{conclusion:.conclusion,head_sha:.head_sha}'
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify Windows build.' }
+          $v = $verification | ConvertFrom-Json
+          if ($v.conclusion -ne 'success' -or $v.head_sha -ne $tested) { throw 'The pinned Windows build was not successful.' }
+          $current = gh api repos/$env:GITHUB_REPOSITORY/releases/latest --jq .tag_name
+          if ($LASTEXITCODE -ne 0 -or $current -ne 'v4.3.3') { throw 'Stable channel has changed: review before replacing it.' }
+          $versions = @(gh release list --repo $env:GITHUB_REPOSITORY --json tagName --limit 100 | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0) { throw 'Could not list existing tags.' }
+          if (@($versions | ForEach-Object { $_.tagName }) -contains 'v4.4.0') { throw '4.4.0 already exists: do not overwrite.' }
+      - name: Retrieve previously tested installer, blockmap and latest metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force dist | Out-Null
+          gh run download 45039140969 --repo $env:GITHUB_REPOSITORY --name APEX-4.4.0-Workstation-2-Verified-Candidate --dir dist
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download tested build artifacts.' }
+          foreach ($f in @('APEX-Refurb-Studio-Setup-4.4.0.exe','APEX-Refurb-Studio-Setup-4.4.0.exe.blockmap','latest.yml')) {
+            if (!(Test-Path (Join-Path dist $f))) { throw "Missing required release file: $f" }
+          }
+          $manifest = Get-Content dist/latest.yml -Raw
+          if ($manifest -notmatch 'version: 4\.4\.0') { throw 'Update feed is not version 4.4.0.' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Installer/manifest integrity mismatch.' }
+      - name: Publish official APEX Settings update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $versions = @(gh release list --repo $env:GITHUB_REPOSITORY --json tagName --limit 100 | ConvertFrom-Json)
+          if (@($versions | ForEach-Object { $_.tagName }) -contains 'v4.4.0') { throw 'Stable version already exists.' }
+          $notes = @'
+          APEX Management Studio 4.4.0 — Smart Refurbishment Workstation 2.0
+
+          Adds a clean workstation-focused engineer interface inside the existing Workstation sidebar section ONLY. Existing Dashboard, Inventory, Device Details, Refurbishment, Parts & Purchasing, Pallets & Locations, Labels and Settings layouts remain unchanged.
+
+          Workstation 2.0 features: rule-based Next Action recommendations, explicit synced diagnostics pass/fail with comments, outstanding repair and ordering counts, four-stage QC readiness, device specifications, engineer notes, standard existing repair/parts dialogs and pallet actions, and scan-next workflow.
+
+          No automatic test pass/fail, no silent QC approval, no second jobs database, and no Supabase schema migration. APEX Diagnostics still requires deliberate Sync to update recorded results. Existing application ID, user-data directory and built-in Settings updater are preserved. Supersedes 4.3.3 while retaining its verified 2x1 label printing fixes. 4.3.3 remains available for rollback. Back up critical work, update through Settings > APEX Update Centre > Check for updates, and validate a real device before bulk processing.
+
+          Tested on Windows using Node regression suites, integrated Electron barcode scan and failure display, existing refurbishment and 2x1 print/PDF checks, and verified Windows installer and GitHub update metadata.
+          '@
+          gh release create v4.4.0 dist/APEX-Refurb-Studio-Setup-4.4.0.exe dist/APEX-Refurb-Studio-Setup-4.4.0.exe.blockmap dist/latest.yml --repo $env:GITHUB_REPOSITORY --target c2dd0e071a774fc1818ab29f81287a7b2197fb7d --latest --title 'APEX Management Studio 4.4.0 - Smart Workstation 2.0' --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'Stable release publishing failed.' }
+      - name: Verify stable GitHub release and update assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $r = gh release view v4.4.0 --repo $env:GITHUB_REPOSITORY --json tagName,isDraft,isPrerelease,assets | ConvertFrom-Json
+          if ($r.tagName -ne 'v4.4.0' -or $r.isDraft -or $r.isPrerelease) { throw 'Release was not published as stable.' }
+          $names = @($r.assets | ForEach-Object { $_.name })
+          foreach ($name in @('APEX-Refurb-Studio-Setup-4.4.0.exe','APEX-Refurb-Studio-Setup-4.4.0.exe.blockmap','latest.yml')) {
+            if ($names -notcontains $name) { throw "Published update bundle missing $name" }
+          }
+          if ((gh api repos/$env:GITHUB_REPOSITORY/releases/latest --jq .tag_name) -ne 'v4.4.0') { throw 'Stable GitHub latest channel not updated.' }
+          Write-Host 'Verified official APEX 4.4.0 stable update, Windows Setup EXE and latest.yml.'
