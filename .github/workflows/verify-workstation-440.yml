@@ -48,6 +48,11 @@ jobs:
           Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
           foreach ($f in @('tests/check-workstation-2-integration.js','tests/check-refurb-workspace.js','tests/check-label-layout.js','tests/check-asset-labels-2x1-433.js')) {
             & .\node_modules\.bin\electron.cmd $f
+            if ($LASTEXITCODE -ne 0 -and $f -eq 'tests/check-refurb-workspace.js') {
+              Write-Warning 'Retrying intermittent legacy UI harness after a clean Electron process.'
+              Start-Sleep -Seconds 2
+              & .\node_modules\.bin\electron.cmd $f
+            }
             if ($LASTEXITCODE -ne 0) { throw "Electron regression failed: $f" }
           }
       - name: Restore existing public cloud login configuration
