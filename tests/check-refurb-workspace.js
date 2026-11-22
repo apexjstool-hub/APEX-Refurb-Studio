@@ -57,7 +57,8 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,'container-inventory.js'),'utf8'));
   await win.webContents.executeJavaScript("$('refurbNav').click();void 0;");
   if(!await win.webContents.executeJavaScript("currentPage==='refurbWorkspace'&&!$('refurbWorkspacePage').classList.contains('hidden')&&$('refurbNav').classList.contains('active')&&!$('refurbNavLinks')&&!$('refurbNavToggle')&&$('v3Workspace').textContent==='Refurbishment'"))throw Error('Refurbishment sidebar routing or grouping failed.');
-  if(!await win.webContents.executeJavaScript("$('rwQueueTable').querySelectorAll('[data-rw-expand]').length===6&&!$('rwQueueTable').textContent.includes('RW-DONE')"))throw Error('Active queue did not include all active jobs or included completed jobs.');
+  const queueState=await win.webContents.executeJavaScript("({count:$('rwQueueTable').querySelectorAll('[data-rw-expand]').length,excerpt:$('rwQueueTable').textContent.slice(0,900),hasDone:$('rwQueueTable').textContent.includes('RW-DONE')})");
+  if(queueState.count!==6||queueState.hasDone)throw Error('Active queue discrepancy '+JSON.stringify(queueState));
   for(const [key,id] of [['delivery','RW-DELIVERY'],['fit','RW-FIT'],['respray','RW-SPRAY'],['qc','RW-QC'],['hold','RW-HOLD']]){
    await win.webContents.executeJavaScript("$('rwFilters').querySelector('[data-rw-filter="+key+"]').click();void 0;");
    if(!await win.webContents.executeJavaScript("$('rwQueueTable').textContent.includes("+JSON.stringify(id)+")"))throw Error('Queue filter failed: '+key);
