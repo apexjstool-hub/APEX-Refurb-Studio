@@ -45,4 +45,4 @@ jobs:
       - name: Confirm production version and identity unchanged
         run: |
           $p=Get-Content package.json -Raw | ConvertFrom-Json
-          if ($p.version -ne '4.4.1' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Stable source changed unexpectedly.' }
+          if ($p.version -ne '4.4.2' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Stable source changed unexpectedly.' }
