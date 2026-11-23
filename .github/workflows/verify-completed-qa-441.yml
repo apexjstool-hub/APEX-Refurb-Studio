@@ -2,7 +2,7 @@ name: Verify APEX 4.4.1 Completed QA Archive Windows Build
 on:
   push:
     branches:
-      - release/4.4.1-workstation-2
+      - release/4.4.1-completed-qa
     paths:
       - 'package.json'
       - 'package-lock.json'
