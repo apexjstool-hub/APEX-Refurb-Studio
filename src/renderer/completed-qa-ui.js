@@ -30,25 +30,15 @@
      <div><small>LOCATION ID</small><strong>Completed QA</strong></div>
    </section>
    <section class="section-panel qa-actions">
-     <div class="qa-action-head"><div><h3>Completed QA location</h3><p>Every archived device has its individual Location set to Completed QA. Original pallet IDs, refurbishment status and repair history are preserved.</p></div><span class="qa-pill">${qaReady?'Location ready':'Location not created'}</span></div>
-     <div class="qa-toolbar">
-       ${qaReady?'':'<button type="button" class="primary" id="qaCreateLocation" '+(!available()?'disabled':'')+'>Create Completed QA location</button>'}
-       <button type="button" class="primary" id="qaMovePallet" ${!qaReady||!available()?'disabled':''}>Move pallets into Completed QA</button>
-       <button type="button" class="secondary" id="qaRefresh">Refresh archive</button><button type="button" class="secondary" id="qaReconcile" ${!stored.assets.some(a=>!a.deletedAt&&!model.same(a.location,model.NAME))?"disabled":""}>Fix existing QA asset locations</button>
-       <button type="button" class="secondary" id="qaPrint" ${!list.length?'disabled':''}>▤ Print QA manifest</button>
-     </div>
-     ${!available()?'<p class="qa-warning">Pallet locations are not enabled for this connection. The existing cloud location setup must be available before creating or moving pallets.</p>':''}
-     <p class="section-note">Archiving hides devices from active workspaces; it does not mark repairs or QA checks as passed. Verify the manifest before dispatch.</p>
-   </section>
-   <section class="section-panel qa-actions">
-     <h3>Scan asset into a Completed QA pallet</h3>
-     <form id="qaAssignForm" class="qa-scanner">
-       <label>Asset ID / serial<input name="asset" autocomplete="off" spellcheck="false" placeholder="Scan an active asset ID" required maxlength="160"></label>
-       <label>QA pallet ID<select name="pallet" required><option value="">Select a QA pallet</option>${pallets.map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>').join('')}</select></label>
-       <button type="submit" class="primary" ${!pallets.length||busy?'disabled':''}>Archive asset</button>
+     <h3>Scan an asset into Completed QA</h3>
+     <p>Scan an Asset ID or serial number, then click Move to Completed QA. The individual asset Location is changed to Completed QA, without changing its pallet ID, refurbishment or diagnostics history.</p>
+     <form id="qaAssignForm" class="qa-scanner qa-simple-scan">
+       <label>Asset ID / serial<input name="asset" autocomplete="off" spellcheck="false" placeholder="Scan asset ID or serial…" required maxlength="160"></label>
+       <button type="submit" class="primary" ${busy?'disabled':''}>Move to Completed QA</button>
      </form>
-     <p class="section-note">If no QA pallet is listed, move an existing pallet into the Completed QA location first. The individual asset Location will be saved as Completed QA while retaining its pallet ID.</p>
      <p id="qaActionMessage" class="qa-message" role="status"></p>
+     <div class="qa-toolbar"><button type="button" class="secondary" id="qaRefresh">Refresh archive</button><button type="button" class="secondary" id="qaReconcile" ${!stored.assets.some(a=>!a.deletedAt&&!model.same(a.location,model.NAME))?'disabled':''}>Fix older QA locations</button><button type="button" class="secondary" id="qaPrint" ${!list.length?'disabled':''}>▤ Print QA manifest</button></div>
+     <p class="section-note">Moving an asset to this archive does not automatically approve repairs or QC. The manifest still displays the recorded status.</p>
    </section>
    <section class="section-panel qa-actions">
      <div class="qa-action-head"><div><h3>Completed QA manifest</h3><p>Model, brand, asset ID, serial, original pallet ID and recorded repair/QC status.</p></div><span class="qa-pill">${list.length} shown</span></div>
@@ -61,8 +51,6 @@
    </section>`;
   $('qaSearch').oninput=e=>{search=e.target.value;render();$('qaSearch')?.focus();$('qaSearch')?.setSelectionRange(search.length,search.length);};
   $('qaPalletFilter').onchange=e=>{palletFilter=e.target.value;render();};
-  $('qaCreateLocation')?.addEventListener('click',createLocation);
-  $('qaMovePallet').onclick=()=>window.ApexPalletLocations?.move([],model.NAME);
   $('qaRefresh').onclick=refreshQA;
   $('qaReconcile').onclick=reconcileExisting;
   $('qaPrint').onclick=printManifest;
@@ -117,21 +105,28 @@
  }
  async function archiveAsset(event){
   event.preventDefault();if(busy)return;
-  const form=event.currentTarget,id=String(form.elements.asset.value||'').trim().toUpperCase(),pallet=form.elements.pallet.value;
-  const validPallet=archive().pallets.some(p=>model.same(p.name,pallet)),found=items.find(a=>a.id===id||String(a.serial||'').trim().toUpperCase()===id);
-  if(!validPallet||!found){notify('Select a QA pallet and scan an existing active asset.','error');return;}
-  if(!confirm('Archive asset '+found.id+' onto pallet '+pallet+' in Completed QA? It will disappear from active Inventory and Work Queue until restored.'))return;
-  busy=true;try{
-   const result=await api.update(found.id,{pallet,location:model.NAME});
-   if(!result?.ok)throw Error(result?.error||'Could not archive asset.');
-   await refresh(true);render();notify('Asset '+found.id+' archived in Completed QA.');
-  }catch(e){notify(e.message,'error');}finally{busy=false;}
+  const input=event.currentTarget.elements.asset,scanned=String(input.value||'').trim().toUpperCase();
+  const found=items.find(a=>a.id===scanned||String(a.serial||'').trim().toUpperCase()===scanned);
+  if(!found){notify('Asset not found in active Inventory. Check the scanned ID or serial number.','error');input.focus();return;}
+  if(!confirm('Move asset '+found.id+' to Completed QA? It will disappear from active inventory and its individual Location will be saved as Completed QA. Its existing pallet ID will not change.'))return;
+  busy=true;
+  try{
+   // Direct Location update only: do not change this asset's pallet ID.
+   const result=await api.update(found.id,{location:model.NAME});
+   if(!result?.ok)throw Error(result?.error||'Could not move the asset into Completed QA.');
+   await refresh(true);render();notify('Asset '+found.id+' moved to Completed QA. Location: Completed QA.');
+   document.querySelector('#qaAssignForm input[name="asset"]')?.focus();
+  }catch(e){notify(e.message,'error');input.focus();}
+  finally{busy=false;}
  }
  async function restoreAsset(id){
   const found=archive().assets.find(a=>model.same(a.id,id));if(!found||busy)return;
-  if(!confirm('Restore asset '+found.id+' to active inventory? The asset will leave its QA pallet; its repair history is preserved.'))return;
+  if(!confirm('Restore asset '+found.id+' to active inventory? Its repair history will be preserved. The pallet ID is retained unless the pallet itself remains in Completed QA.'))return;
   busy=true;try{
-   const result=await api.update(found.id,{pallet:'',location:'Unassigned'});
+   // Retain the pallet for direct QA assets. Only unlink a pallet if that
+   // pallet itself is still in QA; otherwise the asset would remain archived.
+   const qaPallet=archive().pallets.some(p=>model.same(p.name,found.pallet));
+   const result=await api.update(found.id,qaPallet?{pallet:'',location:'Unassigned'}:{location:'Unassigned'});
    if(!result?.ok)throw Error(result?.error||'Unable to restore asset.');
    await refresh(true);render();notify('Restored '+found.id+' to active inventory.');
   }catch(e){notify(e.message,'error');}finally{busy=false;}
