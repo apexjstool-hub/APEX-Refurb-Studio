@@ -1,0 +1,50 @@
+name: Verify Completed QA Final Signoff
+on:
+  push:
+    branches:
+      - feature/4.4.4-completed-qa-signoff
+    paths:
+      - 'src/renderer/completed-qa*'
+      - 'src/renderer/app.js'
+      - 'src/refurb-workflow.js'
+      - 'tests/completed-qa-final-signoff.test.js'
+      - 'src/renderer/index.html'
+      - 'src/renderer/v3-ui.js'
+      - 'src/renderer/pallet-locations.js'
+      - 'tests/completed-qa-archive.test.js'
+      - 'tests/check-completed-qa.js'
+      - '.github/workflows/verify-completed-qa-signoff-444.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci
+      - name: Run archive, pallet, refurbishment and regression tests
+        run: |
+          foreach ($f in @('src/renderer/completed-qa-core.js','src/renderer/completed-qa-ui.js','src/renderer/pallet-locations.js','src/renderer/app.js')) {
+            node --check $f
+            if ($LASTEXITCODE -ne 0) { throw "Syntax failed: $f" }
+          }
+          node --test tests/completed-qa-final-signoff.test.js tests/completed-qa-archive.test.js tests/pallet-locations.test.js tests/pallet-locations-v4111-ui.test.js tests/pallet-location-compact-v4122.test.js tests/refurb-workflow.test.js tests/diagnostics-sync-2.test.js tests/workstation-2-integration.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Refurbishment/pallet regression tests failed.' }
+      - name: Verify real Electron rendering and A4 manifest
+        run: |
+          Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+          & .\node_modules\.bin\electron.cmd tests/check-completed-qa.js
+          if ($LASTEXITCODE -ne 0) { throw 'Completed QA interface or manifest failed.' }
+      - name: Confirm production version and identity unchanged
+        run: |
+          $p=Get-Content package.json -Raw | ConvertFrom-Json
+          if ($p.version -ne '4.4.2' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Stable source changed unexpectedly.' }
