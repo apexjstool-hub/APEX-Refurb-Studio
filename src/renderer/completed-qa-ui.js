@@ -31,7 +31,7 @@
    </section>
    <section class="section-panel qa-actions">
      <h3>Scan an asset into Completed QA</h3>
-     <p>Scan an Asset ID or serial number, then click Move to Completed QA. After you confirm the actual repair, respray and QA work is finished, the refurbishment, repair/respray and QC records are marked Completed. The asset Location changes to Completed QA and its pallet ID is preserved.</p>
+     <p>Scan an Asset ID or serial number, then click Move to Completed QA. After you confirm the actual repair, respray and QA work is finished, the refurbishment, repair/respray and QC records are marked Completed. The asset Location changes to Completed QA, its Inventory processing status becomes Processed, and its pallet ID is preserved.</p>
      <form id="qaAssignForm" class="qa-scanner qa-simple-scan">
        <label>Asset ID / serial<input name="asset" autocomplete="off" spellcheck="false" placeholder="Scan asset ID or serial…" required maxlength="160"></label>
        <button type="submit" class="primary" ${busy?'disabled':''}>Move to Completed QA</button>
@@ -123,7 +123,7 @@
    workflow=finished.workflow||live.workflow;
    // Save Location separately only after workflow completion succeeds.
    // Do not remove or rename the pallet or mutate diagnostic pass/fail.
-   const result=await api.update(found.id,{location:model.NAME});
+   const result=await api.update(found.id,{location:model.NAME,status:'Processed'});
    if(!result?.ok)throw Error('All repair/respray and QC statuses were completed, but the Location save failed: '+(result?.error||'unknown error')+'. The asset is still in active Inventory; retry the move.');
    await refresh(true);render();notify('Asset '+found.id+' — repair, respray, refurbishment and QA completed. Location: Completed QA.');
    document.querySelector('#qaAssignForm input[name="asset"]')?.focus();
