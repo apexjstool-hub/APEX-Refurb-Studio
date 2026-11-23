@@ -53,7 +53,7 @@ test('Archive scan stores direct Location and manifest prints the actual stored 
  assert.match(ui,/Move to Completed QA/);
  assert.doesNotMatch(ui,/<select name="pallet"/);
  assert.match(ui,/const found=items\.find\(a=>a\.id===scanned/);
- assert.match(ui,/Fix existing QA asset locations/);
+ assert.match(ui,/Fix older QA locations/);
  assert.match(ui,/r\.location/);
 });
 test('No repair job is not represented as completed',()=>{
