@@ -243,6 +243,48 @@ function apply(state,assets,cmd,by='Administrator'){
   history(s,'Parts board changed',cmd.board==='ordered'?'Moved to Parts Ordered':'Moved to Parts Needed',id,by);
   return {ok:true,workflow:s};
  }
+ if(type==='completeForQA'){
+  // One expressly authorised final sign-off, rather than treating moving a
+  // storage location as evidence that diagnostic tests passed. This action
+  // updates the canonical repair, cosmetic and QC workflow together.
+  if(cmd.confirmPhysicalWork!==true||cmd.confirmFinalQC!==true)
+   throw Error('Confirm that every repair, respray and QC check was physically completed before finalising.');
+  const asset=assets.find(a=>a.id===id&&!a.deletedAt);
+  if(!asset)throw Error('Asset not found in active Inventory. Refresh and scan again.');
+  const existing=s.jobs[id];
+  if(clip(cmd.expectedUpdatedAt,80)!==clip(existing?.updatedAt,80))
+   throw Error('This refurbishment job changed since it was scanned. Refresh and review it again.');
+  if(existing?.status==='On Hold')throw Error('This job is on hold. Resolve the hold before completing it.');
+  const failed=Object.entries(asset.diagnosticTests||{}).filter(([,test])=>String(test?.status||test).toLowerCase()==='fail').map(([name])=>name);
+  if(failed.length)throw Error('Cannot approve final QA with failed synced diagnostics: '+failed.join(', ')+'. Retest and Sync the device first.');
+  // Validate every part before changes. Retain original supplier/order history.
+  const parts=Array.isArray(existing?.parts)?existing.parts:[];
+  for(const p of parts){
+   const q=Number(p.qty),received=Number(p.received),fitted=Number(p.fitted);
+   if(!Number.isSafeInteger(q)||q<1||q>9999||!Number.isSafeInteger(received)||received<0||received>q||!Number.isSafeInteger(fitted)||fitted<0||fitted>received)
+    throw Error('Invalid recorded repair quantities. Review '+clip(p.name,80)+' before QA sign-off.');
+  }
+  job=ensure(s,id,assets);
+  if(job.status==='Completed'&&job.parts.every(p=>p.fitted>=p.qty)&&QC.every(k=>job.qc?.[k]===true))
+   return {ok:true,workflow:s,alreadyCompleted:true};
+  const time=stamp(),actor=clip(by,80)||'Administrator',changed=[];
+  for(const p of job.parts){
+   if(p.fitted>=p.qty)continue;
+   const outstanding=p.qty-p.fitted;
+   // This is an explicit human-attested finalisation, not a purchase order.
+   // Do NOT fabricate supplier deliveries or modify order-line receipt totals.
+   p.received=p.qty;p.fitted=p.qty;
+   p.lastReceivedAt=time;p.lastReceivedBy=actor;p.lastProgressAt=time;p.lastProgressBy=actor;
+   changed.push(clip(p.name,80)+' × '+outstanding);
+   history(s,isCosmetic(p.name)?'Respray completed at final QA':'Repair completed at final QA',
+    clip(p.name,100)+' × '+outstanding+' · operator attested completion (not supplier receipt)',id,by);
+  }
+  job.qc=job.qc&&typeof job.qc==='object'?job.qc:{};
+  for(const check of QC){job.qc[check]=true;}
+  job.status='Completed';job.updatedAt=time;
+  history(s,'Completed QA sign-off','All four QC checks confirmed by operator; refurbishment completed; '+changed.length+' outstanding repair/respray requirements operator-attested. Synced diagnostics unchanged.',id,by);
+  return {ok:true,workflow:s,completedQA:true,changedRequirements:changed.length};
+ }
  if(type==='bulkJob'){
   const ids=Array.isArray(cmd.assetIds)?[...new Set(cmd.assetIds.map(x=>clip(x,80).toUpperCase()))]:[];
   if(!ids.length||ids.length>150)throw Error('Select between 1 and 150 refurbishment jobs.');
