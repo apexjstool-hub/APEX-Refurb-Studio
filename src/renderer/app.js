@@ -253,7 +253,7 @@ function openAsset(id=''){
  fillOptions('editProductType',core.productTypes,a.productType);fillOptions('editRamType',core.ramTypes,a.ramType);fillOptions('editSsdType',core.ssdTypes,a.ssdType);
  fillOptions('editPallet',['',...new Set([...managedPallets.map(p=>p.name),...items.map(i=>i.pallet).filter(Boolean),a.pallet||''])].sort(),a.pallet||'');
  $('editPallet').options[0].textContent='No pallet';
- fillOptions('editLocation',[...new Set(['Unassigned',...managedLocations,...items.map(i=>i.location).filter(Boolean),a.location||'Inspection'])].sort(),a.location);
+ fillOptions('editLocation',[...new Set(['Unassigned','Completed QA',...managedLocations,...items.map(i=>i.location).filter(Boolean),a.location||'Inspection'])].sort(),a.location);
  fillOptions('editCondition',core.conditions,a.condition);fillOptions('editStatus',core.statuses,a.status);
  fillOptions('editCosmetic',core.cosmetics,a.inspection.cosmetic);fillOptions('editFunctional',core.functions,a.inspection.functional);fillOptions('editBattery',core.batteries,a.inspection.battery);
  
@@ -278,9 +278,11 @@ function updateAssetOverview(){if(currentPage!=='asset')return;const a=readAsset
 window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='asset')updateAssetOverview();});
 async function saveAsset(e){e?.preventDefault();if($('assetTopSave').disabled)return;const savedSection=$('assetPage').dataset.section;const data=readAsset();if(!data.id||!data.model.trim()){$('assetError').textContent='Asset ID and model are required.';return;}
  if(!data.location.trim()){$('assetError').textContent='Location is required.';return;}
+ const qaArchive=window.ApexCompletedQA?.same(data.location,'Completed QA');
+ if(qaArchive&&!confirm('Move '+data.id+' to Completed QA? This saves Completed QA in the asset Location field and archives it from active pages, keeping the original pallet ID and repair history.'))return;
  $('assetTopSave').disabled=true;$('assetBottomSave').disabled=true;$('refurbNotesSave').disabled=true;$('assetError').textContent='';
  try{const r=activeAssetId?await api.update(activeAssetId,data):await api.add(data);if(!r.ok){$('assetError').textContent=r.error||'Could not save asset.';return;}
- activeAssetId=r.item.id;dirty=false;await refresh();openAsset(r.item.id);if(savedSection)document.querySelector('[data-asset-tab="'+savedSection+'"]')?.click();notify(`Saved ${r.item.id} · ${r.item.status}`);
+ activeAssetId=r.item.id;dirty=false;await refresh();if(qaArchive){activeAssetId=null;setPage('completedQA',true);notify(`Archived ${r.item.id} · Location: Completed QA`);}else{openAsset(r.item.id);if(savedSection)document.querySelector('[data-asset-tab="'+savedSection+'"]')?.click();notify(`Saved ${r.item.id} · ${r.item.status}`);}
  }finally{$('assetTopSave').disabled=false;$('assetBottomSave').disabled=false;$('refurbNotesSave').disabled=false;}
 }
 function openScan(){if(!setPage('scan'))return;$('inlineScanInput').value='';$('pageScanHelp').textContent='USB/Bluetooth keyboard scanners typically press Enter after a successful scan.';$('inlineScanInput').focus();}
