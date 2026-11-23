@@ -18,6 +18,7 @@ app.whenReady().then(async()=>{
     async function refresh(){return true;}
     var api={workflow:async()=>({ok:true,workflow:{jobs:{'ARCH-1':{assetId:'ARCH-1',status:'Completed',parts:[{name:'Battery',qty:1,fitted:1},{name:'Respray lid',qty:1,fitted:1}],qc:{'Visual inspection':true,'Required parts fitted':true,'Hardware retest':true,'Final clean & sign-off':true}}},orders:[],resprayPallets:[]}}),
       movePallets:async input=>{moveRequests.push(input);return {ok:true};},
+      workflowAction:async(command)=>{window.lastQACommand=command;return {ok:true,workflow:{jobs:{},orders:[],resprayPallets:[]}};},
       update:async(id,fields)=>{updateRequests.push({id,fields});return {ok:true};},
       createPalletLocation:async()=>({ok:true})};
     window.ApexPalletLocationData={names:['Completed QA'],available:true};
@@ -40,6 +41,7 @@ app.whenReady().then(async()=>{
     form.querySelector('input[name="asset"]').value='ACTIVE-1';
     window.confirm=()=>true;
     await form.onsubmit({preventDefault(){},currentTarget:form});
+    before.qaWorkflowConfirmed=window.lastQACommand?.type==='completeForQA'&&window.lastQACommand?.confirmFinalQC===true&&window.lastQACommand?.confirmPhysicalWork===true;
     before.moveSavesOnlyLocation=updateRequests.length===1&&updateRequests[0].id==='ACTIVE-1'&&
       updateRequests[0].fields.location==='Completed QA'&&!Object.hasOwn(updateRequests[0].fields,'pallet');
     return before;
