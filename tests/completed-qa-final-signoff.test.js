@@ -44,6 +44,6 @@ test('New Completed QA scanner signs off before saving individual Location and r
  const action=src.slice(src.indexOf('async function archiveAsset'),src.indexOf('async function restoreAsset'));
  assert(action.includes('confirmFinalQC:true'));
  assert(action.includes('confirmPhysicalWork:true'));
- assert(action.indexOf('api.workflowAction(')<action.indexOf('api.update(found.id,{location:model.NAME})'));
+ assert(action.indexOf('api.workflowAction(')<action.indexOf("api.update(found.id,{location:model.NAME,status:'Processed'})"));
  assert.doesNotMatch(action,/diagnosticTests\s*=|pallet\s*:/);
 });
