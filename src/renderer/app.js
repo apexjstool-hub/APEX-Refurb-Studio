@@ -10,8 +10,8 @@ const shortDate=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'sh
 const grade=a=>`<span class="grade-badge grade-${html(a.grade||'Pending')}">${html(a.grade||'Pending')}</span>`;
 const state=a=>`<span class="status ${a==='Processed'?'ready':'testing'}">● ${html(a||'Awaiting Processing')}</span>`;
 function notify(msg,kind='info'){$('toast').dataset.kind=kind;$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
-const PAGE_NAMES={labelStudio:'Labels & Printing',assetLabels:'Labels & Printing',qaStickers:'Labels & Printing',refurbWorkspace:'Refurbishment',dispatch:'Dispatch',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',workstation:'Workstation',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations',containerInventory:'Inventory contents'};
-const PAGE_SUBS={labelStudio:'Custom Asset Labels',assetLabels:'Asset Labels',qaStickers:'QA Stickers',refurbWorkspace:'Work queue',dispatch:'Microdream pallets',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',workstation:'Smart Barcode Workstation',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',containerInventory:'Contained items'};
+const PAGE_NAMES={labelStudio:'Labels & Printing',assetLabels:'Labels & Printing',qaStickers:'Labels & Printing',refurbWorkspace:'Refurbishment',dispatch:'Dispatch',dashboard:'Dashboard',inventory:'Inventory',scan:'Inventory',workstation:'Workstation',asset:'Inventory',locations:'Locations',bulk:'Scan',reports:'Reports',users:'Users',settings:'Admin Centre',pallets:'Pallets',palletLocations:'Pallet locations',palletLocationDetail:'Pallet locations',completedQA:'Completed QA',containerInventory:'Inventory contents'};
+const PAGE_SUBS={labelStudio:'Custom Asset Labels',assetLabels:'Asset Labels',qaStickers:'QA Stickers',refurbWorkspace:'Work queue',dispatch:'Microdream pallets',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',workstation:'Smart Barcode Workstation',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',completedQA:'Archived assets & manifest',containerInventory:'Contained items'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
  if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
@@ -59,7 +59,7 @@ function legacyInventoryRender(){
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
- renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();window.ApexCompletedQAUI?.render();
 }
 function render(){
  if(typeof inventoryIndex==='undefined'||!window.ApexInventoryPerformance)return legacyInventoryRender();
@@ -104,7 +104,7 @@ function render(){
  document.querySelectorAll('[data-print-asset]').forEach(b=>b.onclick=()=>openAssetPrintDialog(b.dataset.printAsset));
  document.querySelectorAll('[data-delete-asset]').forEach(b=>b.onclick=()=>window.apexDeleteAsset?.(b.dataset.deleteAsset));
  document.querySelectorAll('[data-location]').forEach(b=>b.onclick=()=>window.ApexContainerInventory?.open('location',b.dataset.location));
- renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();
+ renderSupplementalPages();window.ApexInventoryTracker?.decorate();window.ApexInventoryRefinement?.decorate();window.ApexPalletPage?.render();window.ApexPalletLocations?.render();window.ApexCompletedQAUI?.render();
 }
 function summarizeLocations(){
  const map=new Map(managedLocations.filter(name=>String(name).trim().toLowerCase()!=='unassigned').map(name=>[name,[]]));
@@ -184,10 +184,16 @@ async function refresh(silent=false){
    if(r.mode==='cloud')syncMode='cloud';
    if(r.unchanged){updateConnection(true);return;}
    if(!Array.isArray(r.items))throw Error('Inventory response is missing asset records.');
-   items=r.items.map(core.normalize);
+   const allAssets=r.items.map(core.normalize);
+   const allPallets=Array.isArray(r.pallets)?r.pallets:[];
+   const qa=window.ApexCompletedQA?.partition(allAssets,allPallets)||{active:allAssets,archived:[],activePallets:allPallets,archivedPallets:[]};
+   // Every existing Inventory, search, Work Queue, report and pallet view consumes
+   // active records only. The reserved Completed QA page owns archived records.
+   items=qa.active;
    inventoryIndex=null;
-   managedLocations=Array.isArray(r.locations)?r.locations:[];
-   managedPallets=Array.isArray(r.pallets)?r.pallets:[];
+   managedLocations=(Array.isArray(r.locations)?r.locations:[]).filter(n=>!window.ApexCompletedQA?.same(n,'Completed QA'));
+   managedPallets=qa.activePallets;
+   window.ApexCompletedQAArchive={assets:qa.archived,pallets:qa.archivedPallets,allPallets};
    window.ApexPalletLocationData={names:Array.isArray(r.palletLocations)?r.palletLocations:[],available:r.mode==='local'||Array.isArray(r.palletLocations)&&r.palletLocationsAvailable!==false};
    lastHubVersion=Number.isSafeInteger(r.version)?r.version:null;
    lastFullRefreshAt=Date.now();
