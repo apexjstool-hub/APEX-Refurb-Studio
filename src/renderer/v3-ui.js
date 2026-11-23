@@ -1,7 +1,7 @@
 'use strict';
 // APEX v3 workspace layer; reuses the existing verified inventory, hub, and repairs logic.
 (function(){
-const groups={labelStudio:[['labelStudio','Custom Asset Labels'],['assetLabels','Asset Labels'],['qaStickers','QA Stickers']],refurbWorkspace:[['refurbWorkspace','Refurbishment']],dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['locations','Locations'],['pallets','Pallets'],['palletLocations','Pallet locations']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
+const groups={labelStudio:[['labelStudio','Custom Asset Labels'],['assetLabels','Asset Labels'],['qaStickers','QA Stickers']],refurbWorkspace:[['refurbWorkspace','Refurbishment']],dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['locations','Locations'],['pallets','Pallets'],['palletLocations','Pallet locations'],['completedQA','Completed QA']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
 const groupNames={labelStudio:'Labels & Printing',refurbWorkspace:'Refurbishment',dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
 const esc=html;
 const getGroup=p=>p==='asset'||p==='scan'||p==='palletLocationDetail'||p==='containerInventory'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
