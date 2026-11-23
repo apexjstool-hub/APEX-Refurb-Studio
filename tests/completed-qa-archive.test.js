@@ -38,17 +38,21 @@ test('Moving existing pallet to Completed QA persists every individual Location 
  assert.equal(out.ok,true);assert.deepEqual(db.items.slice(0,2).map(a=>a.location),['Unassigned','Unassigned']);
  assert.equal(db.items[2].location,'Unassigned');
 });
-test('Completed QA is its own sidebar workspace, not an Inventory subtab',()=>{
+test('Completed QA is a tab inside Inventory, not a standalone sidebar section',()=>{
  const tabs=read('src/renderer/v3-ui.js'),html=read('src/renderer/index.html');
- assert.match(tabs,/completedQA:\[\['completedQA','Completed QA'\]\]/);
- assert.doesNotMatch(tabs,/\['palletLocations','Pallet locations'\],\['completedQA'/);
- assert.match(html,/data-page="completedQA"/);
+ assert.match(tabs,/\['palletLocations','Pallet locations'\],\['completedQA','Completed QA'\]/);
+ assert.doesNotMatch(tabs,/completedQA:\[\['completedQA'/);
+ assert.doesNotMatch(html,/data-page="completedQA" id="completedQANav"/);
+ assert.match(html,/id="completedQAPage"/);
 });
 test('Archive scan stores direct Location and manifest prints the actual stored field',()=>{
  const ui=read('src/renderer/completed-qa-ui.js');
  const model=qa.manifest([asset('ARCH-2','P-77','Completed QA')],{});
  assert.equal(model[0].location,'Completed QA');
- assert.match(ui,/api\.update\(found\.id,\{pallet,location:model\.NAME\}\)/);
+ assert.match(ui,/api\.update\(found\.id,\{location:model\.NAME\}\)/);
+ assert.match(ui,/Move to Completed QA/);
+ assert.doesNotMatch(ui,/<select name="pallet"/);
+ assert.match(ui,/const found=items\.find\(a=>a\.id===scanned/);
  assert.match(ui,/Fix existing QA asset locations/);
  assert.match(ui,/r\.location/);
 });
