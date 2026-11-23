@@ -47,7 +47,8 @@
   const next=(db.pallets||[]).map(p=>({...p}));
   for(const p of selected){let saved=next.find(x=>equal(x.name,p.name));if(!saved){saved={name:p.name,label:p.label||'',location:p.location||'',createdAt:p.createdAt||''};next.push(saved);}saved.storageLocation=location||'';saved.updatedAt=new Date().toISOString();}
   db.pallets=next;
-  // Pallet location changes leave the asset's direct Location field unchanged.
+  // Pallet location moves preserve pallet IDs. Completed QA synchronises the
+  // per-asset Location value; other storage moves retain existing locations.
   // Add a dated asset history entry so the move appears in History & checks.
   const now=new Date().toISOString();
   for(const p of selected){
@@ -55,6 +56,11 @@
    for(const asset of db.items||[]){
     if(asset.deletedAt||!equal(asset.pallet,p.name))continue;
     const old=clean(p.storageLocation)||'Unassigned',destination=location||'Unassigned';
+    // Completed QA is a real per-asset Location value, not only pallet metadata.
+    // Keep the original pallet assignment unchanged. On return, clear QA from
+    // the direct Location; do not overwrite unrelated locations.
+    if(equal(location,'Completed QA'))asset.location='Completed QA';
+    else if(equal(p.storageLocation,'Completed QA')&&equal(asset.location,'Completed QA'))asset.location='Unassigned';
     asset.history=[...(Array.isArray(asset.history)?asset.history:[]),{id:'move-'+now+'-'+Math.random().toString(36).slice(2),type:'Pallet location',detail:`Pallet ${p.name} moved: ${old} → ${destination}`,at:now}].slice(-120);
     asset.updatedAt=now;
    }
