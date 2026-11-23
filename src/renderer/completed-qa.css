@@ -27,3 +27,8 @@
 #completedQAPage .qa-pallet-row strong{font-variant-numeric:tabular-nums}
 @media(max-width:950px){#completedQAPage .qa-overview{grid-template-columns:repeat(2,minmax(0,1fr))}#completedQAPage .qa-scanner{grid-template-columns:1fr 1fr}#completedQAPage .qa-scanner button{grid-column:1/-1}}
 @media(max-width:580px){#completedQAPage .qa-scanner{grid-template-columns:1fr}#completedQAPage .qa-scanner button{grid-column:1}#completedQAPage .qa-action-head{flex-direction:column}}
+
+/* One-scan QA intake, no pallet selection required. */
+#completedQAPage .qa-scanner.qa-simple-scan{grid-template-columns:minmax(260px,1fr) auto;max-width:800px}
+#completedQAPage .qa-simple-scan button{min-height:40px}
+@media(max-width:650px){#completedQAPage .qa-scanner.qa-simple-scan{grid-template-columns:1fr}}
