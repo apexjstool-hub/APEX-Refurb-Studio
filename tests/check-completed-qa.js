@@ -43,7 +43,7 @@ app.whenReady().then(async()=>{
     await form.onsubmit({preventDefault(){},currentTarget:form});
     before.qaWorkflowConfirmed=window.lastQACommand?.type==='completeForQA'&&window.lastQACommand?.confirmFinalQC===true&&window.lastQACommand?.confirmPhysicalWork===true;
     before.moveSavesOnlyLocation=updateRequests.length===1&&updateRequests[0].id==='ACTIVE-1'&&
-      updateRequests[0].fields.location==='Completed QA'&&!Object.hasOwn(updateRequests[0].fields,'pallet');
+      updateRequests[0].fields.location==='Completed QA'&&updateRequests[0].fields.status==='Processed'&&!Object.hasOwn(updateRequests[0].fields,'pallet');
     return before;
   })()`);
   if(Object.values(result).some(v=>v!==true))throw Error('QA Electron render/manifest failed '+JSON.stringify(result));
