@@ -31,14 +31,14 @@
    </section>
    <section class="section-panel qa-actions">
      <h3>Scan an asset into Completed QA</h3>
-     <p>Scan an Asset ID or serial number, then click Move to Completed QA. The individual asset Location is changed to Completed QA, without changing its pallet ID, refurbishment or diagnostics history.</p>
+     <p>Scan an Asset ID or serial number, then click Move to Completed QA. After you confirm the actual repair, respray and QA work is finished, the refurbishment, repair/respray and QC records are marked Completed. The asset Location changes to Completed QA and its pallet ID is preserved.</p>
      <form id="qaAssignForm" class="qa-scanner qa-simple-scan">
        <label>Asset ID / serial<input name="asset" autocomplete="off" spellcheck="false" placeholder="Scan asset ID or serial…" required maxlength="160"></label>
        <button type="submit" class="primary" ${busy?'disabled':''}>Move to Completed QA</button>
      </form>
      <p id="qaActionMessage" class="qa-message" role="status"></p>
      <div class="qa-toolbar"><button type="button" class="secondary" id="qaRefresh">Refresh archive</button><button type="button" class="secondary" id="qaReconcile" ${!stored.assets.some(a=>!a.deletedAt&&!model.same(a.location,model.NAME))?'disabled':''}>Fix older QA locations</button><button type="button" class="secondary" id="qaPrint" ${!list.length?'disabled':''}>▤ Print QA manifest</button></div>
-     <p class="section-note">Moving an asset to this archive does not automatically approve repairs or QC. The manifest still displays the recorded status.</p>
+     <p class="section-note">Final QA completion requires explicit engineer confirmation. Synced diagnostic failures block completion until retested and synced; diagnostic pass/fail results are never rewritten.</p>
    </section>
    <section class="section-panel qa-actions">
      <div class="qa-action-head"><div><h3>Completed QA manifest</h3><p>Model, brand, asset ID, serial, original pallet ID and recorded repair/QC status.</p></div><span class="qa-pill">${list.length} shown</span></div>
@@ -108,13 +108,24 @@
   const input=event.currentTarget.elements.asset,scanned=String(input.value||'').trim().toUpperCase();
   const found=items.find(a=>a.id===scanned||String(a.serial||'').trim().toUpperCase()===scanned);
   if(!found){notify('Asset not found in active Inventory. Check the scanned ID or serial number.','error');input.focus();return;}
-  if(!confirm('Move asset '+found.id+' to Completed QA? It will disappear from active inventory and its individual Location will be saved as Completed QA. Its existing pallet ID will not change.'))return;
+  // The user explicitly confirms actual repair, respray and QC work.
+  // Simply changing a location never means that a failed hardware test passed.
+  if(!confirm('FINAL QA SIGN-OFF — Asset '+found.id+'\\n\\nI confirm that all required repairs, respray work and all four final QA checks have actually been completed. APEX will mark the refurbishment, parts/respray and QC records Completed, then move the asset to Completed QA.\\n\\nIts pallet ID will remain unchanged. Any FAILED synced diagnostics must be retested and synced first.\\n\\nProceed?'))return;
   busy=true;
   try{
-   // Direct Location update only: do not change this asset's pallet ID.
+   // Read the live workflow just before updating, to detect stale job changes.
+   const live=await api.workflow();
+   if(!live?.ok||!live.workflow)throw Error(live?.error||'Could not check the current refurbishment record.');
+   const job=live.workflow.jobs?.[found.id];
+   const finished=await api.workflowAction({type:'completeForQA',assetId:found.id,
+    expectedUpdatedAt:job?.updatedAt||'',confirmPhysicalWork:true,confirmFinalQC:true});
+   if(!finished?.ok)throw Error(finished?.error||'Could not complete repair, respray and QA statuses.');
+   workflow=finished.workflow||live.workflow;
+   // Save Location separately only after workflow completion succeeds.
+   // Do not remove or rename the pallet or mutate diagnostic pass/fail.
    const result=await api.update(found.id,{location:model.NAME});
-   if(!result?.ok)throw Error(result?.error||'Could not move the asset into Completed QA.');
-   await refresh(true);render();notify('Asset '+found.id+' moved to Completed QA. Location: Completed QA.');
+   if(!result?.ok)throw Error('All repair/respray and QC statuses were completed, but the Location save failed: '+(result?.error||'unknown error')+'. The asset is still in active Inventory; retry the move.');
+   await refresh(true);render();notify('Asset '+found.id+' — repair, respray, refurbishment and QA completed. Location: Completed QA.');
    document.querySelector('#qaAssignForm input[name="asset"]')?.focus();
   }catch(e){notify(e.message,'error');input.focus();}
   finally{busy=false;}
