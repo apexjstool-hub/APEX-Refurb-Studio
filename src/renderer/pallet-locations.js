@@ -27,7 +27,7 @@
  const at=name=>pallets().filter(p=>same(p.storageLocation,name));
  const ready=()=>data().available&&!!api.createPalletLocation&&!!api.movePallets;
  function render(){
-  const locations=names(),located=pallets().filter(p=>String(p.storageLocation||'').trim()).length;
+  const locations=names().filter(n=>!window.ApexCompletedQA?.same(n,'Completed QA')),located=pallets().filter(p=>String(p.storageLocation||'').trim()).length;
   const assetCounts=new Map();for(const asset of items){if(asset.deletedAt||!asset.pallet)continue;const key=String(asset.pallet).trim().toLowerCase();assetCounts.set(key,(assetCounts.get(key)||0)+1);}
   const devicesFor=pallet=>assetCounts.get(String(pallet.name||'').trim().toLowerCase())||0;
   const devicesAt=name=>at(name).reduce((total,p)=>total+devicesFor(p),0);
@@ -124,7 +124,9 @@
   form.onsubmit=async e=>{
    e.preventDefault();const names=boxes.filter(b=>b.checked).map(b=>b.value);if(!names.length)return;
    const button=$('plSaveMove');button.disabled=true;
-   try{const r=await api.movePallets({names,location:form.elements.location.value,expected:names.map(name=>({name,location:list.find(p=>same(p.name,name)).storageLocation||''}))});if(!r.ok){$('plMoveError').textContent=r.error||'Could not move pallets.';return;}closeModal();await refresh();notify(`${r.moved||names.length} pallet(s) moved`);}
+   try{
+    if(window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA')&&!confirm('Move '+names.length+' pallet(s) to Completed QA? All devices on these pallets will be archived from active Inventory and Work Queue, without changing the pallet IDs. Any unfinished repairs will be shown in the QA manifest.'))return;
+    const r=await api.movePallets({names,location:form.elements.location.value,expected:names.map(name=>({name,location:list.find(p=>same(p.name,name)).storageLocation||''}))});if(!r.ok){$('plMoveError').textContent=r.error||'Could not move pallets.';return;}closeModal();await refresh();notify(`${r.moved||names.length} pallet(s) moved`);}
    catch{if($('plMoveError'))$('plMoveError').textContent='Unable to save. Refresh before trying again.';}finally{if(button.isConnected)sync();}
   };
  }
