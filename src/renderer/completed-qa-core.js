@@ -23,7 +23,7 @@
   const isDone=group=>group.length>0&&group.every(p=>num(p.fitted)>=Math.max(1,num(p.qty)));
   const partsStatus=!job?'Not recorded':!parts.length?'Not required':isDone(parts)?'Repair completed':'Repair outstanding';
   const completedSpray=(workflow.resprayPallets||[]).some(s=>s.status==='Completed'&&(s.manifest||[]).some(item=>same(item.assetId,asset.id)));
-  const sprayStatus=!job?'Not recorded':!spray.length?'Not required':isDone(spray)||completedSpray?'Respray completed':'Respray outstanding';
+  const sprayStatus=!job?'Not recorded':!spray.length?'Not required':isDone(spray)?'Respray completed':completedSpray?'Respray needs verification':'Respray outstanding';
   const qc=QC.filter(k=>job?.qc?.[k]===true).length;
   const qcStatus=!job?'Not recorded':qc===QC.length?'QC completed':qc+'/4 checks';
   const refurbStatus=!job?'No refurbishment record':job.status==='Completed'?'Completed':job.status||'Not recorded';
