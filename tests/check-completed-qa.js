@@ -35,6 +35,13 @@ app.whenReady().then(async()=>{
     const before={hasAsset:root.textContent.includes('ARCH-1'),hasModel:root.textContent.includes('Latitude 5420'),hasPallet:root.textContent.includes('QA-7'),hasLocation:root.querySelector('.qa-table')?.textContent.includes('Completed QA'),hasRepair:root.textContent.includes('Repair completed'),hasRespray:root.textContent.includes('Respray completed')};
     document.getElementById('qaPrint').click();
     before.manifest=lastManifest.includes('ARCH-1')&&lastManifest.includes('SERIAL-1')&&lastManifest.includes('Repair completed')&&lastManifest.includes('Completed QA');
+    before.simpleScan=!root.querySelector('select[name="pallet"]')&&root.textContent.includes('Move to Completed QA');
+    const form=document.getElementById('qaAssignForm');
+    form.querySelector('input[name="asset"]').value='ACTIVE-1';
+    window.confirm=()=>true;
+    await form.onsubmit({preventDefault(){},currentTarget:form});
+    before.moveSavesOnlyLocation=updateRequests.length===1&&updateRequests[0].id==='ACTIVE-1'&&
+      updateRequests[0].fields.location==='Completed QA'&&!Object.hasOwn(updateRequests[0].fields,'pallet');
     return before;
   })()`);
   if(Object.values(result).some(v=>v!==true))throw Error('QA Electron render/manifest failed '+JSON.stringify(result));
