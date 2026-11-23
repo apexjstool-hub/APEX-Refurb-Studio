@@ -27,7 +27,30 @@ test('Manifest reports explicit job, repair and respray statuses without inventi
  const results=qa.manifest(assets,workflow);
  assert.equal(results[0].refurbStatus,'Completed');assert.equal(results[0].partsStatus,'Repair completed');assert.equal(results[0].sprayStatus,'Respray completed');
  assert.equal(results[1].partsStatus,'Repair outstanding');assert.equal(results[1].sprayStatus,'Respray outstanding');assert.equal(results[1].qcStatus,'0/4 checks');
- assert.equal(results[0].location,qa.NAME);assert.equal(results[0].pallet,'P-100');
+ assert.equal(results[0].location,'Unassigned');assert.equal(results[0].pallet,'P-100');
+});
+test('Moving existing pallet to Completed QA persists every individual Location and keeps pallet identity',()=>{
+ const db={items:[asset('A','QA-10','Rack One'),asset('B','QA-10','Rack Two'),asset('C','P-20')],pallets:[{name:'QA-10',storageLocation:'Warehouse'},{name:'P-20',storageLocation:''}],palletLocations:['Warehouse',qa.NAME],locations:['Warehouse','Rack One','Rack Two']};
+ const into=pallets.movePallets(db,{names:['QA-10'],location:qa.NAME,expected:[{name:'QA-10',location:'Warehouse'}]});
+ assert.equal(into.ok,true);assert.deepEqual(db.items.slice(0,2).map(a=>a.location),['Completed QA','Completed QA']);
+ assert.deepEqual(db.items.slice(0,2).map(a=>a.pallet),['QA-10','QA-10']);
+ const out=pallets.movePallets(db,{names:['QA-10'],location:'',expected:[{name:'QA-10',location:qa.NAME}]});
+ assert.equal(out.ok,true);assert.deepEqual(db.items.slice(0,2).map(a=>a.location),['Unassigned','Unassigned']);
+ assert.equal(db.items[2].location,'Unassigned');
+});
+test('Completed QA is its own sidebar workspace, not an Inventory subtab',()=>{
+ const tabs=read('src/renderer/v3-ui.js'),html=read('src/renderer/index.html');
+ assert.match(tabs,/completedQA:\[\['completedQA','Completed QA'\]\]/);
+ assert.doesNotMatch(tabs,/\['palletLocations','Pallet locations'\],\['completedQA'/);
+ assert.match(html,/data-page="completedQA"/);
+});
+test('Archive scan stores direct Location and manifest prints the actual stored field',()=>{
+ const ui=read('src/renderer/completed-qa-ui.js');
+ const model=qa.manifest([asset('ARCH-2','P-77','Completed QA')],{});
+ assert.equal(model[0].location,'Completed QA');
+ assert.match(ui,/api\.update\(found\.id,\{pallet,location:model\.NAME\}\)/);
+ assert.match(ui,/Fix existing QA asset locations/);
+ assert.match(ui,/r\.location/);
 });
 test('No repair job is not represented as completed',()=>{
  const r=qa.status(asset('X','P-100'),{});assert.equal(r.refurbStatus,'No refurbishment record');assert.equal(r.partsStatus,'Not recorded');assert.equal(r.sprayStatus,'Not recorded');
