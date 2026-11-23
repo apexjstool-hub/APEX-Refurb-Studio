@@ -34,7 +34,7 @@
      <div class="qa-toolbar">
        ${qaReady?'':'<button type="button" class="primary" id="qaCreateLocation" '+(!available()?'disabled':'')+'>Create Completed QA location</button>'}
        <button type="button" class="primary" id="qaMovePallet" ${!qaReady||!available()?'disabled':''}>Move pallets into Completed QA</button>
-       <button type="button" class="secondary" id="qaRefresh">Refresh archive</button>
+       <button type="button" class="secondary" id="qaRefresh">Refresh archive</button><button type="button" class="secondary" id="qaReconcile" ${!stored.assets.some(a=>!a.deletedAt&&!model.same(a.location,model.NAME))?"disabled":""}>Fix existing QA asset locations</button>
        <button type="button" class="secondary" id="qaPrint" ${!list.length?'disabled':''}>▤ Print QA manifest</button>
      </div>
      ${!available()?'<p class="qa-warning">Pallet locations are not enabled for this connection. The existing cloud location setup must be available before creating or moving pallets.</p>':''}
@@ -64,6 +64,7 @@
   $('qaCreateLocation')?.addEventListener('click',createLocation);
   $('qaMovePallet').onclick=()=>window.ApexPalletLocations?.move([],model.NAME);
   $('qaRefresh').onclick=refreshQA;
+  $('qaReconcile').onclick=reconcileExisting;
   $('qaPrint').onclick=printManifest;
   $('qaAssignForm').onsubmit=archiveAsset;
   root.querySelectorAll('[data-qa-restore]').forEach(b=>b.onclick=()=>restoreAsset(b.dataset.qaRestore));
@@ -88,6 +89,23 @@
   catch(e){notify('Could not load QA repair status: '+e.message,'error');workflow={jobs:{},orders:[],resprayPallets:[]};}
  }
  async function refreshQA(){if(busy)return;busy=true;try{await refresh(true);await loadWorkflow();render();}finally{busy=false;}}
+ async function reconcileExisting(){
+  if(busy)return;
+  const missing=archive().assets.filter(a=>!a.deletedAt&&!model.same(a.location,model.NAME));
+  if(!missing.length)return notify('All archived assets already have Location = Completed QA.');
+  if(!confirm('Update the individual Location field to Completed QA for '+missing.length+' already archived asset(s)? Pallet IDs and all refurbishment records will remain unchanged.'))return;
+  busy=true;const failed=[];
+  try{
+   for(const a of missing){
+    const response=await api.update(a.id,{location:model.NAME});
+    if(!response?.ok)failed.push(a.id);
+   }
+   await refresh(true);render();
+   if(failed.length)notify('Could not update '+failed.length+' archived assets: '+failed.slice(0,8).join(', '),'error');
+   else notify('Updated '+missing.length+' individual asset Location fields to Completed QA.');
+  }catch(e){notify('Unable to finish updating archived locations: '+e.message,'error');await refresh(true);render();}
+  finally{busy=false;}
+ }
  async function createLocation(){
   if(!available()||!api.createPalletLocation)return notify('Pallet locations are not enabled on this connection.','error');
   if(!confirm('Create the reserved pallet location Completed QA? Assets placed in its pallets will be archived from active pages.'))return;
