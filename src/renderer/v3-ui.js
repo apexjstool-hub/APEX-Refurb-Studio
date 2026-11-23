@@ -1,11 +1,11 @@
 'use strict';
 // APEX v3 workspace layer; reuses the existing verified inventory, hub, and repairs logic.
 (function(){
-const groups={labelStudio:[['labelStudio','Custom Asset Labels'],['assetLabels','Asset Labels'],['qaStickers','QA Stickers']],refurbWorkspace:[['refurbWorkspace','Refurbishment']],dashboard:[['dashboard','Today']],scan:[],inventory:[['inventory','All devices'],['locations','Locations'],['pallets','Pallets'],['palletLocations','Pallet locations'],['completedQA','Completed QA']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
-const groupNames={labelStudio:'Labels & Printing',refurbWorkspace:'Refurbishment',dashboard:'Dashboard',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
+const groups={labelStudio:[['labelStudio','Custom Asset Labels'],['assetLabels','Asset Labels'],['qaStickers','QA Stickers']],refurbWorkspace:[['refurbWorkspace','Refurbishment']],dashboard:[['dashboard','Today']],completedQA:[['completedQA','Completed QA']],scan:[],inventory:[['inventory','All devices'],['locations','Locations'],['pallets','Pallets'],['palletLocations','Pallet locations']],reports:[['reports','Reports & exports']],settings:[['settings','Admin Centre'],['users','Users']]};
+const groupNames={labelStudio:'Labels & Printing',refurbWorkspace:'Refurbishment',dashboard:'Dashboard',completedQA:'Completed QA',scan:'Scan',inventory:'Inventory',reports:'Reports',settings:'Admin Centre'};
 const esc=html;
 const getGroup=p=>p==='asset'||p==='scan'||p==='palletLocationDetail'||p==='containerInventory'?'inventory':p==='bulk'?'scan':Object.keys(groups).find(k=>groups[k].some(x=>x[0]===p))||'dashboard';
-const titles={labelStudio:'Create custom labels, scannable device asset labels and technician QA stickers',refurbWorkspace:'Manage refurbishment work, parts and final checks',scan:'Scan assets or a saved location to build a batch',dashboard:'Assets, refurbishment and outstanding work',inventory:'Devices, locations and pallets in one place',reports:'A4 reports and simple Excel exports',settings:'Connection and workstation settings'};
+const titles={labelStudio:'Create custom labels, scannable device asset labels and technician QA stickers',refurbWorkspace:'Manage refurbishment work, parts and final checks',scan:'Scan assets or a saved location to build a batch',dashboard:'Assets, refurbishment and outstanding work',completedQA:'Archived QA devices, pallets and manifests',inventory:'Devices, locations and pallets in one place',reports:'A4 reports and simple Excel exports',settings:'Connection and workstation settings'};
 // Preserve existing page IDs and rendering logic, but group routes behind only four main navigation items.
 const parentSetPage=setPage;
 let assetTab='overview',lastGroup='dashboard',reportTab='worksheet';
