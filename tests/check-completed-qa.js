@@ -21,7 +21,7 @@ app.whenReady().then(async()=>{
       update:async(id,fields)=>{updateRequests.push({id,fields});return {ok:true};},
       createPalletLocation:async()=>({ok:true})};
     window.ApexPalletLocationData={names:['Completed QA'],available:true};
-    window.ApexCompletedQAArchive={assets:[{id:'ARCH-1',manufacturer:'Dell',model:'Latitude 5420',serial:'SERIAL-1',pallet:'QA-7',location:'Unassigned'}],pallets:[{name:'QA-7',storageLocation:'Completed QA'}]};
+    window.ApexCompletedQAArchive={assets:[{id:'ARCH-1',manufacturer:'Dell',model:'Latitude 5420',serial:'SERIAL-1',pallet:'QA-7',location:'Completed QA'}],pallets:[{name:'QA-7',storageLocation:'Completed QA'}]};
     window.ApexReportPreview={capture:(markup)=>{lastManifest=markup}};
     window.ApexPalletLocations={move:()=>{}};
     void 0;
@@ -32,7 +32,7 @@ app.whenReady().then(async()=>{
   const result=await win.webContents.executeJavaScript(`(async()=>{
     await new Promise(r=>setTimeout(r,100));
     const root=document.getElementById('completedQAContent');
-    const before={hasAsset:root.textContent.includes('ARCH-1'),hasModel:root.textContent.includes('Latitude 5420'),hasPallet:root.textContent.includes('QA-7'),hasLocation:root.textContent.includes('Completed QA'),hasRepair:root.textContent.includes('Repair completed'),hasRespray:root.textContent.includes('Respray completed')};
+    const before={hasAsset:root.textContent.includes('ARCH-1'),hasModel:root.textContent.includes('Latitude 5420'),hasPallet:root.textContent.includes('QA-7'),hasLocation:root.querySelector('.qa-table')?.textContent.includes('Completed QA'),hasRepair:root.textContent.includes('Repair completed'),hasRespray:root.textContent.includes('Respray completed')};
     document.getElementById('qaPrint').click();
     before.manifest=lastManifest.includes('ARCH-1')&&lastManifest.includes('SERIAL-1')&&lastManifest.includes('Repair completed')&&lastManifest.includes('Completed QA');
     return before;
