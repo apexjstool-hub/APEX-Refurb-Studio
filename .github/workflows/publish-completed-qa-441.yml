@@ -56,7 +56,7 @@ jobs:
             if (!(Test-Path (Join-Path dist $f))) { throw "Missing required release file: $f" }
           }
           $manifest = Get-Content dist/latest.yml -Raw
-          if ($manifest -notmatch 'version: 4\.4\.0') { throw 'Update feed is not version 4.4.1.' }
+          if ($manifest -notmatch 'version: 4\.4\.1') { throw 'Update feed is not version 4.4.1.' }
           node scripts/verify-release-files.js
           if ($LASTEXITCODE -ne 0) { throw 'Installer/manifest integrity mismatch.' }
       - name: Publish official APEX Settings update
