@@ -126,7 +126,23 @@
    const button=$('plSaveMove');button.disabled=true;
    try{
     if(window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA')&&!confirm('Move '+names.length+' pallet(s) to Completed QA? All devices on these pallets will be archived from active Inventory and Work Queue, without changing the pallet IDs. Any unfinished repairs will be shown in the QA manifest.'))return;
-    const r=await api.movePallets({names,location:form.elements.location.value,expected:names.map(name=>({name,location:list.find(p=>same(p.name,name)).storageLocation||''}))});if(!r.ok){$('plMoveError').textContent=r.error||'Could not move pallets.';return;}closeModal();await refresh();notify(`${r.moved||names.length} pallet(s) moved`);}
+    // Capture the affected active assets before moving their pallet to the archive.
+    // In cloud mode a pallet move and asset Location updates are separate writes.
+    const isQA=window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA');
+    const members=isQA?items.filter(a=>!a.deletedAt&&names.some(n=>same(n,a.pallet))):[];
+    const r=await api.movePallets({names,location:form.elements.location.value,expected:names.map(name=>({name,location:list.find(p=>same(p.name,name)).storageLocation||''}))});
+    if(!r.ok){$('plMoveError').textContent=r.error||'Could not move pallets.';return;}
+    const incomplete=[];
+    if(isQA){
+     for(const asset of members){
+      const saved=await api.update(asset.id,{location:'Completed QA'});
+      if(!saved?.ok)incomplete.push(asset.id);
+     }
+    }
+    closeModal();
+    await refresh();
+    if(incomplete.length)notify('Pallet moved, but '+incomplete.length+' asset Location fields need attention: '+incomplete.slice(0,5).join(', ')+'. Review Completed QA.','error');
+    else notify(`${r.moved||names.length} pallet(s) moved`);}
    catch{if($('plMoveError'))$('plMoveError').textContent='Unable to save. Refresh before trying again.';}finally{if(button.isConnected)sync();}
   };
  }
