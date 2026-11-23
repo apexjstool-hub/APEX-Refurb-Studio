@@ -30,7 +30,7 @@
      <div><small>LOCATION ID</small><strong>Completed QA</strong></div>
    </section>
    <section class="section-panel qa-actions">
-     <div class="qa-action-head"><div><h3>Completed QA location</h3><p>Devices are archived when their pallet is placed in this location. Pallet IDs, repair history and original asset records are retained.</p></div><span class="qa-pill">${qaReady?'Location ready':'Location not created'}</span></div>
+     <div class="qa-action-head"><div><h3>Completed QA location</h3><p>Every archived device has its individual Location set to Completed QA. Original pallet IDs, refurbishment status and repair history are preserved.</p></div><span class="qa-pill">${qaReady?'Location ready':'Location not created'}</span></div>
      <div class="qa-toolbar">
        ${qaReady?'':'<button type="button" class="primary" id="qaCreateLocation" '+(!available()?'disabled':'')+'>Create Completed QA location</button>'}
        <button type="button" class="primary" id="qaMovePallet" ${!qaReady||!available()?'disabled':''}>Move pallets into Completed QA</button>
@@ -47,7 +47,7 @@
        <label>QA pallet ID<select name="pallet" required><option value="">Select a QA pallet</option>${pallets.map(p=>'<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>').join('')}</select></label>
        <button type="submit" class="primary" ${!pallets.length||busy?'disabled':''}>Archive asset</button>
      </form>
-     <p class="section-note">If no QA pallet is listed, move an existing pallet into the Completed QA location first. This action preserves its pallet ID.</p>
+     <p class="section-note">If no QA pallet is listed, move an existing pallet into the Completed QA location first. The individual asset Location will be saved as Completed QA while retaining its pallet ID.</p>
      <p id="qaActionMessage" class="qa-message" role="status"></p>
    </section>
    <section class="section-panel qa-actions">
@@ -104,7 +104,7 @@
   if(!validPallet||!found){notify('Select a QA pallet and scan an existing active asset.','error');return;}
   if(!confirm('Archive asset '+found.id+' onto pallet '+pallet+' in Completed QA? It will disappear from active Inventory and Work Queue until restored.'))return;
   busy=true;try{
-   const result=await api.update(found.id,{pallet,location:'Unassigned'});
+   const result=await api.update(found.id,{pallet,location:model.NAME});
    if(!result?.ok)throw Error(result?.error||'Could not archive asset.');
    await refresh(true);render();notify('Asset '+found.id+' archived in Completed QA.');
   }catch(e){notify(e.message,'error');}finally{busy=false;}
@@ -122,8 +122,19 @@
   const found=archive().pallets.find(p=>model.same(p.name,name));if(!found||busy)return;
   if(!confirm('Restore whole pallet '+found.name+' from Completed QA to unassigned storage? Its asset IDs and pallet ID will be preserved.'))return;
   busy=true;try{
+   const members=archive().assets.filter(a=>model.same(a.pallet,found.name)&&!a.deletedAt);
+   // A cloud pallet-location move does not necessarily change per-asset Location.
+   // Reconcile each asset through the existing validated inventory update API.
+   // Keep records archived until the pallet move succeeds.
    const r=await api.movePallets({names:[found.name],location:'',expected:[{name:found.name,location:found.storageLocation}]});
    if(!r?.ok)throw Error(r?.error||'Unable to restore pallet.');
+   const errors=[];
+   for(const a of members){
+    if(!model.same(a.location,model.NAME))continue;
+    const result=await api.update(a.id,{location:'Unassigned'});
+    if(!result?.ok)errors.push(a.id);
+   }
+   if(errors.length)throw Error('Pallet moved, but these asset Location fields could not be restored: '+errors.join(', ')+'. Refresh and retry these assets individually.');
    await refresh(true);render();notify('Pallet '+found.name+' returned to active storage.');
   }catch(e){notify(e.message,'error');}finally{busy=false;}
  }
