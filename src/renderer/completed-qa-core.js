@@ -30,7 +30,7 @@
   return {partsStatus,sprayStatus,qcStatus,refurbStatus,job};
  }
  function manifest(assets=[],workflow={}){
-  return assets.filter(a=>a&&!a.deletedAt).map(a=>({id:String(a.id||''),brand:String(a.manufacturer||''),model:String(a.model||''),serial:String(a.serial||''),pallet:String(a.pallet||'No pallet'),location:NAME,...status(a,workflow)}));
+  return assets.filter(a=>a&&!a.deletedAt).map(a=>({id:String(a.id||''),brand:String(a.manufacturer||''),model:String(a.model||''),serial:String(a.serial||''),pallet:String(a.pallet||'No pallet'),location:String(a.location||'Unassigned'),...status(a,workflow)}));
  }
  return Object.freeze({NAME,same,partition,status,manifest});
 });
