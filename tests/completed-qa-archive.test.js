@@ -49,7 +49,7 @@ test('Archive scan stores direct Location and manifest prints the actual stored 
  const ui=read('src/renderer/completed-qa-ui.js');
  const model=qa.manifest([asset('ARCH-2','P-77','Completed QA')],{});
  assert.equal(model[0].location,'Completed QA');
- assert.match(ui,/api\.update\(found\.id,\{location:model\.NAME\}\)/);
+ assert.match(ui,/api\.update\(found\.id,\{location:model\.NAME,status:'Processed'\}\)/);
  assert.match(ui,/Move to Completed QA/);
  assert.doesNotMatch(ui,/<select name="pallet"/);
  assert.match(ui,/const found=items\.find\(a=>a\.id===scanned/);
