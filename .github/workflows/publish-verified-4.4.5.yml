@@ -1,0 +1,45 @@
+name: Publish verified APEX 4.4.5
+on:
+  push:
+    branches: [release/4.4.5-authorised-ssd]
+    paths: [.github/workflows/publish-verified-4.4.5.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: apex-445-stable-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '3a287e6f36c9db5a3dbb335b279aa5dc729a1039'
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.5-Stable-Installer
+          path: dist
+          github-token: ${{ github.token }}
+          run-id: '45507357867'
+      - name: Verify and publish the exact Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/actions/runs/45507357867" --jq '.head_sha + " " + .conclusion')" = '3a287e6f36c9db5a3dbb335b279aa5dc729a1039 success'
+          sha256sum --check <<'CHECKSUMS'
+          b9bf4f8f04f52075bcae36b4e2f2e2464af52fc5e9d90d61bc8e991c581d43a0  dist/APEX-Refurb-Studio-Setup-4.4.5.exe
+          5fa88293c1734dad28a176fe9d83c16f4049655cd165fc67fac862f593e47b75  dist/APEX-Refurb-Studio-Setup-4.4.5.exe.blockmap
+          8a865d6be9f6cd5af3a85605e399884bca2d46ccd81ce407da947d1d77b9d49e  dist/latest.yml
+          CHECKSUMS
+          node scripts/verify-release-files.js
+          if gh release view v4.4.5 >/dev/null 2>&1; then
+            echo 'v4.4.5 already exists. Refusing overwrite.'
+            exit 1
+          fi
+          gh release create v4.4.5 dist/APEX-Refurb-Studio-Setup-4.4.5.exe dist/APEX-Refurb-Studio-Setup-4.4.5.exe.blockmap dist/latest.yml --draft --target '3a287e6f36c9db5a3dbb335b279aa5dc729a1039' --title 'APEX Management Studio 4.4.5 — Authorised SSD Cloud Connect 3.2' --notes-file RELEASE-4.4.5.md
+          gh release view v4.4.5 --json assets,isDraft,isPrerelease | jq -e '.isDraft and (.isPrerelease | not) and (([.assets[].name] | sort) == ["APEX-Refurb-Studio-Setup-4.4.5.exe","APEX-Refurb-Studio-Setup-4.4.5.exe.blockmap","latest.yml"])'
+          gh release edit v4.4.5 --draft=false --latest
