@@ -1,0 +1,81 @@
+name: Publish APEX 4.4.5 Authorised SSD Stable EXE
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: apex-445-stable-release
+  cancel-in-progress: false
+jobs:
+  verify-and-publish:
+    runs-on: windows-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify stable release identity and source
+        run: |
+          $p = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($p.version -ne '4.4.5' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Wrong stable identity or version' }
+          if ($p.build.publish[0].releaseType -ne 'release') { throw 'Stable release channel required' }
+          foreach ($f in @('src/main.js','src/preload.js','src/renderer/apex-portable-devices.js','scripts/cloud-connect-preflight.js')) {
+            node --check $f
+            if ($LASTEXITCODE -ne 0) { throw "JavaScript syntax error: $f" }
+          }
+          node scripts/cloud-connect-preflight.js
+          if ($LASTEXITCODE -ne 0) { throw 'Cloud preflight failed' }
+          node --test tests/diagnostic-intake.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic intake regression failed' }
+      - name: Prepare public cloud configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Missing APEX_CLOUD_LOGIN_CONFIG secret' }
+          $p = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$p.anonKey -match '^sb_secret_' -or [string]$p.anonKey -match '^eyJ' -and [string]$p.anonKey -notmatch '\.') { throw 'Invalid cloud publishable configuration' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'), $env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Public cloud configuration invalid' }
+      - name: Install and prepare fonts
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Font preparation failed' }
+      - name: Package Windows setup
+        run: |
+          & .\node_modules\.bin\electron-builder.cmd --win nsis --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'EXE build failed' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'EXE update metadata invalid' }
+          foreach ($f in @('dist/APEX-Refurb-Studio-Setup-4.4.5.exe','dist/latest.yml')) {
+            if (!(Test-Path $f)) { throw "Missing release file $f" }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.5-Stable-Installer
+          path: |
+            dist/APEX-Refurb-Studio-Setup-4.4.5.exe
+            dist/APEX-Refurb-Studio-Setup-4.4.5.exe.blockmap
+            dist/latest.yml
+          retention-days: 30
+          if-no-files-found: error
+      - name: Publish stable GitHub release only after all checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $tag = 'v4.4.5'
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'v4.4.5 already exists. Refusing overwrite.' }
+          $exe='dist/APEX-Refurb-Studio-Setup-4.4.5.exe'
+          $files=@($exe,'dist/latest.yml')
+          if (Test-Path "$exe.blockmap") { $files+="$exe.blockmap" }
+          gh release create $tag @files --target $env:GITHUB_SHA --latest --title 'APEX Management Studio 4.4.5 — Authorised SSD Cloud Connect 3.2' --notes-file RELEASE-4.4.5.md
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to publish stable release' }

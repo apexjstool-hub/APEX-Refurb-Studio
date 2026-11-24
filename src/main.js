@@ -106,6 +106,14 @@ async function cloudFetch(endpoint,options={}){
  const headers={...options.headers,apikey:current.anonKey,Authorization:'Bearer '+current.token};
  return fetch(current.url+endpoint,{...options,headers});
 }
+async function portableCloudAdmin(action,fields={}){
+ if(!cloudSession||authMode!=='cloud')return {ok:false,error:'Sign into your cloud administrator account to manage portable SSDs.'};
+ if(cloudUserRole!=='admin')return {ok:false,error:'Cloud administrator role required.'};
+ try{
+  const r=await cloudFetch('/functions/v1/apex-portable-ssd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...fields}),signal:AbortSignal.timeout(12000)});
+  const data=await r.json().catch(()=>({}));return r.ok?data:{ok:false,error:data.error||'SSD management unavailable (HTTP '+r.status+')'};
+ }catch(e){return {ok:false,error:'Cloud SSD authorisation unavailable: '+String(e.message||'network error').slice(0,130)};}
+}
 async function cloudRead(route){
  try{
   const res=await cloudFetch('/rest/v1/'+route,{headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token},signal:AbortSignal.timeout(12000)});
@@ -765,6 +773,12 @@ app.whenReady().then(()=>{
   const r=await hubRequest('GET','/v1/connect/devices');
   return {...r,mode:'shared'};
  }));
+ ipcMain.handle('inventory:portableDevices',adminSecured(()=>portableCloudAdmin('admin-list')));
+ ipcMain.handle('inventory:portableApprove',settingsSecured(async approvalCode=>{
+  try{const d=JSON.parse(String(approvalCode||''));return await portableCloudAdmin('admin-approve',{device:d});}
+  catch{return {ok:false,error:'Paste a valid public SSD approval code.'};}
+ }));
+ ipcMain.handle('inventory:portableRevoke',settingsSecured(deviceId=>portableCloudAdmin('admin-revoke',{deviceId})));
  ipcMain.handle('inventory:cloudStatus',adminSecured(()=>hubAdmin('status')));
  ipcMain.handle('inventory:cloudSave',settingsSecured(input=>hubAdmin('save',input)));
  ipcMain.handle('inventory:cloudCheck',settingsSecured(()=>hubAdmin('check')));

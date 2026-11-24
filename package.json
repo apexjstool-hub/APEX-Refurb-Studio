@@ -1,6 +1,6 @@
 {
   "name": "apex-inventory-studio",
-  "version": "4.4.4",
+  "version": "4.4.5",
   "description": "APEX Refurb Management Studio — inventory, refurbishment and pallet storage management, A4 and Excel reports",
   "main": "src/main.js",
   "author": "APEX Inventory Studio",
@@ -12,7 +12,8 @@
     "pack:windows": "electron-builder --win nsis",
     "pack:portable": "electron-builder --win portable --config.win.artifactName=APEX-Refurb-Studio-Portable-${version}.${ext}",
     "prepack:windows": "node scripts/configure-distribution-login.js --check",
-    "prepack:portable": "node scripts/configure-distribution-login.js --check"
+    "prepack:portable": "node scripts/configure-distribution-login.js --check",
+    "cloud:preflight": "node scripts/cloud-connect-preflight.js"
   },
   "dependencies": {
     "@zxing/browser": "0.2.1",

@@ -1,0 +1,16 @@
+APEX MANAGEMENT STUDIO 4.4.5 STABLE RELEASE CANDIDATE
+
+This archive is SOURCE, not an EXE or a published GitHub release.
+
+Preferred method:
+1. Commit the full extracted project (including the new .github/workflows/release-authorised-ssd-4.4.5.yml) to your GitHub repository's main branch. Do not commit private credentials.
+2. Verify the existing GitHub Actions secret APEX_CLOUD_LOGIN_CONFIG contains only your public Supabase project URL and publishable/anon key.
+3. On GitHub, open Actions > Publish APEX 4.4.5 Authorised SSD Stable EXE > Run workflow on main.
+4. The workflow builds on Windows, checks the EXE + latest.yml, uploads a build artifact and publishes stable v4.4.5 only if all steps pass.
+5. Confirm the downloadable EXE, blockmap and latest.yml are attached to v4.4.5 and then check Settings > Update Centre.
+
+Alternative local Windows method:
+Extract ZIP, open CMD in folder containing package.json, run npm ci, node scripts/prepare-typography-fonts.js, npm run pack:windows.
+The Windows build requires public Supabase configuration in src/cloud-login-distribution.json. Never embed service-role credentials.
+
+Existing v4.4.4 stable release must remain available. No EXE has been built in this environment.
