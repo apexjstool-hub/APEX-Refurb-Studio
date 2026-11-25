@@ -1,0 +1,45 @@
+name: Publish verified APEX 4.4.9
+on:
+  push:
+    branches: [release/4.4.9-pallet-parts-export]
+    paths: [.github/workflows/publish-verified-4.4.9.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: apex-449-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '74dd3106403f2e52d6d352dec4eaa1c04094f88a'
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.9-Stable-Installer
+          path: dist
+          github-token: ${{ github.token }}
+          run-id: '45603804011'
+      - name: Verify and publish the exact Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/actions/runs/45603804011" --jq '.head_sha + " " + .conclusion')" = '74dd3106403f2e52d6d352dec4eaa1c04094f88a success'
+          sha256sum --check <<'CHECKSUMS'
+          ae7bb75aa5bb9d1156ac695c89bd707c90a3731449efb1fe23d46a88c2fd5be6  dist/APEX-Refurb-Studio-Setup-4.4.9.exe
+          dfbe5980b46d0c55411ca598c88e71e25a20572f668bc6ea5a335ca8d3471717  dist/APEX-Refurb-Studio-Setup-4.4.9.exe.blockmap
+          77aab13baeb56858b122659f0d0098e6721b615bf60bdcb9d4e88f5bdc80357a  dist/latest.yml
+          CHECKSUMS
+          node scripts/verify-release-files.js
+          if gh release view v4.4.9 >/dev/null 2>&1; then
+            echo 'v4.4.9 already exists. Refusing overwrite.'
+            exit 1
+          fi
+          gh release create v4.4.9 dist/APEX-Refurb-Studio-Setup-4.4.9.exe dist/APEX-Refurb-Studio-Setup-4.4.9.exe.blockmap dist/latest.yml --draft --target '74dd3106403f2e52d6d352dec4eaa1c04094f88a' --title 'APEX Management Studio 4.4.9' --notes 'Export Parts Needed to Excel from the Actions dropdown for each pallet in Pallet Locations.'
+          gh release view v4.4.9 --json assets,isDraft,isPrerelease | jq -e '.isDraft and (.isPrerelease | not) and (([.assets[].name] | sort) == ["APEX-Refurb-Studio-Setup-4.4.9.exe","APEX-Refurb-Studio-Setup-4.4.9.exe.blockmap","latest.yml"])'
+          gh release edit v4.4.9 --draft=false --latest
