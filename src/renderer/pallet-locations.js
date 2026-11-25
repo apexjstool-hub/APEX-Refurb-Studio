@@ -68,7 +68,8 @@
   if(!pallets().some(p=>same(p.name,name))){notify('This pallet no longer exists. Refresh the location.');return;}
   window.ApexContainerInventory?.open('pallet',name,{returnPage:'palletLocationDetail'});
  }
- async function exportPalletParts(name){
+ async function exportPalletParts(names){
+  const label=names.length===1?names[0]:'Selected pallets';
   if(exportingParts)return;
   exportingParts=true;
   try{
@@ -77,11 +78,11 @@
    if(!result.ok)throw Error(result.error||'Could not load current parts requirements.');
    const assets=inventory.items.map(core.normalize);
    const active=window.ApexCompletedQA?.partition(assets,inventory.pallets||[]).active||assets;
-   const members=active.filter(asset=>same(asset.pallet,name));
+   const members=active.filter(asset=>names.some(name=>same(asset.pallet,name)));
    const rows=window.ApexRefurbExport.templatePartsRows(members,result.workflow);
-   if(rows.length===1){notify('No parts still to order for pallet '+name+'.');return;}
-   const saved=await api.exportXlsx(rows,'refurb-parts',name);
-   if(saved.ok)notify('Parts Needed exported for pallet '+name+'.');
+   if(rows.length===1){notify('No parts still to order for '+label+'.');return;}
+   const saved=await api.exportXlsx(rows,'refurb-parts',label);
+   if(saved.ok)notify('Parts Needed exported for '+label+'.');
    else if(!saved.cancelled)notify(saved.error||'Excel export failed.');
   }catch(error){notify(error.message||'Excel export failed.');}
   finally{exportingParts=false;}
@@ -114,7 +115,7 @@
   });
   detail.querySelectorAll('[data-pl-report]').forEach(b=>b.onclick=()=>window.ApexMicrodreamRequests.view(list.find(p=>p.name===b.dataset.plReport)));
   detail.querySelectorAll('[data-pl-respray]').forEach(b=>b.onclick=()=>window.ApexMicrodreamRespray?.open(b.dataset.plRespray));
-  detail.querySelectorAll('[data-pl-export-parts]').forEach(b=>b.onclick=()=>exportPalletParts(b.dataset.plExportParts));
+  detail.querySelectorAll('[data-pl-export-parts]').forEach(b=>b.onclick=()=>exportPalletParts([b.dataset.plExportParts]));
   detail.querySelectorAll('[data-pl-rename]').forEach(b=>b.onclick=()=>window.ApexPalletPage.rename(b.dataset.plRename));
   const detailSearch=$('plDetailSearch');if(detailSearch){
    const filter=()=>{const q=detailSearch.value.trim().toLocaleLowerCase();let shown=0;detail.querySelectorAll('tr[data-pl-pallet-name]').forEach(row=>{const ok=!q||(row.dataset.plPalletName+' '+row.dataset.plPalletDescription).toLocaleLowerCase().includes(q);row.hidden=!ok;if(ok)shown++;});$('plDetailMatches').textContent=shown+' of '+list.length+' pallets';};
@@ -166,7 +167,7 @@
    catch{if($('plMoveError'))$('plMoveError').textContent='Unable to save. Refresh before trying again.';}finally{if(button.isConnected)sync();}
   };
  }
- window.ApexPalletLocations={render:()=>{render();renderDetail();},move,open:openLocation};
+ window.ApexPalletLocations={render:()=>{render();renderDetail();},move,open:openLocation,exportParts:exportPalletParts};
  const previous=setPage;setPage=function(page,force){const ok=previous(page,force);if(ok&&page==='palletLocations')render();if(ok&&page==='palletLocationDetail')renderDetail();return ok;};
  render();renderDetail();
 })();

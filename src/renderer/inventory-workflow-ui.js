@@ -101,8 +101,8 @@
  }
  $('apexCreatePallet').onclick=()=>createPallet();
  window.ApexPalletPage={render:renderPallets,create:createPallet,rename:renamePallet,remove:removePallet};
- $('editPallet').addEventListener('change',()=>{if($('editPallet').value)$('editLocation').value='Unassigned';dirty=true;updateAssetOverview();});
- $('editLocation').addEventListener('change',()=>{if($('editLocation').value!=='Unassigned')$('editPallet').value='';dirty=true;updateAssetOverview();});
+ $('editPallet').addEventListener('change',()=>{dirty=true;updateAssetOverview();});
+ $('editLocation').addEventListener('change',()=>{dirty=true;updateAssetOverview();});
  decorate();renderPallets();
  if(!$('appPage').classList.contains('hidden'))window.ApexOps?.load(true);
 })();
