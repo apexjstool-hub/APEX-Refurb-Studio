@@ -14,13 +14,27 @@ function partsToOrder(asset,workflow){
   return qty>0?[{...p,qty}]:[];
  });
 }
+// Refurb exports include all parts not yet fully fitted, including ordered and received.
+// The separate purchasing list still uses partsToOrder(), to avoid double ordering.
+function outstandingParts(asset,workflow){
+ const job=workflow?.jobs?.[asset.id];
+ let parts=Array.isArray(job?.parts)?job.parts:[];
+ if(!job){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=Array.isArray(latest?.repairs)?latest.repairs:[];}
+ return parts.flatMap(p=>{
+  const name=String(p?.name||'').trim();
+  if(!name||String(p?.status||'').toLowerCase()==='fitted')return [];
+  const required=count(p.qty??p.quantity??1);
+  const remaining=Math.max(0,required-count(p.fitted));
+  return remaining>0?[{...p,name,qty:remaining}]:[];
+ });
+}
 function requiredPartsRows(assets,workflow,selectedAssetIds){
  // Omitting the third argument exports every asset; an empty selection exports none.
  const allowed=selectedAssetIds===undefined?null:new Set(selectedAssetIds);
  const rows=[['Asset ID','Full Manufacturer and Model','Serial Number','Part Needed']];
  for(const asset of (assets||[])){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
-  const parts=partsToOrder(asset,workflow);
+  const parts=outstandingParts(asset,workflow);
   for(const part of parts){const name=String(part?.name||'').trim();if(name)rows.push([String(asset.id),fullName(asset),String(asset.serial||''),name]);}
  }
  return rows;
@@ -30,7 +44,7 @@ function templatePartsRows(assets,workflow,selectedAssetIds){
  const rows=[['Item ID','Make/Model','CPU','RAM','Storage','Serial Number','Part #1','Part #1 Cost','Part #2','Part #2 Cost','Part #3','Part #3 Cost','Part #4','Part #4 Cost','Parts Total','Refurb notes']];
  for(const asset of assets||[]){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
-  const parts=partsToOrder(asset,workflow);if(!parts.length)continue;
+  const parts=outstandingParts(asset,workflow);if(!parts.length)continue;
   for(let start=0;start<parts.length;start+=4){
    const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
    for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?String(p.name).trim()+(qty>1?' × '+qty:''):'',null);}row.push(null,String(asset.refurbNotes||''));rows.push(row);
@@ -38,5 +52,5 @@ function templatePartsRows(assets,workflow,selectedAssetIds){
  }
  return rows;
 }
-return {requiredPartsRows,templatePartsRows,fullName,partsToOrder};
+return {requiredPartsRows,templatePartsRows,fullName,partsToOrder,outstandingParts};
 });
