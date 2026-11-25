@@ -1,8 +1,8 @@
-name: Publish APEX 4.4.15 Parts Export Settings Update
+name: Publish APEX 4.4.15 Single-Row Excel Settings Update
 on:
   push:
     branches:
-      - release/4.4.15-parts-excel-fix
+      - release/4.4.15-single-row-excel
     paths:
       - 'src/**'
       - 'tests/**'
@@ -13,7 +13,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: apex-stable-4413
+  group: apex-stable-4415
   cancel-in-progress: false
 jobs:
   verify-build-publish:
