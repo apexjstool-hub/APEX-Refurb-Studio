@@ -26,7 +26,7 @@
   const scope=scopes[kind],host=$(scope.table);if(!host)return;
   const bar=document.createElement('div');bar.id='selection-toolbar-'+kind;bar.className='inventory-selection-toolbar';
   const labels=kind==='inventory'?'<button type="button" data-selection-action="asset">Asset barcode</button><button type="button" data-selection-action="refurb">QR Refurb</button>':'<button type="button" data-selection-action="assignment">'+(kind==='pallet'?'Pallet':'Location')+' barcode</button>';
-  bar.innerHTML='<button type="button" class="secondary inventory-selection-scan"><span aria-hidden="true">▦</span> Scan</button><div class="inventory-menu-wrap"><button type="button" class="secondary" data-selection-menu="actions" aria-expanded="false" aria-controls="selection-actions-'+kind+'" disabled>Actions <span aria-hidden="true">↓</span></button><div id="selection-actions-'+kind+'" class="inventory-action-menu" popover="manual" hidden><div data-menu-level="root"><button type="button" data-selection-group="labels">Labels <span aria-hidden="true">›</span></button><button type="button" data-selection-group="reports">Reports <span aria-hidden="true">›</span></button><button type="button" data-selection-action="clear">Clear selection</button></div><div data-menu-level="labels" hidden><button type="button" class="inventory-menu-back">‹ Labels</button>'+labels+'</div><div data-menu-level="reports" hidden><button type="button" class="inventory-menu-back">‹ Reports</button>'+(kind==='pallet'?'<button type="button" data-selection-action="manifest">A4 pallet manifest</button><button type="button" data-selection-action="partsExcel">Export Parts Needed to Excel</button>':'')+'<button type="button" data-selection-action="inventory">Inventory report</button><button type="button" data-selection-action="worksheet">Refurbishment worksheets</button><button type="button" data-selection-action="diagnostics">Diagnostics reports</button><button type="button" data-selection-action="qc">Quality control reports</button><button type="button" data-selection-action="parts">Parts required report</button></div></div></div><div class="inventory-inline-search"></div><span class="inventory-selection-count">Select '+scope.label+'</span>';
+  bar.innerHTML='<button type="button" class="secondary inventory-selection-scan"><span aria-hidden="true">▦</span> Scan</button><div class="inventory-menu-wrap"><button type="button" class="secondary" data-selection-menu="actions" aria-expanded="false" aria-controls="selection-actions-'+kind+'" disabled>Actions <span aria-hidden="true">↓</span></button><div id="selection-actions-'+kind+'" class="inventory-action-menu" popover="manual" hidden><div data-menu-level="root"><button type="button" data-selection-group="labels">Labels <span aria-hidden="true">›</span></button><button type="button" data-selection-group="reports">Reports <span aria-hidden="true">›</span></button><button type="button" data-selection-action="clear">Clear selection</button></div><div data-menu-level="labels" hidden><button type="button" class="inventory-menu-back">‹ Labels</button>'+labels+'</div><div data-menu-level="reports" hidden><button type="button" class="inventory-menu-back">‹ Reports</button>'+(kind==='pallet'?'<button type="button" data-selection-action="manifest">A4 pallet manifest</button><button type="button" data-selection-action="partsExcel">Export Parts Needed to Excel</button>':'')+'<button type="button" data-selection-action="inventory">Inventory report</button><button type="button" data-selection-action="worksheet">Refurbishment worksheets</button><button type="button" data-selection-action="diagnostics">Diagnostics reports</button><button type="button" data-selection-action="qc">Quality control reports</button><button type="button" data-selection-action="parts">Parts required report</button>'+(kind==='inventory'?'<button type="button" data-selection-action="partsExcel">Export parts to Excel</button>':'')+'</div></div></div><div class="inventory-inline-search"></div><span class="inventory-selection-count">Select '+scope.label+'</span>';
   host.before(bar);
   if(kind==='inventory'){
    const bulk=document.createElement('button');bulk.type='button';bulk.id='inventoryBulkRefurbButton';
@@ -139,6 +139,20 @@
    return;
   }
   const deviceIds=ids(kind);
+  if(kind==='inventory'&&name==='partsExcel'){
+   if(!deviceIds.length){notify('Select at least one asset to export.');return;}
+   if(currentPage==='asset'&&dirty){notify('Save your device changes before exporting.');return;}
+   if(!window.ApexRefurbExport?.templatePartsRows||!api?.exportXlsx){
+    notify('Excel export is unavailable. Reopen APEX Management Studio and try again.');return;
+   }
+   const rows=window.ApexRefurbExport.templatePartsRows(devices(kind),window.ApexWorkflowSnapshot||{jobs:{},orders:[]},deviceIds);
+   if(rows.length===1){notify('No outstanding parts found for the selected assets.');return;}
+   Promise.resolve(api.exportXlsx(rows,'refurb-parts')).then(result=>{
+    if(result?.ok)notify('Professional parts Excel workbook saved.');
+    else if(!result?.cancelled)notify(result?.error||'Could not export parts to Excel.');
+   }).catch(()=>notify('Could not export parts to Excel.'));
+   return;
+  }
   if(name==='asset'||name==='refurb'){labelDialog(kind,name);return;}
   if(name==='assignment'||name==='manifest'){labelDialog(kind,name==='manifest'?'manifest':'barcode');return;}
   if(!deviceIds.length){notify('No devices are assigned to the selected '+scopes[kind].label+'.');return;}
