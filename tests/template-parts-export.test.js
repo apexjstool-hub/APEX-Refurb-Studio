@@ -14,7 +14,7 @@ test('Long descriptions receive wrapped styles, wider columns and content-sized 
  assert.ok(sheet.includes('APEX - Refurb Parts Required'));assert.ok(sheet.includes('ySplit="3"'));
 });
 
-test('Mark one part ordered excludes only that requirement from all and selected Excel exports',()=>{
+test('Mark one part ordered retains unfitted requirements in refurbishment exports',()=>{
  const W=require('../src/refurb-workflow'),I=require('../src/inventory-workflow');
  const assets=[{...asset,id:'A'},{...asset,id:'B'}];
  const original={jobs:{A:{assetId:'A',status:'Awaiting Parts',parts:[{id:'screen',name:'Screen',qty:3,received:1,fitted:0},{id:'keyboard',name:'Keyboard',qty:2,received:0,fitted:0}]},B:{assetId:'B',status:'Awaiting Parts',parts:[{id:'screen',name:'Other screen',qty:1,received:0,fitted:0}]}},orders:[],audit:[]};
@@ -23,24 +23,24 @@ test('Mark one part ordered excludes only that requirement from all and selected
  assert.equal(r.order.lines.length,1);assert.equal(r.order.lines[0].qty,2);assert.equal(r.order.lines[0].received,0);
  assert.deepEqual(r.workflow.jobs.A.parts,original.jobs.A.parts);assert.deepEqual(r.workflow.jobs.B,original.jobs.B);
  assert.ok(r.workflow.audit.some(e=>e.type==='Part ordered'&&e.assetId==='A'&&e.by==='Jacob'&&e.detail.includes('Screen')));
- const rows=exporter.templatePartsRows(assets,r.workflow);assert.equal(rows.length,3);assert.equal(rows[1][6],'Keyboard × 2');assert.equal(rows[2][6],'Other screen');
- assert.deepEqual(exporter.templatePartsRows(assets,r.workflow,['A']).map(r=>r[6]).slice(1),['Keyboard × 2']);
- assert.deepEqual(exporter.requiredPartsRows(assets,r.workflow,['A']).slice(1).map(r=>r[3]),['Keyboard']);
+ const rows=exporter.templatePartsRows(assets,r.workflow);assert.equal(rows.length,3);assert.equal(rows[1][6],'Screen × 3');assert.equal(rows[1][8],'Keyboard × 2');assert.equal(rows[2][6],'Other screen');
+ assert.deepEqual(exporter.templatePartsRows(assets,r.workflow,['A']).map(r=>r[6]).slice(1),['Screen × 3']);
+ assert.deepEqual(exporter.requiredPartsRows(assets,r.workflow,['A']).slice(1).map(r=>r[3]),['Screen','Keyboard']);
  assert.equal(I.summarize(r.workflow.jobs.A,r.workflow.orders).awaiting,2);
  const before=JSON.stringify(r.workflow);assert.equal(W.apply(r.workflow,assets,cmd).ok,false);assert.equal(JSON.stringify(r.workflow),before);
  const received=W.apply(structuredClone(r.workflow),assets,{type:'receivePart',assetId:'A',partId:'screen',expectedReceived:1,qty:2});assert.equal(received.ok,true);assert.equal(received.workflow.orders[0].lines[0].received,2);assert.equal(received.workflow.jobs.A.parts[0].fitted,0);
- assert.equal(exporter.templatePartsRows(assets,received.workflow,['A'])[1][6],'Keyboard × 2');
- const roundtrip=W.init(JSON.parse(JSON.stringify(r.workflow)));assert.equal(exporter.templatePartsRows(assets,roundtrip,['A'])[1][6],'Keyboard × 2');
+ assert.equal(exporter.templatePartsRows(assets,received.workflow,['A'])[1][6],'Screen × 3');
+ const roundtrip=W.init(JSON.parse(JSON.stringify(r.workflow)));assert.equal(exporter.templatePartsRows(assets,roundtrip,['A'])[1][6],'Screen × 3');
  for(const status of ['Completed','On Hold']){const locked=structuredClone(original);locked.jobs.A.status=status;const before=JSON.stringify(locked);assert.equal(W.apply(locked,assets,cmd).ok,false);assert.equal(JSON.stringify(locked),before);}
  const stale=structuredClone(original);stale.jobs.A.parts[0].qty=4;assert.equal(W.apply(stale,assets,cmd).ok,false);
  assert.equal(W.apply(structuredClone(original),assets.map(a=>({...a,deletedAt:'today'})),cmd).ok,false);
 });
 
-test('Excel includes only remaining unordered quantities and never resurrects removed requirements',()=>{
+test('Refurb Excel includes every unfitted quantity regardless of purchase order and never resurrects removed requirements',()=>{
  const assets=[{...asset,id:'A',refurbishment:{repairs:[{name:'Old removed requirement',quantity:1}]}}];
  const workflow={jobs:{A:{assetId:'A',parts:[{id:'a',name:'Battery',qty:5,received:1,fitted:1},{id:'b',name:'Fitted keyboard',qty:1,received:1,fitted:1}]}},orders:[{status:'Draft',lines:[{assetId:'A',partId:'a',qty:20,received:0}]},{status:'Ordered',lines:[{assetId:'A',partId:'a',qty:3,received:1}]}]};
- assert.equal(exporter.templatePartsRows(assets,workflow)[1][6],'Battery × 2');
- workflow.jobs.A.partsBoard='ordered';assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
+ assert.equal(exporter.templatePartsRows(assets,workflow)[1][6],'Battery × 4');
+ workflow.jobs.A.partsBoard='ordered';assert.equal(exporter.templatePartsRows(assets,workflow)[1][6],'Battery × 4');
  workflow.jobs.A.parts=[];delete workflow.jobs.A.partsBoard;assert.equal(exporter.requiredPartsRows(assets,workflow).length,1);assert.equal(exporter.templatePartsRows(assets,workflow).length,1);
 });
 
@@ -58,4 +58,20 @@ test('Manual refurb notes persist separately and occupy only the Refurb notes Ex
  assert.ok(sheet.includes('r="P4"')&&sheet.includes('=This is literal text'));assert.ok(sheet.includes('&amp; replace screw &lt;before QC&gt;'));assert.ok(sheet.includes('SUM(H4,J4,L4,N4)'));assert.ok(table.includes('count="16"')&&table.includes('name="Refurb notes"')&&table.includes('A3:P'));
  workflow.jobs[asset.id].parts=[];assert.equal(exporter.templatePartsRows([reloaded],workflow).length,1);
  const cleared=core.update(items,asset.id,{refurbNotes:''});assert.equal(cleared.item.refurbNotes,'');assert.deepEqual(cleared.item.refurbishment,imported);
+});
+
+// Regression: asset 83253 must include ordered parts alongside required respray.
+test('Refurbishment Excel retains asset 83253 ordered LCD, rubber foot and bezel, plus respray',()=>{
+ const a={id:'83253',manufacturer:'HP',model:'250 G9',serial:'SERIAL'};
+ const w={jobs:{'83253':{parts:[
+  {id:'lcd',name:'LCD Panel',qty:1,received:0,fitted:0,status:'Ordered'},
+  {id:'foot',name:'Rubber Foot Strip',qty:1,received:0,fitted:0,status:'Ordered'},
+  {id:'bezel',name:'Screen Bezel',qty:1,received:0,fitted:0,status:'Ordered'},
+  {id:'respray',name:'Respray',qty:1,received:0,fitted:0,status:'Required'}
+ ]}},orders:[]};
+ assert.deepEqual(exporter.requiredPartsRows([a],w).slice(1).map(row=>row[3]),['LCD Panel','Rubber Foot Strip','Screen Bezel','Respray']);
+ const row=exporter.templatePartsRows([a],w)[1];
+ assert.deepEqual([row[6],row[8],row[10],row[12]],['LCD Panel','Rubber Foot Strip','Screen Bezel','Respray']);
+ w.jobs['83253'].parts[0].fitted=1;
+ assert.deepEqual(exporter.requiredPartsRows([a],w).slice(1).map(row=>row[3]),['Rubber Foot Strip','Screen Bezel','Respray']);
 });
