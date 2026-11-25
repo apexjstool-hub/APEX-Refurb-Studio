@@ -1,0 +1,45 @@
+name: Publish verified APEX 4.4.6
+on:
+  push:
+    branches: [release/4.4.6-studio-workflow]
+    paths: [.github/workflows/publish-verified-4.4.6.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: apex-446-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '5ef979704961cc5e63f8f34a3ce80a6589be06a8'
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.6-Stable-Installer
+          path: dist
+          github-token: ${{ github.token }}
+          run-id: '45590272247'
+      - name: Verify and publish the exact Windows build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/actions/runs/45590272247" --jq '.head_sha + " " + .conclusion')" = '5ef979704961cc5e63f8f34a3ce80a6589be06a8 success'
+          sha256sum --check <<'CHECKSUMS'
+          aed8922c9e11120110a2fde8f7dcdfdd97631636139f1bb56f3b005130966131  dist/APEX-Refurb-Studio-Setup-4.4.6.exe
+          31a9f4093b71fecce0f94c0571045e188152d86e8f0c41908a13bde322246aad  dist/APEX-Refurb-Studio-Setup-4.4.6.exe.blockmap
+          f73db1aa41889c7976884bdab640a774d7f83ace3871c6781ee564ed24687d8f  dist/latest.yml
+          CHECKSUMS
+          node scripts/verify-release-files.js
+          if gh release view v4.4.6 >/dev/null 2>&1; then
+            echo 'v4.4.6 already exists. Refusing overwrite.'
+            exit 1
+          fi
+          gh release create v4.4.6 dist/APEX-Refurb-Studio-Setup-4.4.6.exe dist/APEX-Refurb-Studio-Setup-4.4.6.exe.blockmap dist/latest.yml --draft --target '5ef979704961cc5e63f8f34a3ce80a6589be06a8' --title 'APEX Management Studio 4.4.6' --notes 'Remove revoked SSD entries from Settings on this PC. Scan assets or a pallet to move eligible devices to Parts Needed. Remember cloud sign-in across restarts and sign-outs when enabled.'
+          gh release view v4.4.6 --json assets,isDraft,isPrerelease | jq -e '.isDraft and (.isPrerelease | not) and (([.assets[].name] | sort) == ["APEX-Refurb-Studio-Setup-4.4.6.exe","APEX-Refurb-Studio-Setup-4.4.6.exe.blockmap","latest.yml"])'
+          gh release edit v4.4.6 --draft=false --latest
