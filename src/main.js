@@ -723,10 +723,12 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:labelStudioSettings',secured(input=>{const store=require('./label-studio-settings'),file=path.join(userDir(),'label-studio-settings.json');return {ok:true,settings:input?.action==='save'?store.save(file,input):store.read(file)};}));
  ipcMain.handle('inventory:saveLabelPdf',secured(input=>require('./label-output').outputLabel(input,win,'pdf')));
  ipcMain.handle('inventory:printAssetLabel',secured(input=>require('./label-output').outputLabel(input,win,'print')));
- ipcMain.handle('inventory:exportXlsx',secured(async (rows,kind)=>{
+ ipcMain.handle('inventory:exportXlsx',secured(async (rows,kind,palletName)=>{
   if(!Array.isArray(rows)||rows.length>30001)return {ok:false,error:'Too many spreadsheet rows.'};
   const title=kind==='refurb-parts'?'Refurb Parts Required':kind==='inventory'?'Inventory':kind==='orders'?'Purchase Orders':'Parts Needed';
-  const result=await dialog.showSaveDialog(win,{title:'Export '+title+' to Excel',defaultPath:'APEX-'+title.replaceAll(' ','-')+'-'+new Date().toISOString().slice(0,10)+'.xlsx',filters:[{name:'Excel workbook',extensions:['xlsx']}]});
+  const label=kind==='refurb-parts'&&typeof palletName==='string'?palletName.replace(/[^a-z0-9 _-]/gi,'_').trim().slice(0,64):'';
+  const suffix=label?'-Pallet-'+label:'';
+  const result=await dialog.showSaveDialog(win,{title:'Export '+title+' to Excel',defaultPath:'APEX-'+title.replaceAll(' ','-')+suffix+'-'+new Date().toISOString().slice(0,10)+'.xlsx',filters:[{name:'Excel workbook',extensions:['xlsx']}]});
   if(result.canceled||!result.filePath)return {ok:false,cancelled:true};
   try{await fs.promises.writeFile(result.filePath,kind==='refurb-parts'?require('./refurb-template-xlsx').workbook(rows):xlsx.workbook(rows,title));return {ok:true};}
   catch(e){return {ok:false,error:'Could not create Excel file: '+e.message};}

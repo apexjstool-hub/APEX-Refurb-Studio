@@ -54,7 +54,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  workflow:()=>ipcRenderer.invoke('inventory:workflow'),
  workflowAction:command=>ipcRenderer.invoke('inventory:workflowAction',command),
  exportCsv:csv=>ipcRenderer.invoke('inventory:exportCsv',csv),
- exportXlsx:(rows,kind)=>ipcRenderer.invoke('inventory:exportXlsx',rows,kind),
+ exportXlsx:(rows,kind,palletName)=>ipcRenderer.invoke('inventory:exportXlsx',rows,kind,palletName),
  add:item=>ipcRenderer.invoke('inventory:add',item),
  update:(id,patch)=>ipcRenderer.invoke('inventory:update',id,patch),
  remove:id=>ipcRenderer.invoke('inventory:remove',id),
