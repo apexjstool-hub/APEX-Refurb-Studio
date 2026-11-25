@@ -8,7 +8,46 @@ const QC=['Visual inspection','Required parts fitted','Hardware retest','Final c
 const clip=(v,n=200)=>String(v??'').trim().slice(0,n);
 const stamp=()=>new Date().toISOString();
 const uid=()=>require('node:crypto').randomUUID();
-function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true,resprayPallets:Array.isArray(raw?.resprayPallets)?raw.resprayPallets:[]};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return s;}
+function reconcilePartsBoards(state){
+ const candidates=new Map(Object.entries(state.jobs).filter(([,job])=>job?.partsBoard==='needed'));
+ if(!candidates.size)return state;
+ const movedAt=new Map();
+ for(const event of state.audit){
+  if(!candidates.has(event.assetId)||event.type!=='Parts board changed'||event.detail!=='Moved to Parts Needed')continue;
+  const at=Date.parse(event.at);
+  if(at>(movedAt.get(event.assetId)||0))movedAt.set(event.assetId,at);
+ }
+ const pending=new Map();
+ for(const order of state.orders){
+  if(order.status==='Draft')continue;
+  const at=Date.parse(order.approvedAt||order.createdAt);
+  for(const line of order.lines||[]){
+   if(!candidates.has(line.assetId))continue;
+   const quantity=Math.max(0,Number(line.qty||0)-Number(line.received||0));
+   if(!quantity)continue;
+   if(!pending.has(line.assetId))pending.set(line.assetId,new Map());
+   const parts=pending.get(line.assetId);
+   const prior=parts.get(line.partId)||{quantity:0,latest:0};
+   parts.set(line.partId,{quantity:prior.quantity+quantity,latest:Math.max(prior.latest,at||0)});
+  }
+ }
+ let jobs=state.jobs;
+ for(const [id,job] of candidates){
+  const cutoff=Date.parse(job.partsBoardAt)||movedAt.get(id);
+  const ordered=pending.get(id);
+  if(!cutoff||!ordered)continue;
+  const replacement=(job.parts||[]).filter(part=>!isCosmetic(part.name)&&part.fitted<part.qty);
+  if(!replacement.every(part=>Number(part.received||0)+(ordered.get(part.id)?.quantity||0)>=part.qty))continue;
+  if(!replacement.some(part=>(ordered.get(part.id)?.latest||0)>cutoff))continue;
+  if(jobs===state.jobs)jobs={...jobs};
+  const updated={...job};
+  delete updated.partsBoard;
+  delete updated.partsBoardAt;
+  jobs[id]=updated;
+ }
+ return jobs===state.jobs?state:{...state,jobs};
+}
+function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true,resprayPallets:Array.isArray(raw?.resprayPallets)?raw.resprayPallets:[]};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return reconcilePartsBoards(s);}
 function history(s,type,detail,assetId='',by='Administrator'){
  s.audit.unshift({id:uid(),at:stamp(),type,detail:clip(detail,400),assetId:clip(assetId,80),by:clip(by,80)});s.audit=s.audit.slice(0,2500);
 }
@@ -144,9 +183,9 @@ function apply(state,assets,cmd,by='Administrator'){
   const draft=s.orders.find(o=>o.id===cmd.orderId&&o.status==='Draft');if(!draft)throw Error('Draft not found.');
   const supplier=clip(cmd.supplier,120);if(!supplier)throw Error('Choose a supplier before approval.');
   if(!draft.lines.length)throw Error('No parts remain to order.');
-  draft.supplier=supplier;draft.expectedAt=checkDate(cmd.expectedAt);draft.reference=clip(cmd.reference,90);draft.status='Ordered';draft.auto=false;draft.id='PO-'+Date.now().toString(36).toUpperCase();draft.updatedAt=stamp();
+  draft.supplier=supplier;draft.expectedAt=checkDate(cmd.expectedAt);draft.reference=clip(cmd.reference,90);draft.status='Ordered';draft.auto=false;draft.id='PO-'+Date.now().toString(36).toUpperCase();draft.updatedAt=stamp();draft.approvedAt=draft.updatedAt;
   for(const l of draft.lines){const j=s.jobs[l.assetId];if(j){if(['Inspected','Received','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,isCosmetic(l.name)?'Respray sent / booked':'Part ordered',l.name+' × '+l.qty+' · '+draft.id,l.assetId,by);}}
-  history(s,'Order approved','Purchase order '+draft.id+' approved for '+supplier,'',by);autoDraft(s);return {ok:true,workflow:s,order:draft};
+  history(s,'Order approved','Purchase order '+draft.id+' approved for '+supplier,'',by);autoDraft(s);return {ok:true,workflow:reconcilePartsBoards(s),order:draft};
  }
  if(type==='discardDraft'){
   const draft=s.orders.find(o=>o.id===cmd.orderId&&o.status==='Draft');if(!draft)throw Error('Draft not found.');
@@ -216,7 +255,7 @@ function apply(state,assets,cmd,by='Administrator'){
     j.updatedAt=stamp();
    }
   }
-  return {ok:true,workflow:s,affected:plan.eligible.length,partLines:plan.lines.length};
+  return {ok:true,workflow:reconcilePartsBoards(s),affected:plan.eligible.length,partLines:plan.lines.length};
  }
  if(type==='bulkSetPartsBoard'){
   s.jobs={...s.jobs};s.audit=[...s.audit];
@@ -230,7 +269,7 @@ function apply(state,assets,cmd,by='Administrator'){
    s.jobs[assetId]={...j};return s.jobs[assetId];
   });
   for(const j of jobs){
-   j.partsBoard=cmd.board;j.updatedAt=stamp();
+   j.partsBoard=cmd.board;j.updatedAt=stamp();j.partsBoardAt=j.updatedAt;
    history(s,'Parts board changed',cmd.board==='ordered'?'Moved to Parts Ordered':'Moved to Parts Needed',j.assetId,by);
   }
   return {ok:true,workflow:s};
@@ -239,7 +278,7 @@ function apply(state,assets,cmd,by='Administrator'){
   if(!['needed','ordered'].includes(cmd.board))throw Error('Choose Parts Needed or Parts Ordered.');
   const j=ensure(s,id,assets);
   if(!(j.parts||[]).some(p=>p.fitted<p.qty))throw Error('This laptop has no outstanding parts.');
-  j.partsBoard=cmd.board;j.updatedAt=stamp();
+  j.partsBoard=cmd.board;j.updatedAt=stamp();j.partsBoardAt=j.updatedAt;
   history(s,'Parts board changed',cmd.board==='ordered'?'Moved to Parts Ordered':'Moved to Parts Needed',id,by);
   return {ok:true,workflow:s};
  }
@@ -365,7 +404,7 @@ function apply(state,assets,cmd,by='Administrator'){
   }
   const order={id:'PO-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),supplier,expectedAt:checkDate(cmd.expectedAt),reference:clip(cmd.reference,90),cost:Math.max(0,Math.min(1e7,Number(cmd.cost)||0)),currency:'GBP',tracking:clip(cmd.tracking,120),notes:clip(cmd.notes,1000),createdAt:stamp(),updatedAt:stamp(),lines:picked};
   s.orders.unshift(order);for(const l of picked){const j=s.jobs[l.assetId];if(['Received','Inspected','Ready for Repair'].includes(j.status))j.status='Awaiting Parts';j.updatedAt=stamp();history(s,isCosmetic(l.name)?'Respray sent / booked':'Part ordered',`${l.name} × ${l.qty} · ${order.id}`,l.assetId,by);}history(s,'Purchase order',`${order.id} · ${supplier}`);
-  return {ok:true,workflow:s,order};
+  return {ok:true,workflow:reconcilePartsBoards(s),order};
  }else if(type==='receiveOrder'){
   const order=s.orders.find(x=>x.id===cmd.orderId);if(!order)throw Error('Purchase order not found.');
   const line=order.lines.find(x=>x.assetId===id&&x.partId===cmd.partId);if(!line)throw Error('Purchase order line not found.');

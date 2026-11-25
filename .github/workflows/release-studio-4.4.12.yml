@@ -1,0 +1,100 @@
+name: Verify APEX 4.4.12 Studio Workflow Installer
+on:
+  push:
+    branches: ['release/4.4.12-parts-status']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apex-4412-stable-release
+  cancel-in-progress: false
+jobs:
+  verify-windows:
+    runs-on: windows-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify stable release identity and source
+        run: |
+          $p = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($p.version -ne '4.4.12' -or $p.build.appId -ne 'com.apex.inventory') { throw 'Wrong stable identity or version' }
+          if ($p.build.publish[0].releaseType -ne 'release') { throw 'Stable release channel required' }
+          foreach ($f in @('src/main.js','src/preload.js','src/renderer/apex-portable-devices.js','scripts/cloud-connect-preflight.js')) {
+            node --check $f
+            if ($LASTEXITCODE -ne 0) { throw "JavaScript syntax error: $f" }
+          }
+          node scripts/cloud-connect-preflight.js
+          if ($LASTEXITCODE -ne 0) { throw 'Cloud preflight failed' }
+          node --test tests/diagnostic-intake.test.js tests/inventory-tracker.test.js tests/pallet-locations.test.js tests/template-parts-export.test.js tests/startup-theme-and-remembered-login.test.js tests/inventory-status-display.test.js tests/bulk-parts-board.test.js tests/unified-scan-location.test.js tests/inventory-bulk-refurb.test.js tests/refurb-workflow.test.js tests/refurb-parts-bridge.test.js tests/completed-qa-final-signoff.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic intake regression failed' }
+      - name: Prepare public cloud configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'Missing APEX_CLOUD_LOGIN_CONFIG secret' }
+          $p = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          if ([string]$p.anonKey -match '^sb_secret_' -or [string]$p.anonKey -match '^eyJ' -and [string]$p.anonKey -notmatch '\.') { throw 'Invalid cloud publishable configuration' }
+          node -e 'const key = JSON.parse(process.env.APEX_CLOUD_CONFIG).anonKey; if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)) { try { if (JSON.parse(Buffer.from(key.split(".")[1], "base64url")).role !== "anon") process.exit(1) } catch { process.exit(1) } }'
+          if ($LASTEXITCODE -ne 0) { throw 'Cloud configuration must use a publishable or anon key' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'), $env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Public cloud configuration invalid' }
+      - name: Install and prepare fonts
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Font preparation failed' }
+      - name: Package Windows setup
+        run: |
+          & .\node_modules\.bin\electron-builder.cmd --win nsis --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'EXE build failed' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'EXE update metadata invalid' }
+          foreach ($f in @('dist/APEX-Refurb-Studio-Setup-4.4.12.exe','dist/latest.yml')) {
+            if (!(Test-Path $f)) { throw "Missing release file $f" }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.12-Stable-Installer
+          path: |
+            dist/APEX-Refurb-Studio-Setup-4.4.12.exe
+            dist/APEX-Refurb-Studio-Setup-4.4.12.exe.blockmap
+            dist/latest.yml
+          retention-days: 30
+          if-no-files-found: error
+  publish:
+    needs: verify-windows
+    if: github.ref == 'refs/heads/release/4.4.12-parts-status'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: APEX-Management-Studio-4.4.12-Stable-Installer
+          path: dist
+      - name: Verify and publish stable update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-release-files.js
+          if gh release view v4.4.12 >/dev/null 2>&1; then
+            echo 'v4.4.12 already exists. Refusing overwrite.'
+            exit 1
+          fi
+          gh release create v4.4.12 dist/APEX-Refurb-Studio-Setup-4.4.12.exe dist/APEX-Refurb-Studio-Setup-4.4.12.exe.blockmap dist/latest.yml --draft --target "$GITHUB_SHA" --title 'APEX Management Studio 4.4.12' --notes 'Correct older Parts Needed overrides when newer purchase orders cover every outstanding replacement part. Preserve deliberate moves back to Parts Needed after ordering.'
+          gh release view v4.4.12 --json assets,isDraft,isPrerelease | jq -e '.isDraft and (.isPrerelease | not) and (([.assets[].name] | sort) == ["APEX-Refurb-Studio-Setup-4.4.12.exe","APEX-Refurb-Studio-Setup-4.4.12.exe.blockmap","latest.yml"])'
+          gh release edit v4.4.12 --draft=false --latest

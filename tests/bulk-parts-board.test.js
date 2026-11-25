@@ -50,3 +50,30 @@ test('bulk return shows Parts Needed even when a purchase order covers every out
  const lanes=require('../src/refurb-work-lanes');
  assert.equal(lanes.project({summary,job:result.workflow.jobs.A},'parts').status,'Parts Needed');
 });
+
+test('newer purchase orders clear a legacy Parts Needed override only after full coverage',()=>{
+ const {state}=fixture();
+ state.jobs.A.partsBoard='needed';
+ state.audit=[{type:'Parts board changed',detail:'Moved to Parts Needed',assetId:'A',at:'2026-10-23T09:43:55Z'}];
+ state.orders=[{status:'Ordered',createdAt:'2026-11-16T14:02:23Z',lines:[{assetId:'A',partId:'part-A',qty:1,received:0}]}];
+ const resolved=W.init(state);
+ assert.equal(progress.index(resolved).get('A').stage,'Parts ordered');
+ assert.equal(state.jobs.A.partsBoard,'needed');
+ assert.deepEqual(resolved.orders,state.orders);
+ assert.deepEqual(resolved.audit,state.audit);
+ state.jobs.A.parts[0].qty=3;
+ assert.equal(W.init(state).jobs.A.partsBoard,'needed');
+ state.jobs.A.parts[0].qty=2;
+ state.jobs.A.partsBoardAt='2026-11-17T09:00:00Z';
+ assert.equal(W.init(state).jobs.A.partsBoard,'needed');
+});
+
+test('marking the final replacement part ordered immediately supersedes the manual override',()=>{
+ const {assets,state}=fixture();
+ state.jobs.A.partsBoard='needed';
+ state.jobs.A.partsBoardAt='2026-10-23T09:43:55Z';
+ const result=W.apply(state,assets,{type:'markPartOrdered',assetId:'A',partId:'part-A',expectedQty:2,expectedReceived:1,expectedOnOrder:0});
+ assert.equal(result.ok,true);
+ assert.equal(progress.index(result.workflow).get('A').stage,'Parts ordered');
+ assert.equal(result.workflow.orders[0].lines[0].qty,1);
+});
