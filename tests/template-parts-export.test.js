@@ -75,3 +75,20 @@ test('Refurbishment Excel retains asset 83253 ordered LCD, rubber foot and bezel
  w.jobs['83253'].parts[0].fitted=1;
  assert.deepEqual(exporter.requiredPartsRows([a],w).slice(1).map(row=>row[3]),['Rubber Foot Strip','Screen Bezel','Respray']);
 });
+
+test('Export presentation normalises common part typos without changing device IDs or original records',()=>{
+ const a={...asset,id:'FORMATTING',serial:'00aBc-009',model:'ProBook 450 G9',refurbNotes:'  Engineer says keyboard not working.  '};
+ const w={jobs:{FORMATTING:{parts:[{name:'lcd panle',qty:1},{name:'SCRen bezel',qty:1},{name:'RESpary',qty:1},{name:'battery',qty:1}]}}};
+ const rows=exporter.templatePartsRows([a],w);
+ assert.deepEqual([rows[1][6],rows[1][8],rows[1][10],rows[1][12]],['LCD Panel','Screen Bezel','Respray','Battery']);
+ assert.equal(rows[1][5],'00aBc-009');
+ assert.equal(rows[1][1],'HP ProBook 450 G9');
+ assert.equal(rows[1][15],'Engineer says keyboard not working.');
+ assert.equal(a.refurbNotes,'  Engineer says keyboard not working.  ');
+ const workbook=xlsx.readArchive(xlsx.workbook(rows));
+ const styles=workbook.get('xl/styles.xml').toString();
+ const sheet=workbook.get('xl/worksheets/sheet1.xml').toString();
+ assert.ok(styles.includes('FFF2F6FB'));
+ assert.ok(styles.includes('name val="Aptos"'));
+ assert.ok(sheet.includes('LCD Panel')&&sheet.includes('Screen Bezel'));
+});

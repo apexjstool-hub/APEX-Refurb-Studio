@@ -32,7 +32,36 @@ function workbook(rows){
  entries.delete('xl/calcChain.xml');for(const filename of ['[Content_Types].xml','xl/_rels/workbook.xml.rels'])entries.set(filename,Buffer.from(entries.get(filename).toString().replace(/<(?:Override|Relationship)\b[^>]*(?:calcChain)[^>]*\/>/g,'')));
  let wb=entries.get('xl/workbook.xml').toString();wb=wb.replace(/<calcPr\b[^>]*\/>/,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/>');entries.set('xl/workbook.xml',Buffer.from(wb));
  // Preserve the reference styles and add wrapping only to populated text body styles.
- let styleXml=entries.get('xl/styles.xml').toString();const section=styleXml.match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/);if(section){let n=0;const textStyles=new Set([0,1,2,3,4,5,6,8,10,12].flatMap(c=>[Number(regular[col(c)]),Number(bottom[col(c)])]));const content=section[1].replace(/<xf\b[^>]*\/>|<xf\b[^>]*>[\s\S]*?<\/xf>/g,xf=>{const i=n++;if(!textStyles.has(i))return xf;xf=xf.replace(/numFmtId="[^"]*"/,'numFmtId="49"').replace(/\s+applyAlignment="[^"]*"/g,'').replace(/<xf\b/,'<xf applyAlignment="1"');if(xf.endsWith('/>'))return xf.slice(0,-2)+'><alignment wrapText="1" vertical="center"/></xf>';if(/<alignment\b/.test(xf))return xf.replace(/<alignment\b([^>]*?)\/>/,(_,a)=>'<alignment'+a.replace(/\s+wrapText="[^"]*"/g,'')+' wrapText="1"/>');return xf.replace('</xf>','<alignment wrapText="1" vertical="center"/></xf>');});styleXml=styleXml.replace(section[0],section[0].replace(section[1],content));entries.set('xl/styles.xml',Buffer.from(styleXml));}
+ let styleXml=entries.get('xl/styles.xml').toString();
+ styleXml=styleXml.replace(/<name val="(?:Aptos Narrow|Arial|Calibri)"\s*\/>/g,'<name val="Aptos"/>');const section=styleXml.match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/);if(section){let n=0;const textStyles=new Set([0,1,2,3,4,5,6,8,10,12].flatMap(c=>[Number(regular[col(c)]),Number(bottom[col(c)])]));const content=section[1].replace(/<xf\b[^>]*\/>|<xf\b[^>]*>[\s\S]*?<\/xf>/g,xf=>{const i=n++;if(!textStyles.has(i))return xf;xf=xf.replace(/numFmtId="[^"]*"/,'numFmtId="49"').replace(/\s+applyAlignment="[^"]*"/g,'').replace(/<xf\b/,'<xf applyAlignment="1"');if(xf.endsWith('/>'))return xf.slice(0,-2)+'><alignment wrapText="1" vertical="center"/></xf>';if(/<alignment\b/.test(xf))return xf.replace(/<alignment\b([^>]*?)\/>/,(_,a)=>'<alignment'+a.replace(/\s+wrapText="[^"]*"/g,'')+' wrapText="1"/>');return xf.replace('</xf>','<alignment wrapText="1" vertical="center"/></xf>');});styleXml=styleXml.replace(section[0],section[0].replace(section[1],content));entries.set('xl/styles.xml',Buffer.from(styleXml));}
+ // Light alternate-row shading improves legibility without altering formulas.
+ const fills=styleXml.match(/<fills\b([^>]*)>([\s\S]*?)<\/fills>/);
+ const xfs=styleXml.match(/<cellXfs\b([^>]*)>([\s\S]*?)<\/cellXfs>/);
+ if(fills&&xfs){
+  const fillCount=Number(fills[1].match(/\bcount="(\d+)"/)?.[1]);
+  const styles=[...xfs[2].matchAll(/<xf\b[^>]*\/>|<xf\b[^>]*>[\s\S]*?<\/xf>/g)].map(m=>m[0]);
+  if(Number.isSafeInteger(fillCount)&&styles.length){
+   const extra='<fill><patternFill patternType="solid"><fgColor rgb="FFF2F6FB"/><bgColor indexed="64"/></patternFill></fill>';
+   styleXml=styleXml.replace(fills[0],'<fills'+fills[1].replace(/count="\d+"/,'count="'+(fillCount+1)+'"')+'>'+fills[2]+extra+'</fills>');
+   const newStyles=[],mapping=new Map();
+   for(const id of new Set([0,1,2,3,4,5,6,8,10,12,15].flatMap(c=>[Number(regular[col(c)]),Number(bottom[col(c)])]))){
+    if(!Number.isSafeInteger(id)||id<0||!styles[id])continue;
+    const derived=styles[id].replace(/\bfillId="\d+"/,'fillId="'+fillCount+'"').replace(/\bapplyFill="\d+"/,'applyFill="1"');
+    mapping.set(String(id),String(styles.length+newStyles.length));newStyles.push(derived);
+   }
+   styleXml=styleXml.replace(xfs[0],'<cellXfs'+xfs[1].replace(/count="\d+"/,'count="'+(styles.length+newStyles.length)+'"')+'>'+xfs[2]+newStyles.join('')+'</cellXfs>');
+   sheet=sheet.replace(/<row r="(\d+)"[^>]*>[\s\S]*?<\/row>/g,block=>{
+    const r=Number(block.match(/<row r="(\d+)"/)?.[1]);
+    if(!Number.isInteger(r)||r<2||r>count+1||r%2!==1)return block;
+    return block.replace(/<c\b[^>]*(?:\/>|>[\s\S]*?<\/c>)/g,cell=>{
+     const key=cell.match(/\bs="(\d+)"/)?.[1],next=mapping.get(key);
+     return next?cell.replace(/\bs="\d+"/,'s="'+next+'"'):cell;
+    });
+   });
+   entries.set('xl/worksheets/sheet1.xml',Buffer.from(sheet));
+  }
+ }
+ entries.set('xl/styles.xml',Buffer.from(styleXml));
  return archive([...require('./xlsx-brand').brand(entries,'Refurb Parts Required')]);
 }
 module.exports={workbook,readArchive};

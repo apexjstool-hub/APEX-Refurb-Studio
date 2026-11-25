@@ -2,6 +2,27 @@
 (function(factory){const mod=factory();if(typeof module!=="undefined"&&module.exports)module.exports=mod;if(typeof window!=="undefined")window.ApexRefurbExport=mod;})(function(){
 const fullName=a=>{const maker=String(a?.manufacturer||'').trim(),model=String(a?.model||'').trim();return model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:[maker,model].filter(Boolean).join(' ');};
 const count=v=>Math.max(0,Number(v)||0);
+// Presentation-only clean-up. The export never modifies the saved asset record.
+const tidy=v=>String(v??'').normalize('NFKC').replace(/[\u00A0\t ]+/g,' ').trim();
+const knownParts=new Map(Object.entries({
+ 'lcd panel':'LCD Panel','lcd panle':'LCD Panel','lcd pannel':'LCD Panel',
+ 'screen bezel':'Screen Bezel','scren bezel':'Screen Bezel','screen bezzel':'Screen Bezel',
+ 'rubber foot strip':'Rubber Foot Strip','rubber foot strop':'Rubber Foot Strip','rubber feet strip':'Rubber Foot Strip',
+ 'respray':'Respray','respary':'Respray','re spray':'Respray',
+ 'keyboard':'Keyboard','keybaord':'Keyboard','battery':'Battery','battrey':'Battery',
+ 'touchpad':'Touchpad','touchapd':'Touchpad','palmrest':'Palmrest','palm rest':'Palmrest',
+ 'ssd':'SSD','hdd':'HDD','ram':'RAM','wifi card':'Wi-Fi Card','wi fi card':'Wi-Fi Card',
+ 'webcam':'Webcam','screen':'Screen','charger':'Charger','power adapter':'Power Adapter'
+}));
+function partDisplayName(v){
+ const raw=tidy(v);if(!raw)return '';
+ const key=raw.toLowerCase().replace(/[-_]+/g,' ').replace(/\s+/g,' ');
+ if(knownParts.has(key))return knownParts.get(key);
+ // Avoid guessing at uncommon technical product descriptions or identifiers.
+ if(raw===raw.toUpperCase()||raw===raw.toLowerCase())return raw.toLowerCase().replace(/\b[a-z]/g,m=>m.toUpperCase()).replace(/\b(Lcd|Ssd|Hdd|Ram|Usb|Hdmi|Nvme|Cpu|Gpu)\b/g,m=>m.toUpperCase());
+ return raw;
+}
+
 function partsToOrder(asset,workflow){
  const job=workflow?.jobs?.[asset.id];
  if(job?.partsBoard==='ordered')return [];
@@ -35,7 +56,7 @@ function requiredPartsRows(assets,workflow,selectedAssetIds){
  for(const asset of (assets||[])){
   if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
   const parts=outstandingParts(asset,workflow);
-  for(const part of parts){const name=String(part?.name||'').trim();if(name)rows.push([String(asset.id),fullName(asset),String(asset.serial||''),name]);}
+  for(const part of parts){const name=partDisplayName(part?.name);if(name)rows.push([String(asset.id),fullName(asset),String(asset.serial||''),name]);}
  }
  return rows;
 }
@@ -47,10 +68,10 @@ function templatePartsRows(assets,workflow,selectedAssetIds){
   const parts=outstandingParts(asset,workflow);if(!parts.length)continue;
   for(let start=0;start<parts.length;start+=4){
    const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
-   for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?String(p.name).trim()+(qty>1?' × '+qty:''):'',null);}row.push(null,String(asset.refurbNotes||''));rows.push(row);
+   for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?partDisplayName(p.name)+(qty>1?' × '+qty:''):'',null);}row.push(null,String(asset.refurbNotes||'').replace(/\r\n/g,'\n').trim());rows.push(row);
   }
  }
  return rows;
 }
-return {requiredPartsRows,templatePartsRows,fullName,partsToOrder,outstandingParts};
+return {requiredPartsRows,templatePartsRows,fullName,partsToOrder,outstandingParts,partDisplayName};
 });
