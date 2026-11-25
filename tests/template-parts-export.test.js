@@ -1,7 +1,7 @@
 'use strict';const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),exporter=require('../src/refurb-export'),xlsx=require('../src/refurb-template-xlsx');
 const asset={id:'0000123',manufacturer:'HP',model:'ZBook Studio 16 inch G10 Mobile Workstation PC',processor:'Intel Core i7',ram:'32 GB',storage:'1 TB NVMe',serial:'0000456'};const workflow={jobs:{'0000123':{parts:Array.from({length:6},(_,i)=>({name:'Part '+(i+1),qty:i===0?2:1}))}}};
-test('Reference columns map only recorded device fields and preserve all parts across four-slot continuation rows',()=>{const rows=exporter.templatePartsRows([asset],workflow);assert.equal(rows.length,3);assert.deepEqual(rows[1].slice(0,6),['0000123','HP ZBook Studio 16 inch G10 Mobile Workstation PC','Intel Core i7','32 GB','1 TB NVMe','0000456']);assert.equal(rows[1][6],'Part 1 × 2');assert.equal(rows[2][6],'Part 5');assert.equal(rows[2][8],'Part 6');for(const r of rows.slice(1))for(const c of [7,9,11,13])assert.equal(r[c],null);assert.equal(exporter.templatePartsRows([asset],workflow,[]).length,1);});
-test('Export retains reference table/styles and valid totals; asset text stays literal',()=>{const rows=exporter.templatePartsRows([{...asset,processor:'=HYPERLINK("bad")'}],workflow),buffer=xlsx.workbook(rows),entries=xlsx.readArchive(buffer),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(entries.has('xl/styles.xml'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('displayName="Expenses"'));assert.ok(sheet.includes('<t xml:space="preserve">=HYPERLINK(&quot;bad&quot;)</t>'));assert.ok(sheet.includes('r="A4"')&&sheet.includes('0000123'));assert.ok(sheet.includes('r="O4"')&&sheet.includes('SUM(H4,J4,L4,N4)'));assert.ok(!entries.has('xl/calcChain.xml'));assert.ok(sheet.includes('<c r="H4" s="6"/>'));});
+test('Reference columns map only recorded device fields and preserve all parts across four-slot continuation rows',()=>{const rows=exporter.templatePartsRows([asset],workflow);assert.equal(rows.length,2);assert.deepEqual(rows[1].slice(0,6),['0000123','HP ZBook Studio 16 inch G10 Mobile Workstation PC','Intel Core i7','32 GB','1 TB NVMe','0000456']);assert.equal(rows[1][6],'Part 1 × 2');assert.equal(rows[1][14],'Part 5');assert.equal(rows[1][16],'Part 6');assert.equal(rows[0].length,20);for(const c of [7,9,11,13,15,17])assert.equal(rows[1][c],null);assert.equal(exporter.templatePartsRows([asset],workflow,[]).length,1);});
+test('Export retains reference table/styles and valid totals; asset text stays literal',()=>{const rows=exporter.templatePartsRows([{...asset,processor:'=HYPERLINK("bad")'}],workflow),buffer=xlsx.workbook(rows),entries=xlsx.readArchive(buffer),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(entries.has('xl/styles.xml'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('displayName="Expenses"'));assert.ok(sheet.includes('<t xml:space="preserve">=HYPERLINK(&quot;bad&quot;)</t>'));assert.ok(sheet.includes('r="A4"')&&sheet.includes('0000123'));assert.ok(sheet.includes('r="S4"')&&sheet.includes('SUM(H4,J4,L4,N4,P4,R4)'));assert.ok(!entries.has('xl/calcChain.xml'));assert.ok(sheet.includes('<c r="H4"'));});
 test('Template expands beyond its original row count without truncation or broken totals',()=>{const rows=exporter.templatePartsRows(Array.from({length:50},(_,i)=>({...asset,id:'ASSET-'+i})),{jobs:Object.fromEntries(Array.from({length:50},(_,i)=>['ASSET-'+i,{parts:[{name:'Battery',qty:1}]}]))});const entries=xlsx.readArchive(xlsx.workbook(rows)),sheet=entries.get('xl/worksheets/sheet1.xml').toString();assert.ok(sheet.includes('ASSET-49'));assert.ok(sheet.includes('SUM(H4:H53)'));assert.ok(entries.get('xl/tables/table1.xml').toString().includes('ref="A3:P54"'));});
 if(process.env.APEX_EXPORT_QA_PATH)fs.writeFileSync(process.env.APEX_EXPORT_QA_PATH,xlsx.workbook(exporter.templatePartsRows([asset],workflow)));
 
@@ -74,4 +74,39 @@ test('Refurbishment Excel retains asset 83253 ordered LCD, rubber foot and bezel
  assert.deepEqual([row[6],row[8],row[10],row[12]],['LCD Panel','Rubber Foot Strip','Screen Bezel','Respray']);
  w.jobs['83253'].parts[0].fitted=1;
  assert.deepEqual(exporter.requiredPartsRows([a],w).slice(1).map(row=>row[3]),['Rubber Foot Strip','Screen Bezel','Respray']);
+});
+
+test('Export presentation normalises common part typos without changing device IDs or original records',()=>{
+ const a={...asset,id:'FORMATTING',serial:'00aBc-009',model:'ProBook 450 G9',refurbNotes:'  Engineer says keyboard not working.  '};
+ const w={jobs:{FORMATTING:{parts:[{name:'lcd panle',qty:1},{name:'SCRen bezel',qty:1},{name:'RESpary',qty:1},{name:'battery',qty:1}]}}};
+ const rows=exporter.templatePartsRows([a],w);
+ assert.deepEqual([rows[1][6],rows[1][8],rows[1][10],rows[1][12]],['LCD Panel','Screen Bezel','Respray','Battery']);
+ assert.equal(rows[1][5],'00aBc-009');
+ assert.equal(rows[1][1],'HP ProBook 450 G9');
+ assert.equal(rows[1][15],'Engineer says keyboard not working.');
+ assert.equal(a.refurbNotes,'  Engineer says keyboard not working.  ');
+ const workbook=xlsx.readArchive(xlsx.workbook(rows));
+ const styles=workbook.get('xl/styles.xml').toString();
+ const sheet=workbook.get('xl/worksheets/sheet1.xml').toString();
+ assert.ok(styles.includes('FFF2F6FB'));
+ assert.ok(styles.includes('name val="Aptos"'));
+ assert.ok(sheet.includes('LCD Panel')&&sheet.includes('Screen Bezel'));
+});
+
+test('Each asset occupies exactly one Excel row with dynamic individual cost columns',()=>{
+ const a={...asset,id:'83253',serial:'ABC-004'};
+ const parts=[{name:'LCD Panel',qty:1,cost:42.5,status:'Ordered'},{name:'Rubber Foot Strip',qty:1,cost:2.99,status:'Ordered'},{name:'Screen Bezel',qty:1,cost:15,status:'Ordered'},{name:'Respray',qty:1,cost:22},{name:'Keyboard',qty:1,cost:19.5},{name:'Battery',qty:1,cost:27.8}];
+ const rows=exporter.templatePartsRows([a],{jobs:{'83253':{parts}}});
+ assert.equal(rows.length,2);
+ assert.equal(rows[1][0],'83253');
+ assert.equal(rows[0].length,20);
+ assert.deepEqual([rows[1][6],rows[1][8],rows[1][10],rows[1][12],rows[1][14],rows[1][16]],parts.map(p=>p.name));
+ assert.deepEqual([rows[1][7],rows[1][9],rows[1][11],rows[1][13],rows[1][15],rows[1][17]],parts.map(p=>p.cost));
+ const entries=xlsx.readArchive(xlsx.workbook(rows));
+ const sheet=entries.get('xl/worksheets/sheet1.xml').toString(),table=entries.get('xl/tables/table1.xml').toString();
+ assert.ok(sheet.includes('r="A4"')&&sheet.includes('83253'));
+ assert.ok(sheet.includes('r="R4"'));
+ assert.ok(sheet.includes('<f>SUM(H4,J4,L4,N4,P4,R4)</f>'));
+ assert.ok(table.includes('tableColumns count="20"')&&table.includes('name="Part #6 Cost"'));
+ assert.ok(table.includes('name="Refurb notes"'));
 });
