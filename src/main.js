@@ -95,7 +95,7 @@ async function renewCloudSession(){
    original.token=data.access_token;
    original.refreshToken=data.refresh_token;
    original.expiresAt=Date.now()+Math.max(0,Number(data.expires_in||3600)-45)*1000;
-   const remembered=readRememberedCloud();if(remembered)saveRememberedCloud(remembered.email);
+   const remembered=readRememberedCloud();if(remembered)saveRememberedCloud(remembered.email,remembered.password);
    return original;
   })().finally(()=>{cloudRenewal=null;});
  }
@@ -462,14 +462,16 @@ async function cloudStart(input){
 function cloudStop(){if(cloudProcess&&cloudProcess.exitCode===null){cloudProcess.kill();cloudLastMessage='Cloud sync stopped by administrator.';}return {ok:true};}
 
 // Upgrade 15: online Supabase staff authentication. Passwords and access tokens
-// stay in Electron main memory; only non-secret URL/publishable key are persisted.
+// stay in the main process. Remembered credentials use Electron safeStorage.
 const rememberedCloudFile=()=>path.join(userDir(),'cloud-remembered-session.json');
 function forgetRememberedCloud(){try{fs.unlinkSync(rememberedCloudFile());}catch{}}
-function saveRememberedCloud(email){
- if(!cloudSession?.refreshToken||!safeStorage.isEncryptionAvailable())return false;
- const value={url:cloudSession.url,anonKey:cloudSession.anonKey,email:String(email||''),refreshToken:cloudSession.refreshToken};
- const encrypted=safeStorage.encryptString(JSON.stringify(value)).toString('base64');
- atomic(rememberedCloudFile(),{encrypted});return true;
+function saveRememberedCloud(email,password){
+ try{
+  if(!safeStorage.isEncryptionAvailable()||(!cloudSession?.refreshToken&&!password))return false;
+  const value={url:cloudSession.url,anonKey:cloudSession.anonKey,email,refreshToken:cloudSession.refreshToken,password};
+  const encrypted=safeStorage.encryptString(JSON.stringify(value)).toString('base64');
+  atomic(rememberedCloudFile(),{encrypted});return true;
+ }catch{return false;}
 }
 function readRememberedCloud(){
  try{
@@ -481,11 +483,23 @@ function readRememberedCloud(){
 async function resumeRememberedCloud(){
  if(authenticated)return {ok:false,error:'Already signed in.'};
  const saved=readRememberedCloud();if(!saved)return {ok:false,remembered:false};
- const {url,anonKey,email,refreshToken}=saved;
- if(!validCloudUrl(url)||!validPublishableKey(anonKey)||typeof refreshToken!=='string')return {ok:false,error:'Saved login invalid.'};
+ const {url,anonKey,email,refreshToken,password}=saved;
+ async function signInWithSavedPassword(){
+  const result=await cloudStaffLogin({url,anonKey,email,password,rememberMe:true});
+  if(!result.ok&&result.error.startsWith('Email/password incorrect'))forgetRememberedCloud();
+  return result;
+ }
+ if(!validCloudUrl(url)||!validPublishableKey(anonKey))return {ok:false,error:'Saved login invalid.'};
+ if(!refreshToken&&password)return signInWithSavedPassword();
+ if(typeof refreshToken!=='string')return {ok:false,error:'Saved login invalid.'};
  try{
   const response=await fetch(url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:anonKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refreshToken}),signal:AbortSignal.timeout(12000)});
-  if(!response.ok){if([400,401,403].includes(response.status))forgetRememberedCloud();return {ok:false,error:'Saved session expired. Please sign in again.'};}
+  if(!response.ok){
+   if(![400,401,403].includes(response.status))return {ok:false,error:'Cloud temporarily unavailable. Try again shortly.'};
+   if(password)return signInWithSavedPassword();
+   forgetRememberedCloud();
+   return {ok:false,error:'Saved session expired. Please enter your password again.'};
+  }
   const auth=await response.json();if(!auth.access_token||!auth.refresh_token||!auth.user?.id)throw Error('Invalid renewal');
   const staffResponse=await fetch(url+'/rest/v1/apex_staff?select=user_id,role,active&user_id=eq.'+encodeURIComponent(auth.user.id),{headers:{apikey:anonKey,Authorization:'Bearer '+auth.access_token},signal:AbortSignal.timeout(12000)});
   if(!staffResponse.ok)throw Error('Staff check unavailable');
@@ -493,7 +507,7 @@ async function resumeRememberedCloud(){
   if(!Array.isArray(staff)||staff.length!==1||staff[0].active!==true){forgetRememberedCloud();return {ok:false,error:'Cloud account is no longer authorised.'};}
   cloudSession={email:auth.user.email||email,userId:auth.user.id,url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};
   authenticated=true;authMode='cloud';cloudUserRole=staff[0].role;loginFailures=0;cloudSeenRevisions.clear();
-  saveRememberedCloud(email);return {ok:true,username:email,authMode:'cloud',role:staff[0].role};
+  saveRememberedCloud(email,password);return {ok:true,username:email,authMode:'cloud',role:staff[0].role};
  }catch{return {ok:false,error:'Cloud temporarily unavailable. Sign in manually or try again later.'};}
 }
 const cloudLoginPublicFile=()=>path.join(userDir(),'cloud-login-public.json');
@@ -529,10 +543,10 @@ async function cloudStaffLogin(input){
   if(!staffResp.ok)return {ok:false,error:'Unable to verify staff permissions (HTTP '+staffResp.status+').'};
   const staff=await staffResp.json();
   if(!Array.isArray(staff)||staff.length!==1||staff[0].active!==true)return {ok:false,error:'Your cloud account is not authorised in apex_staff.'};
-  // Remembering the session is opt-in and uses OS-backed encryption, never the password.
+  // Opt-in credentials stay encrypted on disk and are used only by the main process.
   atomic(cloudLoginPublicFile(),{url,anonKey});
   cloudSeenRevisions.clear();cloudSession={email:auth.user.email||email,userId:auth.user.id,url,anonKey,token:auth.access_token,refreshToken:auth.refresh_token||null,expiresAt:Date.now()+Math.max(0,Number(auth.expires_in||3600)-45)*1000};authenticated=true;authMode='cloud';cloudUserRole=staff[0].role;loginFailures=0;
-  if(input?.rememberMe===true){if(!saveRememberedCloud(email))return {ok:true,username:email,mustChangePassword:false,authMode:'cloud',role:staff[0].role,warning:'Secure session storage unavailable. Sign-in will not be remembered.'};}
+  if(input?.rememberMe===true){if(!saveRememberedCloud(email,password)){forgetRememberedCloud();return {ok:true,username:email,mustChangePassword:false,authMode:'cloud',role:staff[0].role,warning:'Secure credential storage unavailable. Sign-in will not be remembered.'};}}
   else forgetRememberedCloud();
   return {ok:true,username:email,mustChangePassword:false,authMode:'cloud',role:staff[0].role};
  }catch(e){return {ok:false,error:'Unable to reach Supabase. Check your internet connection and project URL.'};}
@@ -807,7 +821,7 @@ app.whenReady().then(()=>{
  // maintains its own snapshots, even when this Studio window is closed.
  const localAutoBackup=()=>{try{if(backupManager.due(userDir()))backupManager.snapshot({root:userDir(),files:localBackupFiles(),reason:'automatic'});}catch(e){console.error('Local backup:',e.message);}};
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
- win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#0c0e17',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+ win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#f5f7fb',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
  win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer','index.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
