@@ -104,9 +104,9 @@ test('Each asset occupies exactly one Excel row with dynamic individual cost col
  assert.deepEqual([rows[1][7],rows[1][9],rows[1][11],rows[1][13],rows[1][15],rows[1][17]],parts.map(p=>p.cost));
  const entries=xlsx.readArchive(xlsx.workbook(rows));
  const sheet=entries.get('xl/worksheets/sheet1.xml').toString(),table=entries.get('xl/tables/table1.xml').toString();
- assert.ok(sheet.includes('r="A2"')&&sheet.includes('83253'));
- assert.ok(sheet.includes('r="R2"'));
- assert.ok(sheet.includes('<f>SUM(H2,J2,L2,N2,P2,R2)</f>'));
+ assert.ok(sheet.includes('r="A4"')&&sheet.includes('83253'));
+ assert.ok(sheet.includes('r="R4"'));
+ assert.ok(sheet.includes('<f>SUM(H4,J4,L4,N4,P4,R4)</f>'));
  assert.ok(table.includes('tableColumns count="20"')&&table.includes('name="Part #6 Cost"'));
  assert.ok(table.includes('name="Refurb notes"'));
 });
