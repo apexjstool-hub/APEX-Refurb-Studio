@@ -61,17 +61,29 @@ function requiredPartsRows(assets,workflow,selectedAssetIds){
  return rows;
 }
 function templatePartsRows(assets,workflow,selectedAssetIds){
- const allowed=selectedAssetIds===undefined?null:new Set(selectedAssetIds);
- const rows=[['Item ID','Make/Model','CPU','RAM','Storage','Serial Number','Part #1','Part #1 Cost','Part #2','Part #2 Cost','Part #3','Part #3 Cost','Part #4','Part #4 Cost','Parts Total','Refurb notes']];
- for(const asset of assets||[]){
-  if(asset.deletedAt||(allowed&&!allowed.has(String(asset.id))))continue;
-  const parts=outstandingParts(asset,workflow);if(!parts.length)continue;
-  for(let start=0;start<parts.length;start+=4){
-   const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
-   for(let slot=0;slot<4;slot++){const p=parts[start+slot],qty=Number(p?.qty??p?.quantity??1);row.push(p?partDisplayName(p.name)+(qty>1?' × '+qty:''):'',null);}row.push(null,String(asset.refurbNotes||'').replace(/\r\n/g,'\n').trim());rows.push(row);
+ const allowed=selectedAssetIds===undefined?null:new Set(selectedAssetIds.map(String));
+ const selected=(assets||[]).filter(a=>!a.deletedAt&&(!allowed||allowed.has(String(a.id))));
+ const entries=selected.map(asset=>({asset,parts:outstandingParts(asset,workflow)})).filter(x=>x.parts.length);
+ // Four pairs minimum maintains the established APEX template; expand to fit every requirement.
+ const slots=Math.max(4,...entries.map(x=>x.parts.length),0);
+ if(slots>1000)throw Error('Too many part columns for Excel; export in smaller batches.');
+ const headers=['Item ID','Make/Model','CPU','RAM','Storage','Serial Number'];
+ for(let i=1;i<=slots;i++)headers.push('Part #'+i,'Part #'+i+' Cost');
+ headers.push('Parts Total','Refurb notes');
+ const rows=[headers];
+ for(const {asset,parts} of entries){
+  const row=[String(asset.id),fullName(asset),String(asset.processor||''),String(asset.ram||''),String(asset.storage||''),String(asset.serial||'')];
+  for(let i=0;i<slots;i++){
+   const p=parts[i];const qty=Number(p?.qty??p?.quantity??1);
+   row.push(p?partDisplayName(p.name)+(qty>1?' × '+qty:''):'');
+   const amount=p?.cost??p?.unitCost;
+   row.push(p&&amount!==undefined&&amount!==null&&amount!==''&&Number.isFinite(Number(amount))?Number(amount):null);
   }
+  row.push(null,String(asset.refurbNotes||'').replace(/\r\n/g,'\n').trim());
+  rows.push(row);
  }
  return rows;
 }
+
 return {requiredPartsRows,templatePartsRows,fullName,partsToOrder,outstandingParts,partDisplayName};
 });
