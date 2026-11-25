@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  portableRevoke:deviceId=>ipcRenderer.invoke('inventory:portableRevoke',deviceId),
  cloudStaffLogin:credentials=>ipcRenderer.invoke('inventory:cloudStaffLogin',credentials),
  cloudResume:()=>ipcRenderer.invoke('inventory:cloudResume'),
+ cloudForget:()=>ipcRenderer.invoke('inventory:cloudForget'),
  cloudRememberedInfo:()=>ipcRenderer.invoke('inventory:cloudRememberedInfo'),
  cloudLoginInfo:()=>ipcRenderer.invoke('inventory:cloudLoginInfo'),
  cloudLoginConfigure:(data)=>ipcRenderer.invoke('inventory:cloudLoginConfigure',data),

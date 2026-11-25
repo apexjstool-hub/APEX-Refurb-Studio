@@ -42,7 +42,7 @@
  function stopAutoScan(){if(autoScanTimer!==null){clearTimeout(autoScanTimer);autoScanTimer=null;}}
  function resetKeys(){fastKeyCount=0;lastKeyTime=0;fastScanBurst=false;}
  function exactKnownScan(raw){
-  const value=clean(raw);
+  const value=clean(raw).replace(/^APEX-MICRODREAM-PALLET:/i,'PALLET:');
   if(!value)return false;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
   const matchingAsset=items.some(a=>!a.deletedAt&&a.id===decoded);
@@ -86,6 +86,7 @@
   el('v346BatchContent').classList.remove('hidden');
   el('v346Clear').disabled=active.length===0;
   el('v346MoveLocation').disabled=active.length===0||transferBusy;
+  el('v346PartsNeeded').disabled=active.length===0||transferBusy;
   el('v346SetAssetLocation').disabled=active.length===0||transferBusy;
   el('scanCreatePallet').disabled=transferBusy;
   el('v346CreateAssetLocation').disabled=transferBusy;
@@ -96,7 +97,7 @@
  }
  function scan(raw){
   clearInlineReview();
-  const value=clean(raw);if(!value)return;
+  const value=clean(raw).replace(/^APEX-MICRODREAM-PALLET:/i,'PALLET:');if(!value)return;
   const decoded=upper(window.ApexAssetLabelQR?.readAssetId(value)||value);
   const asset=items.find(a=>!a.deletedAt&&a.id===decoded);
   if(asset&&pallets().some(p=>upper(p.name)===upper(value))){showStatus(`This name matches both a device and a pallet. Use PALLET: ${value} to load the whole pallet.`,true);return;}
@@ -198,6 +199,36 @@
   el('v346ReviewConfirm').disabled=false;
   el('v346InlineReview').scrollIntoView({behavior:'smooth',block:'nearest'});
  }
+ el('v346PartsNeeded').onclick=async()=>{
+  if(transferBusy)return;
+  const originals=reviewedAssets();
+  if(!originals)return;
+  clearInlineReview();
+  const records=originals.map(a=>({id:a.id,location:a.location,pallet:a.pallet||'',updatedAt:a.updatedAt}));
+  transferBusy=true;
+  drawScan();
+  try{
+   const result=await api.workflow();
+   if(!result.ok)throw Error(result.error||'Could not load parts records.');
+   if(batch.length!==records.length||batch.some((id,i)=>id!==records[i].id))return;
+   const eligible=records.filter(({id})=>{
+    const job=result.workflow?.jobs?.[id];
+    return job?.partsBoard!=='needed'&&job?.parts?.some(part=>part.fitted<part.qty);
+   });
+   if(!eligible.length){showStatus('No scanned assets need moving to Parts Needed.');return;}
+   pendingReview={mode:'parts',records,eligible};
+   el('v346InlineReview').hidden=false;
+   el('v346InlineReviewTitle').textContent='Review move to Parts Needed';
+   el('v346InlineReviewSummary').textContent=eligible.length+' of '+records.length+' scanned assets will move to Parts Needed.';
+   el('v346InlineReviewDevices').innerHTML='<ul>'+eligible.map(a=>'<li>'+html(a.id)+'</li>').join('')+'</ul>';
+   el('v346InlineReviewNotice').textContent='This changes the parts board only. Purchase records and pallet assignments are kept.';
+   el('v346InlineReviewError').textContent='';
+   el('v346ReviewConfirm').textContent='Confirm move to Parts Needed';
+   el('v346ReviewConfirm').disabled=false;
+   el('v346InlineReview').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(error){showStatus(error.message,true);}
+  finally{transferBusy=false;drawScan();}
+ };
  el('v346MoveLocation').onclick=()=>review('pallet');
  el('v346SetAssetLocation').onclick=()=>review('location');
  el('v346ReviewCancel').onclick=()=>{clearInlineReview();scanField.focus();};
@@ -214,7 +245,15 @@
   }
   transferBusy=true;el('v346ReviewConfirm').disabled=true;el('v346ReviewConfirm').textContent='Saving…';drawScan();
   try{
-   if(planned.mode==='undo'){
+   if(planned.mode==='parts'){
+    const answer=await api.workflowAction({type:'bulkSetPartsBoard',board:'needed',assetIds:planned.eligible.map(a=>a.id)});
+    if(!answer.ok)throw Error(answer.error||'Could not move assets to Parts Needed.');
+    clearInlineReview();
+    window.ApexOps?.load(true);
+    await refresh();
+    drawScan();
+    showStatus(planned.eligible.length+' scanned asset(s) moved to Parts Needed.');
+   }else if(planned.mode==='undo'){
     const answer=await api.undoLastBulkAssetLocation();
     if(!answer.ok)throw Error(answer.error||'Could not undo last location update.');
     clearInlineReview();await refresh();drawScan();showStatus(answer.restored+' asset location(s) restored. Pallets unchanged.');

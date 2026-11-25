@@ -579,7 +579,8 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:cloudStaffLogin',(evt,input)=>safe(()=>cloudStaffLogin(input)));
  ipcMain.handle('inventory:cloudResume',()=>safe(()=>resumeRememberedCloud()));
  ipcMain.handle('inventory:cloudRememberedInfo',()=>safe(()=>{const saved=readRememberedCloud();return {ok:true,remembered:!!saved,email:saved?.email||''};}));
- ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();forgetRememberedCloud();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
+ ipcMain.handle('inventory:cloudForget',()=>safe(()=>{forgetRememberedCloud();return {ok:true};}));
+ ipcMain.handle('inventory:logout',()=>{arrivalTracker.reset();intakeNotification?.close();accountSecurity.lock();cloudSession=null;cloudSeenRevisions.clear();authenticated=false;authMode=null;cloudUserRole=null;return {ok:true};});
  ipcMain.handle('inventory:password',(evt,oldPass,newPass)=>safe(()=>{
   if(!authenticated||authMode!=='local')return {ok:false,error:'Local password changes require local admin sign-in.'};const db=loadDB();if(hash(String(oldPass),db.user.salt)!==db.user.passwordHash)return {ok:false,error:'Current password is incorrect.'};
   if(typeof newPass!=='string'||newPass.length<8||newPass.length>128)return {ok:false,error:'Choose a password of 8–128 characters.'};

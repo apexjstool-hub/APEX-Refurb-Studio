@@ -120,7 +120,7 @@ function draw(){
  }
  const allPartGroups = [...byAsset.entries()].filter(([,list])=>list.some(p=>p.fitted<p.qty)).sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true}));
  const partGroups=allPartGroups.map(([id,list])=>[id,ops.jobs[id]?.partsBoard==='ordered'?[]:list]).filter(([,list])=>list.length);
- const orderedGroups=allPartGroups.map(([id,list])=>[id,ops.jobs[id]?.partsBoard==='ordered'?list:list.filter(p=>p.fitted<p.qty&&(p.onOrder>0||p.received>p.fitted))]).filter(([,list])=>list.length);
+ const orderedGroups=allPartGroups.map(([id,list])=>[id,ops.jobs[id]?.partsBoard==='needed'?[]:ops.jobs[id]?.partsBoard==='ordered'?list:list.filter(p=>p.fitted<p.qty&&(p.onOrder>0||p.received>p.fitted))]).filter(([,list])=>list.length);
  const visibleAssets=new Set(partGroups.map(([id])=>id));
  const expandedVisible=new Set(allPartGroups.map(([id])=>id));
  for(const id of expandedPartAssets)if(!expandedVisible.has(id))expandedPartAssets.delete(id);
