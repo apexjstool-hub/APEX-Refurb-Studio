@@ -130,7 +130,7 @@ app.whenReady().then(async()=>{
   if(!palletReady||!db.pallets.find(p=>p.name==='PALLET-0002'&&p.label==='Test refurbishment batch'&&p.createdAt))throw Error('Pallet creation did not persist description/date or select destination.');
   await win.webContents.executeJavaScript("$('v346ScanInput').value='TEST-TRACKER';$('v346ScanForm').dispatchEvent(new Event('submit',{cancelable:true}));$('v346MoveLocation').click();$('v360ConfirmMove').click();");
   for(let i=0;i<30;i++){if(db.items[0].pallet==='PALLET-0002')break;await new Promise(r=>setTimeout(r,100));}
-  if(db.items[0].pallet!=='PALLET-0002'||db.items[0].location!=='Unassigned')throw Error('Scan pallet move did not clear the direct location.');
+  if(db.items[0].pallet!=='PALLET-0002'||db.items[0].location!=='Inspection')throw Error('Scan pallet move did not preserve the direct location.');
   await win.webContents.executeJavaScript("setPage('pallets');$('inventoryPage').classList.add('hidden');$('bulkPage').classList.add('hidden');$('palletsPage').classList.remove('hidden');window.ApexPalletPage.render();void 0;");
   if(!await win.webContents.executeJavaScript("(()=>{const b=$('apexCreatePallet'),r=b.getBoundingClientRect();return r.width>80&&r.height>20&&!b.closest('.page-intro')&&b.textContent.includes('Create pallet')&&!!b.closest('.management-toolbar');})()"))throw Error('Add new pallet button is hidden or missing from the Pallets page.');
   await win.webContents.executeJavaScript("$('apexAddLocation').click();void 0;");

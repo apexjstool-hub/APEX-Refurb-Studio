@@ -192,7 +192,7 @@
   el('v346InlineReviewTitle').textContent=mode==='pallet'?'Confirm pallet transfer':'Confirm asset location update';
   el('v346InlineReviewSummary').textContent=changes.length+' of '+originals.length+' scanned asset(s) will change to '+destination+'.';
   el('v346InlineReviewDevices').innerHTML='<table class="asset-table"><thead><tr><th>Asset ID</th><th>Current asset location</th><th>Current pallet</th><th>New '+(mode==='pallet'?'pallet':'asset location')+'</th></tr></thead><tbody>'+changes.slice(0,50).map(a=>'<tr><td>'+html(a.id)+'</td><td>'+html(a.location||'Unassigned')+'</td><td>'+html(a.pallet||'None')+'</td><td>'+html(destination)+'</td></tr>').join('')+'</tbody></table>'+(changes.length>50?'<p>+'+(changes.length-50)+' more assets</p>':'');
-  el('v346InlineReviewNotice').textContent=mode==='pallet'?'Uses the existing pallet transfer: it assigns the pallet and clears the direct asset location. The pallet’s own storage location is unchanged.':'Only Asset Location changes. Existing pallet IDs and pallet storage locations remain untouched.';
+  el('v346InlineReviewNotice').textContent=mode==='pallet'?'Each asset keeps its current location when its pallet changes.':'Only Asset Location changes. Existing pallet IDs and pallet storage locations remain untouched.';
   el('v346InlineReviewError').textContent='';
   el('v346ReviewConfirm').textContent=mode==='pallet'?'Confirm pallet transfer':'Confirm asset locations';
   el('v346ReviewConfirm').disabled=false;
@@ -220,10 +220,10 @@
     clearInlineReview();await refresh();drawScan();showStatus(answer.restored+' asset location(s) restored. Pallets unchanged.');
    }else if(planned.mode==='pallet'){
     const entries=planned.records;
-    const result=await api.bulkMove({ids:entries.map(a=>a.id),pallet:planned.destination,location:'Unassigned',expectedAssignments:entries});
+    const result=await api.bulkMove({ids:entries.map(a=>a.id),pallet:planned.destination,expectedAssignments:entries});
     if(!result.ok)throw Error(result.error||'Pallet transfer failed.');
     await refresh();
-    lastMove={destination:planned.destination,entries:entries.map(a=>({id:a.id,location:a.location,pallet:a.pallet,expectedLocation:'Unassigned',expectedPallet:planned.destination,expectedUpdatedAt:items.find(x=>x.id===a.id)?.updatedAt||''}))};
+    lastMove={destination:planned.destination,entries:entries.map(a=>({id:a.id,location:a.location,pallet:a.pallet,expectedLocation:a.location,expectedPallet:planned.destination,expectedUpdatedAt:items.find(x=>x.id===a.id)?.updatedAt||''}))};
     batch=[];el('v346Destination').value='';clearInlineReview();drawScan();updateUndo();
     showStatus(entries.length+' asset(s) moved to pallet '+planned.destination+'. Undo last move is available below.');
    }else{

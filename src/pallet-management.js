@@ -73,8 +73,7 @@
   while(registered.has(`PALLET-${String(n).padStart(4,'0')}`)) n++;
   return `PALLET-${String(n).padStart(4,'0')}`;
  }
- // One device is stored in a direct Location OR on a Pallet, never both.
- // A pallet transfer clears the direct location to the explicit Unassigned value.
+ // Pallet assignment and the direct asset location are independent.
  function moveBatch(db,input={}) {
   const ids=Array.isArray(input.ids)?input.ids.map(key):[];
   if(ids.length<1||ids.length>300)return {ok:false,error:'Scan between 1 and 300 devices for one move.'};
@@ -100,9 +99,9 @@
   }
   // Stage every update on independent copies: no partial saves on validation failures.
   const copies=[];
-  for(const old of existing){const next=structuredClone(old),out=core.update([next],next.id,{location,pallet});if(!out.ok)return out;copies.push(next);}
+  for(const old of existing){const next=structuredClone(old),out=core.update([next],next.id,pallet?{pallet}:{location,pallet});if(!out.ok)return out;copies.push(next);}
   copies.forEach((copy,i)=>{db.items[db.items.indexOf(existing[i])]=copy;});
-  return {ok:true,moved:copies.length,ids,location,pallet};
+  return {ok:true,moved:copies.length,ids,...(pallet?{}:{location}),pallet};
  }
  // Restore a recently moved batch atomically. Each asset must still be in the
  // location assigned by the original move, to avoid overwriting later activity.

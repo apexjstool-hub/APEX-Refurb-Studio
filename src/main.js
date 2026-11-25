@@ -210,7 +210,7 @@ async function cloudMetaSave(action,input,revision){
   return {...value,ok:true};
  }catch{return {ok:false,error:'Cloud move interrupted. Refresh before trying again.'};}
 }
-async function cloudInventoryCall(method,route,payload){
+async function cloudInventoryCall(method,route,payload,expectedRevision){
  if(!cloudSession)return {ok:false,error:'Sign in to cloud inventory.'};
  if(method==='POST'&&(route==='/v1/items/bulk-move'||route==='/v1/items/bulk-restore')){
   const undo=route.endsWith('bulk-restore');
@@ -219,6 +219,26 @@ async function cloudInventoryCall(method,route,payload){
   const ids=undo?entries.map(e=>String(e.id||'').toUpperCase()):entries.map(x=>String(x||'').toUpperCase());
   if(new Set(ids).size!==ids.length)return {ok:false,error:'Duplicate Asset IDs in batch.'};
   if(ids.some(id=>!cloudSeenRevisions.has(id)))return {ok:false,error:'Refresh the shared inventory before moving these laptops.'};
+  if(undo||payload.pallet){
+   // The deployed pallet RPC clears location. Use the revision-checked asset
+   // update route for pallet-only changes, leaving the location field untouched.
+   const inventory=await cloudInventoryCall('GET','/v1/items',null);
+   if(!inventory.ok)return inventory;
+   const review=structuredClone(inventory);
+   const checked=undo?palletManagement.restoreBatch(review,payload):palletManagement.moveBatch(review,payload);
+   if(!checked.ok)return checked;
+   const targets=new Map(review.items.map(item=>[item.id,item]));
+   const revisions=new Map(ids.map(id=>[id,cloudSeenRevisions.get(id)]));
+   const changedIds=[];
+   for(const id of ids){
+    const target=targets.get(id);
+    const patch=undo?{pallet:target.pallet,location:target.location}:{pallet:target.pallet};
+    const result=await cloudInventoryCall('PATCH','/v1/items/'+encodeURIComponent(id),patch,revisions.get(id));
+    if(!result.ok)return {ok:false,changedIds,error:'Completed '+changedIds.length+' of '+ids.length+' pallet updates. '+(result.error||'Refresh and review the remaining assets.')};
+    changedIds.push(id);
+   }
+   return {ok:true,ids,...(undo?{restored:ids.length}:{moved:ids.length})};
+  }
   const moves=ids.map((id,i)=>{
    const e=undo?entries[i]:null;
    const expected=(payload?.expectedAssignments||[]).find(x=>String(x.id||'').toUpperCase()===id);
@@ -326,7 +346,7 @@ async function cloudInventoryCall(method,route,payload){
   if(!current.ok)return current;
   if(!Array.isArray(current.rows)||current.rows.length!==1)return {ok:false,error:'Cloud asset not found.'};
   const prior=current.rows[0];
-  if(!cloudSeenRevisions.has(id)||cloudSeenRevisions.get(id)!==Number(prior.revision))return {ok:false,error:'This laptop changed since it was loaded. Refresh inventory and review before saving.'};
+  if((expectedRevision??cloudSeenRevisions.get(id))!==Number(prior.revision))return {ok:false,error:'This laptop changed since it was loaded. Refresh inventory and review before saving.'};
   const edited=core.update([core.normalize(prior.payload)],id,payload);
   if(!edited.ok)return edited;
   const saved=await cloudWrite('apex_replace_full_asset',{p_id:id,p_expected_revision:prior.revision,p_payload:edited.item});
