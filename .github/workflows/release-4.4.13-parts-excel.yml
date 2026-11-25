@@ -1,0 +1,85 @@
+name: Publish APEX 4.4.13 Parts Export Settings Update
+on:
+  push:
+    branches:
+      - release/4.4.13-parts-excel-fix
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/release-4.4.13-parts-excel.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: apex-stable-4413
+  cancel-in-progress: false
+jobs:
+  verify-build-publish:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify version and existing stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '4.4.13') { throw 'Version must be 4.4.13' }
+          if ($pkg.build.appId -ne 'com.apex.inventory') { throw 'Production updater identity must be preserved' }
+          if ($pkg.build.publish[0].releaseType -ne 'release') { throw 'Stable GitHub update feed required' }
+          gh release view v4.4.13 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'v4.4.13 already exists; never overwrite a release' }
+          $existing = gh release view v4.4.12 --repo ${{ github.repository }} --json tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Existing stable 4.4.12 release missing' }
+      - name: Restore public cloud sign-in configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'APEX_CLOUD_LOGIN_CONFIG GitHub secret missing' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          $key = [string]$config.anonKey
+          if ($key.StartsWith('sb_secret_')) { throw 'Server credentials cannot be bundled into the app' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'),$env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid public cloud config' }
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Bundle offline fonts
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Font preparation failed' }
+      - name: Verify export regression and important integrations
+        run: |
+          node --check src/refurb-export.js
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid export source' }
+          node --test tests/template-parts-export.test.js tests/refurb-parts-bridge.test.js tests/diagnostic-intake.test.js tests/update-popup-schedule.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed: no release' }
+      - name: Build Windows installer and update metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run pack:windows -- --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows build failed' }
+          if (!(Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.13.exe')) { throw 'Installer missing' }
+          if (!(Test-Path 'dist/latest.yml')) { throw 'latest.yml missing' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Update metadata mismatch: no release' }
+      - name: Publish verified stable GitHub update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $files = @('dist/APEX-Refurb-Studio-Setup-4.4.13.exe','dist/latest.yml')
+          if (Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.13.exe.blockmap') { $files += 'dist/APEX-Refurb-Studio-Setup-4.4.13.exe.blockmap' }
+          gh release view v4.4.13 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'Refusing to replace existing release' }
+          gh release create v4.4.13 @files --repo ${{ github.repository }} --target $env:GITHUB_SHA --latest --title 'APEX Management Studio 4.4.13 - Parts Excel Export Fix' --notes 'Stable Settings update. Refurbishment Excel exports now include ordered and received parts until fitted, including LCD Panel, Rubber Foot Strip and Screen Bezel for asset 83253. Separate new-purchase lists remain order-only. Preserves current 4.4.12 features, existing app ID and cloud settings. Back up important work and save changes before restarting to install.'
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed' }
