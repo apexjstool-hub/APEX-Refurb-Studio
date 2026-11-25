@@ -29,7 +29,7 @@
   if(value==='all')return true;if(value==='hold')return j.status==='On Hold';if(locked(j))return false;
   if(value==='respray')return s.parts.some(p=>spray(p)&&p.fitted<p.required);
   if(value==='both')return s.parts.some(p=>spray(p)&&p.fitted<p.required)&&s.parts.some(p=>!spray(p)&&p.fitted<p.required);
-  if(value==='order')return s.needsOrdering>0;if(value==='delivery')return s.awaitingDelivery>0;if(value==='fit')return s.toFit>0;
+  if(value==='order')return (s.needsOrdering>0||s.key==='order');if(value==='delivery')return (s.awaitingDelivery>0&&s.manualBoard!=='needed');if(value==='fit')return s.toFit>0;
   return s.key===value;
  }
  function selectionState(){

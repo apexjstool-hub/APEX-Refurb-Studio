@@ -33,3 +33,20 @@ test('bulk move rejects empty, invalid and stale selections without partial chan
   assert.equal(JSON.stringify(state),before);
  }
 });
+
+test('bulk return shows Parts Needed even when a purchase order covers every outstanding unit',()=>{
+ const {assets,state}=fixture();
+ state.orders=[{status:'Ordered',lines:[{assetId:'A',partId:'part-A',qty:1,received:0}]}];
+ const result=W.apply(state,assets,{type:'bulkSetPartsBoard',assetIds:['A'],board:'needed'});
+ assert.equal(result.ok,true);
+ const summary=progress.index(result.workflow).get('A');
+ assert.equal(summary.stage,'Parts Needed');
+ assert.equal(summary.key,'order');
+ assert.equal(summary.needsOrdering,0);
+ assert.equal(summary.awaitingDelivery,1);
+ assert.deepEqual(result.workflow.orders,state.orders);
+ const display=require('../src/inventory-status-display');
+ assert.equal(display.compose(summary).badges[0].label,'Parts Needed');
+ const lanes=require('../src/refurb-work-lanes');
+ assert.equal(lanes.project({summary,job:result.workflow.jobs.A},'parts').status,'Parts Needed');
+});

@@ -96,9 +96,9 @@
    const s=summaries.get(asset.id);if(!s)continue;
    if(s.key==='completed'){counts.completed++;continue;}
    if(s.key==='hold'){counts.hold++;continue;}
-   if(s.needsOrdering>0)counts.order++;
+   if((s.needsOrdering>0||s.key==='order'))counts.order++;
    if(s.sprayOutstanding)counts.respray++;
-   if(s.awaitingDelivery>0)counts.delivery++;
+   if((s.awaitingDelivery>0&&s.manualBoard!=='needed'))counts.delivery++;
   }
   const opts=[['','All devices',counts.all],['order','Needs ordering',counts.order],['respray','Needs respray',counts.respray],['delivery','Parts ordered',counts.delivery],['completed','Completed',counts.completed],['hold','On hold',counts.hold]];
   quick.innerHTML=opts.map(([value,label,n])=>'<button type="button" class="inventory-quick-chip'+(current===value?' is-active':'')+'" data-quick-repair="'+html(value)+'" aria-pressed="'+String(current===value)+'"><span>'+html(label)+'</span><b>'+n+'</b></button>').join('');

@@ -24,7 +24,8 @@
    else if(awaiting>0){status='Sent for respray';next='Await return';}
    else{status='Needs respray';next='Arrange respray';}
   }else{
-   if(toOrder>0&&row.job?.partsBoard!=='ordered'){status='Needs ordering';next='Order replacement parts';}
+   if(row.job?.partsBoard==='needed'){status='Parts Needed';next='Review replacement parts';}
+   else if(toOrder>0&&row.job?.partsBoard!=='ordered'){status='Needs ordering';next='Order replacement parts';}
    else if(awaiting>0||row.job?.partsBoard==='ordered'){status='Parts ordered';next='Await parts delivery';}
    else if(received>fitted){status='Ready to fit';next='Fit received parts';}
    else{status='Needs review';next='Review part requirements';}
