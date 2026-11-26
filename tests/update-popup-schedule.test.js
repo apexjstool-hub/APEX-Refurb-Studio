@@ -26,7 +26,7 @@ test('Schedule refuses invalid times and never forces app installation',()=>{
  assert.match(ui,/apexUpdateNoticeLater/);
  assert.match(ui,/api\.updateDownload\(\)/);
  assert.match(ui,/api\.updateInstall\(\)/);
- assert.match(ui,/window\.confirm\('Save all open work before restarting APEX/);
+ assert.match(ui,/await apexConfirm\('Save all open work before restarting APEX/);
  assert.doesNotMatch(ui,/setTimeout\([^)]*updateInstall|setInterval\([^)]*updateInstall/);
  assert.match(ui,/Nothing is installed without your confirmation/);
 });
