@@ -34,3 +34,10 @@ test('separate statuses are not required if no tasks exist',()=>{
  assert.equal(s.resprayStatus,'Not Required');
  assert.equal(s.key,'qc');
 });
+test('manual parts ordering does not put respray on parts board',()=>{
+ const j=base();j.partsBoard='ordered';j.parts=[{id:'b',name:'Battery',qty:1,received:0,fitted:0},{...spray}];
+ const result=workflow.summarize(j);
+ assert.equal(result.partsStatus,'Parts Ordered');
+ assert.equal(result.resprayStatus,'Awaiting Respray');
+ assert.equal(result.stage,'Parts ordered');
+});
