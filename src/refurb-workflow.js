@@ -114,7 +114,8 @@ function apply(state,assets,cmd,by='Administrator'){
    const inTransit=s.resprayPallets.some(x=>['Dispatched','Returned'].includes(x.status)&&(x.manifest||[]).some(row=>row.assetId===assetId));
    if(occupied||inTransit)throw Error('Asset '+assetId+' is already allocated to another Microdream respray job.');
   }
-  const record={id:existing?.id||uid(),palletName:pallet,reference,assetIds:ids,updatedAt:stamp(),updatedBy:clip(by,80)};
+  const sourcePallets=[...new Set(ids.map(assetId=>clip(assets.find(a=>a.id===assetId)?.pallet,80)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const record={id:existing?.id||uid(),palletName:pallet,reference,assetIds:ids,sourcePallets,updatedAt:stamp(),updatedBy:clip(by,80)};
   s.resprayAssignments=existing?s.resprayAssignments.map(x=>x===existing?record:x):[record,...s.resprayAssignments];
   for(const assetId of ids.filter(x=>!(existing?.assetIds||[]).includes(x)))history(s,'Assigned to Microdream',pallet+' · '+reference,assetId,by);
   for(const assetId of (existing?.assetIds||[]).filter(x=>!ids.includes(x)))history(s,'Removed from Microdream assignment',pallet+' · '+reference,assetId,by);
