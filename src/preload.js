@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  connectHistory:recipient=>ipcRenderer.invoke('inventory:connectHistory',recipient),
  connectSend:input=>ipcRenderer.invoke('inventory:connectSend',input),
  connectRead:input=>ipcRenderer.invoke('inventory:connectRead',input),
+ connectDelete:input=>ipcRenderer.invoke('inventory:connectDelete',input),
  connectMaintenanceStatus:()=>ipcRenderer.invoke('inventory:connectMaintenanceStatus'),
  connectMaintenanceSave:input=>ipcRenderer.invoke('inventory:connectMaintenanceSave',input),
  connectMaintenanceRun:()=>ipcRenderer.invoke('inventory:connectMaintenanceRun'),
