@@ -120,7 +120,7 @@ const apexConnect=require('./apex-connect-service').createConnectService({cloudF
 // RPC functions enforce the same permission again in PostgreSQL.
 async function connectMaintenanceRpc(method,body={}){
  if(authMode!=='cloud'||!cloudSession)return {ok:false,error:'Sign into the APEX cloud administrator account to manage messaging.'};
- const permitted=['apex_connect_maintenance_status','apex_connect_maintenance_save','apex_connect_maintenance_run'];
+ const permitted=['apex_connect_maintenance_status','apex_connect_maintenance_save','apex_connect_maintenance_run','apex_connect_admin_delete_message','apex_connect_admin_delete_conversation'];
  if(!permitted.includes(method))return {ok:false,error:'Unsupported maintenance action.'};
  try{
   const res=await cloudFetch('/rest/v1/rpc/'+method,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -826,11 +826,23 @@ app.whenReady().then(()=>{
   const r=await hubRequest('GET','/v1/connect/devices');
   return {...r,mode:'shared'};
  }));
- ipcMain.handle('inventory:connectList',secured(()=>apexConnect.list()));
+ ipcMain.handle('inventory:connectList',secured(async()=>{const data=await apexConnect.list();return data?.ok?{...data,isAdmin:authMode==='cloud'&&cloudUserRole==='admin'}:data;}));
  ipcMain.handle('inventory:connectHistory',secured(recipient=>apexConnect.history(recipient)));
  ipcMain.handle('inventory:connectSend',secured(input=>apexConnect.send(input)));
  ipcMain.handle('inventory:connectRead',secured(input=>apexConnect.read(input)));
  ipcMain.handle('inventory:connectDelete',secured(input=>apexConnect.deleteMessage(input)));
+ ipcMain.handle('inventory:connectAdminDeleteMessage',adminSecured(input=>{
+  const id=Number(input?.messageId);
+  if(!Number.isSafeInteger(id)||id<1)return {ok:false,error:'Select a valid message.'};
+  return connectMaintenanceRpc('apex_connect_admin_delete_message',{p_message_id:id});
+ }));
+ ipcMain.handle('inventory:connectAdminDeleteConversation',adminSecured(input=>{
+  const kind=String(input?.kind||'');
+  const other=kind==='team'?null:String(input?.otherUser||'');
+  if(!['team','direct'].includes(kind)||(kind==='direct'&&!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(other)))
+   return {ok:false,error:'Select a valid conversation.'};
+  return connectMaintenanceRpc('apex_connect_admin_delete_conversation',{p_kind:kind,p_other_user:other});
+ }));
  ipcMain.handle('inventory:connectMaintenanceStatus',adminSecured(()=>connectMaintenanceRpc('apex_connect_maintenance_status')));
  ipcMain.handle('inventory:connectMaintenanceSave',settingsSecured(input=>{
   const days=Number(input?.days);
