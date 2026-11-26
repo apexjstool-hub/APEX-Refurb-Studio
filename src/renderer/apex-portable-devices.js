@@ -17,7 +17,7 @@
    const name=document.createElement('strong');name.textContent=String(d.label||'Portable SSD');line.append(name);
    const state=document.createElement('p');state.textContent=(d.revoked_at?'Revoked':'Authorised')+' · '+String(d.device_id||'')+' · Last sync: '+(d.last_used_at||'Not yet');line.append(state);
    if(!d.revoked_at){const revoke=document.createElement('button');revoke.type='button';revoke.textContent='Revoke access';revoke.className='secondary';revoke.addEventListener('click',async()=>{
-    if(!window.confirm('Revoke this SSD? Future signed cloud uploads will be blocked.'))return;
+    if(!window.await apexConfirm('Revoke this SSD? Future signed cloud uploads will be blocked.'))return;
     const result=await window.apexInventory?.portableRevoke?.(d.device_id);message(result?.ok?'SSD revoked.':result?.error||'Revoke failed');if(result?.ok)await list();
    });line.append(revoke);}else{
     const remove=document.createElement('button');
