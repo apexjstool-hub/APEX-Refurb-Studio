@@ -1,0 +1,93 @@
+name: Publish APEX 4.4.25 Smart Key Excluded from Replacement Parts Settings Update
+on:
+  push:
+    branches:
+      - release/4.4.25-smart-key-not-a-part
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/release-4.4.25-smart-key-not-a-part.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: apex-stable-4425
+  cancel-in-progress: false
+jobs:
+  verify-build-publish:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify version and existing stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '4.4.25') { throw 'Version must be 4.4.25' }
+          if ($pkg.build.appId -ne 'com.apex.inventory') { throw 'Production updater identity must be preserved' }
+          if ($pkg.build.publish[0].releaseType -ne 'release') { throw 'Stable GitHub update feed required' }
+          gh release view v4.4.25 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'v4.4.25 already exists; never overwrite a release' }
+          $existing = gh release view v4.4.24 --repo ${{ github.repository }} --json tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Existing stable 4.4.24 release missing' }
+      - name: Restore public cloud sign-in configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'APEX_CLOUD_LOGIN_CONFIG GitHub secret missing' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          $key = [string]$config.anonKey
+          if ($key.StartsWith('sb_secret_')) { throw 'Server credentials cannot be bundled into the app' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'),$env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid public cloud config' }
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Bundle offline fonts
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Font preparation failed' }
+      - name: Verify export regression and important integrations
+        run: |
+          node --check src/refurb-export.js
+          node --check src/inventory-workflow.js
+          node --check src/inventory-status-display.js
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid export source' }
+          node --test --test-concurrency=1 tests/smart-key-not-a-part-4425.test.js tests/qa-sticker-sequential-print-4424.test.js tests/custom-labels.test.js tests/asset-labels-completed-qa-4423.test.js tests/asset-labels-tab.test.js tests/asset-labels-2x1-fit-433.test.js tests/microdream-unified-scanner-4422.test.js tests/microdream-simple-scan-4421.test.js tests/microdream-multipallet-4420.test.js tests/microdream-reference-4419.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/parts-fitting-respray-4418.test.js tests/microdream-pallet-respray.test.js tests/refurb-workflow.test.js tests/inventory-tracker.test.js tests/repair-work-type.test.js tests/respray-parts-required-status.test.js tests/inventory-status-display.test.js tests/template-parts-export.test.js tests/inventory-selection-excel.test.js tests/refurb-parts-bridge.test.js tests/diagnostic-intake.test.js tests/update-popup-schedule.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed: no release' }
+      - name: Verify all APEX JavaScript source syntax
+        run: |
+          Get-ChildItem src,scripts -Recurse -File -Filter *.js | ForEach-Object {
+            node --check $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Invalid source syntax: $($_.FullName)" }
+          }
+      - name: Build Windows installer and update metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run pack:windows -- --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows build failed' }
+          if (!(Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.25.exe')) { throw 'Installer missing' }
+          if (!(Test-Path 'dist/latest.yml')) { throw 'latest.yml missing' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Update metadata mismatch: no release' }
+      - name: Publish verified stable GitHub update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $files = @('dist/APEX-Refurb-Studio-Setup-4.4.25.exe','dist/latest.yml')
+          if (Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.25.exe.blockmap') { $files += 'dist/APEX-Refurb-Studio-Setup-4.4.25.exe.blockmap' }
+          gh release view v4.4.25 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'Refusing to replace existing release' }
+          gh release create v4.4.25 @files --repo ${{ github.repository }} --target $env:GITHUB_SHA --latest --title 'APEX Management Studio 4.4.25 - Smart Key Excluded from Replacement Parts' --notes 'APEX Management Studio 4.4.25: Smart Key entries are classified as other requirements, not replacement parts. Previously saved Smart Keys no longer block Parts Fitted, inflate Parts Needed or Parts Ordered, appear in outstanding parts Excel exports or delay Completed QA repair progress. Smart Key entries and existing notes remain on the asset in Other Requirements without requiring Mark Fitted. Genuine replacement parts, respray, print labels, cloud inventory and the APEX update identity are preserved. Save work before updating.'
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed' }
