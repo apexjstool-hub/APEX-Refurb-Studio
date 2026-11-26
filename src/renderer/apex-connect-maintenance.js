@@ -26,6 +26,10 @@
   catch{note('Unable to contact cloud messaging maintenance.',true);}finally{busy(false);}
  };
  refresh.addEventListener('click',load);
+ $('apexConnectTestNotification')?.addEventListener('click',()=>{
+  if(window.ApexConnect?.testNotification?.())note('Notification test shown in the top header. The red unread badge will return to its real value automatically.');
+  else note('Sign into APEX to preview the message notification.',true);
+ });
  save.addEventListener('click',async()=>{
   if(loading)return;
   const chosen=Number(days.value),on=enabled.checked;
