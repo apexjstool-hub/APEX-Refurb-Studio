@@ -57,6 +57,46 @@ function apply(state,assets,cmd,by='Administrator'){
  const s=init(state);try{
  if(!cmd||typeof cmd!=='object')throw Error('Invalid workflow request.');
  const type=clip(cmd.type,40),id=clip(cmd.assetId,80).toUpperCase();let job;
+ if(type==='dispatchResprayPallet'){
+  const pallet=clip(cmd.palletName,90);
+  if(!pallet)throw Error('Choose a Microdream pallet.');
+  const matching=assets.filter(a=>!a.deletedAt&&String(a.pallet||'').trim().toLowerCase()===pallet.toLowerCase());
+  if(!matching.length)throw Error('The pallet has no active assets. Refresh and try again.');
+  let next=structuredClone(s),changed=0;
+  for(const a of matching){
+   const j=next.jobs[a.id];if(!j||['Completed','On Hold'].includes(j.status))continue;
+   for(const p of j.parts||[]){
+    if(!isCosmetic(p.name)||p.fitted>=p.qty)continue;
+    const onOrder=next.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===a.id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,l.qty-l.received),0);
+    if(p.qty-p.received-onOrder<=0)continue;
+    const done=apply(next,assets,{type:'markPartOrdered',assetId:a.id,partId:p.id,expectedQty:p.qty,expectedReceived:p.received,expectedOnOrder:onOrder},by);
+    if(!done.ok)throw Error(done.error);next=done.workflow;changed++;
+   }
+  }
+  history(next,'Microdream pallet dispatch',`Confirmed dispatch of ${pallet}; ${changed} outstanding respray requirement(s) newly marked sent`,'',by);
+  return {ok:true,workflow:next,dispatched:changed,assetCount:matching.length};
+ }
+ if(type==='confirmPartFitted'){
+  const j=s.jobs[id],p=j?.parts?.find(x=>x.id===cmd.partId);
+  if(!j||!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('The part or asset no longer exists.');
+  if(isCosmetic(p.name))throw Error('Respray must use the separate returned-and-checked workflow.');
+  if(['Completed','On Hold'].includes(j.status))throw Error('Change the job stage before marking a part fitted.');
+  if(p.qty!==cmd.expectedQty||p.received!==cmd.expectedReceived||p.fitted!==cmd.expectedFitted)throw Error('Part quantities changed. Refresh before confirming.');
+  const qty=asQty(cmd.qty,1);
+  if(qty>p.qty-p.fitted)throw Error('Quantity exceeds outstanding required parts.');
+  const oldReceived=p.received;
+  p.received=Math.max(p.received,p.fitted+qty);
+  let remaining=p.received-oldReceived;
+  for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const line of order.lines||[]){
+   if(line.assetId!==id||line.partId!==p.id||remaining<=0)continue;
+   const amount=Math.min(remaining,Math.max(0,line.qty-line.received));
+   line.received+=amount;remaining-=amount;order.updatedAt=stamp();
+  }
+  p.fitted+=qty;p.lastReceivedAt=stamp();p.lastReceivedBy=by;p.lastProgressAt=stamp();p.lastProgressBy=by;
+  j.updatedAt=stamp();
+  history(s,'Part fitted',`${p.name} × ${qty}; receipt confirmed as part of fitting`,id,by);
+  return {ok:true,workflow:s};
+ }
  if(type==='markPartOrdered'){
   const j=s.jobs[id],p=j?.parts?.find(p=>p.id===cmd.partId);
   if(!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('This part or asset no longer exists. Refresh and try again.');
