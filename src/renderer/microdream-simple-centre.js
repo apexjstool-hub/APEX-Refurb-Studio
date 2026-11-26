@@ -155,7 +155,7 @@
   async function transition(ref,type){
    const entry=refs().find(x=>same(x.reference,ref));if(!entry||busy)return;
    const labels={dispatchResprayPallet:'Confirm this reference has been physically dispatched?',returnResprayPallet:'Confirm the shipment has returned?',completeResprayPallet:'Have all listed respray jobs been inspected and accepted? This marks the entire shipment complete.'};
-   if(!confirm(labels[type]))return;
+   if(!await apexConfirm(labels[type]))return;
    busy=true;
    try{
     const result=await api.workflowAction({type,palletName:key(ref),expectedDispatchId:entry.shipment?.id,confirmChecked:type==='completeResprayPallet'});
