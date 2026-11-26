@@ -89,6 +89,22 @@ function createConnectService({cloudFetch,identity}){
    return {ok:true,lastRead:last};
   }catch(e){return error(e);}
  }
- return Object.freeze({list,history,send,read});
+ async function deleteMessage(input){
+  const me=current();if(!me)return {ok:false,error:'Sign into your cloud account to delete a message.'};
+  const messageId=Number(input?.messageId);
+  if(!Number.isSafeInteger(messageId)||messageId<=0)return {ok:false,error:'Select a valid message to delete.'};
+  try{
+   // Scoped client-side request is additional protection. PostgreSQL RLS
+   // independently requires sender_id = auth.uid() and active APEX staff.
+   const res=await cloudFetch('/rest/v1/apex_connect_messages?id=eq.'+messageId+'&sender_id=eq.'+me.userId,{
+    method:'DELETE',headers:{Accept:'application/json',Prefer:'return=representation'},signal:AbortSignal.timeout(12000)
+   });
+   if(!res.ok)throw Error(requestError(res.status));
+   const removed=await res.json();
+   if(!Array.isArray(removed)||removed.length!==1)return {ok:false,error:'Message was not deleted. You can delete only your own messages.'};
+   return {ok:true,deletedId:messageId};
+  }catch(e){return error(e);}
+ }
+ return Object.freeze({list,history,send,read,deleteMessage});
 }
 module.exports={createConnectService,UUID,ASSET};
