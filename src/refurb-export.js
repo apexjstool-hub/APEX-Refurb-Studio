@@ -2,6 +2,8 @@
 (function(factory){const mod=factory();if(typeof module!=="undefined"&&module.exports)module.exports=mod;if(typeof window!=="undefined")window.ApexRefurbExport=mod;})(function(){
 const fullName=a=>{const maker=String(a?.manufacturer||'').trim(),model=String(a?.model||'').trim();return model.toLowerCase().startsWith(maker.toLowerCase()+' ')?model:[maker,model].filter(Boolean).join(' ');};
 const count=v=>Math.max(0,Number(v)||0);
+// Smart Key is kept in refurbishment history but is not a replacement part or a purchasing requirement.
+const smartKey=name=>/\bsmart[\s_-]*key\b/i.test(String(name||''));
 // Presentation-only clean-up. The export never modifies the saved asset record.
 const tidy=v=>String(v??'').normalize('NFKC').replace(/[\u00A0\t ]+/g,' ').trim();
 const knownParts=new Map(Object.entries({
@@ -29,7 +31,7 @@ function partsToOrder(asset,workflow){
  let parts=Array.isArray(job?.parts)?job.parts:[];
  if(!job){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=Array.isArray(latest?.repairs)?latest.repairs:[];}
  return parts.flatMap(p=>{
-  if(!String(p?.name||'').trim()||['Ordered','Received','Fitted'].includes(p.status))return [];
+  if(!String(p?.name||'').trim()||smartKey(p.name)||['Ordered','Received','Fitted'].includes(p.status))return [];
   const pending=p.id?(workflow?.orders||[]).filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===asset.id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,count(l.qty)-count(l.received)),0):0;
   const qty=Math.max(0,count(p.qty??p.quantity??1)-Math.max(count(p.received),count(p.fitted))-pending);
   return qty>0?[{...p,qty}]:[];
@@ -43,7 +45,7 @@ function outstandingParts(asset,workflow){
  if(!job){const r=asset.refurbishment||{};const latest=Array.isArray(r.reports)?(r.reports.find(x=>x.key===r.latestKey)||r.reports.at(-1)):r;parts=Array.isArray(latest?.repairs)?latest.repairs:[];}
  return parts.flatMap(p=>{
   const name=String(p?.name||'').trim();
-  if(!name||String(p?.status||'').toLowerCase()==='fitted')return [];
+  if(!name||smartKey(name)||String(p?.status||'').toLowerCase()==='fitted')return [];
   const required=count(p.qty??p.quantity??1);
   const remaining=Math.max(0,required-count(p.fitted));
   return remaining>0?[{...p,name,qty:remaining}]:[];
