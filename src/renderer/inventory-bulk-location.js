@@ -86,7 +86,7 @@
    if(busy)return;
    const r=await api.lastBulkAssetLocation(),batch=r?.batch;
    if(!batch)return;
-   if(!confirm('Undo the last '+batch.count+' asset location changes from '+new Date(batch.at).toLocaleString('en-GB')+'? This restores the previous asset locations and retains the pallets. Changes made since this batch will block undo.'))return;
+   if(!await apexConfirm('Undo the last '+batch.count+' asset location changes from '+new Date(batch.at).toLocaleString('en-GB')+'? This restores the previous asset locations and retains the pallets. Changes made since this batch will block undo.'))return;
    busy=true;$('apexLocationUndo').disabled=true;$('apexLocationError').textContent='';
    try{
     const answer=await api.undoLastBulkAssetLocation();
