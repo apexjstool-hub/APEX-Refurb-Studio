@@ -8,13 +8,20 @@
   if(!Array.isArray(input.palletNames)||!input.palletNames.length||input.palletNames.length>300)throw Error('Select between 1 and 300 Microdream pallets.');
   const names=[...new Set(input.palletNames.map(key))];if(names.some(n=>!n))throw Error('Invalid pallet selection.');
   const selected=names.map(n=>{const pallet=(data.pallets||[]).find(p=>key(p.name)===n);if(!pallet||!isLocation(pallet.storageLocation))throw Error('A selected pallet is no longer in Microdream. Refresh the location and select again.');return pallet;}).sort((a,b)=>a.name.localeCompare(b.name,'en-GB',{numeric:true}));
-  const seen=new Set(),assets=(data.items||[]).filter(a=>{if(a.deletedAt||!names.includes(key(a.pallet))||seen.has(key(a.id)))return false;seen.add(key(a.id));return true;}).sort((a,b)=>String(a.id).localeCompare(String(b.id),'en-GB',{numeric:true}));
+  const assignments=(data.resprayAssignments||[]).filter(x=>names.includes(key(x.palletName)));
+  const assignedIds=new Set(assignments.flatMap(x=>x.assetIds||[]).map(x=>String(x).toUpperCase()));
+  const hasAssignments=assignments.length>0;
+  const seen=new Set(),assets=(data.items||[]).filter(a=>{
+   if(a.deletedAt||seen.has(key(a.id)))return false;
+   if(hasAssignments?!assignedIds.has(String(a.id).toUpperCase()):!names.includes(key(a.pallet)))return false;
+   seen.add(key(a.id));return true;
+  }).sort((a,b)=>String(a.id).localeCompare(String(b.id),'en-GB',{numeric:true}));
   if(!assets.length)throw Error('The selected pallets contain no active devices.');
   const groups=new Map(),fingerprint=[];
   for(const a of assets){const model=fullModel(a),type=clean(a.productType)||clean(a.category)||'Laptop',k=JSON.stringify([key(type),key(model)]);if(!groups.has(k))groups.set(k,{type,model,language:'Reprint UK',comment:'Full respray',quantity:0,received:''});groups.get(k).quantity++;fingerprint.push([String(a.id),key(a.pallet),type,model]);}
-  const jobRef=String(input.jobRef??'').trim();if(jobRef.length>100||/[\x00-\x1f\x7f]/.test(jobRef))throw Error('Job Ref must be a single line of 100 characters or fewer.');
+  const jobRef=String(input.jobRef??(assignments.length===1?assignments[0].reference:'')??'').trim();if(jobRef.length>100||/[\x00-\x1f\x7f]/.test(jobRef))throw Error('Job Ref must be a single line of 100 characters or fewer.');
   const rows=[...groups.values()].sort((a,b)=>a.model.localeCompare(b.model,'en-GB',{numeric:true})||a.type.localeCompare(b.type,'en-GB'));
-  return {jobRef,palletNames:selected.map(p=>p.name),total:assets.length,rows,fingerprint:JSON.stringify([selected.map(p=>[p.name,p.storageLocation]),fingerprint])};
+  return {jobRef,palletNames:selected.map(p=>p.name),total:assets.length,rows,fingerprint:JSON.stringify([selected.map(p=>[p.name,p.storageLocation]),fingerprint,assignments.map(x=>[x.palletName,x.reference,x.assetIds])])};
  }
  const editableFields=['type','model','language','comment','quantity','received'];
  function editable(doc){return {jobRef:String(doc.jobRef??''),rows:doc.rows.map(r=>Object.fromEntries(editableFields.map(k=>[k,String(r[k]??'')])))};}
