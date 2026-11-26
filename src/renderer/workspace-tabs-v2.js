@@ -61,6 +61,7 @@
   main.scrollTop=route.scroll||0;
  }
  function redraw(){
+  const horizontalOffset=list.scrollLeft||0;
   const tab=get();
   el.querySelector('#apexTabBack').disabled=!tab||tab.index<=0;
   el.querySelector('#apexTabForward').disabled=!tab||tab.index>=tab.entries.length-1;
@@ -73,6 +74,7 @@
   }).join('');
   list.querySelectorAll('.apex-workspace-tab-switch').forEach(b=>b.onclick=()=>activate(b.closest('[data-tab]').dataset.tab));
   list.querySelectorAll('.apex-workspace-tab-close').forEach(b=>b.onclick=()=>close(b.closest('[data-tab]').dataset.tab));
+  list.scrollLeft=horizontalOffset;
  }
  function makeTab(route){
   const key='tab:'+ ++sequence;
@@ -91,7 +93,7 @@
  }
  function normalPage(page,force){
   if(switching||navigatingAsset)return rawSetPage(page,force);
-  if(currentPage===page&&page!=='asset')return true;
+  if(currentPage===page&&page!=='asset'){const scroll=main.scrollTop;const ok=rawSetPage(page,force);main.scrollTop=scroll;return ok;}
   capture();
   if(currentPage==='asset'&&dirty)dirty=false;
   let result;try{result=rawSetPage(page,true);}catch(e){restoreDraft(get()?.entries[get()?.index]||{});throw e;}
