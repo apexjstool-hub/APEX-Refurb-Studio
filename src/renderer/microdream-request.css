@@ -20,3 +20,11 @@
 #palletLocationDetailPage .md-pallet-table th:nth-child(2),
 #palletLocationDetailPage .md-pallet-table td:nth-child(2){padding-left:8px;min-width:150px}
 .microdream-request-dialog #mdSavedReport{width:100%;margin:6px 0 14px;min-height:36px}
+
+/* 4.4.19 — Reference-based respray assignments remain separate from inventory pallets. */
+.md-assignment-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line,rgba(130,145,166,.24));border-radius:9px;margin:7px 0}
+.md-assignment-row span{display:flex;flex-direction:column;gap:3px}
+.md-assignment-row small{color:var(--muted,#667085)}
+#mdAssignmentList{max-height:34vh;overflow-y:auto;margin:8px 0 12px}
+#mdAssignmentSummary{font-size:13px;font-weight:600;margin-top:10px}
+#palletLocationDetailPage .pl-microdream-reference{font-weight:700;white-space:nowrap}
