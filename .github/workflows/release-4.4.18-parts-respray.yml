@@ -8,7 +8,7 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/release-4.4.18-unified-parts-status.yml'
+      - '.github/workflows/release-4.4.18-parts-respray.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -38,8 +38,8 @@ jobs:
           if ($pkg.build.publish[0].releaseType -ne 'release') { throw 'Stable GitHub update feed required' }
           gh release view v4.4.18 --repo ${{ github.repository }} --json tagName 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'v4.4.18 already exists; never overwrite a release' }
-          $existing = gh release view v4.4.12 --repo ${{ github.repository }} --json tagName
-          if ($LASTEXITCODE -ne 0) { throw 'Existing stable 4.4.12 release missing' }
+          $existing = gh release view v4.4.17 --repo ${{ github.repository }} --json tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Existing stable 4.4.17 release missing' }
       - name: Restore public cloud sign-in configuration
         env:
           APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
