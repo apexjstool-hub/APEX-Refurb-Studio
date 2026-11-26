@@ -18,7 +18,7 @@
  '<div class="apex-connect-actions"><small>Messages are separate from Engineer and Refurb Notes.</small><button type="submit" class="primary" id="apexConnectSend">Send</button></div></form></div>';
  drawerHost.append(shell);
  const $=id=>document.getElementById(id);
- let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0;
+ let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0,initialisedUnread=false,shakeTimer=null;
  const drafts=new Map();
  const key=recipient=>recipient==='team'?'team':'dm:'+recipient.toLowerCase();
  const active=()=>!drawer.hidden||!page.classList.contains('hidden');
@@ -31,10 +31,20 @@
  };
  const unreadTotal=()=>members.filter(m=>m.user_id!==me).reduce((n,m)=>n+unreadFor(m.user_id),unreadFor('team'));
  function renderBadge(){
-  const count=unreadTotal(),badge=$('apexConnectUnread');
-  badge.hidden=!count;badge.textContent=count>99?'99+':String(count);
-  button.setAttribute('aria-label',count?'APEX Connect, '+count+' unread messages':'Open APEX Connect');
-  lastUnread=count;
+  const count=me?unreadTotal():0,badge=$('apexConnectUnread');
+  badge.hidden=count===0;
+  badge.textContent=count>99?'99+':String(count);
+  button.setAttribute('aria-label',count?'APEX Connect, '+count+' unread message'+(count===1?'':'s'):'Open APEX Connect');
+  button.title=count?count+' unread APEX message'+(count===1?'':'s'):'APEX Connect messages';
+  // Shake ONLY for new unread messages, never repeatedly on routine refreshes.
+  if(initialisedUnread&&count>lastUnread){
+   button.classList.remove('apex-connect-notify');
+   void button.offsetWidth;
+   button.classList.add('apex-connect-notify');
+   clearTimeout(shakeTimer);
+   shakeTimer=setTimeout(()=>button.classList.remove('apex-connect-notify'),760);
+  }
+  initialisedUnread=true;lastUnread=count;
  }
  function renderContacts(){
   const host=$('apexConnectConversations');if(!host)return;
@@ -95,7 +105,7 @@
     $('apexConnectStatus').textContent=info?.error||'APEX Connect unavailable';
     $('apexConnectSend').disabled=true;renderContacts();renderMessages();renderBadge();return;
    }
-   if(me!==info.userId){selected='team';drafts.clear();thread=[];}
+   if(me!==info.userId){selected='team';drafts.clear();thread=[];initialisedUnread=false;lastUnread=0;}
    me=info.userId;members=info.members||[];latest=info.latest||[];
    reads=new Map((info.reads||[]).map(r=>[r.conversation_key,Number(r.last_read_id)||0]));
    ready=true;$('apexConnectSend').disabled=false;
