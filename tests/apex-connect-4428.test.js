@@ -81,7 +81,7 @@ test('Existing UI gains an optional message drawer, unread badge, asset links an
  assert.match(page,/id="apexConnectDrawer"/);
  assert.match(page,/id="connectPage"/);
  assert.match(page,/apex-connect\.js/);
- assert.match(ui,/ApexWorkspaceTabs\?\.openNew\('connect'\)/);
+ assert.match(ui,/ApexWorkspaceTabs\.openNew\('connect'\)/);
  assert.match(ui,/data-connect-asset/);
  assert.match(ui,/api\.connectSend/);
  assert.match(ui,/api\.connectRead/);
