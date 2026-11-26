@@ -1,0 +1,20 @@
+/* Workspace Tabs 2.0: compact, fixed-width tabs; preserve the existing APEX design. */
+.apex-workspace-tabs{position:relative;display:flex;align-items:center;gap:6px;min-height:39px;padding:5px 14px 0;border-bottom:1px solid var(--border-color,rgba(100,120,150,.2));background:transparent;max-width:100%;overflow:hidden}
+.apex-workspace-history{display:flex;flex:none;gap:2px;align-items:center}
+.apex-workspace-history button{min-width:25px;min-height:27px;padding:2px 6px!important;border:0!important;box-shadow:none!important;background:transparent!important;color:var(--muted,#64748b)!important;font-size:24px;line-height:1;cursor:pointer}
+.apex-workspace-history button:disabled{opacity:.25;cursor:default}
+.apex-workspace-tab-list{display:flex;align-items:stretch;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scroll-behavior:auto}
+.apex-workspace-tab{display:flex;align-items:center;width:162px;min-width:162px;max-width:162px;height:33px;flex:0 0 162px;color:var(--muted,#64748b);border:1px solid transparent;border-radius:8px 8px 0 0;box-sizing:border-box}
+.apex-workspace-tab:hover{background:rgba(130,145,166,.07)}
+.apex-workspace-tab.is-active{background:var(--panel,#fff);color:var(--text,#172a45);border-color:var(--border-color,rgba(100,120,150,.2));border-bottom-color:var(--panel,#fff)}
+.apex-workspace-tab-switch{display:flex;flex:1;min-width:0;align-items:center;gap:7px;text-align:left;padding:6px 3px 6px 9px!important;font-size:12px!important;font-weight:600!important;border:0!important;box-shadow:none!important;background:transparent!important;color:inherit!important;cursor:pointer;white-space:nowrap}
+.apex-workspace-tab-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.apex-workspace-tab-close,.apex-workspace-tab-add{border:0!important;box-shadow:none!important;background:transparent!important;color:var(--muted,#64748b)!important;cursor:pointer}
+.apex-workspace-tab-close{padding:4px 7px!important;margin-right:3px;font-size:16px!important;line-height:1}
+.apex-workspace-tab-add{flex:none;padding:3px 8px!important;font-size:20px!important;min-width:30px}
+.apex-workspace-tab-close:hover,.apex-workspace-tab-add:hover{background:rgba(130,145,166,.15)!important;border-radius:5px}
+.apex-workspace-unsaved{color:#d97706;font-size:11px}
+.apex-workspace-context{position:fixed;z-index:100000;min-width:177px;background:var(--panel,#fff);color:var(--text,#172a45);border:1px solid var(--border-color,rgba(100,120,150,.25));border-radius:9px;box-shadow:0 10px 26px rgba(20,32,50,.18);padding:5px}
+.apex-workspace-context button{display:block;width:100%;border:0!important;box-shadow:none!important;background:transparent!important;color:inherit!important;text-align:left;padding:9px 11px!important;font-size:12px;border-radius:6px;cursor:pointer}
+.apex-workspace-context button:hover{background:rgba(130,145,166,.13)!important}
+@media(max-width:700px){.apex-workspace-tabs{padding:4px 8px 0;gap:3px}.apex-workspace-tab{width:137px;min-width:137px;max-width:137px;flex-basis:137px}.apex-workspace-tab-switch{font-size:11px!important}}
