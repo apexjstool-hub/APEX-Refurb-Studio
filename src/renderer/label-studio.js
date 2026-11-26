@@ -21,7 +21,18 @@
   if(snapshot){$('qaTechnician').value=snapshot.technician;$('qaSerial').value=snapshot.serial;}
   function controls(disabled){for(const id of ['qaCreate','qaResetBlank','qaAddTechnician','qaDeleteTechnician','qaTechnician','qaNewTechnician','qaSerial','qaSize','qaDpi','qaCopies'])$(id).disabled=disabled;$('qaDeleteTechnician').disabled=disabled||!$('qaTechnician').value;}
   function blank(){valid=false;frame.dataset.previewToken=String(++generation);frame.onload=null;frame.removeAttribute('src');frame.srcdoc='<!doctype html><html><body></body></html>';buttons.forEach(b=>b.disabled=true);status.textContent='Blank sticker — choose a technician and create a new sticker.';$('qaCreateStatus').textContent='No sticker created.';}
-  function draw(){$('qaDeleteTechnician').disabled=mutating||printing||!$('qaTechnician').value;if(!snapshot&&!$('qaTechnician').value&&!$('qaSerial').value){blank();return;}valid=!!snapshot&&$('qaTechnician').value===snapshot.technician&&$('qaSerial').value.trim()===snapshot.serial;const q=valid?snapshot:{technician:$('qaTechnician').value||'Technician name',serial:$('qaSerial').value,createdDate:today()};preview(frame,{type:'qa',record:{id:'QA'},qa:q,size:$('qaSize').value,dpi:Number($('qaDpi').value)},status,buttons,()=>valid);$('qaCreateStatus').textContent=valid?'Created '+snapshot.createdDate.split('-').reverse().join('/')+' · ready to print':'Preview only — choose a technician and create the sticker.';}
+  function updateQaOutputButtons(){buttons.forEach(b=>b.disabled=!valid||printing||mutating);}
+  function draw(){
+   $('qaDeleteTechnician').disabled=mutating||printing||!$('qaTechnician').value;
+   if(!snapshot&&!$('qaTechnician').value&&!$('qaSerial').value){blank();return;}
+   // The saved snapshot, rather than a previous iframe navigation, is the authority
+   // for whether this new sticker can be printed. The print process validates fit.
+   valid=!!snapshot&&$('qaTechnician').value===snapshot.technician&&$('qaSerial').value.trim()===snapshot.serial;
+   const q=valid?snapshot:{technician:$('qaTechnician').value||'Technician name',serial:$('qaSerial').value,createdDate:today()};
+   preview(frame,{type:'qa',record:{id:'QA'},qa:q,size:$('qaSize').value,dpi:Number($('qaDpi').value)},status,[],()=>valid);
+   updateQaOutputButtons();
+   $('qaCreateStatus').textContent=valid?'Created '+snapshot.createdDate.split('-').reverse().join('/')+' · ready to print':'Preview only — choose a technician and create the sticker.';
+  }
   for(const id of ['qaTechnician','qaSize','qaDpi'])$(id).onchange=draw;$('qaSerial').oninput=draw;
   $('qaAddTechnician').onclick=async()=>{if(mutating||printing)return;mutating=true;controls(true);try{const name=$('qaNewTechnician').value.trim();await persist({technicians:[...prefs.technicians,name]});$('qaTechnician').innerHTML='<option value="">Choose a technician</option>'+prefs.technicians.map(n=>`<option>${esc(n)}</option>`).join('');$('qaTechnician').value=prefs.technicians.find(n=>n.toLowerCase()===name.toLowerCase());$('qaNewTechnician').value='';draw();}catch(e){$('qaCreateStatus').textContent=e.message;}finally{mutating=false;controls(false);}};
   $('qaDeleteTechnician').onclick=()=>{
@@ -38,9 +49,21 @@
     finally{mutating=false;controls(false);if(confirm.isConnected)confirm.disabled=cancel.disabled=false;}
    };
   };
-  $('qaCreate').onclick=async()=>{if(mutating||printing)return;mutating=true;controls(true);try{const q=ApexCustomLabels.qa({technician:$('qaTechnician').value,serial:$('qaSerial').value,createdDate:today()});await persist({lastQa:q});snapshot={...q};draw();}catch(e){$('qaCreateStatus').textContent=e.message;}finally{mutating=false;controls(false);}};
+  $('qaCreate').onclick=async()=>{
+   if(mutating||printing)return;mutating=true;controls(true);buttons.forEach(b=>b.disabled=true);
+   let created=false;
+   try{
+    const q=ApexCustomLabels.qa({technician:$('qaTechnician').value,serial:$('qaSerial').value,createdDate:today()});
+    await persist({lastQa:q});
+    snapshot={...q};created=true;
+   }catch(e){$('qaCreateStatus').textContent=e.message;}
+   finally{
+    mutating=false;controls(false);
+    if(created)draw(); // Re-arm print/PDF for each new serial, even if iframe load does not fire.
+   }
+  };
   $('qaResetBlank').onclick=async()=>{if(mutating||printing)return;mutating=true;controls(true);try{await persist({lastQa:null});snapshot=null;valid=false;$('qaTechnician').value='';$('qaNewTechnician').value='';$('qaSerial').value='';$('qaCopies').value='1';blank();$('qaCreateStatus').textContent='Label reset to blank. Saved technician names are still available.';}catch(e){$('qaCreateStatus').textContent=e.message;}finally{mutating=false;controls(false);}};
-  function print(mode){if(!valid)return;const copies=Number($('qaCopies').value);if(!Number.isInteger(copies)||copies<1||copies>100){status.textContent='Choose 1 to 100 stickers.';return;}output({type:'qa',records:Array.from({length:copies},()=>({id:'QA'})),qa:snapshot,size:$('qaSize').value,dpi:Number($('qaDpi').value)},mode,buttons,status,()=>valid);}
+  function print(mode){if(!valid){status.textContent='Create the sticker for the new serial number before printing.';return;}const copies=Number($('qaCopies').value);if(!Number.isInteger(copies)||copies<1||copies>100){status.textContent='Choose 1 to 100 stickers.';return;}output({type:'qa',records:Array.from({length:copies},()=>({id:'QA'})),qa:snapshot,size:$('qaSize').value,dpi:Number($('qaDpi').value)},mode,buttons,status,()=>valid);}
   $('qaPrint').onclick=()=>print('print');$('qaPdf').onclick=()=>print('pdf');window.ApexDeleteControls?.decorate(qaHost);draw();
  }
  const before=setPage;setPage=function(page,force){const ok=before(page,force);if(ok&&['labelStudio','qaStickers'].includes(page))load();return ok;};
