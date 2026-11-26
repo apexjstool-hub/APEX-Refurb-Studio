@@ -25,7 +25,7 @@
   else if(replacementToFit){key='fit';next='Fit '+replacementToFit+' replacement unit(s)';}
   if(['order','delivery'].includes(key)&&sprayOutstanding)next+='; respray outstanding';
   const stages={order:'Needs ordering',delivery:'Parts ordered',respray:'Awaiting Respray',fit:sum(replacements,'fitted')?'Repair in progress':'Ready to fit',qc:'Awaiting QC',completed:'Completed',hold:'On Hold'};
-  return {...totals,partsStatus,other,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
+  return {...totals,replacementToFit,partsStatus,other,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
  }
  function latest(job,audit=[]){const events=audit.filter(e=>(e.assetId||e.AssetID)===job?.assetId).map(e=>({at:e.at||e.time,by:e.by||'',text:e.type||e.detail||'Activity'}));for(const p of job?.parts||[]){if(p.lastProgressAt)events.push({at:p.lastProgressAt,by:p.lastProgressBy||'',text:'Repair progress'});if(p.lastReceivedAt)events.push({at:p.lastReceivedAt,by:p.lastReceivedBy||'',text:'Parts received'});}return events.filter(e=>Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0]||null;}
  function index(workflow){
