@@ -28,3 +28,12 @@
 #mdAssignmentList{max-height:34vh;overflow-y:auto;margin:8px 0 12px}
 #mdAssignmentSummary{font-size:13px;font-weight:600;margin-top:10px}
 #palletLocationDetailPage .pl-microdream-reference{font-weight:700;white-space:nowrap}
+
+/* 4.4.20 — multi-pallet respray reference summaries and independent inventory counts */
+#mdReferenceGroups{padding:14px 18px;border-top:1px solid var(--line,rgba(130,145,166,.25));display:grid;gap:10px}
+#mdReferenceGroups h3{font-size:14px;margin:0 0 3px}
+.md-reference-group{border:1px solid var(--line,rgba(130,145,166,.25));border-radius:9px;padding:11px;display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between}
+.md-reference-group small{width:100%;color:var(--muted,#667085)}
+.pl-respray-count{display:block;font-size:11px;color:var(--muted,#667085);white-space:nowrap;margin-top:3px}
+#mdAssignmentSource{width:100%;margin-top:5px}
+#mdAssignmentAddPallet{margin:7px 0 12px}
