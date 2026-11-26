@@ -131,6 +131,7 @@
   detail.querySelectorAll('[data-pl-remove-pallet]').forEach(b=>b.onclick=()=>window.ApexPalletPage.remove(b.dataset.plRemovePallet,b));
   window.ApexDeleteControls?.decorate(detail);
   if(showJobs){
+   window.ApexMicrodreamSimple?.mount(detail);
    window.ApexPalletStatusPolish?.refresh();
   }
   if(currentPage==='palletLocationDetail')$('breadSub').textContent=viewed||'Unassigned pallets';
