@@ -1,7 +1,7 @@
 'use strict';
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ApexInventoryWorkflow=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  const n=v=>Math.max(0,Number.isFinite(Number(v))?Number(v):0);
- const {isCosmetic}=require('./repair-work-type');
+ const isCosmetic=name=>/\b(?:respray|re spray|repaint|re paint|paint|painting)\b/.test(String(name||'').toLowerCase().replace(/[–—_-]/g,' ').replace(/\s+/g,' '));
  const sum=(rows,key)=>rows.reduce((a,p)=>a+n(p[key]),0);
  const statusFor=(rows,kind)=>{
   if(!rows.length)return 'Not Required';
