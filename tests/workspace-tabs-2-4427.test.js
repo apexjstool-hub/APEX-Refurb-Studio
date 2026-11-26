@@ -10,7 +10,7 @@ function setup(){
  const strip={innerHTML:'',className:'',setAttribute(){},querySelector(sel){return ({'#apexWorkspaceTabList':list,'#apexTabBack':back,'#apexTabForward':forward,'#apexWorkspaceNewTab':newTab})[sel]||null;}};
  const host={after(el){assert.equal(el,strip);}},ids={v3Topline:host,assetEditor:form,assetPage:{dataset:{section:'overview'}},assetEditedHint:hint,appPage:app};
  const doc={getElementById:id=>ids[id]||null,querySelector:sel=>sel==='main.main'?main:null,createElement:()=>strip,addEventListener:(name,cb)=>listeners.set(name,cb)};
- const ctx={window:null,document:doc,console,confirm:()=>true,items:[{id:'83253',model:'Dell 5420'},{id:'83254',model:'HP 840'}]};
+ const ctx={window:null,document:doc,console,apexConfirm:()=>Promise.resolve(true),items:[{id:'83253',model:'Dell 5420'},{id:'83254',model:'HP 840'}]};
  ctx.window=ctx;vm.createContext(ctx);
  vm.runInContext(`
  let currentPage='inventory',activeAssetId=null,dirty=false;
@@ -52,15 +52,18 @@ test('One tab remains visible after closing the last tab',()=>{
  assert.equal(t.close(t.active()),true);
  assert.equal(t.keys().length,1);assert.equal(t.route().page,'inventory');
 });
-test('Unsaved edits restore across tab switches and Back/Forward without cloud writes',()=>{
+test('Unsaved edits restore across tab switches and Back/Forward without cloud writes',async()=>{
  const h=setup(),t=h.ctx.ApexWorkspaceTabs;
  h.eval("openAsset('83253')");h.input.value='Dell UNSAVED';h.eval('dirty=true');
  t.openNew('assetLabels');t.activate(t.keys()[0]);
  assert.equal(h.input.value,'Dell UNSAVED');assert.equal(h.eval('dirty'),true);
  h.eval("openAsset('83254')");assert.equal(t.keys().length,2);
  t.back();assert.equal(h.input.value,'Dell UNSAVED');assert.equal(h.eval('dirty'),true);
- h.ctx.confirm=()=>false;assert.equal(t.close(t.active()),false);
- h.ctx.confirm=()=>true;assert.equal(t.close(t.active()),true);
+ const originalTabCount=t.keys().length;
+ h.ctx.apexConfirm=()=>Promise.resolve(false);assert.equal(t.close(t.active()),false);
+ await Promise.resolve();assert.equal(t.keys().length,originalTabCount,'Cancel preserves tab and unsaved form');
+ h.ctx.apexConfirm=()=>Promise.resolve(true);assert.equal(t.close(t.active()),false);
+ await Promise.resolve();assert.equal(t.keys().length,originalTabCount-1,'Confirmed themed dialog closes tab asynchronously');
 });
 test('Tab switching restores captured scroll, does not call scrollIntoView or animate layout',()=>{
  const h=setup(),t=h.ctx.ApexWorkspaceTabs;
