@@ -47,7 +47,7 @@ function reconcilePartsBoards(state){
  }
  return jobs===state.jobs?state:{...state,jobs};
 }
-function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true,resprayPallets:Array.isArray(raw?.resprayPallets)?raw.resprayPallets:[]};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return reconcilePartsBoards(s);}
+function init(raw){const s={jobs:raw?.jobs&&typeof raw.jobs==='object'&&!Array.isArray(raw.jobs)?raw.jobs:{},orders:Array.isArray(raw?.orders)?raw.orders:[],audit:Array.isArray(raw?.audit)?raw.audit:[],v3DraftsMigrated:raw?.v3DraftsMigrated===true,draftSuppressed:raw?.draftSuppressed===true,resprayPallets:Array.isArray(raw?.resprayPallets)?raw.resprayPallets:[],resprayAssignments:Array.isArray(raw?.resprayAssignments)?raw.resprayAssignments:[]};if(!s.v3DraftsMigrated){s.v3DraftsMigrated=true;}return reconcilePartsBoards(s);}
 function history(s,type,detail,assetId='',by='Administrator'){
  s.audit.unshift({id:uid(),at:stamp(),type,detail:clip(detail,400),assetId:clip(assetId,80),by:clip(by,80)});s.audit=s.audit.slice(0,2500);
 }
@@ -96,23 +96,56 @@ function apply(state,assets,cmd,by='Administrator'){
  const s=init(state);try{
  if(!cmd||typeof cmd!=='object')throw Error('Invalid workflow request.');
  const type=clip(cmd.type,40),id=clip(cmd.assetId,80).toUpperCase();let job;
+ if(type==='saveResprayAssignment'){
+  const pallet=clip(cmd.palletName,80),key=pallet.toLowerCase();
+  if(!pallet)throw Error('Choose a Microdream pallet.');
+  const reference=clip(cmd.reference,80);
+  if(!reference||!/^[-A-Za-z0-9/._ ]{1,80}$/.test(reference))throw Error('Enter a valid Microdream reference (letters, numbers, hyphens, spaces, /, _ or .).');
+  const existing=s.resprayAssignments.find(x=>String(x.palletName||'').toLowerCase()===key);
+  if((existing?.id||null)!==(cmd.expectedAssignmentId||null)||String(existing?.updatedAt||'')!==String(cmd.expectedUpdatedAt||''))throw Error('Microdream assignment changed. Refresh before saving.');
+  if(s.resprayPallets.some(x=>String(x.palletName||'').toLowerCase()===key&&['Dispatched','Returned'].includes(x.status)))throw Error('This pallet has already been dispatched. Finish the existing shipment first.');
+  const ids=Array.isArray(cmd.assetIds)?cmd.assetIds.map(x=>clip(x,80).toUpperCase()):[];
+  if(ids.length>300||new Set(ids).size!==ids.length)throw Error('Choose up to 300 different Asset IDs.');
+  for(const assetId of ids){
+   const asset=assets.find(a=>a.id===assetId&&!a.deletedAt),j=s.jobs[assetId];
+   if(!asset||!j||['Completed','On Hold'].includes(j.status))throw Error('Asset '+assetId+' is not available for respray.');
+   if(!j.parts.some(p=>isCosmetic(p.name)&&p.fitted<p.qty))throw Error('Asset '+assetId+' has no outstanding respray.');
+   const occupied=s.resprayAssignments.some(x=>String(x.palletName||'').toLowerCase()!==key&&(x.assetIds||[]).includes(assetId));
+   const inTransit=s.resprayPallets.some(x=>['Dispatched','Returned'].includes(x.status)&&(x.manifest||[]).some(row=>row.assetId===assetId));
+   if(occupied||inTransit)throw Error('Asset '+assetId+' is already allocated to another Microdream respray job.');
+  }
+  const record={id:existing?.id||uid(),palletName:pallet,reference,assetIds:ids,updatedAt:stamp(),updatedBy:clip(by,80)};
+  s.resprayAssignments=existing?s.resprayAssignments.map(x=>x===existing?record:x):[record,...s.resprayAssignments];
+  for(const assetId of ids.filter(x=>!(existing?.assetIds||[]).includes(x)))history(s,'Assigned to Microdream',pallet+' · '+reference,assetId,by);
+  for(const assetId of (existing?.assetIds||[]).filter(x=>!ids.includes(x)))history(s,'Removed from Microdream assignment',pallet+' · '+reference,assetId,by);
+  history(s,'Microdream reference saved',pallet+' · '+reference,'',by);
+  return {ok:true,workflow:s,assignment:record,affected:ids.length};
+ }
  if(['dispatchResprayPallet','returnResprayPallet','completeResprayPallet'].includes(type)){
   const pallet=clip(cmd.palletName,80),key=pallet.toLowerCase();
   if(!pallet)throw Error('Choose a Microdream pallet.');
   const active=s.resprayPallets.find(x=>String(x.palletName||'').toLowerCase()===key&&['Dispatched','Returned'].includes(x.status));
   if(type==='dispatchResprayPallet'){
    if(active)throw Error('This pallet already has an active respray dispatch.');
+   const assigned=s.resprayAssignments.find(x=>String(x.palletName||'').toLowerCase()===key);
    const manifest=[];
-   for(const asset of assets.filter(a=>!a.deletedAt&&clip(a.pallet,80).toLowerCase()===key)){
-    const job=s.jobs[asset.id];if(!job||['Completed','On Hold'].includes(job.status))continue;
+   // Assignments are independent of the asset's permanent inventory pallet.
+   // Older pallets without assignments retain their legacy dispatch behaviour.
+   const candidates=assigned?assigned.assetIds.map(assetId=>assets.find(a=>a.id===assetId&&!a.deletedAt)):assets.filter(a=>!a.deletedAt&&clip(a.pallet,80).toLowerCase()===key);
+   for(const asset of candidates){
+    if(!asset)throw Error('Assigned asset no longer exists. Refresh the Microdream assignment.');
+    const job=s.jobs[asset.id];
+    if(!job||['Completed','On Hold'].includes(job.status))throw Error('Assigned asset is not ready for respray: '+asset.id);
     const parts=job.parts.filter(p=>isCosmetic(p.name)&&p.fitted<p.qty).map(p=>({partId:p.id,qty:p.qty,name:p.name}));
-    if(parts.length)manifest.push({assetId:asset.id,parts});
+    if(!parts.length&&assigned)throw Error('Asset '+asset.id+' no longer requires respray. Remove it from this assignment.');
+    if(parts.length)manifest.push({assetId:asset.id,originalPallet:clip(asset.pallet,80),parts});
    }
    if(!manifest.length)throw Error('No outstanding respray jobs on this pallet.');
    if(manifest.length>300)throw Error('Maximum 300 laptops per dispatch.');
-   const record={id:uid(),palletName:pallet,status:'Dispatched',dispatchedAt:stamp(),dispatchedBy:clip(by,80),manifest};
+   const record={id:uid(),palletName:pallet,reference:assigned?.reference||'',status:'Dispatched',dispatchedAt:stamp(),dispatchedBy:clip(by,80),manifest};
    s.resprayPallets.unshift(record);
-   for(const item of manifest)history(s,'Sent for Respray',pallet+' · '+item.parts.length+' tasks',item.assetId,by);
+   if(assigned)s.resprayAssignments=s.resprayAssignments.filter(x=>x.id!==assigned.id);
+   for(const item of manifest)history(s,'Sent for Respray',pallet+' · '+(record.reference||'No reference')+' · '+item.parts.length+' tasks; original pallet '+(item.originalPallet||'Unassigned'),item.assetId,by);
    return {ok:true,workflow:s,resprayPallet:record,affected:manifest.length};
   }
   if(!active||cmd.expectedDispatchId!==active.id)throw Error('Dispatch changed or not found. Refresh and scan again.');
