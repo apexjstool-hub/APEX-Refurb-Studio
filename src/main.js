@@ -830,6 +830,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:connectHistory',secured(recipient=>apexConnect.history(recipient)));
  ipcMain.handle('inventory:connectSend',secured(input=>apexConnect.send(input)));
  ipcMain.handle('inventory:connectRead',secured(input=>apexConnect.read(input)));
+ ipcMain.handle('inventory:connectDelete',secured(input=>apexConnect.deleteMessage(input)));
  ipcMain.handle('inventory:connectMaintenanceStatus',adminSecured(()=>connectMaintenanceRpc('apex_connect_maintenance_status')));
  ipcMain.handle('inventory:connectMaintenanceSave',settingsSecured(input=>{
   const days=Number(input?.days);
