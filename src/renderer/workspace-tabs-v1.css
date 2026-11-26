@@ -1,0 +1,15 @@
+/* APEX Workspace Tabs 1.0 – additive, neutral extension; no existing theme or page styles replaced. */
+.apex-workspace-tabs{display:flex;align-items:stretch;gap:4px;padding:5px 15px 0;border-bottom:1px solid var(--border-color,rgba(100,120,150,.2));background:transparent;min-height:37px;max-width:100%;overflow:hidden}
+.apex-workspace-tab-list{display:flex;align-items:stretch;gap:3px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;min-width:0;flex:0 1 auto}
+.apex-workspace-tab{display:flex;align-items:center;border:1px solid transparent;border-radius:8px 8px 0 0;min-width:80px;max-width:190px;flex:0 1 auto;color:var(--muted,#64748b);transition:background-color .15s}
+.apex-workspace-tab:hover{background:rgba(125,140,160,.07)}
+.apex-workspace-tab.is-active{background:var(--panel,#fff);border-color:var(--border-color,rgba(100,120,150,.2));border-bottom-color:var(--panel,#fff);color:var(--text,#172a45)}
+.apex-workspace-tab-switch{display:flex;align-items:center;min-width:0;flex:1;gap:7px;padding:7px 5px 7px 10px;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0;color:inherit!important;font-size:12px;font-weight:550;text-align:left;white-space:nowrap;cursor:pointer}
+.apex-workspace-tab-switch>span:first-child{opacity:.72;font-size:12px}
+.apex-workspace-tab-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.apex-workspace-tab-close,.apex-workspace-tab-add{background:transparent!important;box-shadow:none!important;border:0!important;color:var(--muted,#64748b)!important;cursor:pointer}
+.apex-workspace-tab-close{padding:4px 7px;margin-right:3px;font-size:16px;line-height:1;border-radius:5px}
+.apex-workspace-tab-close:hover,.apex-workspace-tab-add:hover{background:rgba(130,145,166,.14)!important;color:var(--text,#172a45)!important}
+.apex-workspace-tab-add{padding:6px 9px;font-size:18px;flex:0 0 auto;align-self:center}
+.apex-workspace-unsaved{font-size:10px;color:#d97706}
+@media(max-width:760px){.apex-workspace-tabs{padding:4px 9px 0}.apex-workspace-tab{min-width:68px;max-width:145px}.apex-workspace-tab-switch{gap:5px;padding-left:7px;font-size:11px}}
