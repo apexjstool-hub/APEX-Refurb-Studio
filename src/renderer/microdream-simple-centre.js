@@ -22,7 +22,7 @@
    table.before(wrap);table.before(legacy);legacy.appendChild(table);
   }else detail.querySelector('.pl-location-pallets')?.appendChild(wrap);
   const $=id=>wrap.querySelector('#'+id);
-  let state=null,assets=[],preview=[],selected=new Set(),busy=false;
+  let state=null,assets=[],preview=[],selected=new Set(),busy=false,referenceDraft='';
   function status(message,error=false){const el=$('mdSimpleMessage');el.textContent=message;el.dataset.error=error?'true':'false';}
   function eligible(asset){
    const job=state?.jobs?.[asset.id];
@@ -54,7 +54,7 @@
        '<span>'+esc(jobs.map(p=>p.name).join(', ')||'No outstanding work')+'</span><small class="'+(yes?'md-simple-eligible':'')+'">'+(yes?'Respray needed':'Not eligible')+'</small></label>';
     }).join('')+'</div>'+
     '<div class="md-simple-step"><span>3</span><div><strong>Save to Microdream reference</strong><small>Select an existing reference or create a new one</small></div></div>'+
-    '<div class="md-simple-save"><label for="mdSimpleReference">Microdream reference<input id="mdSimpleReference" list="mdSimpleReferenceList" maxlength="75" placeholder="e.g. MD100241187-7" autocomplete="off"></label>'+
+    '<div class="md-simple-save"><label for="mdSimpleReference">Microdream reference<input id="mdSimpleReference" list="mdSimpleReferenceList" maxlength="75" placeholder="e.g. MD100241187-7" autocomplete="off" value="'+esc(referenceDraft)+'"></label>'+
     '<datalist id="mdSimpleReferenceList">'+refs().filter(x=>!x.shipment||x.shipment.status==='Completed').map(x=>'<option value="'+esc(x.reference)+'"></option>').join('')+'</datalist>'+
     '<button id="mdSimpleSave" type="button" class="primary">Add selected to reference</button></div>';
    host.querySelectorAll('[data-md-asset]').forEach(input=>input.onchange=()=>{
@@ -63,6 +63,7 @@
    });
    host.querySelector('#mdSimpleSelectAll').onclick=()=>{selected=new Set(preview.filter(eligible).map(a=>a.id));drawPreview();};
    host.querySelector('#mdSimpleUnselect').onclick=()=>{selected.clear();drawPreview();};
+   const refInput=$('mdSimpleReference');refInput.oninput=()=>{referenceDraft=refInput.value;};
    const save=$('mdSimpleSave');save.disabled=!selected.size;save.onclick=saveSelection;
   }
   function drawRefs(){
@@ -116,6 +117,7 @@
   }
   async function saveSelection(){
    const ref=String($('mdSimpleReference')?.value||'').trim();
+   referenceDraft=ref;
    if(!ref||!/^[-A-Za-z0-9/._ ]{1,75}$/.test(ref)){status('Enter a reference using letters, numbers, hyphens, spaces, /, _ or .',true);return;}
    const ids=[...selected].filter(id=>preview.some(x=>x.id===id&&eligible(x)));
    if(!ids.length){status('Select at least one asset needing respray.',true);return;}
