@@ -32,14 +32,25 @@
    const cell=row.querySelector('[data-md-reference]');
    if(cell){cell.textContent=reference;cell.title=reference==='—'?'Assign a Microdream reference in Actions':reference;}
    const inventoryCell=row.querySelector('.pl-pallet-count strong');
-   if(inventoryCell)inventoryCell.textContent=assignedCount;
+   // The inventory cell must show the true assets in this original pallet.
+   // Show respray-only membership separately; never overwrite the pallet inventory count.
+   let resprayCount=row.querySelector('.pl-respray-count');
+   if(!resprayCount){resprayCount=document.createElement('small');resprayCount.className='pl-respray-count';inventoryCell?.parentElement?.appendChild(resprayCount);}
+   if(resprayCount)resprayCount.textContent=' · '+assignedCount+' for respray';
    const stage=current?.status||'Not dispatched';
    badge.dataset.stage=stage;
    badge.textContent=stage==='Dispatched'?'Sent for respray':stage==='Returned'?'Returned — inspect':stage==='Completed'?'Respray completed':assigned?'Assigned / awaiting dispatch':'Not dispatched';
    badge.title=current?'Latest recorded dispatch: '+(current.dispatchedAt||'Date unavailable'):'No Microdream dispatch history recorded for this pallet';
   }
   const overview=page.querySelector('.pl-inline-metrics');
-  if(overview){const spans=overview.querySelectorAll('span');if(spans[1])spans[1].innerHTML='<strong>'+assignedTotal+'</strong> respray assets';}
+  if(overview){let info=overview.querySelector('.pl-md-respray-total');if(!info){info=document.createElement('span');info.className='pl-md-respray-total';overview.appendChild(info);}info.textContent=assignedTotal+' assigned for respray';}
+  let groupHost=page.querySelector('#mdReferenceGroups');
+  if(!groupHost){groupHost=document.createElement('section');groupHost.id='mdReferenceGroups';groupHost.className='md-reference-groups';page.querySelector('.pl-location-table-scroll')?.after(groupHost);}
+  if(groupHost){
+   const groups=new Map();
+   for(const row of rows){const name=row.dataset.plPalletName,record=assignments.find(a=>equal(a.palletName,name));if(!record)continue;const reference=record.reference||'Unreferenced',bucket=groups.get(reference)||{pallets:new Set(),ids:new Set()};bucket.pallets.add(name);for(const id of record.assetIds||[])bucket.ids.add(id);for(const source of record.sourcePallets||[])bucket.pallets.add(source);groups.set(reference,bucket);}
+   groupHost.innerHTML=groups.size?'<h3>Respray references</h3>'+[...groups].map(([ref,entry])=>'<div class="md-reference-group"><strong>'+esc(ref)+'</strong><span>'+entry.ids.size+' respray asset(s) · '+entry.pallets.size+' linked pallet(s)</span><small>Source pallets: '+esc([...entry.pallets].join(', '))+'</small></div>').join(''):'<p class="section-note">No Microdream assignments yet. Move your original pallets here, then assign eligible respray assets to a reference.</p>';
+  }
   window.dispatchEvent(new Event('apex:microdream-assignment-counts'));
  }
  async function refresh(){
