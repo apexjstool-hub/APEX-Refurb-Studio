@@ -11,14 +11,14 @@
  const t=time=>{try{return new Date(time).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}catch{return '';}};
  const shell=document.createElement('div');shell.className='apex-connect-shell';
  shell.innerHTML='<div class="apex-connect-contacts"><div class="apex-connect-contact-title">CONVERSATIONS</div><div id="apexConnectConversations"></div></div>'+
- '<div class="apex-connect-thread"><div class="apex-connect-thread-head"><div><strong id="apexConnectThreadName">Office Team</strong><small>Internal APEX messages</small></div><span id="apexConnectStatus"></span></div>'+
+ '<div class="apex-connect-thread"><div class="apex-connect-thread-head"><div><strong id="apexConnectThreadName">Office Team</strong><small>Internal APEX messages</small></div><div class="apex-connect-thread-tools"><span id="apexConnectStatus"></span><button id="apexConnectAdminClear" type="button" class="apex-connect-clear-thread" title="Delete all messages from this conversation" hidden>Clear conversation</button></div></div>'+
  '<div id="apexConnectMessages" class="apex-connect-messages" role="log" aria-label="Conversation messages"></div>'+
  '<form id="apexConnectForm" class="apex-connect-form"><label>Linked asset (optional)<input id="apexConnectAsset" maxlength="80" autocomplete="off" placeholder="Asset ID, e.g. 83253"></label>'+
  '<label>Message<textarea id="apexConnectBody" rows="2" maxlength="2000" placeholder="Type a message to the office..." required></textarea></label>'+
  '<div class="apex-connect-actions"><small>Messages are separate from Engineer and Refurb Notes.</small><button type="submit" class="primary" id="apexConnectSend">Send</button></div></form></div>';
  drawerHost.append(shell);
  const $=id=>document.getElementById(id);
- let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0,initialisedUnread=false,shakeTimer=null,lastInboundId=0,previewUntil=0,previewTimer=null;
+ let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0,initialisedUnread=false,shakeTimer=null,lastInboundId=0,previewUntil=0,previewTimer=null,isAdmin=false,modBusy=false;
  const drafts=new Map();
  const key=recipient=>recipient==='team'?'team':'dm:'+recipient.toLowerCase();
  const active=()=>!drawer.hidden||!page.classList.contains('hidden');
@@ -77,12 +77,13 @@
   }).join('');
   host.querySelectorAll('[data-connect-recipient]').forEach(el=>el.onclick=()=>choose(el.dataset.connectRecipient));
   $('apexConnectThreadName').textContent=selected==='team'?'Office Team':display(selected);
+  $('apexConnectAdminClear').hidden=!isAdmin;
  }
  function renderMessages(){
   const host=$('apexConnectMessages'),stick=host.scrollTop+host.clientHeight>=host.scrollHeight-90;
-  host.innerHTML=thread.length?thread.map(m=>'<article class="apex-connect-message'+(m.sender_id===me?' from-me can-delete':'')+'" data-message-id="'+esc(m.id)+'"><div class="apex-connect-message-by">'+esc(m.sender_id===me?'You':display(m.sender_id))+' · '+esc(t(m.created_at))+'</div><div class="apex-connect-message-text">'+esc(m.body)+'</div>'+
+  host.innerHTML=thread.length?thread.map(m=>'<article class="apex-connect-message'+(m.sender_id===me?' from-me can-delete':(isAdmin?' can-delete':''))+'" data-message-id="'+esc(m.id)+'"><div class="apex-connect-message-by">'+esc(m.sender_id===me?'You':display(m.sender_id))+' · '+esc(t(m.created_at))+'</div><div class="apex-connect-message-text">'+esc(m.body)+'</div>'+
    (m.asset_id?'<button type="button" class="apex-connect-asset-link" data-connect-asset="'+esc(m.asset_id)+'">▣ Asset '+esc(m.asset_id)+'</button>':'')+
-   (m.sender_id===me?'<button type="button" class="apex-connect-message-actions" data-message-actions="'+esc(m.id)+'" aria-expanded="false" title="Message options">⋯</button><button type="button" class="apex-connect-message-delete" data-delete-message="'+esc(m.id)+'" hidden>Delete message</button>':'')+'</article>').join(''):
+   ((m.sender_id===me||isAdmin)?'<button type="button" class="apex-connect-message-actions" data-message-actions="'+esc(m.id)+'" aria-expanded="false" title="Message options">⋯</button><button type="button" class="apex-connect-message-delete" data-delete-message="'+esc(m.id)+'" hidden>Delete message</button>':'')+'</article>').join(''):
    '<div class="apex-connect-empty">No messages yet. Send the first message to your team.</div>';
   host.querySelectorAll('[data-message-actions]').forEach(b=>b.onclick=()=>{
    const target=host.querySelector('[data-delete-message="'+b.dataset.messageActions+'"]');
@@ -101,11 +102,11 @@
   host.querySelectorAll('[data-delete-message]').forEach(b=>b.onclick=async()=>{
    const id=Number(b.dataset.deleteMessage);
    const message=thread.find(m=>Number(m.id)===id);
-   if(!message||message.sender_id!==me)return;
+   if(!message||(!isAdmin&&message.sender_id!==me)||modBusy)return;
    if(!confirm('Permanently delete this message for everyone in this conversation? This cannot be undone.'))return;
-   b.disabled=true;
+   b.disabled=true;modBusy=true;
    try{
-    const result=await api.connectDelete({messageId:id});
+    const result=isAdmin?await api.connectAdminDeleteMessage({messageId:id}):await api.connectDelete({messageId:id});
     if(!result?.ok){$('apexConnectStatus').textContent=result?.error||'Message could not be deleted.';return;}
     thread=thread.filter(m=>Number(m.id)!==id);
     latest=latest.filter(m=>Number(m.id)!==id);
@@ -113,7 +114,7 @@
     // Fetch authoritative cloud state so other conversations stay consistent.
     poll(true);
    }catch{$('apexConnectStatus').textContent='Message deletion failed. Check your connection.';}
-   finally{b.disabled=false;}
+   finally{b.disabled=false;modBusy=false;}
   });
   host.querySelectorAll('[data-connect-asset]').forEach(b=>b.onclick=()=>{const id=b.dataset.connectAsset;
    const ok=root.ApexWorkspaceTabs?.openNew?.('asset',id);
@@ -156,12 +157,12 @@
   try{
    const info=await api.connectList();
    if(!info?.ok){
-    ready=false;me=null;members=[];latest=[];reads=new Map();thread=[];
+    ready=false;me=null;isAdmin=false;members=[];latest=[];reads=new Map();thread=[];
     $('apexConnectStatus').textContent=info?.error||'APEX Connect unavailable';
     $('apexConnectSend').disabled=true;renderContacts();renderMessages();renderBadge();return;
    }
    if(me!==info.userId){selected='team';drafts.clear();thread=[];initialisedUnread=false;lastUnread=0;lastInboundId=0;}
-   me=info.userId;members=info.members||[];latest=info.latest||[];
+   me=info.userId;isAdmin=info.isAdmin===true;members=info.members||[];latest=info.latest||[];
    reads=new Map((info.reads||[]).map(r=>[r.conversation_key,Number(r.last_read_id)||0]));
    ready=true;$('apexConnectSend').disabled=false;
    renderContacts();renderBadge();
@@ -169,6 +170,22 @@
   }catch(e){$('apexConnectStatus').textContent='Cannot reach team messaging right now.';}
   finally{busy=false;}
  }
+ $('apexConnectAdminClear').onclick=async()=>{
+  if(!isAdmin||!ready||modBusy)return;
+  const target=selected,name=target==='team'?'the entire Office Team conversation':'your entire direct conversation with '+display(target);
+  const confirmText='Delete ALL messages from '+name+' for everyone? This is permanent and cannot be undone.';
+  if(!confirm(confirmText))return;
+  if(!confirm('Final confirmation: permanently clear '+name+'?'))return;
+  modBusy=true;const action=$('apexConnectAdminClear');action.disabled=true;
+  try{
+   const data=await api.connectAdminDeleteConversation({kind:target==='team'?'team':'direct',otherUser:target==='team'?null:target});
+   if(!data?.ok){$('apexConnectStatus').textContent=data?.error||'Conversation could not be deleted.';return;}
+   if(selected===target){thread=[];renderMessages();}
+   $('apexConnectStatus').textContent=Number(data.deleted||0)+' messages deleted for everyone.';
+   await poll(true);
+  }catch{$('apexConnectStatus').textContent='Failed to clear conversation. Check your cloud connection.';}
+  finally{modBusy=false;action.disabled=false;}
+ };
  function syncPlacement(){
   const isPage=!page.classList.contains('hidden');
   const destination=isPage?pageHost:drawerHost;
@@ -185,6 +202,40 @@
   if(assetId){$('apexConnectAsset').value=String(assetId).trim().toUpperCase();stashDraft();}
   poll(true);
  }
+ // The original floating popup is independently movable; Workspace Tabs are unchanged.
+ const dragHandle=$('apexConnectDragHandle');
+ const resetPosition=()=>{
+  drawer.style.left='';drawer.style.top='';drawer.style.right='';
+  drawer.style.width='';drawer.style.height='';
+  drawer.classList.remove('apex-connect-moved');
+ };
+ const keepInViewport=()=>{
+  if(drawer.hidden||!drawer.classList.contains('apex-connect-moved'))return;
+  const box=drawer.getBoundingClientRect();
+  const x=Math.max(8,Math.min(box.left,Math.max(8,innerWidth-box.width-8)));
+  const y=Math.max(8,Math.min(box.top,Math.max(8,innerHeight-box.height-8)));
+  drawer.style.left=x+'px';drawer.style.top=y+'px';drawer.style.right='auto';
+ };
+ let drag=null;
+ dragHandle?.addEventListener('pointerdown',e=>{
+  if(e.button!==0||e.target.closest('button')||drawer.hidden)return;
+  const box=drawer.getBoundingClientRect();
+  drag={id:e.pointerId,startX:e.clientX,startY:e.clientY,left:box.left,top:box.top,width:box.width,height:box.height};
+  drawer.classList.add('apex-connect-moved','apex-connect-dragging');
+  drawer.style.left=box.left+'px';drawer.style.top=box.top+'px';drawer.style.right='auto';
+  e.preventDefault();
+ });
+ document.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const x=Math.max(8,Math.min(drag.left+e.clientX-drag.startX,Math.max(8,innerWidth-drag.width-8)));
+  const y=Math.max(8,Math.min(drag.top+e.clientY-drag.startY,Math.max(8,innerHeight-drag.height-8)));
+  drawer.style.left=x+'px';drawer.style.top=y+'px';
+ });
+ const stopDrag=e=>{if(drag&&e.pointerId===drag.id){drag=null;drawer.classList.remove('apex-connect-dragging');}};
+ document.addEventListener('pointerup',stopDrag);
+ document.addEventListener('pointercancel',stopDrag);
+ root.addEventListener('resize',keepInViewport);
+ $('apexConnectResetPosition').onclick=resetPosition;
  button.onclick=()=>{if(!page.classList.contains('hidden')){syncPlacement();return;}
   if(drawer.hidden)showDrawer();else drawer.hidden=true;};
  $('apexConnectClose').onclick=()=>{drawer.hidden=true;};
