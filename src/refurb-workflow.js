@@ -1,7 +1,7 @@
 'use strict';
 /* APEX refurbishment workflow. Admin-only writes; device intake can create requirements but cannot place orders. */
 const requirements=require('./part-requirements');
-const {isCosmetic}=require('./repair-work-type');
+const {isCosmetic,isSmartKey,isReplacement}=require('./repair-work-type');
 const STATUSES=['Received','Inspected','Awaiting Parts','Ready for Repair','Repair In Progress','Quality Control','Completed','On Hold'];
 const PART_STATUSES=['Needed','Ordered','Partially Received','Received','Fitted'];
 const QC=['Visual inspection','Required parts fitted','Hardware retest','Final clean & sign-off'];
@@ -36,7 +36,7 @@ function reconcilePartsBoards(state){
   const cutoff=Date.parse(job.partsBoardAt)||movedAt.get(id);
   const ordered=pending.get(id);
   if(!cutoff||!ordered)continue;
-  const replacement=(job.parts||[]).filter(part=>!isCosmetic(part.name)&&part.fitted<part.qty);
+  const replacement=(job.parts||[]).filter(part=>isReplacement(part.name)&&part.fitted<part.qty);
   if(!replacement.every(part=>Number(part.received||0)+(ordered.get(part.id)?.quantity||0)>=part.qty))continue;
   if(!replacement.some(part=>(ordered.get(part.id)?.latest||0)>cutoff))continue;
   if(jobs===state.jobs)jobs={...jobs};
@@ -186,7 +186,7 @@ function apply(state,assets,cmd,by='Administrator'){
  if(type==='confirmPartFitted'){
   const j=s.jobs[id],p=j?.parts?.find(x=>x.id===cmd.partId);
   if(!j||!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('Part or asset no longer exists. Refresh and retry.');
-  if(isCosmetic(p.name))throw Error('Respray is separate; use the returned respray inspection action.');
+  if(!isReplacement(p.name))throw Error('Only real replacement parts may be fitted here. Smart Key and respray are recorded separately.');
   if(['Completed','On Hold'].includes(j.status))throw Error('Change the job stage before fitting parts.');
   if(p.qty!==cmd.expectedQty||p.received!==cmd.expectedReceived||p.fitted!==cmd.expectedFitted)throw Error('Part quantities changed. Refresh before confirming.');
   const qty=asQty(cmd.qty,1);if(qty>p.qty-p.fitted)throw Error('Quantity exceeds outstanding required parts.');
@@ -204,6 +204,7 @@ function apply(state,assets,cmd,by='Administrator'){
  if(type==='markPartOrdered'){
   const j=s.jobs[id],p=j?.parts?.find(p=>p.id===cmd.partId);
   if(!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('This part or asset no longer exists. Refresh and try again.');
+  if(isSmartKey(p.name))throw Error('Smart Key is a recorded requirement, not an item to order or fit.');
   if(['Completed','On Hold'].includes(j.status))throw Error('Change this job stage before marking parts as ordered.');
   const pending=s.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===id&&l.partId===p.id).reduce((n,l)=>n+Math.max(0,l.qty-l.received),0);
   if(cmd.expectedQty!==p.qty||cmd.expectedReceived!==p.received||cmd.expectedOnOrder!==pending)throw Error('Part quantities or orders changed. Refresh before marking as ordered.');
@@ -329,7 +330,7 @@ function apply(state,assets,cmd,by='Administrator'){
  if(type==='setPartsBoard'){
   if(!['needed','ordered'].includes(cmd.board))throw Error('Choose Parts Needed or Parts Ordered.');
   const j=ensure(s,id,assets);
-  if(!(j.parts||[]).some(p=>p.fitted<p.qty))throw Error('This laptop has no outstanding parts.');
+  if(!(j.parts||[]).some(p=>isReplacement(p.name)&&p.fitted<p.qty))throw Error('This laptop has no outstanding replacement parts.');
   j.partsBoard=cmd.board;j.updatedAt=stamp();j.partsBoardAt=j.updatedAt;
   history(s,'Parts board changed',cmd.board==='ordered'?'Moved to Parts Ordered':'Moved to Parts Needed',id,by);
   return {ok:true,workflow:s};
@@ -449,7 +450,7 @@ function apply(state,assets,cmd,by='Administrator'){
   const supplier=clip(cmd.supplier,120);if(!supplier)throw Error('Supplier is required.');
   const lines=Array.isArray(cmd.lines)?cmd.lines:[];if(!lines.length||lines.length>100)throw Error('Select at least one part.');
   const picked=[];
-  for(const line of lines){const j=ensure(s,line.assetId,assets),p=j.parts.find(x=>x.id===line.partId);if(!p)throw Error('A selected part no longer exists.');
+  for(const line of lines){const j=ensure(s,line.assetId,assets),p=j.parts.find(x=>x.id===line.partId);if(!p)throw Error('A selected part no longer exists.');if(isSmartKey(p.name))throw Error('Smart Key is not a replacement part and cannot be added to a purchase order.');
    const qty=asQty(line.qty,1),onOrder=s.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines).filter(x=>x.assetId===j.assetId&&x.partId===p.id).reduce((sum,x)=>sum+(x.qty-x.received),0);
    if(qty>p.qty-p.received-onOrder)throw Error(`Too many ${p.name} requested; check outstanding quantities.`);
    picked.push({assetId:j.assetId,partId:p.id,name:p.name,qty,received:0});
