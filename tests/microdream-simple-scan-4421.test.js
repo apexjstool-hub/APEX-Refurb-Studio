@@ -15,9 +15,9 @@ const save=(state,ids,existing)=>flow.apply(state,assets,{type:'saveResprayAssig
 test('Simple scan UI is mounted at Microdream and does not write asset pallet or location',()=>{
  assert.match(markup,/microdream-simple-centre\.js/);
  assert.match(locations,/ApexMicrodreamSimple\?\.mount\(detail\)/);
- assert.match(ui,/mdSimpleScan/);assert.match(ui,/Find respray assets/);
+ assert.match(ui,/mdSimpleScan/);assert.match(ui,/Pallet number or Asset ID/);assert.match(ui,/Add to review/);
  assert.match(ui,/Add selected to reference/);assert.match(ui,/Confirm dispatched/);
- assert.match(ui,/input\.checked/);assert.match(ui,/new Set\(preview\.filter\(eligible\)/);
+ assert.match(ui,/input\.checked/);assert.match(ui,/preview\.filter\(eligible\)/);
  assert.doesNotMatch(ui,/api\.(?:update|movePallets|moveAssets|bulkMove)\s*\(/);
 });
 test('Original IR-560 and IR-561 assets join one reference independently of physical pallet location',()=>{
