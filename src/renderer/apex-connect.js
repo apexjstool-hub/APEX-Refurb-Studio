@@ -54,6 +54,7 @@
   if(Date.now()<previewUntil)return;
   badge.hidden=count===0;
   badge.textContent=count>99?'99+':String(count);
+  root.ApexWorkspaceTabs?.setConnectUnread?.(count);
  }
  function testNotification(){
   if(!visible())return false;
@@ -62,6 +63,7 @@
   const badge=$('apexConnectUnread');
   badge.hidden=false;
   badge.textContent=String(Math.max(1,lastUnread));
+  root.ApexWorkspaceTabs?.setConnectUnread?.(Math.max(1,lastUnread));
   button.setAttribute('aria-label','APEX Connect notification preview');
   animateNotification();
   previewTimer=setTimeout(()=>{previewUntil=0;renderBadge();},2350);
@@ -78,9 +80,41 @@
  }
  function renderMessages(){
   const host=$('apexConnectMessages'),stick=host.scrollTop+host.clientHeight>=host.scrollHeight-90;
-  host.innerHTML=thread.length?thread.map(m=>'<article class="apex-connect-message'+(m.sender_id===me?' from-me':'')+'"><div class="apex-connect-message-by">'+esc(m.sender_id===me?'You':display(m.sender_id))+' · '+esc(t(m.created_at))+'</div><div class="apex-connect-message-text">'+esc(m.body)+'</div>'+
-   (m.asset_id?'<button type="button" class="apex-connect-asset-link" data-connect-asset="'+esc(m.asset_id)+'">▣ Asset '+esc(m.asset_id)+'</button>':'')+'</article>').join(''):
+  host.innerHTML=thread.length?thread.map(m=>'<article class="apex-connect-message'+(m.sender_id===me?' from-me can-delete':'')+'" data-message-id="'+esc(m.id)+'"><div class="apex-connect-message-by">'+esc(m.sender_id===me?'You':display(m.sender_id))+' · '+esc(t(m.created_at))+'</div><div class="apex-connect-message-text">'+esc(m.body)+'</div>'+
+   (m.asset_id?'<button type="button" class="apex-connect-asset-link" data-connect-asset="'+esc(m.asset_id)+'">▣ Asset '+esc(m.asset_id)+'</button>':'')+
+   (m.sender_id===me?'<button type="button" class="apex-connect-message-actions" data-message-actions="'+esc(m.id)+'" aria-expanded="false" title="Message options">⋯</button><button type="button" class="apex-connect-message-delete" data-delete-message="'+esc(m.id)+'" hidden>Delete message</button>':'')+'</article>').join(''):
    '<div class="apex-connect-empty">No messages yet. Send the first message to your team.</div>';
+  host.querySelectorAll('[data-message-actions]').forEach(b=>b.onclick=()=>{
+   const target=host.querySelector('[data-delete-message="'+b.dataset.messageActions+'"]');
+   if(!target)return;
+   const shouldShow=target.hidden;
+   host.querySelectorAll('[data-delete-message]').forEach(x=>x.hidden=true);
+   host.querySelectorAll('[data-message-actions]').forEach(x=>x.setAttribute('aria-expanded','false'));
+   target.hidden=!shouldShow;
+   b.setAttribute('aria-expanded',String(shouldShow));
+  });
+  // Tapping the message bubble itself opens the same delete option.
+  host.querySelectorAll('.apex-connect-message.can-delete').forEach(b=>b.onclick=e=>{
+   if(e.target.closest?.('button'))return;
+   b.querySelector('[data-message-actions]')?.click();
+  });
+  host.querySelectorAll('[data-delete-message]').forEach(b=>b.onclick=async()=>{
+   const id=Number(b.dataset.deleteMessage);
+   const message=thread.find(m=>Number(m.id)===id);
+   if(!message||message.sender_id!==me)return;
+   if(!confirm('Permanently delete this message for everyone in this conversation? This cannot be undone.'))return;
+   b.disabled=true;
+   try{
+    const result=await api.connectDelete({messageId:id});
+    if(!result?.ok){$('apexConnectStatus').textContent=result?.error||'Message could not be deleted.';return;}
+    thread=thread.filter(m=>Number(m.id)!==id);
+    latest=latest.filter(m=>Number(m.id)!==id);
+    renderMessages();renderContacts();renderBadge();
+    // Fetch authoritative cloud state so other conversations stay consistent.
+    poll(true);
+   }catch{$('apexConnectStatus').textContent='Message deletion failed. Check your connection.';}
+   finally{b.disabled=false;}
+  });
   host.querySelectorAll('[data-connect-asset]').forEach(b=>b.onclick=()=>{const id=b.dataset.connectAsset;
    const ok=root.ApexWorkspaceTabs?.openNew?.('asset',id);
    if(!ok){const status=$('apexConnectStatus');status.textContent='Asset '+id+' is not in active inventory.';}
