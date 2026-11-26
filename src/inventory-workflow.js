@@ -2,12 +2,13 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ApexInventoryWorkflow=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  const n=v=>Math.max(0,Number.isFinite(Number(v))?Number(v):0);
  const isSpray=name=>/respray|re[ -]?spray|paint/i.test(String(name||''));
+ const isSmartKey=name=>/\bsmart[\s_-]*key\b/i.test(String(name||''));
  function summarize(job,orders=[]){
   if(!job)return {stage:'No refurb job',next:'No refurbishment job',parts:[],required:0,ordered:0,received:0,fitted:0,toOrder:0,awaiting:0,toFit:0,needsOrdering:0,awaitingDelivery:0,key:'none'};
   const grouped=new Map();for(const o of orders)if(o.status!=='Draft')for(const l of o.lines||[])if(l.assetId===job.assetId){if(!grouped.has(l.partId))grouped.set(l.partId,[]);grouped.get(l.partId).push(l);}
   const parts=(job.parts||[]).map(p=>{const lines=grouped.get(p.id)||[];const required=n(p.qty),received=n(p.received),fitted=n(p.fitted),ordered=lines.reduce((a,l)=>a+n(l.qty),0),awaiting=lines.reduce((a,l)=>a+Math.max(0,n(l.qty)-n(l.received)),0);return {...p,required,received,fitted,ordered,awaiting,toOrder:Math.max(0,required-received-awaiting),toFit:Math.max(0,received-fitted)};});
   const totals=Object.fromEntries(['required','ordered','received','fitted','toOrder','awaiting','toFit'].map(k=>[k,parts.reduce((a,p)=>a+p[k],0)]));
-  const replacements=parts.filter(p=>!isSpray(p.name)),sprays=parts.filter(p=>isSpray(p.name));
+  const replacements=parts.filter(p=>!isSpray(p.name)&&!isSmartKey(p.name)),sprays=parts.filter(p=>isSpray(p.name)),other=parts.filter(p=>isSmartKey(p.name));
   const sum=(rows,key)=>rows.reduce((total,p)=>total+p[key],0);
   const sprayNeeded=sum(sprays,'toOrder'),sprayAwaiting=sum(sprays,'awaiting'),sprayReady=sum(sprays,'toFit');
   const needsOrdering=job.partsBoard==='ordered'?0:sum(replacements,'toOrder');
@@ -23,8 +24,8 @@
   else if(sprayOutstanding){key='respray';next=sprayAwaiting?'Awaiting respray return':sprayReady?'Complete respray work':'Arrange respray';}
   else if(replacementToFit){key='fit';next='Fit '+replacementToFit+' replacement unit(s)';}
   if(['order','delivery'].includes(key)&&sprayOutstanding)next+='; respray outstanding';
-  const stages={order:'Needs ordering',delivery:'Parts ordered',respray:'Awaiting Respray',fit:totals.fitted?'Repair in progress':'Ready to fit',qc:'Awaiting QC',completed:'Completed',hold:'On Hold'};
-  return {...totals,partsStatus,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
+  const stages={order:'Needs ordering',delivery:'Parts ordered',respray:'Awaiting Respray',fit:sum(replacements,'fitted')?'Repair in progress':'Ready to fit',qc:'Awaiting QC',completed:'Completed',hold:'On Hold'};
+  return {...totals,partsStatus,other,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
  }
  function latest(job,audit=[]){const events=audit.filter(e=>(e.assetId||e.AssetID)===job?.assetId).map(e=>({at:e.at||e.time,by:e.by||'',text:e.type||e.detail||'Activity'}));for(const p of job?.parts||[]){if(p.lastProgressAt)events.push({at:p.lastProgressAt,by:p.lastProgressBy||'',text:'Repair progress'});if(p.lastReceivedAt)events.push({at:p.lastReceivedAt,by:p.lastReceivedBy||'',text:'Parts received'});}return events.filter(e=>Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0]||null;}
  function index(workflow){
