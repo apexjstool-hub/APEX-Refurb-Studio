@@ -14,7 +14,7 @@ const PAGE_NAMES={connect:'APEX Connect',labelStudio:'Labels & Printing',assetLa
 const PAGE_SUBS={connect:'Team messages',labelStudio:'Custom Asset Labels',assetLabels:'Asset Labels',qaStickers:'QA Stickers',refurbWorkspace:'Work queue',dispatch:'Microdream pallets',dashboard:'Overview',inventory:'Asset register',scan:'Scan asset',workstation:'Smart Barcode Workstation',asset:'Asset details',locations:'Warehouse',bulk:'Batch transfer',reports:'Export',users:'Access',settings:'Configuration',pallets:'Register',palletLocations:'Storage',palletLocationDetail:'Location pallets',completedQA:'Archived assets & manifest',containerInventory:'Contained items'};
 function setPage(page,force=false){
  if(!PAGE_NAMES[page])return false;
- if(currentPage==='asset'&&dirty&&!force&&!confirm('Leave this asset without saving your changes?'))return false;
+ if(currentPage==='asset'&&dirty&&!force){apexConfirm('Leave this asset without saving your changes?',{title:'Discard unsaved changes?',tone:'warning',confirmLabel:'Discard changes'}).then(ok=>{if(ok){dirty=false;setPage(page,true);}});return false;}
  if(currentPage==='scan'&&page!=='scan')stopCamera();dirty=false;currentPage=page;document.documentElement.dataset.apexPage=page;
  for(const name of Object.keys(PAGE_NAMES))$(name+'Page').classList.toggle('hidden',name!==page);
  document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page||(['asset','scan'].includes(page)&&b.dataset.page==='inventory')));
@@ -246,7 +246,7 @@ function renderRefurbishment(asset){
 }
 function openAsset(id=''){
  const code=String(id||'').trim().toUpperCase();const stored=items.find(a=>a.id===code);
- if(currentPage==='asset'&&dirty&&!confirm('Open another asset without saving your changes?'))return;
+ if(currentPage==='asset'&&dirty){apexConfirm('Open another asset without saving your changes?',{title:'Discard unsaved changes?',tone:'warning',confirmLabel:'Discard changes'}).then(ok=>{if(ok){dirty=false;openAsset(id);}});return;}
  activeAssetId=stored?.id||null;const a=stored||core.normalize({id:code,manufacturer:'',model:'',serial:'',productType:'Laptop',location:'Inspection',status:'Awaiting Processing',condition:'Not assessed'});
  if(!setPage('asset',true))return;
  const form=$('assetEditor');for(const [name,value] of Object.entries(a)){const field=form.elements.namedItem(name);if(field&&['INPUT','TEXTAREA'].includes(field.tagName))field.value=value??'';}
@@ -279,7 +279,7 @@ window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='asset')up
 async function saveAsset(e){e?.preventDefault();if($('assetTopSave').disabled)return;const savedSection=$('assetPage').dataset.section;const data=readAsset();if(!data.id||!data.model.trim()){$('assetError').textContent='Asset ID and model are required.';return;}
  if(!data.location.trim()){$('assetError').textContent='Location is required.';return;}
  const qaArchive=window.ApexCompletedQA?.same(data.location,'Completed QA');
- if(qaArchive&&!confirm('Move '+data.id+' to Completed QA? This saves Completed QA in the asset Location field and archives it from active pages, keeping the original pallet ID and repair history.'))return;
+ if(qaArchive&&!await apexConfirm('Move '+data.id+' to Completed QA? This saves Completed QA in the asset Location field and archives it from active pages, keeping the original pallet ID and repair history.'))return;
  $('assetTopSave').disabled=true;$('assetBottomSave').disabled=true;$('refurbNotesSave').disabled=true;$('assetError').textContent='';
  try{const r=activeAssetId?await api.update(activeAssetId,data):await api.add(data);if(!r.ok){$('assetError').textContent=r.error||'Could not save asset.';return;}
  activeAssetId=r.item.id;dirty=false;await refresh();if(qaArchive){activeAssetId=null;setPage('completedQA',true);notify(`Archived ${r.item.id} · Location: Completed QA`);}else{openAsset(r.item.id);if(savedSection)document.querySelector('[data-asset-tab="'+savedSection+'"]')?.click();notify(`Saved ${r.item.id} · ${r.item.status}`);}
@@ -317,7 +317,7 @@ async function pairWizard(){
   const revokedList=$('pairRevokedList');
   if(revokedList)revokedList.innerHTML=revoked.length?`<div class="v32-revoked-title">Blocked devices · ${revoked.length}</div>${revoked.map(d=>`<div class="v32-device-row"><div><b>${html(d.label||'Previously blocked device')}</b><small>${html(d.scope||'Diagnostics')} · ID ${html(d.id).slice(0,8)}…</small></div><button class="secondary" type="button" data-unrevoke="${html(d.id)}">Allow reconnect</button></div>`).join('')}`:'<p class="section-note">No devices blocked.</p>';
   document.querySelectorAll('[data-unrevoke]').forEach(b=>b.onclick=async()=>{
-   if(!confirm('Allow this previously blocked device to request access again? You may still need to approve it.'))return;
+   if(!await apexConfirm('Allow this previously blocked device to request access again? You may still need to approve it.'))return;
    const result=await api.hubUnrevoke(b.dataset.unrevoke);
    msg.textContent=result.ok?'Unblocked. Reopen Diagnostics or wait for its next connection attempt, then approve the device if prompted.':result.error;
    await loadDevices();
@@ -328,7 +328,7 @@ async function pairWizard(){
  $('pairStart').onclick=async()=>{msg.textContent='Starting shared hub…';const r=await api.hubStart();if(!r.ok){msg.textContent=r.error;return;}syncMode='shared';await refresh();$('pairAutoApprove').disabled=false;$('pairRefresh').disabled=false;msg.textContent='Hub running. Connect devices on your trusted local network; network firewall must allow TCP 4217 and UDP 4218.';await loadDevices();};
  $('pairRefresh').onclick=loadDevices;
  $('pairAutoApprove').onchange=async e=>{const enabled=e.currentTarget.checked;
-  if(enabled&&!confirm('Enable automatic acceptance of new testing devices on this private local network? Only use on a trusted office LAN, not guest/public Wi-Fi.')){e.currentTarget.checked=false;return;}
+  if(enabled&&!await apexConfirm('Enable automatic acceptance of new testing devices on this private local network? Only use on a trusted office LAN, not guest/public Wi-Fi.')){e.currentTarget.checked=false;return;}
   const r=await api.hubAutoApprove(enabled);msg.textContent=r.ok?(enabled?'Trusted-LAN automatic access enabled. No pairing links needed.':'New devices will require one click to approve.'):(r.error||'Could not save connection setting');if(!r.ok)e.currentTarget.checked=!enabled;await loadDevices();
  };
  if(active)await loadDevices();
@@ -392,7 +392,7 @@ let inventoryLookupTimer;
 $('inventorySearch').addEventListener('input',()=>{clearTimeout(inventoryLookupTimer);const value=$('inventorySearch').value.trim();if(!value)return;inventoryLookupTimer=setTimeout(()=>{const code=(window.ApexAssetLabelQR?.readAssetId(value)||value).toUpperCase(),found=items.some(a=>a.id===code);if(found)inventoryLookupFeedback(true);else if(!items.some(a=>[a.id,a.model,a.manufacturer,a.serial].some(v=>String(v||'').toLowerCase().includes(value.toLowerCase()))))inventoryLookupFeedback(false);},650);});
 api.onInventoryArrived?.(event=>{if(currentPage==='asset'&&dirty)return;if(!$('modalLayer').classList.contains('hidden'))return;refresh(true);if(event?.open)setPage('inventory');});
 $('globalSearch').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();resolveScan(e.target.value);e.target.value='';}};
-$('sidebarUser').onclick=async()=>{if(currentPage==='asset'&&dirty&&!confirm('Sign out without saving changes?'))return;stopCamera();closeModal();await api.logout();items=[];inventoryIndex=null;syncMode='local';lastHubVersion=null;dirty=false;$('appPage').classList.add('hidden');$('loginPage').classList.remove('hidden');await restoreLoginChoice();($('loginPass').required?$('loginPass'):$('loginForm').querySelector('[type=submit]'))?.focus();};
+$('sidebarUser').onclick=async()=>{if(currentPage==='asset'&&dirty&&!await apexConfirm('Sign out without saving changes?',{title:'Sign out and discard changes?',tone:'warning',confirmLabel:'Sign out'}))return;stopCamera();closeModal();await api.logout();items=[];inventoryIndex=null;syncMode='local';lastHubVersion=null;dirty=false;$('appPage').classList.add('hidden');$('loginPage').classList.remove('hidden');await restoreLoginChoice();($('loginPass').required?$('loginPass'):$('loginForm').querySelector('[type=submit]'))?.focus();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modalLayer').classList.contains('hidden')&&!$('modalClose').classList.contains('hidden'))closeModal();});
 // Refresh only while the workspace is in use. Background windows do not need
 // repeated IPC/network requests; resuming the window triggers a fresh check.
