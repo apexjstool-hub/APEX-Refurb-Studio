@@ -81,3 +81,8 @@
 #assetJobProgress button.apex-delete-button:hover:not(:disabled){background:#cf405012!important;border-color:#cf40502e!important}
 #assetJobProgress button.apex-delete-button:focus-visible{outline:2px solid #cf4050!important;outline-offset:2px!important}
 
+
+/* 4.4.18 - Separate replacement and cosmetic work status, within Asset Details */
+.apex-dual-repair-status{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px}
+.apex-dual-repair-status>span{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border:1px solid var(--border-color,rgba(130,145,166,.24));border-radius:10px;background:var(--panel-bg,rgba(130,145,166,.06));font-size:13px}
+.apex-dual-repair-status b{font-weight:700}
