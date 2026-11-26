@@ -8,6 +8,7 @@
 })(typeof window!=='undefined'?window:null,function(){
  const NAME='Completed QA',key=v=>String(v??'').trim().toLocaleLowerCase('en-GB'),same=(a,b)=>key(a)===key(b),num=v=>Math.max(0,Number(v)||0);
  const cosmetic=name=>/respray|re[ -]?spray|repaint|re[ -]?paint|painting/i.test(String(name||''));
+ const smartKey=name=>/\bsmart[\s_-]*key\b/i.test(String(name||''));
  const QC=['Visual inspection','Required parts fitted','Hardware retest','Final clean & sign-off'];
  function partition(assets=[],pallets=[]){
   const reserved=new Set(pallets.filter(p=>same(p.storageLocation,NAME)).map(p=>key(p.name)));
@@ -19,7 +20,7 @@
   return {active,archived,activePallets:pallets.filter(p=>!same(p.storageLocation,NAME)),archivedPallets:pallets.filter(p=>same(p.storageLocation,NAME))};
  }
  function status(asset,workflow={}){
-  const job=workflow.jobs?.[asset.id],all=Array.isArray(job?.parts)?job.parts:[],parts=all.filter(p=>!cosmetic(p.name)),spray=all.filter(p=>cosmetic(p.name));
+  const job=workflow.jobs?.[asset.id],all=Array.isArray(job?.parts)?job.parts:[],parts=all.filter(p=>!cosmetic(p.name)&&!smartKey(p.name)),spray=all.filter(p=>cosmetic(p.name));
   const isDone=group=>group.length>0&&group.every(p=>num(p.fitted)>=Math.max(1,num(p.qty)));
   const partsStatus=!job?'Not recorded':!parts.length?'Not required':isDone(parts)?'Repair completed':'Repair outstanding';
   const completedSpray=(workflow.resprayPallets||[]).some(s=>s.status==='Completed'&&(s.manifest||[]).some(item=>same(item.assetId,asset.id)));
