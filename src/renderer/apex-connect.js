@@ -18,7 +18,7 @@
  '<div class="apex-connect-actions"><small>Messages are separate from Engineer and Refurb Notes.</small><button type="submit" class="primary" id="apexConnectSend">Send</button></div></form></div>';
  drawerHost.append(shell);
  const $=id=>document.getElementById(id);
- let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0,initialisedUnread=false,shakeTimer=null;
+ let me=null,members=[],latest=[],reads=new Map(),selected='team',thread=[],busy=false,sending=false,ready=false,mode='drawer',lastUnread=0,lastPoll=0,initialisedUnread=false,shakeTimer=null,lastInboundId=0,previewUntil=0,previewTimer=null;
  const drafts=new Map();
  const key=recipient=>recipient==='team'?'team':'dm:'+recipient.toLowerCase();
  const active=()=>!drawer.hidden||!page.classList.contains('hidden');
@@ -30,21 +30,42 @@
    (m.sender_id===recipient&&m.recipient_id===me))).length;
  };
  const unreadTotal=()=>members.filter(m=>m.user_id!==me).reduce((n,m)=>n+unreadFor(m.user_id),unreadFor('team'));
+ function animateNotification(){
+  if(document.visibilityState==='hidden')return;
+  button.classList.remove('apex-connect-notify');
+  // Restart CSS animation for a new arrival, even when the badge count is unchanged.
+  void button.offsetWidth;
+  button.classList.add('apex-connect-notify');
+  clearTimeout(shakeTimer);
+  shakeTimer=setTimeout(()=>button.classList.remove('apex-connect-notify'),800);
+ }
  function renderBadge(){
   const count=me?unreadTotal():0,badge=$('apexConnectUnread');
-  badge.hidden=count===0;
-  badge.textContent=count>99?'99+':String(count);
+  // Check message identity as well as count: a new arrival can replace
+  // an older, read message without increasing the numeric unread total.
+  const inbound=me?latest.filter(m=>m.sender_id!==me&&(m.recipient_id===null||m.recipient_id===me)):[];
+  const newest=inbound.reduce((max,m)=>Math.max(max,Number(m.id)||0),0);
+  const arrivals=count>0&&(newest>lastInboundId||count>lastUnread);
+  // Show existing unread messages after sign-in, not just newly arrived ones.
+  if((!initialisedUnread&&count>0)||(initialisedUnread&&arrivals))animateNotification();
+  initialisedUnread=true;lastUnread=count;lastInboundId=Math.max(lastInboundId,newest);
   button.setAttribute('aria-label',count?'APEX Connect, '+count+' unread message'+(count===1?'':'s'):'Open APEX Connect');
   button.title=count?count+' unread APEX message'+(count===1?'':'s'):'APEX Connect messages';
-  // Shake ONLY for new unread messages, never repeatedly on routine refreshes.
-  if(initialisedUnread&&count>lastUnread){
-   button.classList.remove('apex-connect-notify');
-   void button.offsetWidth;
-   button.classList.add('apex-connect-notify');
-   clearTimeout(shakeTimer);
-   shakeTimer=setTimeout(()=>button.classList.remove('apex-connect-notify'),760);
-  }
-  initialisedUnread=true;lastUnread=count;
+  if(Date.now()<previewUntil)return;
+  badge.hidden=count===0;
+  badge.textContent=count>99?'99+':String(count);
+ }
+ function testNotification(){
+  if(!visible())return false;
+  clearTimeout(previewTimer);
+  previewUntil=Date.now()+2300;
+  const badge=$('apexConnectUnread');
+  badge.hidden=false;
+  badge.textContent=String(Math.max(1,lastUnread));
+  button.setAttribute('aria-label','APEX Connect notification preview');
+  animateNotification();
+  previewTimer=setTimeout(()=>{previewUntil=0;renderBadge();},2350);
+  return true;
  }
  function renderContacts(){
   const host=$('apexConnectConversations');if(!host)return;
@@ -96,7 +117,7 @@
  }
  async function poll(force=false){
   if(busy||!visible()||document.visibilityState==='hidden')return;
-  if(!force&&Date.now()-lastPoll<16000)return;
+  if(!force&&Date.now()-lastPoll<5500)return;
   busy=true;lastPoll=Date.now();
   try{
    const info=await api.connectList();
@@ -105,7 +126,7 @@
     $('apexConnectStatus').textContent=info?.error||'APEX Connect unavailable';
     $('apexConnectSend').disabled=true;renderContacts();renderMessages();renderBadge();return;
    }
-   if(me!==info.userId){selected='team';drafts.clear();thread=[];initialisedUnread=false;lastUnread=0;}
+   if(me!==info.userId){selected='team';drafts.clear();thread=[];initialisedUnread=false;lastUnread=0;lastInboundId=0;}
    me=info.userId;members=info.members||[];latest=info.latest||[];
    reads=new Map((info.reads||[]).map(r=>[r.conversation_key,Number(r.last_read_id)||0]));
    ready=true;$('apexConnectSend').disabled=false;
@@ -162,7 +183,11 @@
  const watcher=new MutationObserver(syncPlacement);
  watcher.observe(page,{attributes:true,attributeFilter:['class']});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!drawer.hidden){drawer.hidden=true;}});
- setInterval(()=>poll(),20000);
- setTimeout(()=>poll(true),2500);
- root.ApexConnect=Object.freeze({open:showDrawer,openTab:()=>$('apexConnectOpenTab').click(),refresh:()=>poll(true)});
+ setInterval(()=>poll(),6500);
+ // Catch messages received while APEX is minimised or another application is in front.
+ // The next foreground activation checks immediately rather than waiting for the timer.
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')poll(true);});
+ root.addEventListener('focus',()=>poll(true));
+ setTimeout(()=>poll(true),1500);
+ root.ApexConnect=Object.freeze({open:showDrawer,openTab:()=>$('apexConnectOpenTab').click(),refresh:()=>poll(true),testNotification});
 })(window);
