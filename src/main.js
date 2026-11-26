@@ -115,6 +115,21 @@ async function portableCloudAdmin(action,fields={}){
  }catch(e){return {ok:false,error:'Cloud SSD authorisation unavailable: '+String(e.message||'network error').slice(0,130)};}
 }
 const apexConnect=require('./apex-connect-service').createConnectService({cloudFetch,identity:()=>authenticated&&authMode==='cloud'?cloudSession:null});
+
+// Retention is administered only by a signed-in, unlocked APEX cloud administrator.
+// RPC functions enforce the same permission again in PostgreSQL.
+async function connectMaintenanceRpc(method,body={}){
+ if(authMode!=='cloud'||!cloudSession)return {ok:false,error:'Sign into the APEX cloud administrator account to manage messaging.'};
+ const permitted=['apex_connect_maintenance_status','apex_connect_maintenance_save','apex_connect_maintenance_run'];
+ if(!permitted.includes(method))return {ok:false,error:'Unsupported maintenance action.'};
+ try{
+  const res=await cloudFetch('/rest/v1/rpc/'+method,{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)return {ok:false,error:res.status===403?'Cloud administrator permission required.':(data.message||'Maintenance request failed (HTTP '+res.status+').').slice(0,180)};
+  return {ok:true,...data};
+ }catch(e){return {ok:false,error:'Unable to contact APEX messaging maintenance: '+String(e.message||e).slice(0,120)};}
+}
 async function cloudRead(route){
  try{
   const res=await cloudFetch('/rest/v1/'+route,{headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token},signal:AbortSignal.timeout(12000)});
@@ -815,6 +830,13 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:connectHistory',secured(recipient=>apexConnect.history(recipient)));
  ipcMain.handle('inventory:connectSend',secured(input=>apexConnect.send(input)));
  ipcMain.handle('inventory:connectRead',secured(input=>apexConnect.read(input)));
+ ipcMain.handle('inventory:connectMaintenanceStatus',adminSecured(()=>connectMaintenanceRpc('apex_connect_maintenance_status')));
+ ipcMain.handle('inventory:connectMaintenanceSave',settingsSecured(input=>{
+  const days=Number(input?.days);
+  if(typeof input?.enabled!=='boolean'||![30,90,180,365].includes(days))return {ok:false,error:'Select a valid message retention setting.'};
+  return connectMaintenanceRpc('apex_connect_maintenance_save',{p_enabled:input.enabled,p_days:days});
+ }));
+ ipcMain.handle('inventory:connectMaintenanceRun',settingsSecured(()=>connectMaintenanceRpc('apex_connect_maintenance_run')));
  ipcMain.handle('inventory:portableDevices',adminSecured(()=>portableCloudAdmin('admin-list')));
  ipcMain.handle('inventory:portableApprove',settingsSecured(async approvalCode=>{
   try{const d=JSON.parse(String(approvalCode||''));return await portableCloudAdmin('admin-approve',{device:d});}
