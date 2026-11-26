@@ -214,7 +214,7 @@ function draw(){
   $('opsCancel').onclick=closeModal;$('opsBulkForm').onsubmit=async e=>{e.preventDefault();const status=new FormData(e.target).get('status');if(await action({type:'bulkJob',assetIds:ids,status}))closeModal();};
  };
 }
-function bindActions(where){where.querySelectorAll('[data-op]').forEach(b=>{b.onclick=()=>{const op=b.dataset.op,id=b.dataset.id;
+function bindActions(where){where.querySelectorAll('[data-op]').forEach(b=>{b.onclick=async()=>{const op=b.dataset.op,id=b.dataset.id;
  if(op==='repairView'){try{localStorage.setItem('apexRepairView',id);}catch{}renderAsset();bindActions($('assetJobProgress'));return;}
  if(op==='sendCosmetic'){cosmeticSendModal(id);return;}
  if(op==='cosmeticPart'){partModal(id,'cosmetic');return;}
@@ -225,11 +225,11 @@ function bindActions(where){where.querySelectorAll('[data-op]').forEach(b=>{b.on
  if(op==='job')jobModal(id);if(op==='part')partModal(id);
  if(op==='receivePart')receivePartModal(id);if(op==='duplicates')duplicateModal(id);
  if(op==='quality')qcModal(id);if(op==='fit')fitModal(id);if(op==='undoFit')undoFitModal(id);
- if(op==='deleteOrder'){if(confirm('Delete purchase order '+id+' and its lines? This cannot be undone.')){api.manageDelete({type:'deleteOrder',orderId:id}).then(r=>{if(!r.ok)notify(r.error||'Unable to delete order');else {notify('Purchase order deleted');refresh();}});}}
+ if(op==='deleteOrder'){if(await apexConfirm('Delete purchase order '+id+' and its lines? This cannot be undone.')){api.manageDelete({type:'deleteOrder',orderId:id}).then(r=>{if(!r.ok)notify(r.error||'Unable to delete order');else {notify('Purchase order deleted');refresh();}});}}
  if(op==='newOrder')newOrderModal();if(op==='order')orderModal(id);if(op==='receive')receiveModal(id);if(op==='removePart'){const [assetId,partId]=id.split('|');
   const part=ops.jobs[assetId]?.parts.find(p=>p.id===partId);
   const linked=ops.orders.filter(o=>(o.lines||[]).some(l=>l.assetId===assetId&&l.partId===partId));
-  if(!confirm('Delete '+(part?.name||'this part')+' from '+assetId+'?'+(linked.length?' This will remove its lines from '+linked.length+' linked purchase order(s).':'')+' The asset will remain in inventory. This cannot be undone.'))return;
+  if(!await apexConfirm('Delete '+(part?.name||'this part')+' from '+assetId+'?'+(linked.length?' This will remove its lines from '+linked.length+' linked purchase order(s).':'')+' The asset will remain in inventory. This cannot be undone.'))return;
   api.manageDelete({type:'deletePart',assetId,partId}).then(result=>{
    if(!result.ok)notify(result.error||'Unable to delete part');else{notify('Part deleted');refresh();}
   }).catch(()=>notify('Unable to delete part. Refresh and retry.'));
@@ -309,7 +309,7 @@ $('opsCancel').onclick=closeModal;$('opsOrderForm').onsubmit=async e=>{e.prevent
 function orderModal(id){const o=ops.orders.find(x=>x.id===id);if(!o)return;
 if(o.status==='Draft'){
  showModal('Review automatic order draft','PARTS / APPROVAL REQUIRED',`<form class="modal-body" id="opsApproveDraft"><p class="section-note">This draft was prepared automatically from outstanding refurb requirements. It has NOT been sent to a supplier.</p><div class="ops-order-lines">${o.lines.map(l=>`<div class="ops-order-line"><b>${esc(l.name)}</b><br><small>${esc(l.assetId)} · ${l.qty} needed</small></div>`).join('')}</div><div class="ops-form-grid"><label class="field">Supplier *<input name="supplier" required placeholder="Choose supplier"></label><label class="field">Expected arrival <input name="expectedAt" type="date"></label><label class="field">Supplier reference <input name="reference" placeholder="Optional"></label></div><div class="modal-actions"><button type="button" class="secondary" id="opsCancel">Close</button><button type="button" class="secondary" id="opsDiscardDraft">Clear draft</button><button class="primary" type="submit">Approve purchase order</button></div></form>`);
- $('opsCancel').onclick=closeModal;$('opsDiscardDraft').onclick=async()=>{if(confirm('Clear the automatic draft? The original parts requirements remain.')){if(await action({type:'discardDraft',orderId:o.id}))closeModal();}};
+ $('opsCancel').onclick=closeModal;$('opsDiscardDraft').onclick=async()=>{if(await apexConfirm('Clear the automatic draft? The original parts requirements remain.')){if(await action({type:'discardDraft',orderId:o.id}))closeModal();}};
  $('opsApproveDraft').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.currentTarget));if(await action({type:'approveDraft',orderId:o.id,...f}))closeModal();};return;
 }
 
