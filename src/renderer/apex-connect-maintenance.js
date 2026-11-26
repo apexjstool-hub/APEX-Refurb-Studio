@@ -33,8 +33,8 @@
  save.addEventListener('click',async()=>{
   if(loading)return;
   const chosen=Number(days.value),on=enabled.checked;
-  if(on&&!current.enabled&&!confirm('Enable automatic deletion of APEX Connect messages older than '+chosen+' days? Deleted messages cannot be recovered from chat.'))return;
-  if(current.enabled&&on&&chosen<current.retentionDays&&!confirm('Shorten message retention to '+chosen+' days? More old messages may be deleted by the next cleanup.'))return;
+  if(on&&!current.enabled&&!await apexConfirm('Enable automatic deletion of APEX Connect messages older than '+chosen+' days? Deleted messages cannot be recovered from chat.'))return;
+  if(current.enabled&&on&&chosen<current.retentionDays&&!await apexConfirm('Shorten message retention to '+chosen+' days? More old messages may be deleted by the next cleanup.'))return;
   busy(true);note('Saving retention settings…');
   try{
    const result=await api.connectMaintenanceSave({enabled:on,days:chosen});
@@ -44,7 +44,7 @@
  });
  run.addEventListener('click',async()=>{
   if(loading)return;
-  if(!confirm('Permanently delete up to 500 APEX Connect messages older than the SAVED '+current.retentionDays+'-day retention period? This cannot be undone.'))return;
+  if(!await apexConfirm('Permanently delete up to 500 APEX Connect messages older than the SAVED '+current.retentionDays+'-day retention period? This cannot be undone.'))return;
   busy(true);note('Cleaning expired messages…');
   try{
    const result=await api.connectMaintenanceRun();
