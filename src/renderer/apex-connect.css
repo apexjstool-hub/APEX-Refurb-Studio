@@ -61,3 +61,15 @@
 .apex-connect-maintenance-period select{min-width:180px;padding:8px 11px;border-radius:8px;background:var(--panel,#fff);color:var(--text,#172a45);border:1px solid var(--border-color,#cbd5e1)}
 .apex-connect-maintenance-stats{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .apex-connect-maintenance-stats span{padding:7px 10px;border:1px solid var(--border-color,rgba(130,150,170,.3));border-radius:8px;font-size:11px}
+
+/* Connect 1.2: persistent phone-style red badges on header and workspace tab.
+   These are not transient toast alerts: badge stays until recipient reads chat. */
+#apexConnectToggle{overflow:visible!important}
+#apexConnectToggle #apexConnectUnread:not([hidden]){position:absolute!important;display:inline-grid!important;place-items:center!important;background:#e1263b!important;color:#fff!important;border-radius:999px!important;min-width:19px!important;height:19px!important;line-height:19px!important;padding:0 4px!important;top:-7px!important;right:-9px!important;z-index:12!important;font-size:11px!important;font-weight:800!important;box-shadow:0 0 0 2px var(--panel,#fff),0 2px 8px rgba(225,38,59,.45)}
+.apex-workspace-message-unread{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#e1263b;color:#fff;line-height:17px;font-size:10px;font-weight:800;flex:none;box-shadow:0 0 0 1px var(--panel,#fff);font-variant-numeric:tabular-nums}
+.apex-connect-count{background:#e1263b!important;border:1px solid rgba(255,255,255,.55);box-shadow:0 1px 6px rgba(190,22,44,.2)}
+.apex-connect-message.can-delete{cursor:pointer;position:relative;padding-bottom:27px}
+.apex-connect-message-actions{position:absolute;bottom:3px;right:9px;min-width:27px;min-height:22px;border:0!important;box-shadow:none!important;background:transparent!important;color:var(--muted,#64748b)!important;font-size:20px!important;line-height:1!important;cursor:pointer}
+.apex-connect-message-delete:not([hidden]){display:block;margin-top:7px;padding:5px 9px!important;background:rgba(225,38,59,.11)!important;color:#c72338!important;font-size:11px!important;font-weight:750!important;border:1px solid rgba(225,38,59,.24)!important;border-radius:7px;cursor:pointer}
+.apex-connect-message-delete[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){.apex-workspace-message-unread,#apexConnectUnread{animation:none!important;transition:none!important}}
