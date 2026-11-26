@@ -281,7 +281,7 @@
  el('v360UndoMove').onclick=async()=>{
   if(!lastMove||transferBusy)return;
   const previous=lastMove;
-  if(!confirm(`Undo the move of ${previous.entries.length} laptop(s) to ${previous.destination}? This will restore their previous assignments.`))return;
+  if(!await apexConfirm(`Undo the move of ${previous.entries.length} laptop(s) to ${previous.destination}? This will restore their previous assignments.`))return;
   transferBusy=true;updateUndo();
   try{
    if(typeof api.undoBulkMove!=='function'){showStatus('Undo requires the updated v3.6.0 Inventory Hub. No records were changed.',true);return;}
