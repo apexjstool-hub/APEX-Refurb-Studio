@@ -17,8 +17,7 @@
   if(['completed','hold'].includes(s.key)){
    badges.push({tone:s.key,label:s.key==='completed'?'Completed':'On hold'});
   }else if(replacement.length){
-   if(s.manualBoard==='needed'&&s.key==='order')badges.push({tone:'order',label:'Parts Needed'});
-   else if(s.needsOrdering>0)badges.push({tone:'order',label:'Needs ordering'});
+   if(s.needsOrdering>0)badges.push({tone:'order',label:'Needs ordering'});
    else if(s.awaitingDelivery>0)badges.push({tone:'delivery',label:'Parts ordered'});
    else if(required>0&&fitted>=required)badges.push({tone:'fitted',label:'Parts fitted'});
    else if(replacement.some(p=>(Number(p.toFit)||0)>0))badges.push({tone:'fit',label:fitted>0?'Parts fitting':'Ready to fit'});
