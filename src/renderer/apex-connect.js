@@ -103,7 +103,7 @@
    const id=Number(b.dataset.deleteMessage);
    const message=thread.find(m=>Number(m.id)===id);
    if(!message||(!isAdmin&&message.sender_id!==me)||modBusy)return;
-   if(!confirm('Permanently delete this message for everyone in this conversation? This cannot be undone.'))return;
+   if(!await apexConfirm('Permanently delete this message for everyone in this conversation? This cannot be undone.'))return;
    b.disabled=true;modBusy=true;
    try{
     const result=isAdmin?await api.connectAdminDeleteMessage({messageId:id}):await api.connectDelete({messageId:id});
@@ -174,8 +174,8 @@
   if(!isAdmin||!ready||modBusy)return;
   const target=selected,name=target==='team'?'the entire Office Team conversation':'your entire direct conversation with '+display(target);
   const confirmText='Delete ALL messages from '+name+' for everyone? This is permanent and cannot be undone.';
-  if(!confirm(confirmText))return;
-  if(!confirm('Final confirmation: permanently clear '+name+'?'))return;
+  if(!await apexConfirm(confirmText))return;
+  if(!await apexConfirm('Final confirmation: permanently clear '+name+'?'))return;
   modBusy=true;const action=$('apexConnectAdminClear');action.disabled=true;
   try{
    const data=await api.connectAdminDeleteConversation({kind:target==='team'?'team':'direct',otherUser:target==='team'?null:target});
