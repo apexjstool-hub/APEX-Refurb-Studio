@@ -18,10 +18,12 @@ const pill=s=>`<span class="ops-stage">${esc(s)}</span>`;
 const partList=()=>Object.values(ops.jobs).flatMap(j=>(j.parts||[]).map(p=>{const onOrder=ops.orders.filter(o=>o.status!=='Draft').flatMap(o=>o.lines||[]).filter(l=>l.assetId===j.assetId&&l.partId===p.id).reduce((n,l)=>n+(l.qty-l.received),0);return {...p,assetId:j.assetId,onOrder,toOrder:Math.max(0,p.qty-p.received-onOrder)};}));
 // Manual board moves override the automatic status derived from existing purchase orders.
 function orderedBoard(assetId, list){
+ const replacement=list.filter(p=>!window.ApexRepairWork?.isCosmetic(p.name)&&p.fitted<p.qty);
+ if(!replacement.length)return false;
  const override=ops.jobs[assetId]?.partsBoard;
  if(override==='ordered')return true;
  if(override==='needed')return false;
- const activeIds=new Set(list.filter(p=>p.fitted<p.qty).map(p=>p.id));
+ const activeIds=new Set(replacement.map(p=>p.id));
  return ops.orders.some(o=>o.status!=='Draft'&&(o.lines||[]).some(l=>l.assetId===assetId&&activeIds.has(l.partId)));
 }
 function partProgress(p){
@@ -111,7 +113,7 @@ function cosmeticSendModal(ref){
 }
 function duplicateButton(id){const rows=window.ApexPartRequirements?.duplicates(ops.jobs[id],ops.orders)||[];return rows.length?btn('Review duplicates ('+rows.length+')','duplicates',id):'';}
 function draw(){
- const js=sortJobs(),parts=partList(),toOrder=parts.filter(p=>p.toOrder>0),openOrders=ops.orders.filter(o=>orderState(o)!=='Received');
+ const js=sortJobs(),parts=partList().filter(p=>!window.ApexRepairWork?.isCosmetic(p.name)),toOrder=parts.filter(p=>p.toOrder>0),openOrders=ops.orders.filter(o=>orderState(o)!=='Received');
  const dashboard=$('dashboardPage');let small=$('opsDashboardStrip');if(!small&&dashboard){small=document.createElement('div');small.id='opsDashboardStrip';dashboard.querySelector('.hero-banner')?.after(small);}if(small)small.innerHTML=totals()+`<div class="ops-inline-row ops-dashboard-cta"><b>${parts.length} refurbishment part requirements recorded</b>${btn('View parts needed →','goto','parts','primary')}</div>`;
  $('refurbJobsContent').innerHTML=totals()+`<div class="ops-toolbar"><label>Stage <select id="opsJobFilter"><option value="">All stages</option>${stages.map(s=>`<option>${esc(s)}</option>`).join('')}</select></label><button type="button" class="secondary" id="opsBulkStage">Bulk update selected jobs</button></div><div id="opsFilteredJobs">${jobsTable(js)}</div>`;
  const all=$('refurbJobsContent').querySelector('.ops-check-all');if(all)all.onchange=()=>document.querySelectorAll('#opsFilteredJobs .ops-job-check').forEach(c=>c.checked=all.checked);
