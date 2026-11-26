@@ -6,15 +6,15 @@ function prepare(data,input){
  if(!/^[a-f0-9-]{36}$/i.test(input.requestId||''))throw Error('Reopen Create purchase order before trying again.');
  docs.select(data,input); // Validate the entire selection before preparing any reports.
  const names=[...new Set(input.palletNames.map(key))];
- return names.map(name=>{const pallet=data.pallets.find(p=>key(p.name)===name),document=docs.select(data,{palletNames:[pallet.name],jobRef:reference(input.jobRef)}),at=new Date().toISOString();
- return {id:randomUUID(),requestKey:input.requestId+':'+name,palletName:pallet.name,palletCreatedAt:pallet.createdAt||'',createdAt:at,updatedAt:at,revision:1,document,assetIds:data.items.filter(a=>!a.deletedAt&&key(a.pallet)===name).map(a=>a.id)};});
+ return names.map(name=>{const pallet=data.pallets.find(p=>key(p.name)===name),document=docs.select(data,{palletNames:[pallet.name],jobRef:reference(input.jobRef||(data.resprayAssignments||[]).find(x=>key(x.palletName)===name)?.reference||'')}),at=new Date().toISOString();
+ return {id:randomUUID(),requestKey:input.requestId+':'+name,palletName:pallet.name,palletCreatedAt:pallet.createdAt||'',createdAt:at,updatedAt:at,revision:1,document,assetIds:(data.resprayAssignments||[]).find(x=>key(x.palletName)===name)?.assetIds||data.items.filter(a=>!a.deletedAt&&key(a.pallet)===name).map(a=>a.id)};});
 }
 function matches(report,pallet){return report.palletCreatedAt&&pallet.createdAt?report.palletCreatedAt===pallet.createdAt:key(report.palletName)===key(pallet.name);}
 function apply(db,input){
  try{
  const reports=Array.isArray(db.microdreamReports)?db.microdreamReports:[];
  if(input.action==='create'){
-  const next=prepare({items:db.items,pallets:require('./pallet-management').listPallets(db)},input),saved=next.map(r=>reports.find(x=>x.requestKey===r.requestKey)||r);
+  const next=prepare({items:db.items,pallets:require('./pallet-management').listPallets(db),resprayAssignments:db.operations?.resprayAssignments||[]},input),saved=next.map(r=>reports.find(x=>x.requestKey===r.requestKey)||r);
   db.microdreamReports=[...reports,...saved.filter(r=>!reports.some(x=>x.id===r.id))];return {ok:true,reports:saved};
  }
  if(input.action==='list')return {ok:true,reports:reports.filter(r=>matches(r,input.pallet||{})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))};
