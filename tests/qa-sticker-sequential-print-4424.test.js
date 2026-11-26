@@ -4,7 +4,7 @@ const labels=require('../src/custom-labels');
 
 function setup(){
  const nodes=new Map(), get=id=>{
-  if(!nodes.has(id))nodes.set(id,{id,value:'',disabled:false,isConnected:true,textContent:'',dataset:{},style:{},innerHTML:'',src:'',srcdoc:'',onload:null,removeAttribute(){},focus(){}});
+  if(!nodes.has(id))nodes.set(id,{id,value:({qaSize:'2x1',qaDpi:'203',qaCopies:'1'})[id]||'',disabled:false,isConnected:true,textContent:'',dataset:{},style:{},innerHTML:'',src:'',srcdoc:'',onload:null,removeAttribute(){},focus(){}});
   return nodes.get(id);
  };
  const prints=[],pdfs=[];let saved={technicians:['JAMIE SALE'],templates:[],revision:0,lastQa:null};
