@@ -1,5 +1,5 @@
 'use strict';
-/* Microdream simple workflow: scan existing pallet -> review eligible assets -> add to reference.
+/* Microdream simple workflow: scan a pallet or asset -> review eligible assets -> add to reference.
    No inventory pallet or location writes are permitted in this module. */
 (function(){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -10,16 +10,19 @@
  function mount(detail){
   if(!detail||detail.querySelector('#mdSimpleCentre'))return;
   const wrap=document.createElement('section');wrap.id='mdSimpleCentre';wrap.className='md-simple-centre';
-  wrap.innerHTML='<div class="md-simple-head"><div><h2>Microdream Respray Centre</h2><p>Scan a pallet, check the respray assets and add them to a reference. Original pallets and inventory stay unchanged.</p></div><button type="button" class="secondary" id="mdSimpleRefresh">Refresh</button></div>'+
-   '<div class="md-simple-scan"><label>Scan or enter original pallet<input id="mdSimpleScan" placeholder="e.g. IR-560" autocomplete="off"></label><button type="button" class="primary" id="mdSimpleFind">Find respray assets</button></div>'+
-   '<div id="mdSimpleMessage" role="status"></div><div id="mdSimplePreview"></div><div class="md-simple-ref-heading"><h3>Microdream references</h3><p>Multiple original pallets can share one reference.</p></div><div id="mdSimpleReferences">Loading...</div>';
+  wrap.innerHTML='<div class="md-simple-head"><div><span class="md-simple-eyebrow">RESPRAY DISPATCH</span><h2>Microdream</h2><p>Scan original pallets or individual Asset IDs. Select the required resprays, then add them to one reference.</p></div><button type="button" class="secondary" id="mdSimpleRefresh">Refresh</button></div>'+
+   '<div class="md-simple-workspace"><div class="md-simple-step"><span>1</span><div><strong>Scan inventory</strong><small>One field for pallets and assets</small></div></div>'+
+   '<div class="md-simple-scan"><label for="mdSimpleScan">Pallet number or Asset ID<input id="mdSimpleScan" placeholder="Scan IR-560 or asset 83253" autocomplete="off" spellcheck="false" aria-describedby="mdSimpleHint"></label><button type="button" class="primary" id="mdSimpleFind">Add to review</button></div>'+
+   '<div class="md-simple-scan-footer"><span id="mdSimpleHint">Scanner: press Enter automatically. Multiple scans build one review list.</span><button type="button" class="secondary" id="mdSimpleClear">Clear review</button></div>'+
+   '<div id="mdSimpleMessage" role="status" aria-live="polite"></div><div id="mdSimplePreview"></div></div>'+
+   '<div class="md-simple-ref-heading"><h3>Microdream references</h3><p>Track and dispatch resprays from multiple original pallets without changing their pallet numbers.</p></div><div id="mdSimpleReferences">Loading...</div>';
   const table=detail.querySelector('.pl-location-table-scroll')||detail.querySelector('.pl-location-empty');
   if(table){
    const legacy=document.createElement('details');legacy.className='md-original-pallets';legacy.innerHTML='<summary>View original pallet inventory and existing pallet actions</summary>';
    table.before(wrap);table.before(legacy);legacy.appendChild(table);
   }else detail.querySelector('.pl-location-pallets')?.appendChild(wrap);
   const $=id=>wrap.querySelector('#'+id);
-  let state=null,assets=[],pallet='',preview=[],selected=new Set(),busy=false;
+  let state=null,assets=[],preview=[],selected=new Set(),busy=false;
   function status(message,error=false){const el=$('mdSimpleMessage');el.textContent=message;el.dataset.error=error?'true':'false';}
   function eligible(asset){
    const job=state?.jobs?.[asset.id];
@@ -36,23 +39,31 @@
    return [...rows.values()].sort((a,b)=>a.reference.localeCompare(b.reference,undefined,{numeric:true}));
   }
   function drawPreview(){
-   const host=$('mdSimplePreview');if(!pallet){host.innerHTML='';return;}
+   const host=$('mdSimplePreview');
+   if(!preview.length){host.innerHTML='<div class="md-simple-zero"><strong>No assets scanned</strong><p>Scan a pallet to review its laptops, or scan one individual Asset ID.</p></div>';return;}
    const eligibleCount=preview.filter(eligible).length;
-   host.innerHTML='<div class="md-simple-preview-head"><h3>Pallet '+esc(pallet)+'</h3><span>'+preview.length+' inventory assets · '+eligibleCount+' need respray</span></div>'+
-    '<div class="md-simple-rows">'+(preview.length?preview.map(a=>{
+   const originalPallets=new Set(preview.map(a=>a.pallet).filter(Boolean));
+   host.innerHTML='<div class="md-simple-step"><span>2</span><div><strong>Review respray requirements</strong><small>Eligible assets are preselected. Parts-only assets cannot be added.</small></div></div>'+
+    '<div class="md-simple-preview-head"><div><b>'+preview.length+'</b> scanned assets <b>'+eligibleCount+'</b> need respray <b>'+originalPallets.size+'</b> original pallets</div><div class="md-simple-selection-actions"><button type="button" class="secondary" id="mdSimpleSelectAll">Select eligible</button><button type="button" class="secondary" id="mdSimpleUnselect">Deselect all</button></div></div>'+
+    '<div class="md-simple-column-heading"><span>Asset / Original pallet</span><span>Outstanding work</span><span>Eligibility</span></div>'+
+    '<div class="md-simple-rows">'+preview.map(a=>{
       const yes=!!eligible(a),checked=selected.has(a.id);
-      const jobs=(state.jobs[a.id]?.parts||[]).filter(p=>p.fitted<p.qty);
-      return '<label class="md-simple-asset"><input type="checkbox" data-md-asset="'+esc(a.id)+'" '+(yes?'':'disabled ')+(checked?'checked ':'')+'/>'+
-       '<span><strong>'+esc(a.id)+'</strong><small>'+esc(a.model||a.name||'Unknown model')+'</small></span>'+
-       '<span>'+esc(jobs.map(p=>p.name).join(', ')||'No outstanding work')+'</span><small>'+(yes?'Respray eligible':'Parts only / no respray')+'</small></label>';
-    }).join(''):'<p>No active assets belong to this original pallet.</p>')+'</div>'+
-    '<div class="md-simple-save"><label>Microdream reference (existing or new)<input id="mdSimpleReference" list="mdSimpleReferenceList" maxlength="75" placeholder="e.g. MD100241187-7"></label>'+
+      const jobs=(state.jobs[a.id]?.parts||[]).filter(p=>Number(p.fitted||0)<Number(p.qty||0));
+      return '<label class="md-simple-asset '+(yes?'':'md-simple-ineligible')+'"><input type="checkbox" data-md-asset="'+esc(a.id)+'" '+(yes?'':'disabled ')+(checked?'checked ':'')+'/>'+
+       '<span><strong>'+esc(a.id)+'</strong><small>'+esc(a.model||a.name||'Unknown model')+' · Pallet '+esc(a.pallet||'Unassigned')+'</small></span>'+
+       '<span>'+esc(jobs.map(p=>p.name).join(', ')||'No outstanding work')+'</span><small class="'+(yes?'md-simple-eligible':'')+'">'+(yes?'Respray needed':'Not eligible')+'</small></label>';
+    }).join('')+'</div>'+
+    '<div class="md-simple-step"><span>3</span><div><strong>Save to Microdream reference</strong><small>Select an existing reference or create a new one</small></div></div>'+
+    '<div class="md-simple-save"><label for="mdSimpleReference">Microdream reference<input id="mdSimpleReference" list="mdSimpleReferenceList" maxlength="75" placeholder="e.g. MD100241187-7" autocomplete="off"></label>'+
     '<datalist id="mdSimpleReferenceList">'+refs().filter(x=>!x.shipment||x.shipment.status==='Completed').map(x=>'<option value="'+esc(x.reference)+'"></option>').join('')+'</datalist>'+
     '<button id="mdSimpleSave" type="button" class="primary">Add selected to reference</button></div>';
    host.querySelectorAll('[data-md-asset]').forEach(input=>input.onchange=()=>{
      if(input.checked)selected.add(input.dataset.mdAsset);else selected.delete(input.dataset.mdAsset);
+     host.querySelector('#mdSimpleSave').disabled=!selected.size;
    });
-   const save=$('mdSimpleSave');save.disabled=!eligibleCount;save.onclick=saveSelection;
+   host.querySelector('#mdSimpleSelectAll').onclick=()=>{selected=new Set(preview.filter(eligible).map(a=>a.id));drawPreview();};
+   host.querySelector('#mdSimpleUnselect').onclick=()=>{selected.clear();drawPreview();};
+   const save=$('mdSimpleSave');save.disabled=!selected.size;save.onclick=saveSelection;
   }
   function drawRefs(){
    const host=$('mdSimpleReferences'),groups=refs();
@@ -80,19 +91,28 @@
     const [w,a]=await Promise.all([api.workflow(),api.list()]);
     if(!w.ok||!a.ok)throw Error(w.error||a.error||'Could not load inventory.');
     state=w.workflow;assets=(a.items||[]).filter(x=>!x.deletedAt);
-    if(pallet){preview=assets.filter(x=>same(x.pallet,pallet));selected=new Set([...selected].filter(id=>preview.some(x=>x.id===id&&eligible(x))));drawPreview();}
+    preview=preview.map(a=>assets.find(x=>same(x.id,a.id))).filter(Boolean);selected=new Set([...selected].filter(id=>preview.some(x=>x.id===id&&eligible(x))));drawPreview();
     drawRefs();status('');
    }catch(e){status(e.message||'Could not refresh Microdream.',true);}
    finally{busy=false;}
   }
-  async function findPallet(){
+  async function scanInput(){
    if(!state)await refresh();if(!state)return;
    const raw=$('mdSimpleScan').value.trim();
-   if(!raw){status('Scan or enter a pallet number first.',true);return;}
-   pallet=raw;preview=assets.filter(a=>same(a.pallet,pallet));
-   selected=new Set(preview.filter(eligible).map(a=>a.id));
+   if(!raw){status('Scan or enter an Asset ID or pallet number.',true);return;}
+   // Explicit matches take precedence: a pallet barcode must never accidentally select a same-named asset.
+   const palletCode=raw.replace(/^APEX[- :]*PALLET[- :]+/i,'').trim();
+   const palletAssets=assets.filter(a=>same(a.pallet,palletCode));
+   const asset=assets.find(a=>same(a.id,raw.replace(/^APEX[- :]*ASSET[- :]+/i,'')));
+   const found=palletAssets.length?palletAssets:asset?[asset]:[];
+   if(!found.length){status('No pallet or Asset ID matches '+raw+'. Confirm the scan and refresh inventory.',true);return;}
+   const previously=new Set(preview.map(a=>a.id));
+   const added=found.filter(a=>!previously.has(a.id));
+   preview=[...preview,...added];
+   for(const a of added)if(eligible(a))selected.add(a.id);
    drawPreview();
-   status(!preview.length?'No inventory assets found on '+pallet+'. Check the original pallet number.':selected.size+' of '+preview.length+' assets automatically selected for respray.',!preview.length);
+   $('mdSimpleScan').value='';$('mdSimpleScan').focus();
+   status((palletAssets.length?'Pallet '+palletCode: 'Asset '+asset.id)+' reviewed: '+added.length+' new item(s), '+added.filter(eligible).length+' eligible for respray. Original pallet numbers unchanged.');
   }
   async function saveSelection(){
    const ref=String($('mdSimpleReference')?.value||'').trim();
@@ -107,7 +127,7 @@
    try{
     const result=await api.workflowAction({type:'saveResprayAssignment',palletName:key(ref),reference:ref,assetIds:merged,expectedAssignmentId:current?.id||null,expectedUpdatedAt:current?.updatedAt||''});
     if(!result.ok)throw Error(result.error||'Cannot save reference.');
-    status('Added '+ids.length+' respray asset(s) from '+pallet+' to '+ref+'. Original pallet numbers unchanged.');
+    status('Added '+ids.length+' selected respray asset(s) to '+ref+'. Original pallet numbers unchanged.');
     const w=await api.workflow();if(w.ok)state=w.workflow;
     drawRefs();drawPreview();
     notify('Microdream respray reference saved. Original pallets unchanged.');
@@ -143,8 +163,9 @@
    }catch(e){status(e.message||'Could not save status; refresh before retrying.',true);}
    finally{busy=false;}
   }
-  $('mdSimpleRefresh').onclick=refresh;$('mdSimpleFind').onclick=findPallet;
-  $('mdSimpleScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();findPallet();}};
+  $('mdSimpleRefresh').onclick=refresh;$('mdSimpleFind').onclick=scanInput;
+  $('mdSimpleClear').onclick=()=>{preview=[];selected.clear();drawPreview();status('Review cleared; saved Microdream references are unchanged.');$('mdSimpleScan').focus();};
+  $('mdSimpleScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();scanInput();}};
   refresh();
  }
  window.ApexMicrodreamSimple=Object.freeze({mount});
