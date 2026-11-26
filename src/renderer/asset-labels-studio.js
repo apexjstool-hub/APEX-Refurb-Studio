@@ -5,9 +5,17 @@
  const el=id=>document.getElementById(id);
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const sizes={'2x1':'2 × 1 inch · 50.8 × 25.4 mm','50x25':'50 × 25 mm','50x30':'50 × 30 mm','60x40':'60 × 40 mm','40x30':'40 × 30 mm','80x30':'80 × 30 mm'};
- let selected=[],busy=false;
+ let selected=[],busy=false,sourceFilter='all';
  const prefs={fields:[],barcodeHeight:'medium',align:'center',detailSize:'normal'};
- const active=()=>items.filter(a=>!a.deletedAt&&a.id);
+ const archived=()=>Array.isArray(window.ApexCompletedQAArchive?.assets)?window.ApexCompletedQAArchive.assets.filter(a=>!a.deletedAt&&a.id):[];
+ const activeInventory=()=>items.filter(a=>!a.deletedAt&&a.id);
+ // Completed QA is intentionally hidden from the active inventory index. Asset
+ // Labels is read-only and must work across both sources without unarchiving.
+ const active=()=>{const unique=new Map();for(const asset of [...archived(),...activeInventory()])unique.set(String(asset.id).trim().toLowerCase(),asset);return [...unique.values()];};
+ const completedQaIds=()=>new Set(archived().map(a=>String(a.id).trim().toLowerCase()));
+ const isCompletedQA=a=>completedQaIds().has(String(a?.id||'').trim().toLowerCase());
+ const visible=()=>active().filter(a=>sourceFilter==='all'||(sourceFilter==='qa'?isCompletedQA(a):!isCompletedQA(a)));
+
  const name=a=>{const m=String(a.manufacturer||'').trim(),model=String(a.model||'').trim();return model.toLowerCase().startsWith(m.toLowerCase()+' ')?model:[m,model].filter(Boolean).join(' ')};
  const find=raw=>{
   const cleaned=window.ApexAssetLabelQR?.readAssetId(raw)||String(raw||'').trim();
@@ -27,12 +35,13 @@
  });
  function render(){
   if(!host.isConnected)return;
-  host.innerHTML=`<div class="label-studio apex-asset-label-studio"><div class="ls-heading"><h1>Asset Labels</h1><p>Scan, type or select an inventory asset. Each label prints its Code 128 barcode, Asset ID and real device name—without the APEX Asset Tag heading.</p></div>
+  host.innerHTML=`<div class="label-studio apex-asset-label-studio"><div class="ls-heading"><h1>Asset Labels</h1><p>Scan, type or select any inventory or Completed QA asset. Each label prints its Code 128 barcode, Asset ID and real device name—without the APEX Asset Tag heading.</p></div>
   <div class="ls-grid">
    <section class="ls-panel"><h2>Choose your assets</h2>
-    <form id="assetLabelsForm" class="apex-label-search"><label class="field">Scan or type Asset ID<input id="assetLabelsInput" list="assetLabelsOptions" placeholder="Scan asset barcode or enter asset number" autocomplete="off" spellcheck="false" required></label><datalist id="assetLabelsOptions">${active().slice(0,10000).map(a=>'<option value="'+esc(a.id)+'" label="'+esc(name(a))+'"></option>').join('')}</datalist><button class="primary" type="submit">Add asset</button></form>
-    <label class="field">Or select a device<select id="assetLabelsPicker"><option value="">Choose an inventory asset…</option>${active().slice(0,10000).map(a=>'<option value="'+esc(a.id)+'">'+esc(a.id)+' · '+esc(name(a))+'</option>').join('')}</select></label>
-    <p class="section-note">Only real inventory records are accepted. The device name is read from saved Manufacturer and Model fields.</p>
+    <label class="field">Asset source<select id="assetLabelsSource"><option value="all">All assets (including Completed QA)</option><option value="qa">Completed QA only</option><option value="active">Active inventory only</option></select></label>
+    <form id="assetLabelsForm" class="apex-label-search"><label class="field">Scan or type Asset ID<input id="assetLabelsInput" list="assetLabelsOptions" placeholder="Scan any asset barcode, including Completed QA" autocomplete="off" spellcheck="false" required></label><datalist id="assetLabelsOptions">${visible().slice(0,10000).map(a=>'<option value="'+esc(a.id)+'" label="'+esc(name(a))+'"></option>').join('')}</datalist><button class="primary" type="submit">Add asset</button></form>
+    <label class="field">Or select a device<select id="assetLabelsPicker"><option value="">Choose an asset…</option>${visible().slice(0,10000).map(a=>'<option value="'+esc(a.id)+'">'+esc(a.id)+' · '+esc(name(a))+(isCompletedQA(a)?' · Completed QA':'')+'</option>').join('')}</select></label>
+    <p class="section-note">Completed QA assets remain archived and retain their original pallet and status. Scanning adds them only to this print batch. Processor, RAM, storage, serial and grade still use saved asset details.</p>
     <div id="assetLabelsSelection" class="apex-asset-label-selection" aria-live="polite"></div>
     <div class="ls-inline"><label class="field">Label size<select id="assetLabelsSize">${Object.entries(sizes).map(([id,label])=>'<option value="'+id+'">'+label+'</option>').join('')}</select></label><label class="field">Printer resolution<select id="assetLabelsDpi"><option value="203">203 dpi</option><option value="300">300 dpi</option><option value="600">600 dpi</option></select></label></div>
     <div class="apex-asset-label-options"><h3>Customize label contents</h3><p class="section-note">The barcode, Asset ID and device model are always printed. Choose optional details below.</p><div class="ls-field-list" id="assetLabelsFields">
@@ -51,6 +60,15 @@
   </div></div>`;
   el('assetLabelsForm').onsubmit=e=>{e.preventDefault();add(el('assetLabelsInput').value);el('assetLabelsInput').value='';el('assetLabelsInput').focus();};
   el('assetLabelsPicker').onchange=e=>{if(e.target.value)add(e.target.value);e.target.value='';};
+  el('assetLabelsSource').value=sourceFilter;
+  el('assetLabelsSource').onchange=e=>{
+   sourceFilter=e.target.value;
+   const list=visible().slice(0,10000);
+   el('assetLabelsOptions').innerHTML=list.map(a=>'<option value="'+esc(a.id)+'" label="'+esc(name(a))+'"></option>').join('');
+   el('assetLabelsPicker').innerHTML='<option value="">Choose an asset…</option>'+list.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.id)+' · '+esc(name(a))+(isCompletedQA(a)?' · Completed QA':'')+'</option>').join('');
+   draw();
+  };
+
   for(const id of ['assetLabelsSize','assetLabelsDpi','assetLabelsCopies'])el(id).onchange=draw;
   for(const input of host.querySelectorAll('[data-asset-label-field]'))input.onchange=()=>{prefs.fields=[...host.querySelectorAll('[data-asset-label-field]:checked')].map(x=>x.dataset.assetLabelField);draw();};
   for(const id of ['assetLabelsBarcodeHeight','assetLabelsAlign','assetLabelsDetailSize'])el(id).onchange=()=>{prefs.barcodeHeight=el('assetLabelsBarcodeHeight').value;prefs.align=el('assetLabelsAlign').value;prefs.detailSize=el('assetLabelsDetailSize').value;draw();};
@@ -70,6 +88,7 @@
   if(!selected.includes(asset.id)&&selected.length>=100){message('Select up to 100 assets in one print batch.',true);return;}
   if(!selected.includes(asset.id))selected.push(asset.id);
   draw();
+  if(isCompletedQA(asset))message('Completed QA asset '+asset.id+' added for label printing. Its archive location and original pallet are unchanged.');
  }
  function records(){
   const current=selected.map(id=>active().find(a=>a.id===id));
