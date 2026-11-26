@@ -6,8 +6,8 @@
  const host=document.getElementById('v3Topline'),main=document.querySelector('main.main');
  if(!host||!main||typeof setPage!=='function'||typeof openAsset!=='function')return;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const titles={dashboard:'Dashboard',inventory:'Inventory',asset:'Asset',assetLabels:'Asset Labels',labelStudio:'Custom Labels',qaStickers:'QA Stickers',refurbWorkspace:'Refurbishment',palletLocations:'Pallet Locations',palletLocationDetail:'Location Pallets',completedQA:'Completed QA',settings:'Settings',pallets:'Pallets',locations:'Locations',scan:'Scanner',bulk:'Bulk Scan',reports:'Reports',dispatch:'Microdream',workstation:'Workstation',users:'Users',containerInventory:'Container Inventory'};
- const icons={dashboard:'◈',inventory:'▦',asset:'▣',assetLabels:'▤',labelStudio:'▤',qaStickers:'▤',refurbWorkspace:'⚒',palletLocations:'▧',completedQA:'✓',settings:'⚙'};
+ const titles={connect:'APEX Connect',dashboard:'Dashboard',inventory:'Inventory',asset:'Asset',assetLabels:'Asset Labels',labelStudio:'Custom Labels',qaStickers:'QA Stickers',refurbWorkspace:'Refurbishment',palletLocations:'Pallet Locations',palletLocationDetail:'Location Pallets',completedQA:'Completed QA',settings:'Settings',pallets:'Pallets',locations:'Locations',scan:'Scanner',bulk:'Bulk Scan',reports:'Reports',dispatch:'Microdream',workstation:'Workstation',users:'Users',containerInventory:'Container Inventory'};
+ const icons={connect:'✉',dashboard:'◈',inventory:'▦',asset:'▣',assetLabels:'▤',labelStudio:'▤',qaStickers:'▤',refurbWorkspace:'⚒',palletLocations:'▧',completedQA:'✓',settings:'⚙'};
  const location=(page,id)=>({page,id:page==='asset'?(id||null):null,scroll:0,draft:null});
  const locKey=l=>l.page==='asset'?'asset:'+(l.id||'new'):'page:'+l.page;
  const name=l=>l.page==='asset'?(l.id?'Asset '+l.id:'New Asset'):(titles[l.page]||l.page);
