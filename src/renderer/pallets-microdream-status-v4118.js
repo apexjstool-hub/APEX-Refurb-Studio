@@ -5,13 +5,15 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
  const equal=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
  let loading=false,revision=0;
+ const counts=new Map();
+ const count=name=>counts.get(String(name||'').trim().toLowerCase())||0;
  function decorate(workflow){
   const page=document.getElementById('palletLocationDetailPage');
   if(!page||page.classList.contains('hidden'))return;
   const rows=page.querySelectorAll('tr[data-pl-pallet-name]');if(!rows.length)return;
   const shipments=(workflow?.resprayPallets||[]).filter(x=>x&&x.palletName);
   const assignments=(workflow?.resprayAssignments||[]).filter(x=>x&&x.palletName);
-  let assignedTotal=0;
+  let assignedTotal=0;counts.clear();
   for(const row of rows){
    // Only Microdream rows expose the existing protected respray action.
    if(!row.querySelector('[data-pl-respray]'))continue;
@@ -24,12 +26,13 @@
    const assigned=assignments.find(x=>equal(x.palletName,name));
    const active=current&&['Dispatched','Returned'].includes(current.status)?current:null;
    const reference=active?.reference||assigned?.reference||current?.reference||'—';
-   const count=active?.manifest?.length??assigned?.assetIds?.length??current?.manifest?.length??0;
-   assignedTotal+=count;
+   const assignedCount=active?.manifest?.length??assigned?.assetIds?.length??0;
+   counts.set(String(name||'').trim().toLowerCase(),assignedCount);
+   assignedTotal+=assignedCount;
    const cell=row.querySelector('[data-md-reference]');
    if(cell){cell.textContent=reference;cell.title=reference==='—'?'Assign a Microdream reference in Actions':reference;}
    const inventoryCell=row.querySelector('.pl-pallet-count strong');
-   if(inventoryCell)inventoryCell.textContent=count;
+   if(inventoryCell)inventoryCell.textContent=assignedCount;
    const stage=current?.status||'Not dispatched';
    badge.dataset.stage=stage;
    badge.textContent=stage==='Dispatched'?'Sent for respray':stage==='Returned'?'Returned — inspect':stage==='Completed'?'Respray completed':assigned?'Assigned / awaiting dispatch':'Not dispatched';
@@ -37,6 +40,7 @@
   }
   const overview=page.querySelector('.pl-inline-metrics');
   if(overview){const spans=overview.querySelectorAll('span');if(spans[1])spans[1].innerHTML='<strong>'+assignedTotal+'</strong> respray assets';}
+  window.dispatchEvent(new Event('apex:microdream-assignment-counts'));
  }
  async function refresh(){
   const page=document.getElementById('palletLocationDetailPage');if(!page||page.classList.contains('hidden'))return;
@@ -49,6 +53,6 @@
   catch{/* Keep existing actions available even when workflow status cannot be loaded. */}
   finally{loading=false;}
  }
- window.ApexPalletStatusPolish=Object.freeze({decorate,refresh});
+ window.ApexPalletStatusPolish=Object.freeze({decorate,refresh,count});
  window.addEventListener('apex:workflow-updated',()=>decorate(window.ApexWorkflowSnapshot));
 })();
