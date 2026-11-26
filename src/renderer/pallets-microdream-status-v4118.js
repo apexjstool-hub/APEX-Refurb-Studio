@@ -10,6 +10,8 @@
   if(!page||page.classList.contains('hidden'))return;
   const rows=page.querySelectorAll('tr[data-pl-pallet-name]');if(!rows.length)return;
   const shipments=(workflow?.resprayPallets||[]).filter(x=>x&&x.palletName);
+  const assignments=(workflow?.resprayAssignments||[]).filter(x=>x&&x.palletName);
+  let assignedTotal=0;
   for(const row of rows){
    // Only Microdream rows expose the existing protected respray action.
    if(!row.querySelector('[data-pl-respray]'))continue;
@@ -19,11 +21,22 @@
    let badge=row.querySelector('.pl-microdream-status');
    if(!badge){badge=document.createElement('span');badge.className='pl-microdream-status';const palletCell=row.querySelector('td:nth-child(2)')||row.querySelector('td');palletCell?.appendChild(badge);}
    if(!badge)continue;
+   const assigned=assignments.find(x=>equal(x.palletName,name));
+   const active=current&&['Dispatched','Returned'].includes(current.status)?current:null;
+   const reference=active?.reference||assigned?.reference||current?.reference||'—';
+   const count=active?.manifest?.length??assigned?.assetIds?.length??current?.manifest?.length??0;
+   assignedTotal+=count;
+   const cell=row.querySelector('[data-md-reference]');
+   if(cell){cell.textContent=reference;cell.title=reference==='—'?'Assign a Microdream reference in Actions':reference;}
+   const inventoryCell=row.querySelector('.pl-pallet-count strong');
+   if(inventoryCell)inventoryCell.textContent=count;
    const stage=current?.status||'Not dispatched';
    badge.dataset.stage=stage;
-   badge.textContent=stage==='Dispatched'?'Sent for respray':stage==='Returned'?'Returned — inspect':stage==='Completed'?'Respray completed':'Not dispatched';
+   badge.textContent=stage==='Dispatched'?'Sent for respray':stage==='Returned'?'Returned — inspect':stage==='Completed'?'Respray completed':assigned?'Assigned / awaiting dispatch':'Not dispatched';
    badge.title=current?'Latest recorded dispatch: '+(current.dispatchedAt||'Date unavailable'):'No Microdream dispatch history recorded for this pallet';
   }
+  const overview=page.querySelector('.pl-inline-metrics');
+  if(overview){const spans=overview.querySelectorAll('span');if(spans[1])spans[1].innerHTML='<strong>'+assignedTotal+'</strong> respray assets';}
  }
  async function refresh(){
   const page=document.getElementById('palletLocationDetailPage');if(!page||page.classList.contains('hidden'))return;
