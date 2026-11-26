@@ -10,10 +10,10 @@
   const selected=names.map(n=>{const pallet=(data.pallets||[]).find(p=>key(p.name)===n);if(!pallet||!isLocation(pallet.storageLocation))throw Error('A selected pallet is no longer in Microdream. Refresh the location and select again.');return pallet;}).sort((a,b)=>a.name.localeCompare(b.name,'en-GB',{numeric:true}));
   const assignments=(data.resprayAssignments||[]).filter(x=>names.includes(key(x.palletName)));
   const assignedIds=new Set(assignments.flatMap(x=>x.assetIds||[]).map(x=>String(x).toUpperCase()));
-  const hasAssignments=assignments.length>0;
+  const legacyNames=new Set(names.filter(n=>!assignments.some(x=>key(x.palletName)===n)));
   const seen=new Set(),assets=(data.items||[]).filter(a=>{
    if(a.deletedAt||seen.has(key(a.id)))return false;
-   if(hasAssignments?!assignedIds.has(String(a.id).toUpperCase()):!names.includes(key(a.pallet)))return false;
+   if(!assignedIds.has(String(a.id).toUpperCase())&&!legacyNames.has(key(a.pallet)))return false;
    seen.add(key(a.id));return true;
   }).sort((a,b)=>String(a.id).localeCompare(String(b.id),'en-GB',{numeric:true}));
   if(!assets.length)throw Error('The selected pallets contain no active devices.');
