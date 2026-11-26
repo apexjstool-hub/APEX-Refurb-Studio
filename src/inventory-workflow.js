@@ -17,7 +17,6 @@
   let key='qc',next='Review QC and finish job';
   if(job.status==='Completed'){key='completed';next='Completed';}
   else if(job.status==='On Hold'){key='hold';next='Resolve hold';}
-  else if(backToPartsNeeded){key='order';next='Review replacement parts';}
   else if(needsOrdering){key='order';next='Order '+needsOrdering+' replacement unit(s)';}
   else if(awaitingDelivery){key='delivery';next='Receive '+awaitingDelivery+' replacement unit(s)';}
   else if(sprayOutstanding){key='respray';next=sprayAwaiting?'Awaiting respray return':sprayReady?'Complete respray work':'Arrange respray';}
