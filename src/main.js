@@ -253,7 +253,7 @@ async function cloudInventoryCall(method,route,payload,expectedRevision){
  if(method==='POST'&&route==='/v1/microdream-reports'){
   try{
    let request=payload;
-   if(payload.action==='create'){const data=await cloudInventoryCall('GET','/v1/items',null);if(!data.ok)return data;request={action:'create',reports:require('./microdream-reports').prepare(data,payload)};}
+   if(payload.action==='create'){const [data,respray]=await Promise.all([cloudInventoryCall('GET','/v1/items',null),cloudWorkflowGet()]);if(!data.ok)return data;if(!respray.ok)return respray;request={action:'create',reports:require('./microdream-reports').prepare({...data,resprayAssignments:respray.workflow.resprayAssignments||[]},payload)};}
    const r=await cloudFetch('/rest/v1/rpc/apex_microdream_report_action',{method:'POST',headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token,'Content-Type':'application/json'},body:JSON.stringify({p_input:request}),signal:AbortSignal.timeout(20000)});
    const result=await r.json();return r.ok?result:{ok:false,error:result.message||'Could not save or load the Microdream report.'};
   }catch(e){return {ok:false,error:e.message||'Report request interrupted. Reopen View report to verify before retrying.'};}
