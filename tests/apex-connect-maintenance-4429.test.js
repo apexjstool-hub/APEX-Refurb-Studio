@@ -34,8 +34,8 @@ test('Maintenance settings include confirmation, cloud stats and admin-only cont
  assert.match(html,/id="apexConnectMaintenanceRun"/);
  assert.match(html,/apex-connect-maintenance\.js/);
  assert.match(html,/Messaging maintenance/);
- assert.match(panel,/confirm\('Enable automatic deletion/);
- assert.match(panel,/confirm\('Permanently delete up to 500/);
+ assert.match(panel,/apexConfirm\('Enable automatic deletion/);
+ assert.match(panel,/apexConfirm\('Permanently delete up to 500/);
  assert.match(panel,/api\.connectMaintenanceStatus\(\)/);
  assert.match(panel,/api\.connectMaintenanceSave\(/);
  assert.match(panel,/api\.connectMaintenanceRun\(\)/);
