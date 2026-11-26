@@ -28,7 +28,7 @@
  async function act(entry,decision){
   if(busy)return;
   const prompt=decision==='useIncoming'?`Replace the saved serial for ${entry.assetId} with ${entry.incoming.serial} and import the queued ${entry.source} record?`:`Keep the current serial for ${entry.assetId} and dismiss this conflicting submission?`;
-  if(!window.confirm(prompt))return;
+  if(!window.await apexConfirm(prompt))return;
   busy=true;el('conflictReview').querySelectorAll('button').forEach(b=>b.disabled=true);
   try{const r=await api.resolveSyncConflict({id:entry.id,decision});if(!r.ok){el('conflictFootnote').textContent=r.error||'Conflict could not be resolved. Refresh and check the asset.';return;}
    selected=null;el('conflictFootnote').textContent=decision==='useIncoming'?'Incoming record accepted. Verify the asset details and any refurbishment work.':'Existing asset kept. Correct the source record so it stops retrying the rejected submission.';
