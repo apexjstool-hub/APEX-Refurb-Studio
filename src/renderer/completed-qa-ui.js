@@ -82,7 +82,7 @@
   if(busy)return;
   const missing=archive().assets.filter(a=>!a.deletedAt&&!model.same(a.location,model.NAME));
   if(!missing.length)return notify('All archived assets already have Location = Completed QA.');
-  if(!confirm('Update the individual Location field to Completed QA for '+missing.length+' already archived asset(s)? Pallet IDs and all refurbishment records will remain unchanged.'))return;
+  if(!await apexConfirm('Update the individual Location field to Completed QA for '+missing.length+' already archived asset(s)? Pallet IDs and all refurbishment records will remain unchanged.'))return;
   busy=true;const failed=[];
   try{
    for(const a of missing){
@@ -97,7 +97,7 @@
  }
  async function createLocation(){
   if(!available()||!api.createPalletLocation)return notify('Pallet locations are not enabled on this connection.','error');
-  if(!confirm('Create the reserved pallet location Completed QA? Assets placed in its pallets will be archived from active pages.'))return;
+  if(!await apexConfirm('Create the reserved pallet location Completed QA? Assets placed in its pallets will be archived from active pages.'))return;
   busy=true;try{
    const r=await api.createPalletLocation({name:model.NAME});
    if(!r?.ok)throw Error(r?.error||'Unable to create Completed QA.');
@@ -111,7 +111,7 @@
   if(!found){notify('Asset not found in active Inventory. Check the scanned ID or serial number.','error');input.focus();return;}
   // The user explicitly confirms actual repair, respray and QC work.
   // Simply changing a location never means that a failed hardware test passed.
-  if(!confirm('FINAL QA SIGN-OFF — Asset '+found.id+'\\n\\nI confirm that all required repairs, respray work and all four final QA checks have actually been completed. APEX will mark the refurbishment, parts/respray and QC records Completed, then move the asset to Completed QA.\\n\\nIts pallet ID will remain unchanged. Any FAILED synced diagnostics must be retested and synced first.\\n\\nProceed?'))return;
+  if(!await apexConfirm('FINAL QA SIGN-OFF — Asset '+found.id+'\\n\\nI confirm that all required repairs, respray work and all four final QA checks have actually been completed. APEX will mark the refurbishment, parts/respray and QC records Completed, then move the asset to Completed QA.\\n\\nIts pallet ID will remain unchanged. Any FAILED synced diagnostics must be retested and synced first.\\n\\nProceed?'))return;
   busy=true;
   try{
    // Read the live workflow just before updating, to detect stale job changes.
@@ -133,7 +133,7 @@
  }
  async function restoreAsset(id){
   const found=archive().assets.find(a=>model.same(a.id,id));if(!found||busy)return;
-  if(!confirm('Restore asset '+found.id+' to active inventory? Its repair history will be preserved. The pallet ID is retained unless the pallet itself remains in Completed QA.'))return;
+  if(!await apexConfirm('Restore asset '+found.id+' to active inventory? Its repair history will be preserved. The pallet ID is retained unless the pallet itself remains in Completed QA.'))return;
   busy=true;try{
    // Retain the pallet for direct QA assets. Only unlink a pallet if that
    // pallet itself is still in QA; otherwise the asset would remain archived.
@@ -145,7 +145,7 @@
  }
  async function restorePallet(name){
   const found=archive().pallets.find(p=>model.same(p.name,name));if(!found||busy)return;
-  if(!confirm('Restore whole pallet '+found.name+' from Completed QA to unassigned storage? Its asset IDs and pallet ID will be preserved.'))return;
+  if(!await apexConfirm('Restore whole pallet '+found.name+' from Completed QA to unassigned storage? Its asset IDs and pallet ID will be preserved.'))return;
   busy=true;try{
    const members=archive().assets.filter(a=>model.same(a.pallet,found.name)&&!a.deletedAt);
    // A cloud pallet-location move does not necessarily change per-asset Location.
