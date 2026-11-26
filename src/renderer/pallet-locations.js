@@ -151,7 +151,7 @@
    e.preventDefault();const names=boxes.filter(b=>b.checked).map(b=>b.value);if(!names.length)return;
    const button=$('plSaveMove');button.disabled=true;
    try{
-    if(window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA')&&!confirm('Move '+names.length+' pallet(s) to Completed QA? All devices on these pallets will be archived from active Inventory and Work Queue, without changing the pallet IDs. Any unfinished repairs will be shown in the QA manifest.'))return;
+    if(window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA')&&!await apexConfirm('Move '+names.length+' pallet(s) to Completed QA? All devices on these pallets will be archived from active Inventory and Work Queue, without changing the pallet IDs. Any unfinished repairs will be shown in the QA manifest.'))return;
     // Capture the affected active assets before moving their pallet to the archive.
     // In cloud mode a pallet move and asset Location updates are separate writes.
     const isQA=window.ApexCompletedQA?.same(form.elements.location.value,'Completed QA');
