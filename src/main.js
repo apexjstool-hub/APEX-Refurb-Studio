@@ -114,6 +114,7 @@ async function portableCloudAdmin(action,fields={}){
   const data=await r.json().catch(()=>({}));return r.ok?data:{ok:false,error:data.error||'SSD management unavailable (HTTP '+r.status+')'};
  }catch(e){return {ok:false,error:'Cloud SSD authorisation unavailable: '+String(e.message||'network error').slice(0,130)};}
 }
+const apexConnect=require('./apex-connect-service').createConnectService({cloudFetch,identity:()=>authenticated&&authMode==='cloud'?cloudSession:null});
 async function cloudRead(route){
  try{
   const res=await cloudFetch('/rest/v1/'+route,{headers:{apikey:cloudSession.anonKey,Authorization:'Bearer '+cloudSession.token},signal:AbortSignal.timeout(12000)});
@@ -810,6 +811,10 @@ app.whenReady().then(()=>{
   const r=await hubRequest('GET','/v1/connect/devices');
   return {...r,mode:'shared'};
  }));
+ ipcMain.handle('inventory:connectList',secured(()=>apexConnect.list()));
+ ipcMain.handle('inventory:connectHistory',secured(recipient=>apexConnect.history(recipient)));
+ ipcMain.handle('inventory:connectSend',secured(input=>apexConnect.send(input)));
+ ipcMain.handle('inventory:connectRead',secured(input=>apexConnect.read(input)));
  ipcMain.handle('inventory:portableDevices',adminSecured(()=>portableCloudAdmin('admin-list')));
  ipcMain.handle('inventory:portableApprove',settingsSecured(async approvalCode=>{
   try{const d=JSON.parse(String(approvalCode||''));return await portableCloudAdmin('admin-approve',{device:d});}
