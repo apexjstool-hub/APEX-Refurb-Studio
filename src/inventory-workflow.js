@@ -13,6 +13,7 @@
   const needsOrdering=job.partsBoard==='ordered'?0:sum(replacements,'toOrder');
   const awaitingDelivery=sum(replacements,'awaiting')+(job.partsBoard==='ordered'?sum(replacements,'toOrder'):0);
   const replacementToFit=sum(replacements,'toFit');
+  const partsStatus=!replacements.length?'Not Required':replacements.every(p=>p.fitted>=p.required)?'Parts Fitted':replacements.some(p=>p.toFit>0)?'Ready to Fit':replacements.some(p=>p.awaiting>0)||job.partsBoard==='ordered'?'Parts Ordered':replacements.some(p=>p.fitted>0)?'Partially Fitted':'Parts Needed';
   const sprayOutstanding=sprays.some(p=>p.fitted<p.required);
   let key='qc',next='Review QC and finish job';
   if(job.status==='Completed'){key='completed';next='Completed';}
@@ -23,7 +24,7 @@
   else if(replacementToFit){key='fit';next='Fit '+replacementToFit+' replacement unit(s)';}
   if(['order','delivery'].includes(key)&&sprayOutstanding)next+='; respray outstanding';
   const stages={order:'Needs ordering',delivery:'Parts ordered',respray:'Awaiting Respray',fit:totals.fitted?'Repair in progress':'Ready to fit',qc:'Awaiting QC',completed:'Completed',hold:'On Hold'};
-  return {...totals,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
+  return {...totals,partsStatus,needsOrdering,awaitingDelivery,sprayNeeded,sprayAwaiting,sprayReady,sprayOutstanding,parts,stage:stages[key],next,key,technician:job.technician||'Unassigned',recordedStage:job.status||'Received',manualBoard:job.partsBoard||''};
  }
  function latest(job,audit=[]){const events=audit.filter(e=>(e.assetId||e.AssetID)===job?.assetId).map(e=>({at:e.at||e.time,by:e.by||'',text:e.type||e.detail||'Activity'}));for(const p of job?.parts||[]){if(p.lastProgressAt)events.push({at:p.lastProgressAt,by:p.lastProgressBy||'',text:'Repair progress'});if(p.lastReceivedAt)events.push({at:p.lastReceivedAt,by:p.lastReceivedBy||'',text:'Parts received'});}return events.filter(e=>Number.isFinite(Date.parse(e.at))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))[0]||null;}
  function index(workflow){
@@ -43,6 +44,10 @@
     row.stage=row.resprayStatus;row.key=shipment.status==='Dispatched'?'respray-sent':'respray-returned';
     row.next=shipment.status==='Dispatched'?'Await Microdream pallet return':'Inspect and complete respray';
    }
+  }
+  for(const row of result.values())if(!row.resprayStatus){
+   const sprays=row.parts.filter(p=>isSpray(p.name));
+   row.resprayStatus=!sprays.length?'Not Required':sprays.every(p=>p.fitted>=p.required)?'Respray Complete':sprays.some(p=>p.received>0)?'Respray Returned':'Awaiting Respray';
   }
   return result;
  }
