@@ -51,7 +51,7 @@ test('Admin can moderate messages sent by others and clear a selected conversati
  assert.match(ui,/m\.sender_id===me\|\|isAdmin/);
  assert.match(ui,/api\.connectAdminDeleteMessage/);
  assert.match(ui,/api\.connectAdminDeleteConversation/);
- assert.match(ui,/if\(!confirm\(confirmText\)\)return/);
+ assert.match(ui,/if\(!await apexConfirm\(confirmText\)\)return/);
  assert.match(ui,/Final confirmation: permanently clear/);
  assert.match(ui,/\$\('apexConnectAdminClear'\)\.hidden=!isAdmin/);
  assert.match(ui,/thread=\[\];renderMessages/);
