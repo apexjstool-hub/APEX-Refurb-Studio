@@ -53,7 +53,7 @@
   if(deviceHeading&&nameHeading){deviceHeading.textContent='Device / asset';nameHeading.remove();}
  }
 
- window.ApexInventoryTracker={decorate,matches:a=>{if($('palletFilter').value&&String(a.pallet||'').trim().toUpperCase()!==$('palletFilter').value.trim().toUpperCase())return false;const filter=$('repairFilter').value;if(!filter)return true;const s=info(a.id);if(['order','delivery','fit','respray'].includes(filter)){if(['completed','hold'].includes(s.key))return false;return (filter==='order'?(s.needsOrdering||Number(s.key==='order')):filter==='delivery'?(s.manualBoard==='needed'?0:s.awaitingDelivery):filter==='respray'?Number(s.sprayOutstanding):s.toFit)>0;}return s.key===filter;}};
+ window.ApexInventoryTracker={decorate,matches:a=>{if($('palletFilter').value&&String(a.pallet||'').trim().toUpperCase()!==$('palletFilter').value.trim().toUpperCase())return false;const filter=$('repairFilter').value;if(!filter)return true;const s=info(a.id);if(['order','delivery','fit','respray'].includes(filter)){if(['completed','hold'].includes(s.key))return false;return (filter==='order'?(s.needsOrdering||Number(s.key==='order')):filter==='delivery'?(s.manualBoard==='needed'?0:s.awaitingDelivery):filter==='respray'?Number(s.sprayOutstanding):s.replacementToFit)>0;}return s.key===filter;}};
  window.addEventListener('apex:workflow-updated',()=>{if(currentPage==='inventory')render();});
  const pals=()=>managedPallets;
  function renderPallets(){const list=pals(),counts=new Map();for(const a of items){if(a.deletedAt)continue;const key=String(a.pallet||'').toUpperCase();counts.set(key,(counts.get(key)||0)+1);}
