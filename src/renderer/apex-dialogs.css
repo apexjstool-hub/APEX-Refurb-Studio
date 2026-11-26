@@ -1,0 +1,33 @@
+/* APEX Design System 4.4.33 — unified modal dialogs. */
+.apex-dialog-layer[hidden]{display:none!important}
+.apex-dialog-layer{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:22px;box-sizing:border-box;isolation:isolate}
+.apex-dialog-backdrop{position:absolute;inset:0;background:rgba(9,24,46,.56);backdrop-filter:blur(3px)}
+.apex-dialog-panel{position:relative;width:min(460px,100%);max-height:min(90vh,760px);overflow:auto;outline:0;background:var(--panel,#ffffff);color:var(--text,#21334c);border:1px solid var(--border-color,rgba(132,152,176,.26));border-radius:18px;box-shadow:0 25px 80px rgba(7,26,49,.28);padding:23px;box-sizing:border-box;transform:translateY(10px) scale(.985);opacity:0;transition:transform .16s ease,opacity .16s ease}
+.apex-dialog-layer.is-open .apex-dialog-panel{transform:translateY(0) scale(1);opacity:1}
+.apex-dialog-heading{display:flex;gap:13px;align-items:flex-start;position:relative}
+.apex-dialog-icon{width:39px;height:39px;border-radius:12px;flex:0 0 39px;display:grid;place-items:center;font-size:23px;font-weight:850;background:rgba(62,112,187,.11);color:#4676ad;border:1px solid rgba(62,112,187,.16)}
+.apex-dialog-layer[data-tone=danger] .apex-dialog-icon{background:rgba(212,50,70,.11);color:#df4155;border-color:rgba(212,50,70,.22)}
+.apex-dialog-layer[data-tone=warning] .apex-dialog-icon{background:rgba(191,133,26,.10);color:#c58d2f;border-color:rgba(191,133,26,.2)}
+.apex-dialog-layer[data-tone=success] .apex-dialog-icon{background:rgba(31,155,102,.12);color:#239968;border-color:rgba(31,155,102,.18)}
+.apex-dialog-titles{flex:1;min-width:0;padding-right:22px}
+.apex-dialog-kicker{font-size:10px;letter-spacing:.11em;font-weight:750;color:var(--muted,#64748b);margin-bottom:6px}
+#apexDialogTitle{font-size:18px;line-height:1.3;font-weight:780;letter-spacing:-.02em;margin:0!important;color:inherit}
+.apex-dialog-close{position:absolute;right:-5px;top:-7px;display:grid;place-items:center;width:29px;height:29px;border:none!important;background:transparent!important;color:var(--muted,#64748b)!important;font-size:23px!important;line-height:1!important;border-radius:8px;cursor:pointer}
+.apex-dialog-close:hover{background:rgba(124,145,168,.12)!important;color:var(--text,#243850)!important}
+.apex-dialog-description{font-size:13px;line-height:1.65;margin:19px 0 22px;color:var(--text,#243850);white-space:pre-line;overflow-wrap:anywhere}
+.apex-dialog-buttons{display:flex;justify-content:flex-end;gap:9px;padding-top:17px;border-top:1px solid var(--border-color,rgba(140,156,176,.2))}
+.apex-dialog-buttons button{min-width:100px!important;min-height:37px!important;display:inline-flex;align-items:center;justify-content:center;border-radius:9px!important;font-size:12px!important;line-height:1.2!important;font-weight:750!important;padding:10px 14px!important;cursor:pointer}
+.apex-dialog-cancel{border:1px solid var(--border-color,rgba(120,145,172,.3))!important;background:var(--surface,rgba(115,140,165,.08))!important;color:var(--text,#26364b)!important}
+.apex-dialog-accept{border:1px solid #3468ba!important;background:#386fbf!important;color:#fff!important}
+.apex-dialog-accept.apex-dialog-danger{border:1px solid #bd2b42!important;background:#c9344c!important;color:#fff!important}
+.apex-dialog-accept:hover{filter:brightness(1.08)}
+.apex-dialog-layer button:focus-visible,.apex-dialog-layer input:focus-visible{outline:3px solid #66a6e9!important;outline-offset:2px!important}
+.apex-dialog-input-label{display:grid;gap:8px;margin-bottom:19px;font-size:12px;font-weight:650}
+.apex-dialog-input-label[hidden],.apex-dialog-validation[hidden],.apex-dialog-cancel[hidden]{display:none!important}
+#apexDialogInput{box-sizing:border-box;width:100%;border-radius:9px;border:1px solid var(--border-color,#cbd5e1);min-height:40px;padding:10px 11px;font-size:13px;background:var(--surface,#fff);color:var(--text,#243850)}
+.apex-dialog-validation{font-size:12px;color:#cd3345;margin-bottom:11px}
+html[data-theme=dark] .apex-dialog-panel{background:var(--panel,#17263a);color:var(--text,#e6edf5);border-color:rgba(170,188,212,.21)}
+html[data-theme=dark] .apex-dialog-cancel{background:rgba(148,163,184,.1)!important;color:#e6edf5!important}
+html[data-theme=dark] .apex-dialog-backdrop{background:rgba(3,8,21,.73)}
+@media(max-width:480px){.apex-dialog-layer{padding:13px}.apex-dialog-panel{padding:19px;border-radius:14px}.apex-dialog-buttons button{min-width:85px!important}}
+@media(prefers-reduced-motion:reduce){.apex-dialog-panel{transition:none!important;transform:none!important}}
