@@ -14,7 +14,6 @@
   const awaitingDelivery=sum(replacements,'awaiting')+(job.partsBoard==='ordered'?sum(replacements,'toOrder'):0);
   const replacementToFit=sum(replacements,'toFit');
   const sprayOutstanding=sprays.some(p=>p.fitted<p.required);
-  const backToPartsNeeded=job.partsBoard==='needed'&&replacements.some(p=>p.fitted<p.required);
   let key='qc',next='Review QC and finish job';
   if(job.status==='Completed'){key='completed';next='Completed';}
   else if(job.status==='On Hold'){key='hold';next='Resolve hold';}
