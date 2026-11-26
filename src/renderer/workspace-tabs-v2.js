@@ -138,12 +138,12 @@
   const next=tab.index+delta;if(next<0||next>=tab.entries.length)return false;
   capture();tab.index=next;doRoute(tab.entries[next]);redraw();return true;
  }
- function close(key){
+ function close(key,confirmed=false){
   const index=tabs.findIndex(t=>t.key===key);
   if(index<0)return false;
   if(key===active)capture();
   const tab=tabs[index];
-  if(tab.entries.some(e=>e.draft?.dirty)&&!confirm('This tab contains unsaved asset edits. Close it and discard those changes?'))return false;
+  if(!confirmed&&tab.entries.some(e=>e.draft?.dirty)){apexConfirm('This tab contains unsaved asset edits. Close it and discard those changes?',{title:'Close tab without saving?',tone:'warning',confirmLabel:'Discard and close'}).then(ok=>{if(ok)close(key,true);});return false;}
   tabs.splice(index,1);
   if(key===active){
    if(tabs.length){active=null;const next=tabs[Math.min(index,tabs.length-1)];active=next.key;doRoute(next.entries[next.index]);}
