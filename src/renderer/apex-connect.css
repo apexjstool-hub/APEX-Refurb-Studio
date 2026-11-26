@@ -73,3 +73,27 @@
 .apex-connect-message-delete:not([hidden]){display:block;margin-top:7px;padding:5px 9px!important;background:rgba(225,38,59,.11)!important;color:#c72338!important;font-size:11px!important;font-weight:750!important;border:1px solid rgba(225,38,59,.24)!important;border-radius:7px;cursor:pointer}
 .apex-connect-message-delete[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){.apex-workspace-message-unread,#apexConnectUnread{animation:none!important;transition:none!important}}
+
+/* APEX Connect 1.3 — a lightweight, moveable communications workstation. */
+#apexConnectDrawer{resize:both;min-width:360px;min-height:320px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px)}
+#apexConnectDrawer.apex-connect-moved{right:auto!important}
+#apexConnectDrawer.apex-connect-dragging{user-select:none;box-shadow:0 22px 70px rgba(10,25,45,.35)}
+#apexConnectDragHandle{cursor:grab;touch-action:none;user-select:none;background:var(--surface,#f7f9fc)}
+#apexConnectDrawer.apex-connect-dragging #apexConnectDragHandle{cursor:grabbing}
+.apex-connect-drag-label{display:flex;align-items:center;gap:8px;min-width:0}
+.apex-connect-drag-label strong{white-space:nowrap}
+.apex-connect-drag-label small{font-size:10px;color:var(--muted,#64748b);font-weight:500}
+.apex-connect-drag-symbol{font-size:17px;color:var(--muted,#64748b);line-height:1;letter-spacing:-1px}
+.apex-connect-window-actions{display:flex;gap:6px;flex-wrap:nowrap;align-items:center}
+.apex-connect-window-actions button{white-space:nowrap}
+.apex-connect-thread-tools{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0}
+.apex-connect-clear-thread{color:#c33749!important;background:rgba(199,55,73,.06)!important;border:1px solid rgba(199,55,73,.25)!important;border-radius:8px;font-size:10px!important;padding:7px 9px!important;white-space:nowrap}
+.apex-connect-clear-thread[hidden]{display:none!important}
+.apex-connect-clear-thread:hover{background:rgba(199,55,73,.13)!important}
+.apex-connect-message.can-delete:not(.from-me){cursor:pointer;padding-bottom:27px}
+.apex-connect-message.can-delete:not(.from-me) .apex-connect-message-actions{right:auto;left:9px}
+@media(max-width:650px){
+ #apexConnectDrawer{resize:none;min-width:0;min-height:260px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px)}
+ .apex-connect-drag-label small{display:none}
+ .apex-connect-clear-thread{padding:6px!important;font-size:9px!important}
+}
