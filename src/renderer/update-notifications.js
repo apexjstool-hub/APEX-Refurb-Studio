@@ -64,7 +64,7 @@
  installButton.onclick=async()=>{
   if(busy||!latest)return;
   if(latest.state==='ready'){
-   if(!window.confirm('Save all open work before restarting APEX. Install the verified update and restart now?'))return;
+   if(!window.await apexConfirm('Save all open work before restarting APEX. Install the verified update and restart now?'))return;
    setBusy(true);
    try{const response=await api.updateInstall();if(response?.ok===false)throw Error(response.error||'Unable to install update.');feedback.textContent='Preparing to restart and install…';}
    catch(e){feedback.textContent=e.message;setBusy(false);}
