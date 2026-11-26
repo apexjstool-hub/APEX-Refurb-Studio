@@ -5,7 +5,7 @@ const dialogs=read('src/renderer/apex-dialogs.js'),css=read('src/renderer/apex-d
 const files=['app.js','refurb-ui.js','v3-ui.js','workspace-tabs-v2.js','completed-qa-ui.js','apex-connect.js','apex-connect-maintenance.js','apex-portable-devices.js','inventory-bulk-location.js','microdream-simple-centre.js','pallet-locations.js','smart-data-cleaner-ui.js','smart-workstation.js','update-notifications.js','v346-simple-scan.js','v393-conflicts.js'];
 function harness(){
  const elements={},handlers={};
- function elem(id){if(!elements[id])elements[id]={id,hidden:false,textContent:'',value:'',classList:{add(){},remove(){},toggle(){}},focus(){document.activeElement=this;},addEventListener(type,fn){handlers[id+':'+type]=fn;},querySelectorAll(){return[];},setAttribute(){}};return elements[id];}
+ function elem(id){if(!elements[id])elements[id]={id,hidden:false,dataset:{},textContent:'',value:'',classList:{add(){},remove(){},toggle(){}},focus(){document.activeElement=this;},addEventListener(type,fn){handlers[id+':'+type]=fn;},querySelectorAll(){return[];},setAttribute(){}};return elements[id];}
  const panel=elem('panel');
  panel.querySelectorAll=()=>[];
  const layer=elem('apexDialogLayer');
