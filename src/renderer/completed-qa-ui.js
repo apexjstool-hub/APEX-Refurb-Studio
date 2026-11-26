@@ -45,7 +45,7 @@
      <div class="qa-filters"><label>Search assets<input id="qaSearch" type="search" placeholder="Asset ID, model, serial, pallet…" value="${esc(search)}"></label>
        <label>QA pallet<select id="qaPalletFilter"><option value="">All QA pallets and direct QA assets</option>${pallets.map(p=>'<option value="'+esc(p.name)+'" '+(model.same(palletFilter,p.name)?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label></div>
      <div class="qa-table-scroll"><table class="asset-table qa-table"><thead><tr><th>Asset ID</th><th>Brand / model</th><th>Serial number</th><th>Pallet ID</th><th>Location ID</th><th>Repair</th><th>Respray</th><th>Refurbishment</th><th>QC</th><th>Action</th></tr></thead><tbody>
-       ${list.map(r=>'<tr><td><strong>'+esc(r.id)+'</strong></td><td><strong>'+esc(r.brand||'Not recorded')+'</strong><small>'+esc(r.model||'Not recorded')+'</small></td><td>'+esc(r.serial||'—')+'</td><td>'+esc(r.pallet)+'</td><td>Completed QA</td><td>'+word(r.partsStatus)+'</td><td>'+word(r.sprayStatus)+'</td><td>'+word(r.refurbStatus)+'</td><td>'+word(r.qcStatus)+'</td><td><button type="button" class="secondary" data-qa-restore="'+esc(r.id)+'">Restore asset</button></td></tr>').join('')||'<tr><td colspan="10">No archived assets match this view.</td></tr>'}
+       ${list.map(r=>'<tr><td><strong>'+esc(r.id)+'</strong></td><td><strong>'+esc(r.brand||'Not recorded')+'</strong><small>'+esc(r.model||'Not recorded')+'</small></td><td>'+esc(r.serial||'—')+'</td><td>'+esc(r.pallet)+'</td><td>Completed QA</td><td>'+word(r.partsStatus)+'</td><td>'+word(r.sprayStatus)+'</td><td>'+word(r.refurbStatus)+'</td><td>'+word(r.qcStatus)+'</td><td><button type="button" class="secondary" data-qa-asset-label="'+esc(r.id)+'">Print asset label</button> <button type="button" class="secondary" data-qa-restore="'+esc(r.id)+'">Restore asset</button></td></tr>').join('')||'<tr><td colspan="10">No archived assets match this view.</td></tr>'}
      </tbody></table></div>
      ${pallets.length?'<div class="qa-pallet-actions"><h3>Archived pallets</h3>'+pallets.map(p=>'<div class="qa-pallet-row"><span><strong>'+esc(p.name)+'</strong> · Completed QA</span><button type="button" class="secondary" data-qa-restore-pallet="'+esc(p.name)+'">Restore whole pallet</button></div>').join('')+'</div>':''}
    </section>`;
@@ -55,6 +55,7 @@
   $('qaReconcile').onclick=reconcileExisting;
   $('qaPrint').onclick=printManifest;
   $('qaAssignForm').onsubmit=archiveAsset;
+  root.querySelectorAll('[data-qa-asset-label]').forEach(b=>b.onclick=()=>window.ApexAssetLabels?.openForAsset(b.dataset.qaAssetLabel));
   root.querySelectorAll('[data-qa-restore]').forEach(b=>b.onclick=()=>restoreAsset(b.dataset.qaRestore));
   root.querySelectorAll('[data-qa-restore-pallet]').forEach(b=>b.onclick=()=>restorePallet(b.dataset.qaRestorePallet));
  }
