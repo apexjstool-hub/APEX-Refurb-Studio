@@ -81,3 +81,8 @@
 #assetJobProgress button.apex-delete-button:hover:not(:disabled){background:#cf405012!important;border-color:#cf40502e!important}
 #assetJobProgress button.apex-delete-button:focus-visible{outline:2px solid #cf4050!important;outline-offset:2px!important}
 
+
+/* Independent status indicators for replacement parts and respray work. */
+.device-repair-status-summary{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px}
+.device-repair-status-summary>span{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-color,rgba(130,145,166,.25));border-radius:10px;padding:8px 12px;background:var(--panel-bg,rgba(130,145,166,.06));font-size:13px}
+.device-repair-status-summary strong{font-weight:700}
