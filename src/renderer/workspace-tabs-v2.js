@@ -12,7 +12,7 @@
  const locKey=l=>l.page==='asset'?'asset:'+(l.id||'new'):'page:'+l.page;
  const name=l=>l.page==='asset'?(l.id?'Asset '+l.id:'New Asset'):(titles[l.page]||l.page);
  const tabs=[],rawSetPage=setPage,rawOpenAsset=openAsset;
- let active=null,sequence=0,navigatingAsset=false,switching=false,menu=null;
+ let active=null,sequence=0,navigatingAsset=false,switching=false,menu=null,connectUnread=0;
  const el=document.createElement('nav');el.id='apexWorkspaceTabs';el.className='apex-workspace-tabs';el.setAttribute('aria-label','Open APEX workspace tabs');
  el.innerHTML='<div class="apex-workspace-history"><button type="button" id="apexTabBack" title="Back in tab" aria-label="Back in this tab">‹</button><button type="button" id="apexTabForward" title="Forward in tab" aria-label="Forward in this tab">›</button></div><div id="apexWorkspaceTabList" class="apex-workspace-tab-list" role="tablist" aria-label="Open APEX pages"></div><button type="button" id="apexWorkspaceNewTab" class="apex-workspace-tab-add" aria-label="New Inventory tab" title="New Inventory tab">＋</button>';
  host.after(el);
@@ -69,7 +69,7 @@
    const entry=t.entries[t.index],selected=t.key===active;
    const unsaved=t.entries.some(e=>e.draft?.dirty);
    return '<div class="apex-workspace-tab'+(selected?' is-active':'')+'" data-tab="'+esc(t.key)+'" role="presentation">'+
-    '<button type="button" class="apex-workspace-tab-switch" role="tab" aria-selected="'+selected+'" title="'+esc(name(entry))+'"><span aria-hidden="true">'+(icons[entry.page]||'▣')+'</span><span class="apex-workspace-tab-title">'+esc(name(entry))+'</span>'+(unsaved?'<span class="apex-workspace-unsaved" title="Unsaved asset changes">●</span>':'')+'</button>'+
+    '<button type="button" class="apex-workspace-tab-switch" role="tab" aria-selected="'+selected+'" title="'+esc(name(entry))+'"><span aria-hidden="true">'+(icons[entry.page]||'▣')+'</span><span class="apex-workspace-tab-title">'+esc(name(entry))+'</span>'+(unsaved?'<span class="apex-workspace-unsaved" title="Unsaved asset changes">●</span>':'')+(entry.page==='connect'&&connectUnread>0?'<span class="apex-workspace-message-unread" aria-label="'+connectUnread+' unread messages">'+(connectUnread>99?'99+':connectUnread)+'</span>':'')+'</button>'+
     '<button type="button" class="apex-workspace-tab-close" aria-label="Close '+esc(name(entry))+'" title="Close tab">×</button></div>';
   }).join('');
   list.querySelectorAll('.apex-workspace-tab-switch').forEach(b=>b.onclick=()=>activate(b.closest('[data-tab]').dataset.tab));
@@ -199,5 +199,5 @@
   if(event.key.toLowerCase()==='w'){event.preventDefault();close(active);}
  },true);
  active=makeTab(current());redraw();
- root.ApexWorkspaceTabs=Object.freeze({openPage:page=>setPage(page),openAsset:id=>openAsset(id),openNew,activate,close,back:()=>go(-1),forward:()=>go(1),keys:()=>tabs.map(t=>t.key),active:()=>active,route:()=>({...get().entries[get().index]})});
+ root.ApexWorkspaceTabs=Object.freeze({openPage:page=>setPage(page),openAsset:id=>openAsset(id),openNew,activate,close,back:()=>go(-1),forward:()=>go(1),keys:()=>tabs.map(t=>t.key),active:()=>active,route:()=>({...get().entries[get().index]}),setConnectUnread:count=>{const value=Math.max(0,Math.min(9999,Number(count)||0));if(connectUnread!==value){connectUnread=value;redraw();}}});
 })(window);
