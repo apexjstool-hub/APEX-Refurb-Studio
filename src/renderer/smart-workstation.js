@@ -129,7 +129,7 @@
   if(!part||locked())return message('Job is locked or part is unavailable.',true);
   const s=status(part);
   if(!s.toOrder)return message('No remaining quantity to order.',true);
-  const proceed=confirm('Record '+part.name+' as '+(cosmetic(part)?'sent for respray':'ordered')+' for asset '+selected+'? No supplier order will be placed.');
+  const proceed=await apexConfirm('Record '+part.name+' as '+(cosmetic(part)?'sent for respray':'ordered')+' for asset '+selected+'? No supplier order will be placed.');
   if(!proceed)return;
   await apply({type:'markPartOrdered',assetId:selected,partId:part.id,expectedQty:part.qty,expectedReceived:part.received,expectedOnOrder:s.outstanding});
  }
@@ -149,7 +149,7 @@
   const j=job();if(!j||locked()||commandBusy)return;
   const count=j.parts.filter(p=>status(p).toOrder>0).length;
   if(!count)return;
-  if(!confirm('Record all '+count+' outstanding parts as ordered / sent for '+selected+'? This is a status update, not a supplier purchase.'))return;
+  if(!await apexConfirm('Record all '+count+' outstanding parts as ordered / sent for '+selected+'? This is a status update, not a supplier purchase.'))return;
   commandBusy=true;
   try{
    // Use the existing server-validated bulk workflow and signed preview.
@@ -168,7 +168,7 @@
   const a=asset();if(!a||commandBusy)return;
   const destination=$('wsPallet').value;
   if(destination===String(a.pallet||''))return message('Pallet assignment is unchanged.');
-  if(!confirm('Move asset '+a.id+' to '+(destination||'No pallet')+'? This changes the existing Inventory record.'))return;
+  if(!await apexConfirm('Move asset '+a.id+' to '+(destination||'No pallet')+'? This changes the existing Inventory record.'))return;
   commandBusy=true;$('wsPalletSave').disabled=true;
   try{
    const r=await api.update(a.id,{pallet:destination});
