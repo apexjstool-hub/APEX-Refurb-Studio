@@ -18,7 +18,9 @@
   const parts=(job.parts||[]).map(p=>{const lines=grouped.get(p.id)||[];const required=n(p.qty),received=n(p.received),fitted=n(p.fitted),ordered=lines.reduce((a,l)=>a+n(l.qty),0),awaiting=lines.reduce((a,l)=>a+Math.max(0,n(l.qty)-n(l.received)),0);return {...p,required,received,fitted,ordered,awaiting,toOrder:Math.max(0,required-received-awaiting),toFit:Math.max(0,received-fitted)};});
   const totals=Object.fromEntries(['required','ordered','received','fitted','toOrder','awaiting','toFit'].map(k=>[k,parts.reduce((a,p)=>a+p[k],0)]));
   const replacement=parts.filter(p=>!isCosmetic(p.name)),respray=parts.filter(p=>isCosmetic(p.name));
-  const partsStatus=statusFor(replacement,'parts'),resprayStatus=statusFor(respray,'respray');
+  const derivedPartsStatus=statusFor(replacement,'parts');
+  const partsStatus=job.partsBoard==='ordered'&&derivedPartsStatus==='Parts Needed'?'Parts Ordered':derivedPartsStatus;
+  const resprayStatus=statusFor(respray,'respray');
   const partTotals=Object.fromEntries(['toOrder','awaiting','toFit','fitted'].map(k=>[k,sum(replacement,k)]));
   const resprayPending=respray.some(p=>p.fitted<p.required);
   // A manual board move records ordering intent without inventing purchase-order lines.
