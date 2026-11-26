@@ -57,7 +57,7 @@
   function drawRefs(){
    const host=$('mdSimpleReferences'),groups=refs();
    host.innerHTML=groups.length?groups.map(g=>{
-    const row=g.shipment,ids=row?.manifest?.map(x=>x.assetId)||g.draft?.assetIds||[];
+    const row=g.draft&&g.shipment?.status==='Completed'?null:g.shipment,ids=row?.manifest?.map(x=>x.assetId)||g.draft?.assetIds||[];
     const pallets=[...new Set((row?.manifest||[]).map(x=>x.originalPallet).filter(Boolean).concat(g.draft?.sourcePallets||[]))];
     const stage=row?.status||'Awaiting dispatch';
     return '<article class="md-simple-group" data-md-ref="'+esc(g.reference)+'"><div><strong>'+esc(g.reference)+'</strong><span>'+esc(stage)+'</span></div>'+
@@ -116,8 +116,9 @@
   }
   function viewRef(ref){
    const entry=refs().find(x=>same(x.reference,ref));if(!entry)return;
-   const ids=entry.shipment?.manifest?.map(x=>x.assetId)||entry.draft?.assetIds||[];
-   showModal('Microdream '+ref,'RESRAY / ASSET LIST','<div class="modal-body"><p>'+ids.length+' respray assets under reference '+esc(ref)+'</p><div class="md-simple-rows">'+
+   const active=entry.draft&&entry.shipment?.status==='Completed'?null:entry.shipment;
+   const ids=active?.manifest?.map(x=>x.assetId)||entry.draft?.assetIds||[];
+   showModal('Microdream '+ref,'RESPRAY / ASSET LIST','<div class="modal-body"><p>'+ids.length+' respray assets under reference '+esc(ref)+'</p><div class="md-simple-rows">'+
     ids.map(id=>{const a=assets.find(x=>x.id===id);return '<div class="md-simple-asset"><span><b>'+esc(id)+'</b><small>'+esc(a?.model||'')+'</small></span><span>Original pallet: '+esc(a?.pallet||entry.shipment?.manifest?.find(x=>x.assetId===id)?.originalPallet||'Unassigned')+'</span></div>';}).join('')+
     '</div><div class="modal-actions"><button type="button" class="secondary" id="mdSimpleClose">Close</button></div></div>');
    document.getElementById('mdSimpleClose').onclick=closeModal;
