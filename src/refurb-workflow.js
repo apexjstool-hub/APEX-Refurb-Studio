@@ -149,6 +149,24 @@ function apply(state,assets,cmd,by='Administrator'){
   active.status='Completed';active.completedAt=stamp();active.completedBy=clip(by,80);
   return {ok:true,workflow:s,resprayPallet:active,affected:active.manifest.length,completedTasks:prepared.length};
  }
+ if(type==='confirmPartFitted'){
+  const j=s.jobs[id],p=j?.parts?.find(x=>x.id===cmd.partId);
+  if(!j||!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('Part or asset no longer exists. Refresh and retry.');
+  if(isCosmetic(p.name))throw Error('Respray is separate; use the returned respray inspection action.');
+  if(['Completed','On Hold'].includes(j.status))throw Error('Change the job stage before fitting parts.');
+  if(p.qty!==cmd.expectedQty||p.received!==cmd.expectedReceived||p.fitted!==cmd.expectedFitted)throw Error('Part quantities changed. Refresh before confirming.');
+  const qty=asQty(cmd.qty,1);if(qty>p.qty-p.fitted)throw Error('Quantity exceeds outstanding required parts.');
+  const original=p.received;
+  p.received=Math.max(original,p.fitted+qty);
+  let remaining=p.received-original;
+  for(const order of s.orders.filter(o=>o.status!=='Draft'))for(const line of order.lines||[]){
+   if(line.assetId!==id||line.partId!==p.id||remaining<=0)continue;
+   const applied=Math.min(remaining,Math.max(0,line.qty-line.received));line.received+=applied;remaining-=applied;if(applied)order.updatedAt=stamp();
+  }
+  p.fitted+=qty;p.lastReceivedAt=stamp();p.lastReceivedBy=by;p.lastProgressAt=stamp();p.lastProgressBy=by;j.updatedAt=stamp();
+  history(s,'Part fitted',p.name+' × '+qty+'; receipt verified during fitting',id,by);
+  return {ok:true,workflow:s};
+ }
  if(type==='markPartOrdered'){
   const j=s.jobs[id],p=j?.parts?.find(p=>p.id===cmd.partId);
   if(!p||!assets.some(a=>a.id===id&&!a.deletedAt))throw Error('This part or asset no longer exists. Refresh and try again.');
