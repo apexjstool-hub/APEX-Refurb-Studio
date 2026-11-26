@@ -34,7 +34,7 @@
   apply.onclick=async()=>{
    if(busy||!proposed.length)return;
    const total=proposed.length;
-   if(!confirm('Apply reviewed formatting updates to '+total+' asset(s)? These updates will be saved to inventory and recorded in asset history.'))return;
+   if(!await apexConfirm('Apply reviewed formatting updates to '+total+' asset(s)? These updates will be saved to inventory and recorded in asset history.'))return;
    busy=true;apply.disabled=true;$('cleanCancel').disabled=true;
    let saved=0,skipped=0,failed=0;const errors=[];
    try{
