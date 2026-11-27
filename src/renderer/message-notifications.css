@@ -1,0 +1,26 @@
+
+/* Signed-in notification layer; do not reveal inventory or sender names at login. */
+html:not([data-apex-notification-session="active"]) :is(.apex-message-popup,.apex-parts-order-notice){display:none!important}
+#appPage .apex-message-popup{position:fixed;top:calc(var(--apex-chrome-height,0px) + 62px);right:18px;z-index:11000;box-sizing:border-box;width:min(350px,calc(100vw - 30px));background:var(--ev-paper,var(--panel,#fff));border:1px solid var(--ev-line,var(--line,#dce3ed));border-radius:13px;padding:13px;color:var(--ev-ink,var(--text,#17283c));box-shadow:0 14px 44px #0003;font-family:var(--apex-ui-font,inherit);animation:apex-message-in .22s ease-out}
+#appPage .apex-message-popup-top{display:flex;gap:10px;align-items:flex-start}
+#appPage .apex-message-popup-icon{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border-radius:10px;background:var(--ev-hero,#e8effb);color:var(--ev-accent,#2857b5)}
+#appPage .apex-message-popup-copy{min-width:0;flex:1;display:grid;gap:4px}
+#appPage .apex-message-popup-copy small{font-size:9px;font-weight:750;letter-spacing:1px;color:var(--ev-accent,#2857b5)}
+#appPage .apex-message-popup-copy strong{font-size:14px;font-weight:750;line-height:1.3}
+#appPage .apex-message-popup-copy p{margin:0;font-size:12px;color:var(--ev-muted,var(--muted,#64748b));overflow-wrap:anywhere}
+#appPage .apex-message-popup-close{display:grid;place-items:center;flex:0 0 27px;width:27px;height:27px;min-height:27px;padding:0;border:0;background:transparent;color:var(--ev-muted,var(--muted,#64748b));border-radius:6px}
+#appPage .apex-message-popup-close:hover{background:var(--ev-hover,#eef2f7)}
+#appPage .apex-message-popup-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--ev-line,var(--line,#dce3ed))}
+#appPage .apex-message-popup-actions small{font-size:10px;color:var(--ev-muted,var(--muted,#64748b))}
+#appPage .apex-message-popup-open{padding:7px 11px!important;min-height:31px!important;font-size:11px!important;border-radius:7px!important;background:var(--studio-button,#2857b5)!important;color:#fff!important;border:0!important}
+#appPage .apex-message-popup-open[hidden]{display:none!important}
+#appPage .apex-message-notice-settings{border-top:1px solid var(--ev-line,var(--line));margin-top:18px;padding-top:14px;display:grid;gap:9px}
+#appPage .apex-message-notice-settings h3{font-size:14px;margin:0}
+#appPage .apex-message-notice-settings p{font-size:12px;color:var(--ev-muted,var(--muted));margin:0}
+#appPage .apex-message-notice-settings label{display:flex;align-items:center;gap:8px;font-size:12px}
+#appPage .apex-message-notice-settings input{accent-color:var(--studio-button,#2857b5)}
+#appPage .apex-message-notice-settings-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#appPage .apex-message-notice-settings-actions small{font-size:11px;color:var(--ev-muted,var(--muted))}
+@keyframes apex-message-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#appPage .apex-message-popup{animation:none!important}}
+html[data-studio-motion="reduced"] #appPage .apex-message-popup{animation:none!important}

@@ -19,12 +19,12 @@ function harness(){
   addEventListener(name,fn){handlers['document:'+name]=fn;}};
  const api={async connectList(){calls.push('list');return {ok:true,userId:UUID1,members:[{user_id:UUID1,display_name:'You'},{user_id:UUID2,display_name:'Office'}],latest:api.messages||[],reads:api.reads||[]};},
   async connectHistory(){return {ok:true,messages:[]};},async connectRead(){return {ok:true,lastRead:1}},async connectSend(){return {ok:true}}};
- const context={document:doc,window:null,setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval(){},
+ const policy=require('../src/renderer/notification-session');const notices=[];let signedIn=true;const gate=policy.create(()=>signedIn);gate.start();const context={document:doc,window:null,ApexNotificationSession:gate,ApexNotificationPolicy:policy,ApexMessageNotices:{show(data){notices.push(data);},hide(){}},setTimeout(fn,ms){timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval(){},
   MutationObserver:class{observe(){}},Date,Math,Number,Set,Map,String,console};
  context.window=context;context.addEventListener=(name,fn)=>handlers['window:'+name]=fn;
  context.apexInventory=api;
  vm.createContext(context);vm.runInContext(source,context);
- return {context,api,make,calls,timers,handlers,flush:async()=>{
+ return {context,api,make,calls,timers,handlers,notices,logout(){signedIn=false;gate.stop();handlers['window:apex:notification-session']?.();},flush:async()=>{
   await Promise.resolve();await Promise.resolve();await Promise.resolve();await Promise.resolve();await Promise.resolve();
  }};
 }
@@ -69,4 +69,15 @@ test('Notifications refresh on foreground return and use a quicker poll timer',(
  assert.match(maint,/ApexConnect\?\.testNotification/);
  assert.match(css,/@keyframes apex-connect-shake/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test('popups group unread senders, ignore outgoing messages and do not repeat on unchanged polls',async()=>{
+ const h=harness();h.api.messages=[{id:1,sender_id:UUID2,recipient_id:UUID1},{id:2,sender_id:UUID2,recipient_id:UUID1},{id:3,sender_id:UUID1,recipient_id:UUID2}];
+ await h.context.ApexConnect.refresh();assert.equal(h.notices.length,1);assert.equal(h.notices[0].count,2);assert.equal(h.notices[0].senders[0],'Office');
+ await h.context.ApexConnect.refresh();assert.equal(h.notices.length,1);
+});
+test('sign-out suppresses an outstanding messaging response and clears the unread badge',async()=>{
+ const h=harness();let finish;h.api.connectList=()=>new Promise(resolve=>{finish=resolve;});const task=h.context.ApexConnect.refresh();
+ h.logout();finish({ok:true,userId:UUID1,members:[{user_id:UUID2,display_name:'Office'}],latest:[{id:2,sender_id:UUID2,recipient_id:UUID1}],reads:[]});await task;
+ assert.equal(h.notices.length,0);assert.equal(h.make('apexConnectUnread').hidden,true);assert.equal(h.context.ApexConnect.testNotification(),false);
 });

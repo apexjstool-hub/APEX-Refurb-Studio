@@ -5,7 +5,8 @@ const {app,Tray,Menu,Notification}=require('electron');
 const path=require('node:path');
 const fs=require('node:fs');
 function create({getWindow,getSettings,userDir,canNotify}){
- let tray=null,allowQuit=false,lastKey='',lastShown=0;
+ let tray=null,allowQuit=false,lastKey='',lastShown=0,activeNotice=null;
+ function dismiss(){if(activeNotice){try{activeNotice.close();}catch{}activeNotice=null;}}
  const icon=path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png');
  const marker=path.join(userDir(),'reminder-notification-state.json');
  try{const saved=JSON.parse(fs.readFileSync(marker,'utf8'));lastKey=String(saved.key||'');lastShown=Number(saved.at)||0;}catch{}
@@ -53,12 +54,12 @@ function create({getWindow,getSettings,userDir,canNotify}){
   // Avoid repeated immediate popups for changing inventories within one cycle.
   if(Date.now()-lastShown<minInterval)return {ok:true,shown:false};
   const n=new Notification({title:'APEX — Parts still need ordering',body:safe.length+' laptop'+(safe.length===1?' has':'s have')+' outstanding part orders. Open APEX to review.',silent:false});
-  n.on('click',open);n.show();
+  dismiss();activeNotice=n;n.on('close',()=>{if(activeNotice===n)activeNotice=null;});n.on('click',()=>{if(canNotify())open();});n.show();
   lastKey=key;lastShown=Date.now();
   try{fs.mkdirSync(path.dirname(marker),{recursive:true});fs.writeFileSync(marker,JSON.stringify({key,at:lastShown}),{mode:0o600});}catch{}
   return {ok:true,shown:true};
  }
- function dispose(){allowQuit=true;if(tray){tray.destroy();tray=null;}}
- return {applySettings,interceptClose,notify,dispose};
+ function dispose(){dismiss();allowQuit=true;if(tray){tray.destroy();tray=null;}}
+ return {applySettings,interceptClose,notify,dismiss,dispose};
 }
 module.exports={create};

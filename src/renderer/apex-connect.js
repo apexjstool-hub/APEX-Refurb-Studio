@@ -22,7 +22,7 @@
  const drafts=new Map();
  const key=recipient=>recipient==='team'?'team':'dm:'+recipient.toLowerCase();
  const active=()=>!drawer.hidden||!page.classList.contains('hidden');
- const visible=()=>!document.getElementById('appPage')?.classList.contains('hidden');
+ const visible=()=>root.ApexNotificationSession?.active()===true;
  const display=id=>members.find(m=>m.user_id===id)?.display_name||'Team member';
  const unreadFor=(recipient)=>{
   const seen=Number(reads.get(key(recipient))||0);
@@ -40,14 +40,17 @@
   shakeTimer=setTimeout(()=>button.classList.remove('apex-connect-notify'),800);
  }
  function renderBadge(){
-  const count=me?unreadTotal():0,badge=$('apexConnectUnread');
+  if(!visible())return;
+  const rows=root.ApexNotificationPolicy.unreadMessages(me,latest,reads);
+  const count=rows.length,badge=$('apexConnectUnread');
   // Check message identity as well as count: a new arrival can replace
   // an older, read message without increasing the numeric unread total.
-  const inbound=me?latest.filter(m=>m.sender_id!==me&&(m.recipient_id===null||m.recipient_id===me)):[];
+  const inbound=rows;
   const newest=inbound.reduce((max,m)=>Math.max(max,Number(m.id)||0),0);
   const arrivals=count>0&&(newest>lastInboundId||count>lastUnread);
   // Show existing unread messages after sign-in, not just newly arrived ones.
-  if((!initialisedUnread&&count>0)||(initialisedUnread&&arrivals))animateNotification();
+  if((!initialisedUnread&&count>0)||(initialisedUnread&&arrivals)){animateNotification();const notice=root.ApexNotificationPolicy.describe(rows,members);root.ApexMessageNotices?.show(notice,()=>openNotice(notice.target));}
+  else if(count<lastUnread||count===0)root.ApexMessageNotices?.hide();
   initialisedUnread=true;lastUnread=count;lastInboundId=Math.max(lastInboundId,newest);
   button.setAttribute('aria-label',count?'APEX Connect, '+count+' unread message'+(count===1?'':'s'):'Open APEX Connect');
   button.title=count?count+' unread APEX message'+(count===1?'':'s'):'APEX Connect messages';
@@ -66,6 +69,7 @@
   root.ApexWorkspaceTabs?.setConnectUnread?.(Math.max(1,lastUnread));
   button.setAttribute('aria-label','APEX Connect notification preview');
   animateNotification();
+  root.ApexMessageNotices?.show({count:2,senders:['Example colleague'],extra:0},null,true);
   previewTimer=setTimeout(()=>{previewUntil=0;renderBadge();},2350);
   return true;
  }
@@ -123,9 +127,10 @@
   if(stick)host.scrollTop=host.scrollHeight;
  }
  async function loadThread(){
-  if(!ready||!active())return;
-  const target=selected;
+  if(!visible()||!ready||!active())return;
+  const ticket=root.ApexNotificationSession.ticket(),target=selected;
   const data=await api.connectHistory(target);
+  if(!root.ApexNotificationSession.current(ticket))return;
   if(!data?.ok){$('apexConnectStatus').textContent=data?.error||'Unable to load conversation';return;}
   if(selected!==target)return;
   const changed=thread.length!==data.messages.length||thread.at(-1)?.id!==data.messages.at(-1)?.id;
@@ -135,14 +140,14 @@
   const max=Math.max(0,...thread.map(m=>Number(m.id)||0));
   if(max>Number(reads.get(key(target))||0)){
    const result=await api.connectRead({recipient:target,lastId:max});
-   if(result?.ok){reads.set(key(target),result.lastRead);renderContacts();renderBadge();}
+   if(root.ApexNotificationSession.current(ticket)&&result?.ok){reads.set(key(target),result.lastRead);renderContacts();renderBadge();}
   }
  }
  function stashDraft(){
   drafts.set(selected,{body:$('apexConnectBody').value,asset:$('apexConnectAsset').value});
  }
  async function choose(target){
-  if(target!=='team'&&!members.some(m=>m.user_id===target))return;
+  if(!visible()||(target!=='team'&&!members.some(m=>m.user_id===target)))return;
   stashDraft();selected=target;
   const draft=drafts.get(target)||{};
   $('apexConnectBody').value=draft.body||'';
@@ -153,9 +158,10 @@
  async function poll(force=false){
   if(busy||!visible()||document.visibilityState==='hidden')return;
   if(!force&&Date.now()-lastPoll<5500)return;
-  busy=true;lastPoll=Date.now();
+  busy=true;lastPoll=Date.now();const ticket=root.ApexNotificationSession.ticket();
   try{
    const info=await api.connectList();
+   if(!root.ApexNotificationSession.current(ticket))return;
    if(!info?.ok){
     ready=false;me=null;isAdmin=false;members=[];latest=[];reads=new Map();thread=[];
     $('apexConnectStatus').textContent=info?.error||'APEX Connect unavailable';
@@ -167,7 +173,7 @@
    ready=true;$('apexConnectSend').disabled=false;
    renderContacts();renderBadge();
    if(active())await loadThread();
-  }catch(e){$('apexConnectStatus').textContent='Cannot reach team messaging right now.';}
+  }catch(e){if(root.ApexNotificationSession.current(ticket))$('apexConnectStatus').textContent='Cannot reach team messaging right now.';}
   finally{busy=false;}
  }
  $('apexConnectAdminClear').onclick=async()=>{
@@ -202,6 +208,13 @@
   if(assetId){$('apexConnectAsset').value=String(assetId).trim().toUpperCase();stashDraft();}
   poll(true);
  }
+ function openNotice(target){if(!visible())return;showDrawer();if(target)choose(target);}
+ function resetNotices(){
+  root.ApexMessageNotices?.hide();clearTimeout(shakeTimer);clearTimeout(previewTimer);previewUntil=0;initialisedUnread=false;lastUnread=0;lastInboundId=0;lastPoll=0;
+  button.classList.remove('apex-connect-notify');button.setAttribute('aria-label','Open APEX Connect');button.title='APEX Connect messages';$('apexConnectUnread').hidden=true;$('apexConnectUnread').textContent='';root.ApexWorkspaceTabs?.setConnectUnread?.(0);
+  drawer.hidden=true;ready=false;me=null;members=[];latest=[];reads=new Map();thread=[];isAdmin=false;selected='team';drafts.clear();$('apexConnectBody').value='';$('apexConnectAsset').value='';$('apexConnectSend').disabled=true;renderContacts();renderMessages();
+ }
+ root.addEventListener('apex:notification-session',()=>{if(visible())poll(true);else resetNotices();});
  // The original floating popup is independently movable; Workspace Tabs are unchanged.
  const dragHandle=$('apexConnectDragHandle');
  const resetPosition=()=>{
@@ -252,12 +265,13 @@
   assetSave.after(trigger);
  }
  $('apexConnectForm').onsubmit=async e=>{
-  e.preventDefault();if(sending||!ready)return;
+  e.preventDefault();if(!visible()||sending||!ready)return;const ticket=root.ApexNotificationSession.ticket();
   const body=clamp($('apexConnectBody').value).trim(),asset=$('apexConnectAsset').value.trim();
   if(!body)return;
   sending=true;$('apexConnectSend').disabled=true;
   try{
    const result=await api.connectSend({recipient:selected,body,assetId:asset||null});
+   if(!root.ApexNotificationSession.current(ticket))return;
    if(!result?.ok){$('apexConnectStatus').textContent=result?.error||'Message not sent';return;}
    $('apexConnectBody').value='';drafts.delete(selected);
    const recipient=selected;await loadThread();

@@ -17,21 +17,22 @@
   $('apexPartsOrderNotification')?.remove();
  }
  function show(data){
+  if(!window.ApexNotificationSession?.active())return;
   hide();
   const toast=document.createElement('div');
   toast.id='apexPartsOrderNotification';toast.className='apex-parts-order-notice';
   toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');
   const noun=data.count===1?'laptop still has':'laptops still have';
   toast.innerHTML='<span class="apex-parts-order-icon" aria-hidden="true">!</span><div class="apex-parts-order-copy"><strong>Parts awaiting order</strong><p><b>'+data.count+'</b> '+noun+' replacement parts that need ordering.</p>'+(data.older7?'<small>'+data.older7+' waiting longer than 7 days</small>':'')+'</div><div class="apex-parts-order-actions"><button type="button" class="secondary" data-parts-order-view>View parts</button><button type="button" class="apex-parts-order-close" data-parts-order-close aria-label="Dismiss parts ordering notification">×</button></div>';
-  document.body.appendChild(toast);
-  toast.querySelector('[data-parts-order-view]').onclick=()=>{hide();if(typeof setPage==='function')setPage('parts',true);};
+  $('appPage').appendChild(toast);
+  toast.querySelector('[data-parts-order-view]').onclick=()=>{hide();if(window.ApexNotificationSession?.active()&&typeof setPage==='function')setPage('parts',true);};
   toast.querySelector('[data-parts-order-close]').onclick=hide;
   closeTimer=setTimeout(hide,10000);
  }
  function check(){
   if(frequency==='off'){hide();return;}
   // Wait until both the signed-in workspace and refurbishment data are ready.
-  if(!$('loginPage')?.classList.contains('hidden')){wasLoggedOut=true;hide();return;}
+  if(!window.ApexNotificationSession?.active()){wasLoggedOut=true;hide();return;}
   if(wasLoggedOut){lastShown=0;lastCount=0;wasLoggedOut=false;}
   if(!window.ApexWorkflowSnapshot)return;
   const data=getSummary();
@@ -61,6 +62,7 @@
   check();
  }
  document.addEventListener('DOMContentLoaded',init,{once:true});
+ window.addEventListener('apex:notification-session',check);
  window.addEventListener('apex:workflow-updated',check);
  window.addEventListener('apex:reminders-refresh',check);
  setInterval(check,60000);

@@ -27,7 +27,7 @@
  };
  refresh.addEventListener('click',load);
  $('apexConnectTestNotification')?.addEventListener('click',()=>{
-  if(window.ApexConnect?.testNotification?.())note('Notification test shown in the top header. The red unread badge will return to its real value automatically.');
+  if(window.ApexConnect?.testNotification?.())note('Example popup and red unread badge shown. The badge will return to its real value automatically.');
   else note('Sign into APEX to preview the message notification.',true);
  });
  save.addEventListener('click',async()=>{
