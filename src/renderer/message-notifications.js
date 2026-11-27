@@ -7,14 +7,35 @@
  function dismiss(){remove();if(unread?.count)closedAt=Date.now();}
  function hide(){remove();unread=null;openUnread=null;closedAt=null;}
  function reset(){hide();remove(true);}
+ function position(card){
+  const bar=document.querySelector?.('#appPage .topbar');
+  const rect=bar?.getBoundingClientRect();
+  if(rect&&rect.height>0)card.style.setProperty('--apex-message-top',Math.ceil(rect.bottom+10)+'px');
+ }
+ function reposition(){for(const id of ['apexMessagePopup','apexMessagePopupPreview']){const card=$(id);if(card)position(card);}}
+ root.addEventListener('resize',reposition);
+ document.addEventListener('scroll',reposition,{capture:true,passive:true});
+ const bar=document.querySelector?.('#appPage .topbar');
+ if(bar&&typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(reposition);observer.observe(bar);}
+ function arm(preview,p){
+  if(preview){clearTimeout(previewTimer);previewTimer=null;}else{clearTimeout(timer);timer=null;}
+  const duration=P.delay(p);
+  if(duration!==null){if(preview)previewTimer=setTimeout(()=>remove(true),duration);else timer=setTimeout(dismiss,duration);}
+ }
  function paint(card,data,p,preview=false){
-  card.querySelector('[data-notice-title]').textContent='You have '+data.count+' unread message'+(data.count===1?'':'s');
+  card.querySelector('[data-notice-title]').textContent=data.count+' unread message'+(data.count===1?'':'s');
   const sender=card.querySelector('[data-notice-senders]');
   if(p.senders){sender.textContent='From '+data.senders.join(', ')+(data.extra?' and '+data.extra+' more':'');}else sender.textContent='Open APEX Connect to view your messages.';
-  card.querySelector('[data-notice-hint]').textContent=preview?'Example notification':p.mode==='manual'?'Until dismissed or opened':p.mode==='read'?'Until messages are read':'Unread messages';
+  card.querySelector('[data-notice-hint]').textContent=preview?'Example notification':p.mode==='manual'?'Until closed':p.mode==='read'?'Until read':'Just now';
  }
  function render(data,onOpen,preview=false,p=prefs){
   if(!active()||(!p.enabled&&!preview)||!data?.count)return false;
+  if(preview&&$('apexMessagePopup'))return false;
+  if(!preview){
+   remove(true);
+   const existing=$('apexMessagePopup');
+   if(existing){paint(existing,data,p);signature=JSON.stringify(data);closedAt=null;position(existing);arm(false,p);return true;}
+  }
   remove(preview);
   const card=document.createElement('section');card.id=preview?'apexMessagePopupPreview':'apexMessagePopup';card.className='apex-message-popup';card.setAttribute('role','status');card.setAttribute('aria-live','polite');
   card.innerHTML='<div class="apex-message-popup-top"><span class="apex-message-popup-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l1.6-4.2A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 10h8M8 14h5"/></svg></span><div class="apex-message-popup-copy"><small>APEX CONNECT</small><strong data-notice-title></strong><p data-notice-senders></p></div><button type="button" class="apex-message-popup-close" aria-label="Dismiss message notification"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div class="apex-message-popup-actions"><small data-notice-hint></small><button type="button" class="primary apex-message-popup-open">Open messages</button></div>';
@@ -22,10 +43,9 @@
   const open=card.querySelector('.apex-message-popup-open');open.hidden=false;
   open.onclick=()=>{if(preview){remove(true);return;}if(!active()){reset();return;}if(prefs.mode!=='read')dismiss();openUnread?.();};
   card.querySelector('.apex-message-popup-close').onclick=()=>preview?remove(true):dismiss();
-  $('appPage').appendChild(card);
+  $('appPage').appendChild(card);position(card);
   if(!preview){signature=JSON.stringify(data);closedAt=null;}
-  const duration=P.delay(p);
-  if(duration!==null){if(preview)previewTimer=setTimeout(()=>remove(true),duration);else timer=setTimeout(dismiss,duration);}
+  arm(preview,p);
   return true;
  }
  function show(data,onOpen,preview=false,options={}){
@@ -57,7 +77,7 @@
   const fill=p=>{$('apexMessagePopupEnabled').checked=p.enabled;$('apexMessagePopupMode').value=p.mode;$('apexMessagePopupDuration').value=String(p.seconds);$('apexMessagePopupRepeat').value=String(p.repeatMinutes);$('apexMessagePopupSenders').checked=p.senders;$('apexMessagePopupShake').checked=p.shake;$('apexMessagePopupSignIn').checked=p.atSignIn;dependencies();};
   fill(prefs);$('apexMessagePopupMode').onchange=dependencies;
   $('apexMessagePopupSave').onclick=()=>{const next=readDraft();try{localStorage.setItem(key,JSON.stringify(next));const wasVisible=!!$('apexMessagePopup');prefs=next;remove(true);if(!prefs.enabled){remove();closedAt=null;}else if(wasVisible&&unread?.count)render(unread,openUnread);else if(unread?.count)closedAt=Date.now();$('apexMessagePopupSaved').textContent='Saved on this PC.';}catch{$('apexMessagePopupSaved').textContent='Unable to save preferences.';}};
-  $('apexMessagePopupTest').onclick=()=>show({count:2,senders:['Example colleague'],extra:0},null,true,{preferences:readDraft()});
+  $('apexMessagePopupTest').onclick=()=>{const shown=show({count:2,senders:['Example colleague'],extra:0},null,true,{preferences:readDraft()});$('apexMessagePopupSaved').textContent=shown?'Example shown at the top right.':'Close the active message notification before previewing.';};
   $('apexMessagePopupReset').onclick=()=>{fill(P.defaults);$('apexMessagePopupSaved').textContent='Defaults selected — press Save to apply.';};
  }
  root.addEventListener('apex:notification-session',()=>{if(!active())reset();});

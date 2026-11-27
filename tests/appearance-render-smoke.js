@@ -69,5 +69,33 @@ app.whenReady().then(async()=>{
   assert.equal(new Set(rows.map(r=>r.button)).size,7,'print buttons must follow all seven schemes');
   assert.equal(new Set(rows.map(r=>r.buttonInk)).size,7,'print button text must follow all seven schemes');
  }
- console.log(JSON.stringify({appearance:result,deviceCards:cards}));finish(0);
+ // Use the real notification code and loaded styles on the isolated renderer fixture.
+ for(const script of ['notification-session.js','message-notification-preferences.js','message-notifications.js']){
+  await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,script),'utf8'));
+ }
+ const notice=await win.webContents.executeJavaScript('('+(async()=>{
+  window.ApexNotificationSession.start();
+  const preferences={...window.ApexMessageNoticePreferences.defaults,mode:'manual'};
+  const data={count:2,senders:['Example colleague'],extra:0,target:'demo'};
+  const get=id=>document.getElementById(id);
+  window.ApexMessageNotices.show(data,null,true,{preferences});
+  const preview=get('apexMessagePopupPreview'),bar=document.querySelector('#appPage .topbar');
+  const bounds=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,right:r.right,width:r.width,height:r.height};};
+  const before=bounds(preview),header=bounds(bar);
+  window.ApexMessageNotices.show(data,()=>{});
+  const popup=get('apexMessagePopup');
+  window.ApexMessageNotices.show({...data,count:4},()=>{});
+  const real=bounds(popup);
+  const same=popup===get('apexMessagePopup'),single=document.querySelectorAll('.apex-message-popup').length===1;
+  const title=popup.querySelector('[data-notice-title]').textContent;
+  window.ApexNotificationSession.stop();
+  return {before,header,real,same,single,title,viewport:innerWidth,cleared:!get('apexMessagePopup')&&!get('apexMessagePopupPreview')};
+ }).toString()+')()');
+ assert.ok(notice.before.top>=notice.header.bottom+8,JSON.stringify(notice));
+ assert.ok(notice.real.top>=notice.header.bottom+8,JSON.stringify(notice));
+ assert.ok(Math.abs(notice.before.top-notice.real.top)<2,JSON.stringify(notice));
+ assert.ok(notice.before.width<=312&&notice.before.height<=125,JSON.stringify(notice));
+ assert.ok(Math.abs(notice.viewport-notice.real.right-16)<3,JSON.stringify(notice));
+ assert.equal(notice.same,true);assert.equal(notice.single,true);assert.equal(notice.title,'4 unread messages');assert.equal(notice.cleared,true);
+ console.log(JSON.stringify({appearance:result,deviceCards:cards,notice}));finish(0);
 }).catch(error=>finish(1,error));
