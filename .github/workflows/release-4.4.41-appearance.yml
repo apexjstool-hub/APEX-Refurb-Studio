@@ -58,6 +58,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Invalid export source' }
           node --test --test-concurrency=1 tests/appearance-preferences.test.js tests/settings-studio.test.js tests/window-chrome.test.js tests/evolution-layout.test.js tests/apex-themed-dialogs-4433.test.js tests/apex-connect-draggable-admin-4432.test.js tests/apex-connect-phone-badge-delete-4431.test.js tests/apex-connect-notification-4430.test.js tests/apex-connect-maintenance-4429.test.js tests/apex-connect-4428.test.js tests/workspace-tabs-2-4427.test.js tests/smart-key-not-a-part-4425.test.js tests/qa-sticker-sequential-print-4424.test.js tests/custom-labels.test.js tests/asset-labels-completed-qa-4423.test.js tests/asset-labels-tab.test.js tests/asset-labels-2x1-fit-433.test.js tests/microdream-unified-scanner-4422.test.js tests/microdream-simple-scan-4421.test.js tests/microdream-multipallet-4420.test.js tests/microdream-reference-4419.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/parts-fitting-respray-4418.test.js tests/microdream-pallet-respray.test.js tests/refurb-workflow.test.js tests/inventory-tracker.test.js tests/repair-work-type.test.js tests/respray-parts-required-status.test.js tests/inventory-status-display.test.js tests/template-parts-export.test.js tests/inventory-selection-excel.test.js tests/refurb-parts-bridge.test.js tests/diagnostic-intake.test.js tests/update-popup-schedule.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed: no release' }
+      - name: Verify actual Electron palette rendering in isolated fixture
+        run: |
+          npx --no-install electron tests/appearance-render-smoke.js
+          if ($LASTEXITCODE -ne 0) { throw 'Appearance rendering failed: no release' }
       - name: Verify all APEX JavaScript source syntax
         run: |
           Get-ChildItem src,scripts -Recurse -File -Filter *.js | ForEach-Object {
