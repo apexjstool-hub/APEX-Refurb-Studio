@@ -44,7 +44,10 @@ test('Header has real message icon, distinct unread badge and motion accessibili
  assert.match(html,/id="apexConnectToggle"/);
  assert.match(html,/class="apex-connect-icon"/);
  assert.doesNotMatch(html,/>♧<span id="apexConnectUnread"/);
- assert.match(icon,/const count=me\?unreadTotal\(\):0/);
+ assert.match(icon,/const rows=root\.ApexNotificationPolicy\.unreadMessages\(me,latest,reads\)/);
+ assert.match(icon,/const count=rows\.length,badge=/);
+ const policy=require('../src/renderer/notification-session');
+ assert.equal(policy.unreadMessages('me',[{id:3,sender_id:'other',recipient_id:'me'},{id:4,sender_id:'me',recipient_id:'other'},{id:5,sender_id:'other',recipient_id:'third'},{id:1,sender_id:'other',recipient_id:'me'}],new Map([['dm:other',1]])).length,1);
  assert.match(icon,/count>lastUnread/);
  assert.match(icon,/initialisedUnread/);
  assert.match(icon,/classList\.add\('apex-connect-notify'\)/);
