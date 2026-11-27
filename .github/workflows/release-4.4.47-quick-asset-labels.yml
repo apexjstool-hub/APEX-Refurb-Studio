@@ -7,7 +7,7 @@ permissions:
   contents: write
 concurrency:
   group: apex-stable-4447
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   verify-build-publish:
     runs-on: windows-latest
@@ -63,7 +63,10 @@ jobs:
           npx --no-install electron tests/appearance-render-smoke.js
           if ($LASTEXITCODE -ne 0) { throw 'Appearance rendering failed: no release' }
       - name: Verify both quick label print documents at physical 2x1 size
+        timeout-minutes: 3
         run: |
+          node --check tests/quick-asset-label-render.js
+          if ($LASTEXITCODE -ne 0) { throw 'Quick label test syntax invalid: no release' }
           npx --no-install electron tests/quick-asset-label-render.js
           if ($LASTEXITCODE -ne 0) { throw 'Quick label rendering failed: no release' }
       - name: Verify all APEX JavaScript source syntax
