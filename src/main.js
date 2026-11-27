@@ -901,7 +901,7 @@ app.whenReady().then(()=>{
  });win.loadFile(path.join(__dirname,'renderer','index-evolution.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
-  win.on('close',event=>backgroundReminders?.interceptClose(event));
+  win.on('close',event=>{if(updateCentre.status().state!=='installing')backgroundReminders?.interceptClose(event);});
  intakeNotification=require('./desktop-intake-notification').createDesktopIntakeNotification(()=>win,ids=>{win.webContents.send('apex:inventory-arrived',{ids,open:true});});
  const arrivalTimer=setInterval(async()=>{
   if(arrivalPollBusy||!authenticated||!win||win.isDestroyed()||(authMode==='local'&&loadDB().user.mustChangePassword))return;

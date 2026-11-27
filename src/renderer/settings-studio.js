@@ -76,7 +76,7 @@
  const theme=$('topTheme');theme.hidden=true;theme.setAttribute('aria-hidden','true');theme.tabIndex=-1;
  const actions=document.querySelector('.topbar .top-actions'),avatar=actions.querySelector('.top-avatar'),name=actions.querySelector('.header-username');
  const profile=make('div','studio-profile'),trigger=make('button','studio-profile-trigger');trigger.type='button';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','studioProfileMenu');trigger.setAttribute('aria-label','Account options');
- const identity=make('span','studio-profile-identity');identity.append(name,make('small','','Signed in'));trigger.append(avatar,identity,make('span','studio-profile-chevron','⌃'));profile.append(trigger);
+ const identity=make('span','studio-profile-identity');identity.append(name,make('small','','Signed in'));const chevron=make('span','studio-profile-chevron');chevron.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>';trigger.append(avatar,identity,chevron);profile.append(trigger);
  const menuPanel=make('div','studio-profile-menu');menuPanel.id='studioProfileMenu';menuPanel.hidden=true;const profileLabel=make('div','studio-profile-label','Signed-in account');menuPanel.append(profileLabel);
  function close(focus=false){menuPanel.hidden=true;trigger.setAttribute('aria-expanded','false');if(focus)trigger.focus();}
  function action(label,fn,destructive=false){const b=make('button',destructive?'studio-profile-action studio-profile-danger':'studio-profile-action',label);b.type='button';b.onclick=()=>{close();fn();};menuPanel.append(b);}

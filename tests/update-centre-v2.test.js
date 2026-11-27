@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const read=p=>fs.readFileSync(path.join(__dirname,'../src',p),'utf8');
+test('NSIS uses silent installation and explicit restart, without enabling auto-install',()=>{const s=read('update-centre.js');assert.match(s,/quitAndInstall\(true,true\)/);assert.match(s,/autoInstallOnAppQuit=false/);assert.match(s,/autoDownload=false/);assert.match(s,/data.state!=='ready'/);assert.match(read('main.js'),/updateCentre\.status\(\)\.state!=='installing'/);});
+test('settings updater shows actual progress and requires confirmation',()=>{const s=read('renderer/apex-update-v18.js');assert.match(s,/apexUpProgress/);assert.match(s,/bytesPerSecond/);assert.match(s,/await apexConfirm/);assert.match(s,/apexUpNotes/);assert.match(s,/installedNotice/);});
+test('palette covers non-primary dashboard controls and profile uses a vector chevron',()=>{const c=read('renderer/settings-studio.css'),s=read('renderer/settings-studio.js');assert.match(c,/\.apex-b-dashboard-actions-links button:first-child\{background:var\(--studio-button\)/);assert.match(c,/\.dashboard-mini-track i/);assert.match(s,/chevron\.innerHTML='<svg/);});

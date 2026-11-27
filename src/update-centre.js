@@ -4,11 +4,14 @@ const fs=require('fs'),path=require('path'),https=require('https'),crypto=requir
 let updater=null,windowRef=null,initialised=false,devRelease=null,devZip=null,portableRelease=null,portableExe=null;
 const isPortable=app.isPackaged&&process.platform==='win32'&&Boolean(process.env.PORTABLE_EXECUTABLE_FILE);
 const data={state:'idle',currentVersion:app.getVersion(),availableVersion:null,progress:0,error:null,releases:null,supported:app.isPackaged&&process.platform==='win32'};
+const installMarker=()=>path.join(app.getPath('userData'),'apex-update-result.json');
+function installedNotice(){try{const p=JSON.parse(fs.readFileSync(installMarker(),'utf8'));return p.target===app.getVersion()&&p.from!==p.target?{from:p.from,version:p.target}:null;}catch{return null;}}
 function broadcast(){if(windowRef&&!windowRef.isDestroyed())windowRef.webContents.send('apex:update-state',{...data});}
 function set(patch){Object.assign(data,patch);broadcast();return {...data};}
 function init(win){
  windowRef=win;
  if(initialised)return;initialised=true;
+ data.installedNotice=installedNotice();
  if(!data.supported){set({state:'idle',mode:'development',supported:true});return;}
  if(isPortable){set({mode:'portable',supported:true,state:'idle'});return;}
  try {
@@ -18,7 +21,7 @@ function init(win){
   updater.on('checking-for-update',()=>set({state:'checking',error:null}));
   updater.on('update-available',info=>set({state:'available',availableVersion:info.version,releases:info.releaseNotes||null}));
   updater.on('update-not-available',()=>set({state:'current',availableVersion:null}));
-  updater.on('download-progress',p=>set({state:'downloading',progress:Math.round(p.percent||0)}));
+  updater.on('download-progress',p=>set({state:'downloading',progress:Math.round(p.percent||0),bytesPerSecond:p.bytesPerSecond||0,transferred:p.transferred||0,total:p.total||0}));
   updater.on('update-downloaded',()=>set({state:'ready',progress:100}));
   updater.on('error',err=>set({state:'error',error:String(err.message||err).slice(0,280)}));
   // Startup checks are silent; do not notify for success or up-to-date.
@@ -32,7 +35,7 @@ async function check(manual=false){
  if(isPortable)return portableCheck();
  if(!data.supported)return {ok:false,error:'Portable updater has not been enabled. Production NSIS updater remains supported.'};
  if(!updater)return {ok:false,error:'Updater not ready.'};
- if(['checking','downloading','ready'].includes(data.state))return {ok:true,...status()};
+ if(['checking','downloading','ready','installing'].includes(data.state))return {ok:true,...status()};
  try{await updater.checkForUpdates();return {ok:true,...status()};}
  catch(err){const raw=String(err.message||err);const missing=/Unable to find latest version|releases\/latest|HttpError: 406|Cannot parse releases feed/i.test(raw);set({state:'error',error:missing?'No production installer release found on GitHub. Publish a normal release with both the newer Setup EXE and matching latest.yml (development ZIP prereleases cannot update installed APEX).':'Update check failed: '+raw.slice(0,220)});return manual?{ok:false,error:data.error}:{ok:true,...status()};}
 }
@@ -41,7 +44,8 @@ async function download(){if(!app.isPackaged)return devDownload();
  if(data.state!=='available'||!updater)return {ok:false,error:'Check for an available update first.'};try{await updater.downloadUpdate();return {ok:true,...status()};}catch(err){return {ok:false,error:String(err.message||err)};}}
 function install(){if(!app.isPackaged)return devInstall();
  if(isPortable)return portableInstall();
- if(data.state!=='ready'||!updater)return {ok:false,error:'No verified downloaded update is ready.'};set({state:'installing'});setImmediate(()=>updater.quitAndInstall(false,true));return {ok:true};}
+ if(data.state!=='ready'||!updater)return {ok:false,error:'No verified downloaded update is ready.'};try{fs.writeFileSync(installMarker(),JSON.stringify({from:app.getVersion(),target:data.availableVersion}),{mode:0o600});}catch(e){console.warn('Update result marker:',e.message);}
+ set({state:'installing'});setImmediate(()=>{try{updater.quitAndInstall(true,true);}catch(err){set({state:'error',error:String(err.message||err)});}});return {ok:true};}
 // Development-only releases: explicit GitHub prereleases containing APEX-Studio-DEV-*.zip.
 // Never silently replace the active source, deployed EXE, or any Supabase data.
 const REPO='apexjstool-hub/APEX-Refurb-Studio';

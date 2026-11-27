@@ -91,6 +91,49 @@ body.apex-nav-collapsed #appPage #apexSidebar :is(.studio-profile-identity,.stud
 #appPage #settingsPage [data-settings-view="fonts"] [data-preference="inter"]{font-family:"APEX Inter","Segoe UI",sans-serif!important}
 #appPage #settingsPage [data-settings-view="fonts"] [data-preference="jakarta"]{font-family:"APEX Jakarta","Segoe UI",sans-serif!important}
 #appPage #settingsPage [data-settings-view="fonts"] [data-preference="arial"]{font-family:Arial,sans-serif!important}
+
+/* Shared branding accents: keep status badges, chart categories and printed output semantic. */
+html[data-layout="evolution"]{--apex-b-blue:var(--studio-button)!important;--apex-b-blue-hover:var(--studio-button)!important;--apex-b-focus:var(--ev-accent)!important}
+#appPage #dashboardPage .apex-b-dashboard-actions{background:var(--ev-hero)!important;border-color:color-mix(in srgb,var(--studio-button) 22%,var(--ev-line))!important}
+#appPage #dashboardPage .apex-b-dashboard-actions-links button{background:var(--ev-paper)!important;color:var(--ev-accent)!important;border:1px solid color-mix(in srgb,var(--studio-button) 36%,var(--ev-line))!important}
+#appPage #dashboardPage .apex-b-dashboard-actions-links button:first-child{background:var(--studio-button)!important;color:#fff!important;border-color:var(--studio-button)!important}
+#appPage #dashboardPage .apex-b-dashboard-actions-links button:hover{background:var(--ev-hover)!important;color:var(--ev-accent)!important}
+#appPage #dashboardPage .apex-b-dashboard-actions-links button:first-child:hover{background:var(--studio-button)!important;color:#fff!important;filter:brightness(1.12)}
+#appPage #dashboardPage .dashboard-repair-strip>button{background:var(--ev-hero)!important;border-color:color-mix(in srgb,var(--studio-button) 18%,var(--ev-line))!important;color:var(--ev-ink)!important}
+#appPage #dashboardPage .dashboard-repair-strip>button b{color:var(--ev-accent)!important}
+#appPage #dashboardPage .v34-stat-icon:is(.v34-blue,.v34-orange){color:var(--ev-accent)!important;background:var(--ev-hero)!important}
+#appPage #dashboardPage .dashboard-mini-track i,#appPage #refurbWorkspacePage .rw-progress-track span{background:var(--studio-button)!important}
+#appPage #dashboardPage .v34-progress-row>div i{background:var(--studio-button)!important;min-height:100%!important}
+#appPage #dashboardPage .v34-progress-row:nth-child(3)>div i{background:#29b782!important}
+#appPage #dashboardPage .v34-progress-row:nth-child(4)>div i{background:#d89536!important}
+#appPage #dashboardPage .v34-progress-row>div{background:var(--ev-soft)!important}
+#appPage :is(.banner-button,.apex-b-primary,.rw-primary):not(:disabled){background:var(--studio-button)!important;color:#fff!important;border-color:var(--studio-button)!important}
+#appPage :is(.secondary,.icon-action):not(:disabled):hover{border-color:var(--ev-accent)!important;color:var(--ev-accent)!important;background:var(--ev-hover)!important}
+#appPage :is(.v3-tab.active,.v3-tab.selected,.rw-filters button.selected,.inventory-quick-chip.selected,.inventory-quick-chip.active,.appearance-option.selected,.apex-dispatch-tabs button.active){background:var(--ev-hero)!important;color:var(--ev-accent)!important;border-color:color-mix(in srgb,var(--studio-button) 28%,var(--ev-line))!important}
+#appPage :is(input,select,textarea):focus-visible{outline-color:var(--ev-accent)!important;border-color:var(--ev-accent)!important;box-shadow:none!important}
+#appPage :is(input[type=checkbox],input[type=radio]){accent-color:var(--studio-button)!important}
+html[data-layout="evolution"] .apex-dialog-accept:not(.apex-dialog-danger){background:var(--studio-button)!important;border-color:var(--studio-button)!important;color:#fff!important}
+html[data-layout="evolution"] #apexUpdateNotice .primary{background:var(--studio-button)!important;border-color:var(--studio-button)!important;color:#fff!important}
+html[data-layout="evolution"] #apexUpdateNoticeBar{background:var(--studio-button)!important}
+#appPage #apexSidebar .studio-profile-chevron{display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;background:#ffffff0e;border:1px solid #ffffff16;border-radius:7px;transition:background .15s}
+#appPage #apexSidebar .studio-profile-chevron svg{display:block;transition:transform .16s ease;transform:rotate(180deg)}
+#appPage #apexSidebar .studio-profile-trigger[aria-expanded="true"] .studio-profile-chevron svg{transform:rotate(0deg)}
+#appPage #apexSidebar .studio-profile-trigger:hover .studio-profile-chevron{background:#ffffff20}
+@media(prefers-reduced-motion:reduce){#appPage #apexSidebar .studio-profile-chevron svg{transition:none}}
+#appPage .apex-update-studio{display:grid;gap:15px;margin:14px 0}
+#appPage .apex-up-version-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#appPage .apex-up-version-grid>div{display:grid;gap:5px;padding:14px;border:1px solid var(--ev-line);background:var(--ev-soft);border-radius:9px}
+#appPage .apex-up-version-grid small{color:var(--ev-muted);font-size:11px}
+#appPage .apex-up-version-grid strong{font-size:20px;color:var(--ev-ink);font-variant-numeric:tabular-nums}
+#appPage .apex-up-progress-label{display:flex;justify-content:space-between;gap:10px;color:var(--ev-muted);font-size:12px;margin-bottom:7px}
+#appPage #apexUpProgress{display:block;width:100%;height:8px;appearance:none;border:0;border-radius:20px;overflow:hidden}
+#appPage #apexUpProgress::-webkit-progress-bar{background:var(--ev-soft)}
+#appPage #apexUpProgress::-webkit-progress-value{background:var(--studio-button)}
+#appPage #apexUpNotesWrap{border:1px solid var(--ev-line);border-radius:8px;padding:12px;color:var(--ev-ink)}
+#appPage #apexUpNotes{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:12px}
+#appPage .apex-up-success{padding:12px;border-radius:8px;background:var(--ev-hero);color:var(--ev-accent)}
+#appPage .apex-update-studio [hidden]{display:none!important}
+
 @media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
 @media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 }
