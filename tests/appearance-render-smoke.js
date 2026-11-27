@@ -30,5 +30,44 @@ app.whenReady().then(async()=>{
  const expected={cobalt:'rgb(40, 87, 181)',indigo:'rgb(81, 69, 184)',teal:'rgb(8, 123, 120)',slate:'rgb(71, 85, 105)',emerald:'rgb(35, 115, 77)',burgundy:'rgb(148, 59, 96)',ocean:'rgb(23, 109, 155)'};
  for(const row of result){assert.equal(row.button,expected[row.accent],JSON.stringify(row));assert.equal(row.primary,expected[row.accent],JSON.stringify(row));assert.equal(row.shortcut,expected[row.accent],JSON.stringify(row));assert.match(row.art,/gradient/);assert.equal(row.rememberDisplay,'flex');assert.equal(row.checkbox,expected[row.accent],JSON.stringify(row));assert.equal(row.themeRemoved,true);assert.equal(row.inline,true,JSON.stringify(row));assert.equal(row.forgetBackground,'rgba(0, 0, 0, 0)',JSON.stringify(row));}
  for(const theme of ['light','dark']){const rows=result.filter(r=>r.theme===theme);assert.equal(new Set(rows.map(r=>r.art)).size,7,'login artwork must change');assert.equal(new Set(rows.map(r=>r.sidebar)).size,7,'sidebar must change');}
- console.log(JSON.stringify(result));finish(0);
+ const card=require('../src/device-summary');
+ const asset={id:'DEMO-01',serial:'DEMO',manufacturer:'HP',productType:'Laptop',status:'Processed',location:'Demo shelf',pallet:'DEMO-PALLET'};
+ const cardMarkup=card.card(asset,{labels:['Final checks / QC']},{value:'B',source:'Demo'},String,'Demo laptop');
+ const cards=await win.webContents.executeJavaScript('('+(async(markup)=>{
+  const root=document.documentElement;
+  root.classList.add('apex-v34');
+  const summary=document.querySelector('#assetSummary');summary.innerHTML=markup;
+  document.querySelector('#loginPage').classList.add('hidden');
+  document.querySelector('#appPage').classList.remove('hidden');
+  document.querySelector('#dashboardPage').classList.add('hidden');
+  const page=document.querySelector('#assetPage');page.classList.remove('hidden');page.dataset.section='overview';
+  const out=[];
+  for(const theme of ['light','dark'])for(const accent of ['cobalt','indigo','teal','slate','emerald','burgundy','ocean']){
+   root.dataset.theme=theme;root.dataset.apexDesign=theme==='dark'?'classic':'minimal';root.dataset.studioAccent=accent;
+   void document.body.offsetHeight;await new Promise(resolve=>setTimeout(resolve,300));
+   const style=s=>getComputedStyle(summary.querySelector(s));
+   const status=summary.querySelector('.device-card-status');
+   status.classList.remove('is-awaiting');status.classList.add('is-processed');
+   const processed=style('.device-card-status').backgroundColor;
+   status.classList.remove('is-processed');status.classList.add('is-awaiting');
+   const awaiting=style('.device-card-status').backgroundColor;
+   out.push({theme,accent,background:getComputedStyle(summary).backgroundColor,button:style('#assetPrintLabel').backgroundColor,buttonInk:style('#assetPrintLabel').color,location:style('.device-card-location').backgroundColor,art:style('.device-card-art').backgroundColor,processed,awaiting,heading:style('.device-card-heading h2').color});
+  }
+  return out;
+ }).toString()+')('+JSON.stringify(cardMarkup)+')');
+ const cardExpected={light:{cobalt:'rgb(32, 58, 91)',indigo:'rgb(48, 39, 93)',teal:'rgb(19, 70, 77)',slate:'rgb(50, 70, 91)',emerald:'rgb(24, 74, 53)',burgundy:'rgb(82, 36, 60)',ocean:'rgb(24, 72, 95)'},dark:{cobalt:'rgb(24, 43, 67)',indigo:'rgb(28, 24, 57)',teal:'rgb(16, 46, 51)',slate:'rgb(26, 41, 56)',emerald:'rgb(16, 45, 32)',burgundy:'rgb(52, 23, 42)',ocean:'rgb(17, 45, 65)'}};
+ for(const row of cards){
+  const detail=JSON.stringify(row);
+  assert.equal(row.background,cardExpected[row.theme][row.accent],detail);
+  assert.equal(row.button,row.location,detail);
+  assert.equal(row.art,row.location,detail);
+  assert.equal(row.processed,'rgb(22, 71, 56)',detail);
+  assert.equal(row.awaiting,'rgb(81, 65, 39)',detail);
+ }
+ for(const theme of ['light','dark']){
+  const rows=cards.filter(r=>r.theme===theme);
+  assert.equal(new Set(rows.map(r=>r.button)).size,7,'print buttons must follow all seven schemes');
+  assert.equal(new Set(rows.map(r=>r.buttonInk)).size,7,'print button text must follow all seven schemes');
+ }
+ console.log(JSON.stringify({appearance:result,deviceCards:cards}));finish(0);
 }).catch(error=>finish(1,error));

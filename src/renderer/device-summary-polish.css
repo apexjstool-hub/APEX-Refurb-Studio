@@ -18,3 +18,23 @@
 .apex-v34 #assetPage #assetSummary strong.device-card-status{color:var(--device-card-green)!important;background:var(--device-card-green-soft)!important;border-color:var(--device-card-green-line)!important}
 .apex-v34 #assetPage #assetSummary strong.device-card-status.is-awaiting{color:var(--device-card-amber)!important;background:var(--device-card-amber-soft)!important;border-color:var(--device-card-amber-line)!important}
 .apex-v34 #assetPage #assetSummary strong.device-card-location{background:var(--device-card-accent-soft)!important;color:var(--device-card-accent)!important}
+
+/* Evolution Appearance: preserve the original cobalt card, layout and semantic status colours.
+   All other schemes inherit the saved workstation palette; no changes to printing or asset data. */
+@media screen {
+ :root[data-layout="evolution"][data-studio-accent]:not([data-studio-accent="cobalt"]).apex-v34 #assetPage #assetSummary.mock-summary{
+  --device-card-bg:var(--studio-art);
+  --device-card-soft:color-mix(in srgb,var(--device-card-bg) 84%,var(--studio-highlight));
+  --device-card-line:color-mix(in srgb,var(--device-card-bg) 65%,var(--studio-highlight));
+  --device-card-ink:#f3f7fc;
+  --device-card-muted:color-mix(in srgb,#f3f7fc 80%,var(--studio-highlight));
+  --device-card-accent:var(--studio-highlight);
+  --device-card-accent-soft:color-mix(in srgb,var(--device-card-bg) 76%,var(--studio-highlight));
+ }
+ :root[data-layout="evolution"][data-theme="dark"][data-studio-accent]:not([data-studio-accent="cobalt"]).apex-v34 #assetPage #assetSummary.mock-summary{
+  --device-card-bg:var(--studio-deep);
+ }
+ :root[data-layout="evolution"].apex-v34 #assetPage #assetSummary.mock-summary #assetPrintLabel:focus-visible{
+  outline-color:var(--device-card-accent)!important;
+ }
+}
