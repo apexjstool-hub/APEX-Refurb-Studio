@@ -1,0 +1,19 @@
+@layer apexNativeChrome;
+@layer apexNativeChrome {
+ @media screen {
+  html[data-apex-native-window] { --apex-chrome-height:30px; --apex-chrome-bg:#F3F5F8; --apex-chrome-fg:#18263A; --apex-chrome-line:#DCE2E9; }
+  html[data-apex-native-window][data-theme="dark"] { --apex-chrome-bg:#111923; --apex-chrome-fg:#EDF3FB; --apex-chrome-line:#303E50; }
+  html[data-apex-native-window] body { padding-top:var(--apex-chrome-height)!important; height:100vh!important; overflow:hidden!important; }
+  html[data-apex-native-window] #apexNativeTitlebar { position:fixed!important; inset:0 0 auto 0!important; height:var(--apex-chrome-height)!important; display:flex!important; align-items:center!important; gap:8px!important; padding:0 160px 0 10px!important; background:var(--apex-chrome-bg)!important; color:var(--apex-chrome-fg)!important; border-bottom:1px solid var(--apex-chrome-line)!important; font:600 12px "Segoe UI",sans-serif!important; z-index:2147483647!important; user-select:none; -webkit-app-region:drag; app-region:drag; white-space:nowrap; overflow:hidden; }
+  html[data-apex-native-window] #apexNativeTitlebar span { overflow:hidden; text-overflow:ellipsis; }
+  html[data-apex-native-window] #apexNativeTitlebar img { flex:0 0 18px; object-fit:contain; }
+  html[data-apex-native-window] #appPage,
+  html[data-apex-native-window] #appPage #apexSidebar,
+  html[data-apex-native-window] #appPage main.main,
+  html[data-apex-native-window] #loginPage { height:calc(100vh - var(--apex-chrome-height))!important; min-height:0!important; max-height:calc(100vh - var(--apex-chrome-height))!important; }
+  html[data-apex-native-window] #loginPage { overflow:auto!important; }
+  html[data-apex-native-window][data-layout="classic"] #apexSidebar { top:var(--apex-chrome-height)!important; }
+  html[data-apex-native-window] #appPage.hidden,html[data-apex-native-window] #loginPage.hidden { display:none!important; }
+ }
+}
+@media print { #apexNativeTitlebar { display:none!important; } }

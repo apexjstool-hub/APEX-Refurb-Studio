@@ -26,6 +26,7 @@ const cloudSeenRevisions=new Map();
 let win,authenticated=false,authMode=null,cloudUserRole=null,loginFailures=0,nextAttempt=0,ownedHub=null,cloudProcess=null,cloudRunningSince=null,cloudLastMessage="";
 const userDir=()=>app.getPath('userData');
 const layoutPreference=require('./layout-preference');
+const windowChrome=require('./window-chrome');
 const dbPath=()=>path.join(userDir(),'inventory-db.json');
 const hubPath=()=>path.join(userDir(),'hub-connection.json');
 const demoItems=[
@@ -594,6 +595,10 @@ ipcMain.handle('inventory:updateCheck',()=>safe(()=>authenticated?updateCentre.c
 ipcMain.handle('inventory:updateDownload',()=>safe(()=>authenticated?updateCentre.download():{ok:false,error:'Sign in first.'}));
 ipcMain.handle('inventory:updateInstall',()=>safe(()=>authenticated?updateCentre.install():{ok:false,error:'Sign in first.'}));
 app.whenReady().then(()=>{
+ ipcMain.handle('inventory:windowTheme',(event,theme)=>safe(()=>{
+  if(!win||event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame||!windowChrome.validTheme(theme))return {ok:false,error:'Invalid window theme.'};
+  return {ok:windowChrome.apply(win,process.platform,theme)};
+ }));
  ipcMain.handle('inventory:layoutPreference', (event, layout)=>safe(()=>{
   if(!win||event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)return {ok:false,error:'Main window required.'};
   return layout===undefined?{ok:true,layout:layoutPreference.read(userDir())}:layoutPreference.write(userDir(),layout);
@@ -888,8 +893,12 @@ app.whenReady().then(()=>{
  // maintains its own snapshots, even when this Studio window is closed.
  const localAutoBackup=()=>{try{if(backupManager.due(userDir()))backupManager.snapshot({root:userDir(),files:localBackupFiles(),reason:'automatic'});}catch(e){console.error('Local backup:',e.message);}};
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
- win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#f5f7fb',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
- win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer',layoutPreference.read(userDir())==='classic'?'index.html':'index-evolution.html'));
+ win=new BrowserWindow({...windowChrome.options(process.platform),width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#f5f7fb',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+ windowChrome.configure(win,process.platform);
+ win.once('ready-to-show',async()=>{
+  if(process.platform==='win32'){try{const theme=await win.webContents.executeJavaScript("document.documentElement.dataset.theme");windowChrome.apply(win,process.platform,theme);}catch(e){console.warn('Window theme:',e.message);}}
+  if(win&&!win.isDestroyed())win.show();
+ });win.loadFile(path.join(__dirname,'renderer',layoutPreference.read(userDir())==='classic'?'index.html':'index-evolution.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
   win.on('close',event=>backgroundReminders?.interceptClose(event));
