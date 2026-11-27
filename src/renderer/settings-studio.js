@@ -31,7 +31,7 @@
  const append=(id,node)=>{if(node)pages.get(id).append(node);};
  append('updates',direct('apexUpdateCentre'));
  append('cloud',direct('apexSharedAccountPanel'));append('cloud',direct('apexAdvancedCloudSetup'));append('cloud',direct('apexCloudUrl'));
- append('devices',direct('apexPortableDevices'));append('notifications',direct('apexReminderSettings'));append('messages',direct('apexConnectMaintenance'));append('backups',direct('reliabilityPanel'));append('intake',direct('verificationPanel'));append('conflicts',direct('conflictPanel'));
+ append('devices',direct('apexPortableDevices'));append('notifications',direct('apexReminderSettings'));append('messages',direct('apexMessageNotificationSettings'));append('messages',direct('apexConnectMaintenance'));append('backups',direct('reliabilityPanel'));append('intake',direct('verificationPanel'));append('conflicts',direct('conflictPanel'));
  const stack=originalNodes.find(n=>n.classList.contains('settings-stack'));
  if(stack){
   for(const row of [...stack.children]){

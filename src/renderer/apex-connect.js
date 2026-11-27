@@ -31,7 +31,7 @@
  };
  const unreadTotal=()=>members.filter(m=>m.user_id!==me).reduce((n,m)=>n+unreadFor(m.user_id),unreadFor('team'));
  function animateNotification(){
-  if(document.visibilityState==='hidden')return;
+  if(document.visibilityState==='hidden'||root.ApexMessageNotices?.getPreferences?.().shake===false||document.documentElement?.dataset.studioMotion==='reduced')return;
   button.classList.remove('apex-connect-notify');
   // Restart CSS animation for a new arrival, even when the badge count is unchanged.
   void button.offsetWidth;
@@ -49,8 +49,10 @@
   const newest=inbound.reduce((max,m)=>Math.max(max,Number(m.id)||0),0);
   const arrivals=count>0&&(newest>lastInboundId||count>lastUnread);
   // Show existing unread messages after sign-in, not just newly arrived ones.
-  if((!initialisedUnread&&count>0)||(initialisedUnread&&arrivals)){animateNotification();const notice=root.ApexNotificationPolicy.describe(rows,members);root.ApexMessageNotices?.show(notice,()=>openNotice(notice.target));}
-  else if(count<lastUnread||count===0)root.ApexMessageNotices?.hide();
+  const notice=root.ApexNotificationPolicy.describe(rows,members);
+  if((!initialisedUnread&&count>0)||(initialisedUnread&&arrivals)){if(initialisedUnread||root.ApexMessageNotices?.getPreferences?.().atSignIn!==false)animateNotification();root.ApexMessageNotices?.show(notice,()=>openNotice(notice.target),false,{initial:!initialisedUnread});}
+  else if(count===0)root.ApexMessageNotices?.hide();
+  else root.ApexMessageNotices?.sync?.(notice,()=>openNotice(notice.target));
   initialisedUnread=true;lastUnread=count;lastInboundId=Math.max(lastInboundId,newest);
   button.setAttribute('aria-label',count?'APEX Connect, '+count+' unread message'+(count===1?'':'s'):'Open APEX Connect');
   button.title=count?count+' unread APEX message'+(count===1?'':'s'):'APEX Connect messages';

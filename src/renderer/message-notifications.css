@@ -24,3 +24,19 @@ html:not([data-apex-notification-session="active"]) :is(.apex-message-popup,.ape
 @keyframes apex-message-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){#appPage .apex-message-popup{animation:none!important}}
 html[data-studio-motion="reduced"] #appPage .apex-message-popup{animation:none!important}
+
+/* Workstation notification preferences: independent from cloud retention. */
+#appPage #apexMessageNotificationSettings .apex-message-notice-settings{border:0;margin-top:0;padding-top:0;gap:16px}
+#appPage .apex-notice-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#appPage .apex-notice-controls .apex-notice-toggle,#appPage .apex-notice-controls .apex-notice-field{display:flex;align-items:flex-start;gap:7px;padding:13px;border:1px solid var(--ev-line,var(--line));border-radius:9px;background:var(--ev-paper,var(--panel));min-width:0;font-size:12px}
+#appPage .apex-notice-controls .apex-notice-toggle{grid-column:1/-1;align-items:center;gap:11px}
+#appPage .apex-notice-toggle input{width:17px;height:17px;flex:0 0 17px;margin:0}
+#appPage .apex-notice-toggle span{display:grid;gap:4px;min-width:0}
+#appPage .apex-notice-toggle strong{font-size:12px}
+#appPage .apex-notice-toggle small,#appPage .apex-notice-field small{font-size:11px;color:var(--ev-muted,var(--muted));line-height:1.5}
+#appPage .apex-notice-controls .apex-notice-field{flex-direction:column;font-weight:650}
+#appPage .apex-notice-field select{width:100%;min-height:36px;padding:7px 9px;border:1px solid var(--ev-line,var(--line));border-radius:7px;color:var(--ev-ink,var(--text));background:var(--ev-paper,var(--panel));font-weight:500}
+#appPage .apex-notice-field.is-inactive select{opacity:.5;cursor:not-allowed}
+#appPage .apex-notice-explainer{line-height:1.6}
+#appPage #apexMessagePopupPreview{top:auto;bottom:150px;z-index:11001}
+@media(max-width:700px){#appPage .apex-notice-controls{grid-template-columns:1fr}}
