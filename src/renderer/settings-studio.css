@@ -1,0 +1,66 @@
+@layer studioSettings {
+@media screen {
+html[data-layout="evolution"][data-studio-font="segoe"]{--apex-ui-font:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif!important;--apex-heading-font:"Segoe UI Variable Display","Segoe UI",Arial,sans-serif!important}
+html[data-layout="evolution"][data-studio-font="inter"]{--apex-ui-font:"APEX Inter","Segoe UI",Arial,sans-serif!important;--apex-heading-font:var(--apex-ui-font)!important}
+html[data-layout="evolution"][data-studio-font="jakarta"]{--apex-ui-font:"APEX Jakarta","Segoe UI",Arial,sans-serif!important;--apex-heading-font:var(--apex-ui-font)!important}
+html[data-layout="evolution"][data-studio-font="arial"]{--apex-ui-font:Arial,sans-serif!important;--apex-heading-font:Arial,sans-serif!important}
+html[data-layout="evolution"]:is([data-studio-font="segoe"],[data-studio-font="inter"],[data-studio-font="jakarta"],[data-studio-font="arial"]) :is(#appPage,#loginPage){font-family:var(--apex-ui-font)!important}
+html[data-layout="evolution"][data-theme="light"][data-studio-accent="indigo"]{--ev-accent:#5145b8!important;--ev-active:#433d79!important;--ev-hero:#eeebff!important;--ev-hover:#f0edfc!important;--ev-hero-ink:#32276c!important}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="indigo"]{--ev-accent:#b8b1ff!important;--ev-active:#454078!important;--ev-hero:#39345c!important;--ev-hover:#35314f!important}
+html[data-layout="evolution"][data-theme="light"][data-studio-accent="teal"]{--ev-accent:#087b78!important;--ev-active:#285a65!important;--ev-hero:#e0f3ef!important;--ev-hover:#e9f7f4!important;--ev-hero-ink:#13534f!important}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="teal"]{--ev-accent:#73dcd0!important;--ev-active:#27565c!important;--ev-hero:#244b4d!important;--ev-hover:#254447!important}
+html[data-layout="evolution"][data-theme="light"][data-studio-accent="slate"]{--ev-accent:#475569!important;--ev-active:#455468!important;--ev-hero:#e7edf3!important;--ev-hover:#edf1f5!important;--ev-hero-ink:#263747!important}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="slate"]{--ev-accent:#c2cddc!important;--ev-active:#46586c!important;--ev-hero:#364554!important;--ev-hover:#344354!important}
+#appPage #sidebarUser[hidden],#appPage #topTheme[hidden],#appPage #settingsPage .studio-settings-page[hidden],#appPage .studio-profile-menu[hidden],#settingsPage .evo-settings-body>.page-intro[hidden]{display:none!important}
+#appPage #apexSidebar .evo-wordmark{display:grid!important;grid-template-columns:32px minmax(0,1fr)!important;align-items:center!important;column-gap:7px!important;row-gap:3px!important}
+#appPage #apexSidebar .studio-brand-icon{grid-row:1/3;width:32px;height:32px;object-fit:contain}
+#appPage #apexSidebar .evo-wordmark>span{font-size:26px!important;line-height:1!important}
+#appPage #apexSidebar .evo-wordmark small{font-size:7px!important;letter-spacing:.6px!important}
+body.apex-nav-collapsed #appPage #apexSidebar .evo-wordmark{display:none!important}
+#appPage .studio-profile{position:relative!important;flex:0 0 auto!important;min-width:0;z-index:20}
+#appPage .studio-profile-trigger{display:flex!important;align-items:center!important;gap:7px!important;background:transparent!important;color:var(--ev-ink)!important;border:1px solid transparent!important;border-radius:8px!important;padding:3px 6px!important;min-height:32px!important}
+#appPage .studio-profile-trigger:hover,#appPage .studio-profile-trigger[aria-expanded="true"]{background:var(--ev-soft)!important;border-color:var(--ev-line)!important}
+#appPage .studio-profile-trigger .header-username{display:block!important;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px!important}
+#appPage .studio-profile-chevron{font-size:16px;color:var(--ev-muted)}
+#appPage .studio-profile-menu{position:fixed!important;right:16px!important;top:calc(var(--apex-chrome-height,0px) + 49px)!important;z-index:1000!important;display:grid!important;gap:3px!important;width:220px!important;padding:7px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:10px!important;box-shadow:0 12px 38px #0003!important;color:var(--ev-ink)!important}
+#appPage .studio-profile-label{padding:8px 9px!important;color:var(--ev-muted)!important;font-size:11px!important;border-bottom:1px solid var(--ev-line)!important;overflow-wrap:anywhere}
+#appPage .studio-profile-action{border:0!important;background:transparent!important;text-align:left!important;color:var(--ev-ink)!important;padding:10px!important;border-radius:6px!important;font-size:12px!important}
+#appPage .studio-profile-action:hover{background:var(--ev-hover)!important}
+#appPage .studio-profile-danger{color:#b72e43!important}
+html[data-theme="dark"] #appPage .studio-profile-danger{color:#ff9cab!important}
+#appPage #settingsPage .evo-settings-layout{grid-template-columns:205px minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+#appPage #settingsPage .evo-settings-rail{position:sticky!important;top:52px!important;padding:10px!important;gap:8px!important;border-radius:10px!important}
+#appPage #settingsPage .studio-settings-index{padding:5px 8px;font-size:14px;color:var(--ev-ink)}
+#appPage #settingsPage .studio-settings-nav{display:grid!important;gap:3px!important}
+#appPage #settingsPage .studio-setting-link{display:block!important;text-align:left!important;min-height:32px!important;width:100%!important;border:1px solid transparent!important;background:transparent!important;color:var(--ev-muted)!important;border-radius:6px!important;padding:7px 10px!important;font-weight:550!important;font-size:12px!important}
+#appPage #settingsPage .studio-setting-link:hover{background:var(--ev-hover)!important;color:var(--ev-ink)!important}
+#appPage #settingsPage .studio-setting-link.is-current{background:var(--ev-soft)!important;color:var(--ev-accent)!important;border-color:var(--ev-line)!important;font-weight:700!important}
+#appPage #settingsPage .evo-settings-body{min-width:0!important;display:block!important}
+#appPage #settingsPage .studio-settings-page{display:grid!important;align-content:start;gap:12px!important;min-width:0}
+#appPage #settingsPage .studio-settings-page-head{padding:4px 0 9px!important;border-bottom:1px solid var(--ev-line)}
+#appPage #settingsPage .studio-settings-page-head h2{font-size:21px!important;margin:0 0 3px!important;color:var(--ev-ink)!important}
+#appPage #settingsPage .studio-settings-page-head p{margin:0!important;font-size:12px!important;color:var(--ev-muted)!important}
+#appPage #settingsPage .studio-settings-page>.settings-row,#appPage #settingsPage .studio-preference-card{background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;padding:16px!important;border-radius:10px!important}
+#appPage #settingsPage .studio-pref-label{display:block;font-size:13px;font-weight:650;margin-bottom:12px;color:var(--ev-ink)}
+#appPage #settingsPage .studio-pref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+#appPage #settingsPage .studio-pref-option{display:grid;gap:5px;text-align:left;padding:14px!important;background:var(--ev-paper)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important;border-radius:8px!important;min-height:84px!important}
+#appPage #settingsPage .studio-pref-option[aria-pressed="true"]{border-color:var(--ev-accent)!important;background:var(--ev-hover)!important;box-shadow:inset 0 0 0 1px var(--ev-accent)!important}
+#appPage #settingsPage .studio-pref-option small,#appPage #settingsPage .studio-pref-note{color:var(--ev-muted)!important;font-size:11px!important}
+#appPage #settingsPage [data-settings-view="colours"] .studio-pref-option:before{content:"";width:29px;height:19px;border-radius:4px;background:#2857b5}
+#appPage #settingsPage [data-preference="indigo"]:before{background:#5145b8!important}
+#appPage #settingsPage [data-preference="teal"]:before{background:#087b78!important}
+#appPage #settingsPage [data-preference="slate"]:before{background:#475569!important}
+#appPage #settingsPage .apex-admin-intro{margin-bottom:10px!important}
+#appPage #settingsPage .apex-admin-intro>.eyebrow{display:none!important}
+html[data-apex-page="settings"] #appPage #v3Topline{display:none!important}
+#loginPage .login-left{background:radial-gradient(ellipse at 100% 100%,#235ac2,transparent 70%),linear-gradient(145deg,#142c56,#10213d 65%,#193b73)!important}
+#loginPage .login-left::before{background-image:linear-gradient(#b4d5ff12 1px,transparent 1px),linear-gradient(90deg,#b4d5ff12 1px,transparent 1px)!important}
+#loginPage .login-hero h1 em,#loginPage .login-hero .eyebrow{color:#9bc4ff!important}
+#loginPage .login-hero p{color:#d3e2fa!important}
+#loginPage .sig-orbit{border-color:#b1d1ff33!important;box-shadow:0 0 0 30px #b1d1ff0b,0 0 0 65px #b1d1ff08!important}
+#loginPage .sig-tile{background:#24477b99!important;border-color:#a4c8ff44!important;color:#f1f6ff!important}
+#loginPage .sig-tile :is(small,span){color:#a4c8ff!important}
+@media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
+@media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+}
+}
