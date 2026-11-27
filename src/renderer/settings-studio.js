@@ -71,9 +71,7 @@
  prefs('motion','Animations','Respect Windows reduced-motion preferences or reduce interface motion further.',[['system','System default','Normal interface transitions'],['reduced','Reduced motion','Minimal movement']]);
  controls('appearance');
  refresh();
- const loginTheme=$('previewLoginTheme');
- if(loginTheme)loginTheme.onclick=()=>{try{saved=appearance.save(localStorage,{...saved,theme:saved.theme==='dark'?'light':'dark'});draft={...saved};appearance.apply(root,saved);applyTheme(saved.theme,false);refresh();$('apexDesignLoginMessage').textContent='Theme saved on this computer.';}catch{$('apexDesignLoginMessage').textContent='Unable to save theme.';}};
- // Keep the existing theme button alive for login shortcut, but remove it from main toolbar.
+ // The toolbar theme control remains hidden; appearance is changed only in Settings.
  const theme=$('topTheme');theme.hidden=true;theme.setAttribute('aria-hidden','true');theme.tabIndex=-1;
  const actions=document.querySelector('.topbar .top-actions'),avatar=actions.querySelector('.top-avatar'),name=actions.querySelector('.header-username');
  const profile=make('div','studio-profile'),trigger=make('button','studio-profile-trigger');trigger.type='button';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','studioProfileMenu');trigger.setAttribute('aria-label','Account options');

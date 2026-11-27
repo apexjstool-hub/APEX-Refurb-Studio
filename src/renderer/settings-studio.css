@@ -168,6 +168,39 @@ html[data-studio-text-size="large"] #appPage :is(.asset-table,.rw-work-table,.v3
 html[data-studio-text-size="large"] #appPage #apexSidebar .apex-nav-text,html[data-studio-text-size="large"] #appPage :is(.primary,.secondary,.v3-tab,.studio-setting-link){font-size:14px!important}
 html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#apexUpdateNotice),html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#apexUpdateNotice) *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 
+
+/* Login form: a compact credential flow without changing auth or saved-sign-in handlers. */
+#loginPage .login-panel{padding:30px 28px 46px!important}
+#loginPage #loginForm{width:100%!important;max-width:440px!important;padding:10px 4px!important;box-sizing:border-box!important}
+#loginPage #loginForm .preview-login-kicker{margin:0 0 18px!important;color:var(--ev-accent)!important;letter-spacing:1.2px!important}
+#loginPage #loginForm>.eyebrow{color:var(--ev-accent)!important;margin:0 0 5px!important}
+#loginPage #loginForm h2{font-size:clamp(27px,2.35vw,35px)!important;line-height:1.17!important;margin:0 0 8px!important;letter-spacing:-.9px!important}
+#loginPage #apexLoginDescription{margin:0 0 20px!important;color:var(--apex-muted)!important;line-height:1.5!important;font-size:13px!important}
+#loginPage #apexCloudCredentials{margin:0!important;gap:0!important}
+#loginPage #loginForm label:not(#apexRememberCloudBox){margin:0 0 14px!important;display:block!important;font-size:12px!important;font-weight:650!important}
+#loginPage #loginForm input:not([type=checkbox]){margin-top:6px!important;min-height:44px!important;height:44px!important;padding:10px 12px!important;font-size:13px!important;box-sizing:border-box!important;width:100%!important}
+#loginPage #loginForm .input-icon{position:relative!important}
+#loginPage #loginForm .input-icon input{padding-right:66px!important}
+#loginPage #loginForm .pass-toggle{top:calc(50% + 3px)!important;transform:translateY(-50%)!important;right:8px!important;min-height:28px!important;padding:4px 8px!important;border-radius:5px!important;color:var(--apex-muted)!important}
+#loginPage #loginForm .pass-toggle:hover{background:var(--ev-hero)!important;color:var(--ev-accent)!important}
+#loginPage #loginSavedHint{margin:-5px 0 10px!important;font-size:11px!important;color:var(--apex-muted)!important;line-height:1.4!important}
+#loginPage .studio-login-remember{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px 12px!important;margin:0 0 10px!important;min-width:0!important}
+#loginPage .studio-login-remember:not(:has(> :not(.hidden))){display:none!important}
+#loginPage #apexRememberCloudBox{flex:1 1 auto!important;min-width:0!important;margin:0!important;gap:7px!important;font-size:11.5px!important;line-height:1.4!important;white-space:normal!important}
+#loginPage #apexRememberCloud{accent-color:var(--studio-button)!important;width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;flex-basis:16px!important}
+#loginPage #apexForgetCloud{flex:0 0 auto!important;min-height:28px!important;background:transparent!important;box-shadow:none!important;border:0!important;padding:4px 0!important;margin:0!important;color:var(--ev-accent)!important;font-size:11.5px!important;font-weight:650!important;text-decoration:none!important;white-space:nowrap!important}
+#loginPage #apexForgetCloud:hover{text-decoration:underline!important;text-underline-offset:3px}
+#loginPage #apexForgetCloud.hidden,#loginPage #apexRememberCloudBox.hidden,#loginPage #loginSavedHint.hidden{display:none!important}
+#loginPage #apexLoginHelp{margin:0 0 15px!important;font-size:11.5px!important;color:var(--apex-muted)!important;line-height:1.5!important}
+#loginPage #loginError:empty,#loginPage #apexDesignLoginMessage:empty{display:none!important}
+#loginPage #loginForm button[type="submit"]{min-height:46px!important;margin:0!important;border-radius:9px!important;font-size:14px!important;font-weight:700!important;box-shadow:0 3px 8px #00000012!important}
+#loginPage #loginForm .apex-login-modes{margin:12px 0 0!important}
+#loginPage #loginForm .apex-login-modes button{font-size:11.5px!important;color:var(--apex-muted)!important;min-height:26px!important;text-decoration:none!important;padding:4px 0!important}
+#loginPage #loginForm .apex-login-modes button:hover{color:var(--ev-accent)!important;text-decoration:underline!important}
+#loginPage .login-panel-footer{bottom:14px!important;font-size:9px!important}
+@media(max-height:760px){#loginPage .login-panel{padding:14px 20px 35px!important}#loginPage #loginForm .preview-login-kicker{margin-bottom:12px!important}#loginPage #apexLoginDescription{margin-bottom:13px!important}#loginPage #loginForm label:not(#apexRememberCloudBox){margin-bottom:10px!important}}
+@media(max-width:450px){#loginPage .studio-login-remember{justify-content:flex-start!important}#loginPage .login-panel{padding-inline:20px!important}}
+
 @media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
 @media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 }
