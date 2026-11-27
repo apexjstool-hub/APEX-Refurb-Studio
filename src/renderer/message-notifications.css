@@ -1,7 +1,7 @@
 
 /* Signed-in notification layer; do not reveal inventory or sender names at login. */
 html:not([data-apex-notification-session="active"]) :is(.apex-message-popup,.apex-parts-order-notice){display:none!important}
-#appPage .apex-message-popup{position:fixed;top:var(--apex-message-top,calc(var(--apex-chrome-height,0px) + 74px));bottom:auto;right:16px;z-index:11000;box-sizing:border-box;width:min(310px,calc(100vw - 24px));background:var(--ev-paper,var(--panel,#fff));border:1px solid var(--ev-line,var(--line,#dce3ed));border-radius:11px;padding:10px;color:var(--ev-ink,var(--text,#17283c));box-shadow:0 8px 26px #0002;user-select:none;font-family:var(--apex-ui-font,inherit);animation:apex-message-in .22s ease-out}
+#appPage .apex-message-popup{position:fixed;top:var(--apex-message-top,calc(var(--apex-chrome-height,0px) + 84px))!important;bottom:auto;right:16px;z-index:11000;box-sizing:border-box;width:min(310px,calc(100vw - 24px));background:var(--ev-paper,var(--panel,#fff));border:1px solid var(--ev-line,var(--line,#dce3ed));border-radius:11px;padding:10px;color:var(--ev-ink,var(--text,#17283c));box-shadow:0 8px 26px #0002;user-select:none;font-family:var(--apex-ui-font,inherit);animation:apex-message-in .22s ease-out}
 #appPage .apex-message-popup-top{display:flex;gap:8px;align-items:flex-start}
 #appPage .apex-message-popup-icon{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;border-radius:8px;background:var(--ev-hero,#e8effb);color:var(--ev-accent,#2857b5)}
 #appPage .apex-message-popup-copy{min-width:0;flex:1;display:grid;gap:2px}
@@ -43,3 +43,6 @@ html[data-studio-motion="reduced"] #appPage .apex-message-popup{animation:none!i
 #appPage .apex-message-popup-icon svg{width:18px;height:18px}
 #appPage .apex-message-popup button:focus-visible{outline:2px solid var(--ev-accent,#2857b5);outline-offset:2px}
 @media(max-width:700px){#appPage .apex-notice-controls{grid-template-columns:1fr}}
+
+/* The toolbar wraps on narrower windows; retain clearance before measurement. */
+@media(max-width:1100px){#appPage .apex-message-popup{top:var(--apex-message-top,calc(var(--apex-chrome-height,0px) + 100px))!important}}

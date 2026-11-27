@@ -82,7 +82,7 @@ app.whenReady().then(async()=>{
   window.ApexMessageNotices.show(data,null,true,{preferences});
   const preview=get('apexMessagePopupPreview'),bar=document.querySelector('#appPage .topbar');
   const bounds=el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,right:r.right,width:r.width,height:r.height};};
-  const before=bounds(preview),header=bounds(bar);
+  const before=bounds(preview),header=bounds(bar);const previewTop={inline:preview.style.top,custom:preview.style.getPropertyValue('--apex-message-top'),computed:getComputedStyle(preview).top};
   window.ApexMessageNotices.show(data,()=>{});
   const popup=get('apexMessagePopup');
   window.ApexMessageNotices.show({...data,count:4},()=>{});
@@ -90,7 +90,7 @@ app.whenReady().then(async()=>{
   const same=popup===get('apexMessagePopup'),single=document.querySelectorAll('.apex-message-popup').length===1;
   const title=popup.querySelector('[data-notice-title]').textContent;
   window.ApexNotificationSession.stop();
-  return {before,header,real,same,single,title,viewport:innerWidth,cleared:!get('apexMessagePopup')&&!get('apexMessagePopupPreview')};
+  return {before,header,real,previewTop,same,single,title,viewport:innerWidth,cleared:!get('apexMessagePopup')&&!get('apexMessagePopupPreview')};
  }).toString()+')()');
  assert.ok(notice.before.top>=notice.header.bottom+8,JSON.stringify(notice));
  assert.ok(notice.real.top>=notice.header.bottom+8,JSON.stringify(notice));

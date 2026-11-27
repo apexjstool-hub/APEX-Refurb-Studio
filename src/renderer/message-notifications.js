@@ -10,7 +10,14 @@
  function position(card){
   const bar=document.querySelector?.('#appPage .topbar');
   const rect=bar?.getBoundingClientRect();
-  if(rect&&rect.height>0)card.style.setProperty('--apex-message-top',Math.ceil(rect.bottom+10)+'px');
+  if(rect&&rect.height>0){
+   const top=Math.ceil(rect.bottom+10)+'px';
+   card.style.setProperty('--apex-message-top',top);
+   // Apply the measured viewport position directly as well: older layout rules
+   // and custom-property resolution must not leave the popup at its fallback.
+   card.style.setProperty('top',top,'important');
+   card.style.setProperty('bottom','auto','important');
+  }
  }
  function reposition(){for(const id of ['apexMessagePopup','apexMessagePopupPreview']){const card=$(id);if(card)position(card);}}
  root.addEventListener('resize',reposition);
