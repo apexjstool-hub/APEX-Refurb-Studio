@@ -1,0 +1,31 @@
+@media screen {
+#actionCentrePage{color:var(--apex-text,var(--text));min-width:0}
+#actionCentrePage .ac-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
+#actionCentrePage .ac-heading h2{margin:0;font-size:20px;letter-spacing:-.025em}
+#actionCentrePage .ac-heading p,#actionCentrePage .ac-status{margin:4px 0;font-size:12px;color:var(--apex-muted,var(--muted))}
+#actionCentrePage .ac-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+#actionCentrePage .ac-metric{display:flex;align-items:center;justify-content:space-between;text-align:left;gap:8px;min-height:64px;padding:10px 14px;border:1px solid var(--apex-border,var(--line));border-radius:10px;background:var(--apex-surface,var(--panel));color:var(--apex-text,var(--text));cursor:pointer}
+#actionCentrePage .ac-metric strong{font-size:26px;font-variant-numeric:tabular-nums}
+#actionCentrePage .ac-metric:hover{background:var(--apex-hover,var(--panel2))}
+#actionCentrePage .ac-card,#acSettings{background:var(--apex-surface,var(--panel));border:1px solid var(--apex-border,var(--line));border-radius:10px;padding:10px}
+#actionCentrePage .ac-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+#actionCentrePage .ac-tools input{flex:1;min-width:150px}
+#actionCentrePage .ac-tools :is(input,select){min-height:32px;max-width:100%;font-size:12px}
+#actionCentrePage .ac-tools select{width:auto}
+#actionCentrePage .ac-table-wrap{overflow-x:auto}
+#actionCentrePage .ac-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+#actionCentrePage .ac-table th{background:var(--apex-raised,var(--panel2));font-weight:600;padding:9px 8px;white-space:nowrap}
+#actionCentrePage .ac-table td{padding:8px;border-bottom:1px solid var(--apex-border,var(--line));vertical-align:middle}
+#actionCentrePage .ac-table td small{display:block;color:var(--apex-muted,var(--muted));margin-top:3px;max-width:360px;overflow-wrap:anywhere}
+#actionCentrePage .ac-table td strong{font-weight:600}
+#actionCentrePage .ac-priority{display:inline-block;font-weight:600;font-size:11px;white-space:nowrap}
+#actionCentrePage .ac-urgent{color:#b9323e}#actionCentrePage .ac-attention{color:#9a620c}#actionCentrePage .ac-ready{color:#197349}
+html[data-theme="dark"] #actionCentrePage .ac-urgent{color:#ff9da4}html[data-theme="dark"] #actionCentrePage .ac-attention{color:#f6cf7e}html[data-theme="dark"] #actionCentrePage .ac-ready{color:#8fe2ac}
+#actionCentrePage .ac-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px}
+#actionCentrePage .ac-footer div{display:flex;align-items:center;gap:8px}
+#actionCentrePage .ac-empty{text-align:center;padding:28px!important;color:var(--apex-muted,var(--muted))}
+#actionCentrePage .ac-open{white-space:nowrap}
+#actionCentreBadge{background:#c43b49!important;color:white!important;font-size:10px!important;line-height:18px!important;min-width:18px!important;text-align:center!important;padding:0 4px!important;border-radius:20px!important}
+#actionCentreBadge[hidden],#actionCentrePage [hidden]{display:none!important}
+#acSettings{margin:10px 0}#acSettings h3{margin:0 0 5px}#acSettings .ac-settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}#acSettings label{display:grid;gap:5px}#acSettingsStatus{margin-left:8px}
+}
