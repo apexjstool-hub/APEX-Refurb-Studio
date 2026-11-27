@@ -74,6 +74,7 @@ app.whenReady().then(async()=>{
   await win.webContents.executeJavaScript(fs.readFileSync(path.join(renderer,script),'utf8'));
  }
  const notice=await win.webContents.executeJavaScript('('+(async()=>{
+  document.documentElement.dataset.studioMotion='reduced'; // measure settled placement, not the entrance animation
   window.ApexNotificationSession.start();
   const preferences={...window.ApexMessageNoticePreferences.defaults,mode:'manual'};
   const data={count:2,senders:['Example colleague'],extra:0,target:'demo'};
