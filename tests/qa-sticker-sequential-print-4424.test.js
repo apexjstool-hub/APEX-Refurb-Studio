@@ -2,21 +2,22 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const labels=require('../src/custom-labels');
 
-function setup(){
+function setup(overrides={}){
  const nodes=new Map(), get=id=>{
   if(!nodes.has(id))nodes.set(id,{id,value:({qaSize:'2x1',qaDpi:'203',qaCopies:'1'})[id]||'',disabled:false,isConnected:true,textContent:'',dataset:{},style:{},innerHTML:'',src:'',srcdoc:'',onload:null,removeAttribute(){},focus(){}});
   return nodes.get(id);
  };
- const prints=[],pdfs=[];let saved={technicians:['JAMIE SALE'],templates:[],revision:0,lastQa:null};
+ const prints=[],pdfs=[],messages=[];let saved={technicians:['JAMIE SALE'],templates:[],revision:0,lastQa:null};
  const api={
   async labelStudioSettings(input){
    if(input.action==='get')return {ok:true,settings:{...saved}};
+   if(overrides.save)await overrides.save(input);
    if(input.expectedRevision!==saved.revision)throw Error('Stale settings');
    saved={technicians:input.technicians,templates:input.templates,revision:saved.revision+1,lastQa:input.lastQa??null};
    return {ok:true,settings:{...saved}};
   },
-  async printAssetLabel(payload){prints.push(structuredClone(payload));return {ok:true};},
-  async saveLabelPdf(payload){pdfs.push(structuredClone(payload));return {ok:true};}
+  async printAssetLabel(payload){prints.push(structuredClone(payload));return overrides.print?overrides.print(payload):{ok:true};},
+  async saveLabelPdf(payload){pdfs.push(structuredClone(payload));return overrides.pdf?overrides.pdf(payload):{ok:true};}
  };
  const window={
   ApexCustomLabels:labels,
@@ -25,11 +26,11 @@ function setup(){
  };
  let currentPage='qaStickers';
  const ctx={window,URL,location:{href:'file:///app/index.html'},APEX_LABEL_SIZES:{'2x1':[50.8,25.4]},ApexCustomLabels:labels,api,
-  $:get,notify(){},currentPage,setPage(page){ctx.currentPage=page;return true;},
+  $:get,notify(message){messages.push(message);},currentPage,setPage(page){ctx.currentPage=page;return true;},
   showModal(){},closeModal(){},console};
  vm.createContext(ctx);
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/renderer/label-studio.js'),'utf8'),ctx);
- return {get,ctx,prints,pdfs,saved:()=>saved};
+ return {get,ctx,prints,pdfs,messages,saved:()=>saved,recreate(){for(const n of nodes.values())n.isConnected=false;nodes.clear();}};
 }
 
 async function tick(){await new Promise(resolve=>setImmediate(resolve));}
@@ -66,4 +67,22 @@ test('Create a different QA serial after printing supports PDF without reloading
  assert.equal(h.get('qaPdf').disabled,false);
  await h.get('qaPdf').onclick();await tick();
  assert.equal(h.pdfs.length,1);assert.equal(h.pdfs[0].qa.serial,'SERIAL-B');
+});
+
+async function create(h){h.ctx.window.ApexLabelStudio.open('qaStickers');await tick();h.get('qaTechnician').value='JAMIE SALE';h.get('qaSerial').value='DEMO-RECOVERY';h.get('qaSerial').oninput();await h.get('qaCreate').onclick();}
+test('cancelled and failed native print restores both buttons without changing the saved sticker',async()=>{
+ let attempt=0;const h=setup({print:()=>{attempt++;if(attempt===1)return {ok:false,cancelled:true};if(attempt===2)throw Error('Printer unavailable');return {ok:true};}});
+ await create(h);const date=h.saved().lastQa.createdDate;
+ for(let i=0;i<3;i++){await h.get('qaPrint').onclick();assert.equal(h.get('qaPrint').disabled,false);assert.equal(h.get('qaPdf').disabled,false);}
+ assert.equal(h.prints.length,3);assert.equal(h.saved().lastQa.createdDate,date);
+});
+test('recreated QA controls recover when an outstanding print completes',async()=>{
+ let finish;const h=setup({print:()=>new Promise(resolve=>{finish=resolve;})});await create(h);
+ const pending=h.get('qaPrint').onclick();assert.equal(h.get('qaPrint').disabled,true);
+ h.recreate();await h.ctx.window.ApexLabelStudio.reload();assert.equal(h.get('qaPrint').disabled,true);
+ finish({ok:false,cancelled:true});await pending;assert.equal(h.get('qaPrint').disabled,false);assert.equal(h.get('qaPdf').disabled,false);
+});
+test('failed recreation of an already valid sticker keeps it printable',async()=>{
+ let fail=false;const h=setup({save:()=>{if(fail)throw Error('Save failed');}});await create(h);
+ fail=true;await h.get('qaCreate').onclick();assert.equal(h.get('qaPrint').disabled,false);assert.equal(h.get('qaPdf').disabled,false);
 });

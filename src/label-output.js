@@ -1,5 +1,6 @@
 'use strict';
 const {BrowserWindow,dialog}=require('electron'),path=require('node:path'),fs=require('node:fs');
+const {withDeadline,printWithDeadline}=require('./label-print-recovery');
 const sizes={'2x1':[50.8,25.4],'50x25':[50,25],'50x30':[50,30],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
 function sanitise(input){
  if(!input||!sizes[input.size]||!['asset','assetDevice','refurb','custom','qa'].includes(input.type)||![203,300,600].includes(input.dpi))throw Error('Invalid label settings.');
@@ -14,29 +15,29 @@ function sanitise(input){
  })():null;
  const cleaned=records.map(normalise);return {record:cleaned[0],...(cleaned.length>1?{records:cleaned}:{}),size:input.size,type:input.type,dpi:input.dpi,preview:false,...(input.type==='custom'?{template:require('./custom-labels').template(input.template)}:{}),...(input.type==='qa'?{qa:require('./custom-labels').qa(input.qa)}:{}),...(assetOptions?{assetOptions}:{})};
 }
-async function renderLabelDocument(input){
+async function renderLabelDocument(input,parent){
  const payload=sanitise(input),[w,h]=sizes[payload.size];
- const window=new BrowserWindow({show:false,width:600,height:400,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,backgroundThrottling:false}});
+ const window=new BrowserWindow({show:false,width:600,height:400,...(payload.type==='qa'&&parent&&!parent.isDestroyed()?{parent}:{}),webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,backgroundThrottling:false}});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
  try{
-  await window.loadFile(path.join(__dirname,'renderer/asset-label-page.html'),{query:{label:JSON.stringify(payload)}});
-  const error=await window.webContents.executeJavaScript('(async()=>{await window.apexLabelReady;return window.apexLabelError||null;})()');
+  await withDeadline(window.loadFile(path.join(__dirname,'renderer/asset-label-page.html'),{query:{label:JSON.stringify(payload)}}),20000,'Label document did not load. Please retry.');
+  const error=await withDeadline(window.webContents.executeJavaScript('(async()=>{if(!window.apexLabelReady)throw Error("Label renderer not ready.");await window.apexLabelReady;return window.apexLabelError||null;})()'),20000,'Label preparation timed out. Please retry.');
   if(error)throw Error(error);
   return {window,payload,w,h};
- }catch(error){window.destroy();throw error;}
+ }catch(error){if(!window.isDestroyed())window.destroy();throw error;}
 }
 function pdfOptions(w,h){return {pageSize:{width:Math.min(w,h)/25.4,height:Math.max(w,h)/25.4},preferCSSPageSize:true,printBackground:true,landscape:w>h,scale:1,margins:{top:0,bottom:0,left:0,right:0}};}
 function printerOptions(w,h,dpi){return {silent:false,pageSize:{width:Math.min(w,h)*1000,height:Math.max(w,h)*1000},landscape:w>h,scaleFactor:100,margins:{marginType:'none'},printBackground:true,copies:1,dpi:{horizontal:dpi,vertical:dpi}};}
 async function outputLabel(input,parent,mode){
  let rendered;
  try{
-  rendered=await renderLabelDocument(input);const {window,w,h,payload}=rendered;
+  rendered=await renderLabelDocument(input,parent);const {window,w,h,payload}=rendered;
   if(mode==='pdf'){
    const selected=await dialog.showSaveDialog(parent,{title:'Save label PDF ('+w+' × '+h+' mm)',defaultPath:'APEX-'+(payload.records?payload.records.length+'-labels':payload.record.id.replace(/[^a-zA-Z0-9_-]/g,'_'))+'-'+payload.type+'.pdf',filters:[{name:'PDF label',extensions:['pdf']}]});
    if(selected.canceled||!selected.filePath)return {ok:false,cancelled:true};
-   const pdf=await window.webContents.printToPDF(pdfOptions(w,h));await fs.promises.writeFile(selected.filePath,pdf);return {ok:true};
+   const pdf=await withDeadline(window.webContents.printToPDF(pdfOptions(w,h)),30000,'PDF preparation timed out. Please retry.');await fs.promises.writeFile(selected.filePath,pdf);return {ok:true};
   }
-  return await new Promise(resolve=>window.webContents.print(printerOptions(w,h,payload.dpi),(success,reason)=>resolve(success?{ok:true}:{ok:false,error:reason||'Printing was cancelled.'})));
+  return await printWithDeadline(window.webContents,printerOptions(w,h,payload.dpi),180000);
  }catch(error){return {ok:false,error:error.message};}
  finally{if(rendered&&!rendered.window.isDestroyed())rendered.window.destroy();}
 }
