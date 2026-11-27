@@ -898,7 +898,7 @@ app.whenReady().then(()=>{
  win.once('ready-to-show',async()=>{
   if(process.platform==='win32'){try{const theme=await win.webContents.executeJavaScript("document.documentElement.dataset.theme");windowChrome.apply(win,process.platform,theme);}catch(e){console.warn('Window theme:',e.message);}}
   if(win&&!win.isDestroyed())win.show();
- });win.loadFile(path.join(__dirname,'renderer',layoutPreference.read(userDir())==='classic'?'index.html':'index-evolution.html'));
+ });win.loadFile(path.join(__dirname,'renderer','index-evolution.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
   win.on('close',event=>backgroundReminders?.interceptClose(event));

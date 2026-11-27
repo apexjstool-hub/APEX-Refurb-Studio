@@ -409,13 +409,13 @@ document.addEventListener('visibilitychange',()=>{
 updateConnection();
 // One preference for login and all workspace pages. Apply before sign-in to avoid flashing themes.
 const appearanceKey='apex-inventory-appearance-v1';
-function applyTheme(theme){
+function applyTheme(theme,persist=true){
  const mode=theme==='light'?'light':'dark';document.documentElement.dataset.theme=mode;document.documentElement.dataset.apexDesign=mode==='light'?'minimal':'classic';
- try{localStorage.setItem(appearanceKey,mode);}catch{}
+ if(persist){try{if(window.ApexAppearance){const next={...window.ApexAppearance.read(localStorage),theme:mode};window.ApexAppearance.apply(document.documentElement,window.ApexAppearance.save(localStorage,next));}else localStorage.setItem(appearanceKey,mode);}catch{}}
  const button=$('topTheme');if(button)button.innerHTML=mode==='dark'?'☀ <span>Light</span>':'☾ <span>Dark</span>';
  document.querySelectorAll('[data-set-theme]').forEach(b=>{b.classList.toggle('selected',b.dataset.setTheme===mode);b.setAttribute('aria-pressed',String(b.dataset.setTheme===mode));});
 }
-try{applyTheme(localStorage.getItem(appearanceKey)||'light');}catch{applyTheme('light');}
+try{applyTheme(window.ApexAppearance?window.ApexAppearance.read(localStorage).theme:localStorage.getItem(appearanceKey)||'light',false);}catch{applyTheme('light',false);}
 $('topTheme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 document.querySelectorAll('[data-set-theme]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.setTheme));
 

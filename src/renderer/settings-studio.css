@@ -5,12 +5,14 @@ html[data-layout="evolution"][data-studio-font="inter"]{--apex-ui-font:"APEX Int
 html[data-layout="evolution"][data-studio-font="jakarta"]{--apex-ui-font:"APEX Jakarta","Segoe UI",Arial,sans-serif!important;--apex-heading-font:var(--apex-ui-font)!important}
 html[data-layout="evolution"][data-studio-font="arial"]{--apex-ui-font:Arial,sans-serif!important;--apex-heading-font:Arial,sans-serif!important}
 html[data-layout="evolution"]:is([data-studio-font="segoe"],[data-studio-font="inter"],[data-studio-font="jakarta"],[data-studio-font="arial"]) :is(#appPage,#loginPage){font-family:var(--apex-ui-font)!important}
-html[data-layout="evolution"][data-theme="light"][data-studio-accent="indigo"]{--ev-accent:#5145b8!important;--ev-active:#433d79!important;--ev-hero:#eeebff!important;--ev-hover:#f0edfc!important;--ev-hero-ink:#32276c!important}
-html[data-layout="evolution"][data-theme="dark"][data-studio-accent="indigo"]{--ev-accent:#b8b1ff!important;--ev-active:#454078!important;--ev-hero:#39345c!important;--ev-hover:#35314f!important}
-html[data-layout="evolution"][data-theme="light"][data-studio-accent="teal"]{--ev-accent:#087b78!important;--ev-active:#285a65!important;--ev-hero:#e0f3ef!important;--ev-hover:#e9f7f4!important;--ev-hero-ink:#13534f!important}
-html[data-layout="evolution"][data-theme="dark"][data-studio-accent="teal"]{--ev-accent:#73dcd0!important;--ev-active:#27565c!important;--ev-hero:#244b4d!important;--ev-hover:#254447!important}
-html[data-layout="evolution"][data-theme="light"][data-studio-accent="slate"]{--ev-accent:#475569!important;--ev-active:#455468!important;--ev-hero:#e7edf3!important;--ev-hover:#edf1f5!important;--ev-hero-ink:#263747!important}
-html[data-layout="evolution"][data-theme="dark"][data-studio-accent="slate"]{--ev-accent:#c2cddc!important;--ev-active:#46586c!important;--ev-hero:#364554!important;--ev-hover:#344354!important}
+html[data-layout="evolution"][data-studio-accent="cobalt"]{--studio-button:#2857B5;--studio-art:#142C56;--studio-deep:#10213D;--studio-glow:#235AC2;--studio-highlight:#9BC4FF;--studio-navmark:#9BC4FF;--ev-accent:#2857B5!important;--ev-onaccent:#fff!important;--ev-nav:#142239!important;--ev-active:#344D77!important;--ev-hero:#E4EDFF!important;--ev-hover:#EDF3FC!important;--ev-hero-ink:#10213D!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="cobalt"]{--ev-accent:#9CBDFF!important;--ev-onaccent:#101A2A!important;--ev-nav:#101A2A!important;--ev-active:#304B76!important;--ev-hero:#263D61!important;--ev-hover:#263951!important;--ev-hero-ink:#edf3fb!important;}
+html[data-layout="evolution"][data-studio-accent="indigo"]{--studio-button:#5145B8;--studio-art:#30275D;--studio-deep:#1C1839;--studio-glow:#6854BC;--studio-highlight:#C4B9FF;--studio-navmark:#C4B9FF;--ev-accent:#5145B8!important;--ev-onaccent:#fff!important;--ev-nav:#252143!important;--ev-active:#514579!important;--ev-hero:#EEEBFF!important;--ev-hover:#F0EDFC!important;--ev-hero-ink:#1C1839!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="indigo"]{--ev-accent:#B8B1FF!important;--ev-onaccent:#1C1933!important;--ev-nav:#1C1933!important;--ev-active:#454078!important;--ev-hero:#39345C!important;--ev-hover:#35314F!important;--ev-hero-ink:#edf3fb!important;}
+html[data-layout="evolution"][data-studio-accent="teal"]{--studio-button:#087B78;--studio-art:#13464D;--studio-deep:#102E33;--studio-glow:#138982;--studio-highlight:#A2EEE4;--studio-navmark:#A2EEE4;--ev-accent:#087B78!important;--ev-onaccent:#fff!important;--ev-nav:#12363B!important;--ev-active:#285A65!important;--ev-hero:#E0F3EF!important;--ev-hover:#E9F7F4!important;--ev-hero-ink:#102E33!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="teal"]{--ev-accent:#73DCD0!important;--ev-onaccent:#10282C!important;--ev-nav:#10282C!important;--ev-active:#27565C!important;--ev-hero:#244B4D!important;--ev-hover:#254447!important;--ev-hero-ink:#edf3fb!important;}
+html[data-layout="evolution"][data-studio-accent="slate"]{--studio-button:#475569;--studio-art:#32465B;--studio-deep:#1A2938;--studio-glow:#607A98;--studio-highlight:#D3E4F8;--studio-navmark:#D3E4F8;--ev-accent:#475569!important;--ev-onaccent:#fff!important;--ev-nav:#263343!important;--ev-active:#455468!important;--ev-hero:#E7EDF3!important;--ev-hover:#EDF1F5!important;--ev-hero-ink:#1A2938!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="slate"]{--ev-accent:#C2CDDC!important;--ev-onaccent:#1B2633!important;--ev-nav:#1B2633!important;--ev-active:#46586C!important;--ev-hero:#364554!important;--ev-hover:#344354!important;--ev-hero-ink:#edf3fb!important;}
 #appPage #sidebarUser[hidden],#appPage #topTheme[hidden],#appPage #settingsPage .studio-settings-page[hidden],#appPage .studio-profile-menu[hidden],#settingsPage .evo-settings-body>.page-intro[hidden]{display:none!important}
 #appPage #apexSidebar .evo-wordmark{display:grid!important;grid-template-columns:32px minmax(0,1fr)!important;align-items:center!important;column-gap:7px!important;row-gap:3px!important}
 #appPage #apexSidebar .studio-brand-icon{grid-row:1/3;width:32px;height:32px;object-fit:contain}
@@ -53,13 +55,42 @@ html[data-theme="dark"] #appPage .studio-profile-danger{color:#ff9cab!important}
 #appPage #settingsPage .apex-admin-intro{margin-bottom:10px!important}
 #appPage #settingsPage .apex-admin-intro>.eyebrow{display:none!important}
 html[data-apex-page="settings"] #appPage #v3Topline{display:none!important}
-#loginPage .login-left{background:radial-gradient(ellipse at 100% 100%,#235ac2,transparent 70%),linear-gradient(145deg,#142c56,#10213d 65%,#193b73)!important}
-#loginPage .login-left::before{background-image:linear-gradient(#b4d5ff12 1px,transparent 1px),linear-gradient(90deg,#b4d5ff12 1px,transparent 1px)!important}
-#loginPage .login-hero h1 em,#loginPage .login-hero .eyebrow{color:#9bc4ff!important}
-#loginPage .login-hero p{color:#d3e2fa!important}
-#loginPage .sig-orbit{border-color:#b1d1ff33!important;box-shadow:0 0 0 30px #b1d1ff0b,0 0 0 65px #b1d1ff08!important}
-#loginPage .sig-tile{background:#24477b99!important;border-color:#a4c8ff44!important;color:#f1f6ff!important}
-#loginPage .sig-tile :is(small,span){color:#a4c8ff!important}
+html[data-layout="evolution"]{--studio-button:#2857B5;--studio-art:#142C56;--studio-deep:#10213D;--studio-glow:#235AC2;--studio-highlight:#9BC4FF;--studio-navmark:#9BC4FF}
+html[data-layout="evolution"] #appPage{--apex-accent:var(--ev-accent)!important;--apex-accent-strong:var(--ev-accent)!important;--violet:var(--ev-accent)!important;--violet2:var(--studio-button)!important;accent-color:var(--studio-button)}
+#appPage #apexSidebar{background:var(--ev-nav)!important}
+#appPage #apexSidebar .menu-item.active{background:var(--ev-active)!important;box-shadow:inset 3px 0 var(--studio-navmark)!important}
+#appPage #apexSidebar .evo-mark-dot{color:var(--studio-highlight)!important}
+#appPage .primary:not(:disabled){background:var(--studio-button)!important;border-color:var(--studio-button)!important;color:#fff!important}
+#appPage :is(.asset-link,.text-button,.v34-legend-row){color:var(--ev-accent)!important}
+#appPage :is(.v3-tab.selected,.v3-tab[aria-selected="true"]){color:var(--ev-accent)!important;border-bottom-color:var(--ev-accent)!important}
+#loginPage .login-left{background:radial-gradient(ellipse at 100% 100%,var(--studio-glow),transparent 70%),linear-gradient(145deg,var(--studio-art),var(--studio-deep) 65%,var(--studio-art))!important}
+#loginPage .login-left::before{background-image:linear-gradient(#ffffff12 1px,transparent 1px),linear-gradient(90deg,#ffffff12 1px,transparent 1px)!important}
+#loginPage .login-hero h1 em,#loginPage .login-hero .eyebrow{color:var(--studio-highlight)!important}
+#loginPage .login-hero p{color:#e1e8f4!important}
+#loginPage .sig-orbit{border-color:#ffffff33!important;box-shadow:0 0 0 30px #ffffff0b,0 0 0 65px #ffffff08!important}
+#loginPage .sig-tile{background:color-mix(in srgb,var(--studio-glow) 45%,var(--studio-deep))!important;border-color:#ffffff44!important;color:#f1f6ff!important}
+#loginPage .sig-tile :is(small,span){color:var(--studio-highlight)!important}
+#loginPage #loginForm button[type="submit"]{background:var(--studio-button)!important;border-color:var(--studio-button)!important;color:#fff!important}
+#loginPage #loginForm button[type="submit"]:hover{filter:brightness(1.08)!important}
+#loginPage :is(input,button):focus-visible{outline-color:var(--studio-button)!important}
+#appPage #apexSidebar .studio-profile{width:100%!important;margin-top:3px!important}
+#appPage #apexSidebar .studio-profile-trigger{width:100%!important;min-height:44px!important;padding:7px 9px!important;background:#ffffff0b!important;border:1px solid #ffffff20!important;color:#f2f6ff!important;gap:8px!important;text-align:left}
+#appPage #apexSidebar .studio-profile-trigger:hover,#appPage #apexSidebar .studio-profile-trigger[aria-expanded="true"]{background:#ffffff18!important;border-color:#ffffff35!important}
+#appPage #apexSidebar .studio-profile-trigger .top-avatar{display:grid!important;place-items:center!important;flex:0 0 30px!important;width:30px!important;height:30px!important;margin:0!important;background:var(--ev-active)!important;color:#fff!important;border-radius:8px!important}
+#appPage #apexSidebar .studio-profile-identity{display:grid;gap:2px;min-width:0;flex:1}
+#appPage #apexSidebar .studio-profile-trigger .header-username{color:#f3f6ff!important;font-weight:650!important;max-width:none!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#appPage #apexSidebar .studio-profile-identity small{font-size:10px;color:#bdcbe0}
+#appPage #apexSidebar .studio-profile-chevron{color:#bdcbe0!important;margin-left:auto}
+#appPage .studio-profile-menu{right:auto!important;top:auto!important;z-index:1000!important;width:220px!important}
+body.apex-nav-collapsed #appPage #apexSidebar .studio-profile-trigger{justify-content:center!important;padding:5px!important}
+body.apex-nav-collapsed #appPage #apexSidebar :is(.studio-profile-identity,.studio-profile-chevron){display:none!important}
+#appPage #settingsPage .studio-save-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;background:var(--ev-paper);border:1px solid var(--ev-line);border-radius:9px;padding:12px}
+#appPage #settingsPage .studio-save-status{margin-right:auto;color:var(--ev-muted);font-size:12px}
+#appPage #settingsPage .studio-save-row button:disabled{opacity:.5;cursor:default}
+#appPage #settingsPage [data-settings-view="fonts"] [data-preference="segoe"]{font-family:"Segoe UI",Arial,sans-serif!important}
+#appPage #settingsPage [data-settings-view="fonts"] [data-preference="inter"]{font-family:"APEX Inter","Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-settings-view="fonts"] [data-preference="jakarta"]{font-family:"APEX Jakarta","Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-settings-view="fonts"] [data-preference="arial"]{font-family:Arial,sans-serif!important}
 @media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
 @media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 }

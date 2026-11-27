@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),prefs=require('../src/renderer/appearance-preferences');
+const storage=()=>{const data=new Map();return {getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),data};};
+test('default palette is cobalt blue and existing workstation preferences migrate',()=>{const s=storage();assert.deepEqual(prefs.read(s),{theme:'light',font:'original',accent:'cobalt'});s.setItem('apex-studio-accent-v1','teal');s.setItem('apex-inventory-appearance-v1','dark');assert.deepEqual(prefs.read(s),{theme:'dark',font:'original',accent:'teal'});});
+test('draft stays separate until explicit save, and second workstation is unaffected',()=>{const a=storage(),b=storage();let draft={...prefs.read(a),accent:'indigo',font:'inter',theme:'dark'};assert.equal(prefs.read(a).accent,'cobalt');prefs.save(a,draft);assert.deepEqual(prefs.read(a),draft);assert.deepEqual(prefs.read(b),prefs.defaults);const root={dataset:{}};prefs.apply(root,prefs.read(a));assert.equal(root.dataset.studioAccent,'indigo');assert.equal(root.dataset.studioFont,'inter');assert.equal(root.dataset.theme,'dark');});
+test('invalid preference values fall back safely',()=>{const s=storage();prefs.save(s,{theme:'no',accent:'no',font:'no'});assert.deepEqual(prefs.read(s),prefs.defaults);});
