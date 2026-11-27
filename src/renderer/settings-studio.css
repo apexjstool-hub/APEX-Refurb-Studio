@@ -186,8 +186,8 @@ html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#a
 #loginPage #loginSavedHint{margin:-5px 0 10px!important;font-size:11px!important;color:var(--apex-muted)!important;line-height:1.4!important}
 #loginPage .studio-login-remember{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px 12px!important;margin:0 0 10px!important;min-width:0!important}
 #loginPage .studio-login-remember:not(:has(> :not(.hidden))){display:none!important}
-#loginPage #apexRememberCloudBox{flex:1 1 auto!important;min-width:0!important;margin:0!important;gap:7px!important;font-size:11.5px!important;line-height:1.4!important;white-space:normal!important}
-#loginPage #apexRememberCloud{accent-color:var(--studio-button)!important;width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;flex-basis:16px!important}
+#loginPage #apexRememberCloudBox{flex:1 1 0!important;min-width:0!important;margin:0!important;gap:7px!important;font-size:11.5px!important;line-height:1.4!important;white-space:normal!important}
+ #loginPage #apexRememberCloud{accent-color:var(--studio-button)!important;transition:none!important;width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;flex-basis:16px!important}
 #loginPage #apexForgetCloud{flex:0 0 auto!important;min-height:28px!important;background:transparent!important;box-shadow:none!important;border:0!important;padding:4px 0!important;margin:0!important;color:var(--ev-accent)!important;font-size:11.5px!important;font-weight:650!important;text-decoration:none!important;white-space:nowrap!important}
 #loginPage #apexForgetCloud:hover{text-decoration:underline!important;text-underline-offset:3px}
 #loginPage #apexForgetCloud.hidden,#loginPage #apexRememberCloudBox.hidden,#loginPage #loginSavedHint.hidden{display:none!important}
@@ -199,7 +199,7 @@ html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#a
 #loginPage #loginForm .apex-login-modes button:hover{color:var(--ev-accent)!important;text-decoration:underline!important}
 #loginPage .login-panel-footer{bottom:14px!important;font-size:9px!important}
 @media(max-height:760px){#loginPage .login-panel{padding:14px 20px 35px!important}#loginPage #loginForm .preview-login-kicker{margin-bottom:12px!important}#loginPage #apexLoginDescription{margin-bottom:13px!important}#loginPage #loginForm label:not(#apexRememberCloudBox){margin-bottom:10px!important}}
-@media(max-width:450px){#loginPage .studio-login-remember{justify-content:flex-start!important}#loginPage .login-panel{padding-inline:20px!important}}
+@media(max-width:450px){#loginPage .studio-login-remember{justify-content:flex-start!important}#loginPage #apexRememberCloudBox{flex-basis:100%!important}#loginPage .login-panel{padding-inline:20px!important}}
 
 @media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
 @media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
