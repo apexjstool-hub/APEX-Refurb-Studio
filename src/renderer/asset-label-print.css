@@ -290,3 +290,18 @@
   }
 }
 
+
+/* Quick asset label chooser: three options and compact conditional QA fields. */
+@media screen{
+ #modalLayer:has(.apex-label-dialog) #modalContent{overflow:auto!important}
+ #modalLayer:has(.apex-label-dialog) .apex-label-dialog{overflow:visible!important}
+ .apex-label-dialog .apex-quick-qa-fields[hidden]{display:none!important}
+ .apex-quick-qa-fields{display:grid;gap:4px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;margin:0 0 8px}
+ .apex-quick-qa-meta{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted)}
+ .apex-quick-qa-meta strong{color:var(--text);overflow-wrap:anywhere;text-align:right}
+ .apex-quick-qa-help{font-size:10px;line-height:1.4;margin:0;color:var(--muted)}
+ #apexQuickManageTech{justify-self:start;min-height:27px;padding:4px 8px;font-size:11px}
+ html[data-layout="evolution"] #modalLayer .apex-label-type.selected{border-color:var(--studio-button)!important;background:var(--ev-hero)!important;color:var(--ev-ink)!important}
+ html[data-layout="evolution"] #modalLayer #apexLabelPrintNow:not(:disabled){background:var(--studio-button)!important;color:#fff!important;border-color:var(--studio-button)!important}
+ html[data-layout="evolution"] #modalLayer .apex-label-help{border-color:var(--studio-button)!important}
+}

@@ -3,7 +3,22 @@
    into the existing Inventory lookup. No remote QR service or printer driver needed. */
 'use strict';
 const APEX_LABEL_SIZES={'2x1':[50.8,25.4],'50x30':[50,30],'50x25':[50,25],'60x40':[60,40],'40x30':[40,30],'80x30':[80,30]};
-let apexLabelChoice='asset',apexLabelSize='2x1',apexLabelData=null,apexLabelCleanup=null,apexLabelDpi=203;
+let apexLabelChoice='assetDevice',apexLabelSize='2x1',apexLabelData=null,apexLabelCleanup=null,apexLabelDpi=203;
+let apexQuickQA=null,apexQuickBusy=false,apexQuickPreviewObserver=null;
+function quickLabelDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');}
+function quickLabelPayload(preview=false){
+ const payload={record:apexLabelData,type:apexLabelChoice,size:apexLabelSize,dpi:apexLabelDpi,preview};
+ if(!apexLabelData)throw Error('Select an asset first.');
+ if(apexLabelChoice==='assetDevice'){if(!String(apexLabelData.model||'').trim())throw Error('Save the device model in Device Details before printing an asset label.');payload.assetOptions={fields:[],barcodeHeight:'medium',align:'center',detailSize:'normal'};}
+ if(apexLabelChoice==='qa')payload.qa=window.ApexCustomLabels.qa(apexQuickQA||{});
+ return payload;
+}
+function quickLabelButtons(valid){const print=$('apexLabelPrintNow'),pdf=$('apexLabelSavePdf');if(print)print.disabled=apexQuickBusy||!valid;if(pdf)pdf.disabled=apexQuickBusy||!valid||!window.apexInventory?.saveLabelPdf;}
+async function loadQuickTechnicians(select,help){
+ try{const result=await window.apexInventory.labelStudioSettings({action:'get'});if(!result?.ok)throw Error(result?.error||'Unable to load technicians.');if(!select.isConnected)return;
+ const names=result.settings.technicians||[];select.replaceChildren(new Option('Choose a technician',''));for(const name of names)select.append(new Option(name,name));select.disabled=false;help.textContent=names.length?'Choose who is carrying out QA for this asset.':'No saved technicians. Use Manage technicians to add a name.';
+ }catch(error){if(select.isConnected){select.disabled=true;help.textContent=error.message+' Use Manage technicians to try again.';}}
+}
 const labelEscape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 function labelCodeGeometry(record,style,size=apexLabelSize,dpi=apexLabelDpi,bounds={}){
  const [w,h]=APEX_LABEL_SIZES[size]||APEX_LABEL_SIZES['2x1'];
@@ -84,13 +99,21 @@ function openAssetPrintDialog(requestedAssetId){
  if(dirty&&assetId===activeAssetId){notify('Save your unsaved changes before printing.');return;}
  const record=items.find(item=>item.id===assetId);
  if(!record){notify('Asset not found. Refresh and try again.');return;}
- apexLabelData={...record};apexLabelChoice='asset';apexLabelSize='2x1';
+ if(apexQuickBusy){notify('Finish or cancel the current label output first.');return;}
+ apexQuickPreviewObserver?.disconnect();apexLabelData={...record};apexLabelChoice='assetDevice';apexLabelSize='2x1';apexQuickQA=null;
  showModal('Thermal labels · '+String(record.id),'INVENTORY / LABEL STUDIO',`<div class="modal-body apex-label-dialog">
  <div class="apex-label-workspace"><div class="apex-label-settings">
   <p class="apex-print-caption">Select a label design and your printer paper size.</p>
   <div class="apex-label-choices" role="group" aria-label="Label type">
-   <button class="apex-label-type selected" type="button" data-label-type="asset"><b>▥ Asset Tag Barcode</b><small>Code 128 · Asset ID only</small></button>
+   <button class="apex-label-type selected" type="button" data-label-type="assetDevice"><b>▥ Asset Label</b><small>Code 128 · Asset ID and device model</small></button>
    <button class="apex-label-type" type="button" data-label-type="refurb"><b>▦ Refurb QR Label</b><small>Same QR format as APEX Diagnostics</small></button>
+   <button class="apex-label-type" type="button" data-label-type="qa"><b>QA Sticker</b><small>Saved serial number · Technician · Date</small></button>
+  </div>
+  <div id="apexQuickQAFields" class="apex-quick-qa-fields" hidden>
+   <div class="apex-quick-qa-meta"><span>Serial number</span><strong>${labelEscape(record.serial||"Not recorded — blank on sticker")}</strong></div>
+   <label class="field apex-label-size-select">Technician<select id="apexQuickTechnician" disabled><option value="">Loading saved technicians…</option></select></label>
+   <p id="apexQuickTechnicianHelp" class="apex-quick-qa-help" role="status"></p>
+   <button type="button" class="secondary" id="apexQuickManageTech">Manage technicians</button>
   </div>
   <label class="field apex-label-size-select">Label size<select id="apexPrintLabelSize"><option value="2x1" selected>2 × 1 inch · 50.8 × 25.4 mm</option></select></label>
   <label class="field apex-label-size-select">Printer resolution<select id="apexPrintLabelDpi"><option value="203">203 dpi · Zebra GK420t</option><option value="300">300 dpi</option><option value="600">600 dpi</option></select></label>
@@ -99,10 +122,16 @@ function openAssetPrintDialog(requestedAssetId){
  <div class="apex-label-preview-desc" id="apexLabelDescription">Barcode encodes only ${labelEscape(record.id)}.</div></div></div>
  <div class="modal-actions apex-label-footer"><button class="secondary" type="button" id="apexLabelCancel">Cancel</button><button class="secondary" type="button" id="apexLabelCustom">Custom labels</button><button class="secondary" type="button" id="apexLabelSavePdf">Save label PDF</button><button class="primary" type="button" id="apexLabelPrintNow">▣ Print label</button></div></div>`);
  document.querySelectorAll('[data-label-type]').forEach(button=>button.onclick=()=>{
+  if(apexQuickBusy)return;
   apexLabelChoice=button.dataset.labelType;
+  $('apexQuickQAFields').hidden=apexLabelChoice!=='qa';
   document.querySelectorAll('[data-label-type]').forEach(b=>b.classList.toggle('selected',b===button));
   drawLabelPreview();
  });
+ const technician=$('apexQuickTechnician');
+ technician.onchange=()=>{if(apexQuickBusy)return;apexQuickQA=technician.value?{technician:technician.value,serial:String(record.serial||'').trim(),createdDate:quickLabelDate()}:null;drawLabelPreview();};
+ $('apexQuickManageTech').onclick=()=>{if(apexQuickBusy)return;closeModal();window.ApexLabelStudio?.open('qaStickers');};
+ if(window.apexInventory?.labelStudioSettings)loadQuickTechnicians(technician,$('apexQuickTechnicianHelp'));else $('apexQuickTechnicianHelp').textContent='Saved technicians require installed APEX.';
  $('apexPrintLabelSize').onchange=e=>{apexLabelSize=e.target.value;drawLabelPreview();};
  $('apexPrintLabelDpi').value=String(apexLabelDpi);
  $('apexPrintLabelDpi').onchange=e=>{apexLabelDpi=Number(e.target.value);drawLabelPreview();};
@@ -114,46 +143,57 @@ function openAssetPrintDialog(requestedAssetId){
  drawLabelPreview();
 }
 function labelPageUrl(preview=false){
- const payload={record:apexLabelData,type:apexLabelChoice,size:apexLabelSize,dpi:apexLabelDpi,preview};
+ const payload=quickLabelPayload(preview);
  return 'asset-label-page.html?label='+encodeURIComponent(JSON.stringify(payload));
 }
 function drawLabelPreview(){
  const preview=$('apexLabelPreview');if(!preview||!apexLabelData)return;
+ const description=$('apexLabelDescription');
+ apexQuickPreviewObserver?.disconnect();apexQuickPreviewObserver=null;
+ quickLabelButtons(false);preview.replaceChildren();
  try{
-  const geometry=labelCodeGeometry(apexLabelData,apexLabelChoice);
-  const [w,h]=APEX_LABEL_SIZES[apexLabelSize];
-  preview.replaceChildren();
-  const frame=document.createElement('iframe');frame.className='apex-isolated-label-preview';frame.title='Actual label layout preview';frame.src=labelPageUrl(true);preview.append(frame);
-  // Iframes otherwise keep a 150px intrinsic height, clipping the scaled preview.
-  const resize=()=>{frame.style.height=(frame.getBoundingClientRect().width*h/w)+'px';frame.contentWindow?.apexResizeLabelPreview?.();};resize();
-  const observer=new ResizeObserver(()=>{if(frame.isConnected)resize();else observer.disconnect();});observer.observe(preview);
-  frame.onload=resize;
-  $('apexLabelDescription').textContent=geometry.dots<2?'Fine code: 1 printer dot per narrow bar/module on this 2 × 1 inch stock. Keep Actual size / 100% and test scanning; shorter asset IDs give wider bars. Select only your printer’s actual DPI.':'Sharp black-on-white code at '+geometry.dots+' printer dots per narrow bar/module. Print at Actual size, with the matching paper size and margins None.';
-  $('apexLabelPrintNow').disabled=false;
- }catch(error){preview.textContent='Unable to generate label: '+error.message;$('apexLabelPrintNow').disabled=true;}
+  const payload=quickLabelPayload(true);
+  const geometry=payload.type==='qa'?null:labelCodeGeometry(payload.record,payload.type,payload.size,payload.dpi);
+  const [w,h]=APEX_LABEL_SIZES[payload.size];
+  const frame=document.createElement('iframe');frame.className='apex-isolated-label-preview';frame.title='Actual label layout preview';
+  preview.append(frame);
+  const resize=()=>{frame.style.height=(frame.getBoundingClientRect().width*h/w)+'px';try{frame.contentWindow?.apexResizeLabelPreview?.();}catch{}};
+  resize();const observer=new ResizeObserver(()=>{if(frame.isConnected)resize();else observer.disconnect();});observer.observe(preview);apexQuickPreviewObserver=observer;
+  frame.onload=async()=>{try{const win=frame.contentWindow;if(!win?.apexLabelReady)return;await win.apexLabelReady;if(!frame.isConnected)return;if(win.apexLabelError){description.textContent=win.apexLabelError;return;}resize();}catch(error){if(frame.isConnected)description.textContent=error.message;}};
+  frame.src=labelPageUrl(true);
+  description.textContent=payload.type==='qa'?'QA sticker · '+payload.qa.createdDate.split('-').reverse().join('/')+' · '+(payload.qa.serial?'Serial taken from saved asset.':'No saved serial — blank serial field.') : 'Code 128 / QR · '+geometry.dots+' printer dots per narrow bar/module. Print at actual size with matching paper size and no margins.';
+  // Native output independently validates the exact label document. A missed preview load
+  // event must not leave an otherwise valid label permanently disabled.
+  quickLabelButtons(true);
+ }catch(error){preview.textContent=apexLabelChoice==='qa'&&!apexQuickQA?'Choose a technician to preview the QA sticker.':'Unable to generate label: '+error.message;description.textContent=apexLabelChoice==='qa'&&!apexQuickQA?'The serial number is filled automatically from this asset.':error.message;quickLabelButtons(false);}
 }
 async function outputDesktopLabel(mode){
+ if(apexQuickBusy)return;
  const method=mode==='pdf'?window.apexInventory?.saveLabelPdf:window.apexInventory?.printAssetLabel;
- if(!method){notify('Label PDF export requires installed APEX.');return;}
- const buttons=[$('apexLabelPrintNow'),$('apexLabelSavePdf')];buttons.forEach(b=>{if(b)b.disabled=true;});
+ if(!method){notify('Label output requires installed APEX.');return;}
+ let payload;try{payload=quickLabelPayload(false);}catch(error){notify(error.message);return;}
+ const original=$('apexLabelPrintNow');
+ apexQuickBusy=true;quickLabelButtons(false);
+ const controls=[...document.querySelectorAll('.apex-label-dialog [data-label-type],.apex-label-dialog select,#apexQuickManageTech,#apexLabelCustom')];
+ const previous=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
  try{
-  const result=await method({record:apexLabelData,type:apexLabelChoice,size:apexLabelSize,dpi:apexLabelDpi});
-  if(result.ok)notify(mode==='pdf'?'Label PDF saved at the selected label size.':'Label sent to printer.');
-  else if(!result.cancelled)notify('Label output failed: '+result.error);
+  const result=await method(payload);
+  if(result?.ok)notify(mode==='pdf'?'Label PDF saved at the selected label size.':'Label sent to printer.');
+  else if(!result?.cancelled)notify('Label output failed: '+(result?.error||'Unknown printer error'));
  }catch(error){notify('Label output failed: '+error.message);}
- finally{buttons.forEach(b=>{if(b?.isConnected)b.disabled=false;});}
+ finally{apexQuickBusy=false;controls.forEach((control,i)=>{if(control.isConnected)control.disabled=previous[i];});if(original?.isConnected)drawLabelPreview();}
 }
 function printSelectedAssetLabel(){
  if(window.apexInventory?.printAssetLabel){return outputDesktopLabel('print');}
 
- if(!apexLabelData)return;
+ try{quickLabelPayload(false);}catch(error){notify(error.message);return;}
  if(apexLabelCleanup)apexLabelCleanup();
  let frame,timeout;
  const button=$('apexLabelPrintNow');button.disabled=true;
  const cleanup=()=>{clearTimeout(timeout);frame?.remove();if(button?.isConnected)button.disabled=false;apexLabelCleanup=null;};
  apexLabelCleanup=cleanup;
  try{
-  labelCodeGeometry(apexLabelData,apexLabelChoice);
+  if(apexLabelChoice!=='qa')labelCodeGeometry(apexLabelData,apexLabelChoice);
   frame=document.createElement('iframe');frame.className='apex-label-print-frame';frame.title='Thermal label print document';
   frame.onload=async()=>{
    try{
