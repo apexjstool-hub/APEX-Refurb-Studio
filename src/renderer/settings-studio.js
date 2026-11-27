@@ -8,9 +8,7 @@
  if(!rail||!body)return;
  const groups=[
  ['updates','Updates','Install verified APEX releases and check the installed version.'],
- ['appearance','Appearance','Choose light or dark mode for this computer.'],
- ['fonts','Fonts','Choose a readable interface font. Printing and label fonts are unchanged.'],
- ['colours','Colours','Choose an accent palette independently of light or dark mode.'],
+ ['appearance','Appearance','Personalise the entire workspace on this computer.'],
  ['cloud','Cloud & connections','Shared account, trusted hub and cloud synchronisation.'],
  ['devices','Authorised SSDs','Manage approved portable Diagnostics devices.'],
  ['notifications','Notifications','Configure workstation reminders.'],
@@ -59,16 +57,19 @@
  }
  function stage(key,value){if(!appearance.allowed[key].includes(value))return;draft={...draft,[key]:value};refresh();}
  function commit(){try{saved=appearance.save(localStorage,draft);draft={...saved};appearance.apply(root,saved);applyTheme(saved.theme,false);refresh('Appearance saved on this computer.');}catch{refresh('Unable to save appearance. Your previous settings are unchanged.');}}
- function controls(id){const bar=make('div','studio-save-row');const note=make('span','studio-save-status');note.setAttribute('role','status');const cancel=make('button','secondary','Discard changes');cancel.type='button';cancel.onclick=()=>{draft={...saved};refresh();};const save=make('button','primary','Save appearance');save.type='button';save.onclick=commit;bar.append(note,cancel,save);statusLabels.push(note);saveButtons.push(save);append(id,bar);}
- function prefs(id,key,choices){
-  const card=make('div','studio-preference-card');const label=make('label','studio-pref-label',id==='fonts'?'Interface font':'Colour scheme');const group=make('div','studio-pref-grid');group.setAttribute('role','group');group.setAttribute('aria-label',label.textContent);
-  for(const [v,name,desc] of choices){const b=make('button','studio-pref-option');b.type='button';b.dataset.preference=v;b.append(make('strong','',name),make('small','',desc));b.onclick=()=>stage(key,v);choiceButtons.push([key,v,b]);group.append(b);}
-  card.append(label,group,make('p','studio-pref-note','Choose your preference, then save to apply it to the workspace and login screen.'));append(id,card);
+ function controls(id){const bar=make('div','studio-save-row');const note=make('span','studio-save-status');note.setAttribute('role','status');const cancel=make('button','secondary','Discard changes');cancel.type='button';cancel.onclick=()=>{draft={...saved};refresh();};const save=make('button','primary','Save appearance');save.type='button';save.onclick=commit;const reset=make('button','secondary','Reset to defaults');reset.type='button';reset.onclick=()=>{draft={...appearance.defaults};refresh();};bar.append(note,reset,cancel,save);statusLabels.push(note);saveButtons.push(save);append(id,bar);}
+ function prefs(key,title,description,choices){
+  const card=make('div','studio-preference-card');card.dataset.appearanceGroup=key;const label=make('h3','studio-pref-label',title);const group=make('div','studio-pref-grid');group.setAttribute('role','group');group.setAttribute('aria-label',label.textContent);
+  for(const [v,name,desc] of choices){const b=make('button','studio-pref-option');b.type='button';b.dataset.preference=v;b.dataset.preferenceKey=key;b.append(make('strong','',name),make('small','',desc));b.onclick=()=>stage(key,v);choiceButtons.push([key,v,b]);group.append(b);}
+  card.append(label,make('p','studio-pref-note',description),group);append('appearance',card);
  }
  for(const button of pages.get('appearance').querySelectorAll('[data-set-theme]')){button.onclick=()=>stage('theme',button.dataset.setTheme);choiceButtons.push(['theme',button.dataset.setTheme,button]);}
- prefs('fonts','font',[['original','APEX default','Original Inter / Jakarta combination'],['segoe','Segoe UI','Native Windows typography'],['inter','Inter','Clean, compact and readable'],['jakarta','Plus Jakarta Sans','Modern rounded typography'],['arial','Arial','Familiar and widely supported']]);
- prefs('colours','accent',[['cobalt','Cobalt','Blue sidebar, artwork and sign-in'],['indigo','Indigo','Deep violet-blue'],['teal','Teal','Cool blue-green'],['slate','Slate','Restrained neutral accent']]);
- for(const id of ['appearance','fonts','colours'])controls(id);
+ prefs('font','Typography','Choose the interface font. Printed reports and labels retain their original fonts.',[['original','APEX default','Original Inter / Jakarta combination'],['segoe','Segoe UI','Native Windows typography'],['inter','Inter','Clean, compact and readable'],['jakarta','Plus Jakarta Sans','Modern rounded typography'],['arial','Arial','Familiar and widely supported'],['tahoma','Tahoma','Compact Windows typography'],['calibri','Calibri','Soft and readable']]);
+ prefs('accent','Colour scheme','Coordinated login artwork, sidebar and interactive accents.',[['cobalt','Cobalt','Blue sidebar, artwork and sign-in'],['indigo','Indigo','Deep violet-blue'],['teal','Teal','Cool blue-green'],['slate','Slate','Restrained neutral accent'],['emerald','Emerald','Rich forest green'],['burgundy','Burgundy','Deep wine red'],['ocean','Ocean','Cool ocean blue']]);
+ prefs('density','Workspace spacing','Adjust the row height of inventory, refurbishment and other main data tables.',[['standard','Standard','Original Evolution spacing'],['compact','Compact','More rows on screen'],['comfortable','Comfortable','Additional room between rows']]);
+ prefs('textSize','Text size','Adjust navigation, table text and common controls.',[['standard','Standard','Original interface size'],['large','Large','Larger, easier-to-read text']]);
+ prefs('motion','Animations','Respect Windows reduced-motion preferences or reduce interface motion further.',[['system','System default','Normal interface transitions'],['reduced','Reduced motion','Minimal movement']]);
+ controls('appearance');
  refresh();
  const loginTheme=$('previewLoginTheme');
  if(loginTheme)loginTheme.onclick=()=>{try{saved=appearance.save(localStorage,{...saved,theme:saved.theme==='dark'?'light':'dark'});draft={...saved};appearance.apply(root,saved);applyTheme(saved.theme,false);refresh();$('apexDesignLoginMessage').textContent='Theme saved on this computer.';}catch{$('apexDesignLoginMessage').textContent='Unable to save theme.';}};

@@ -48,7 +48,7 @@ html[data-theme="dark"] #appPage .studio-profile-danger{color:#ff9cab!important}
 #appPage #settingsPage .studio-pref-option{display:grid;gap:5px;text-align:left;padding:14px!important;background:var(--ev-paper)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important;border-radius:8px!important;min-height:84px!important}
 #appPage #settingsPage .studio-pref-option[aria-pressed="true"]{border-color:var(--ev-accent)!important;background:var(--ev-hover)!important;box-shadow:inset 0 0 0 1px var(--ev-accent)!important}
 #appPage #settingsPage .studio-pref-option small,#appPage #settingsPage .studio-pref-note{color:var(--ev-muted)!important;font-size:11px!important}
-#appPage #settingsPage [data-settings-view="colours"] .studio-pref-option:before{content:"";width:29px;height:19px;border-radius:4px;background:#2857b5}
+#appPage #settingsPage [data-appearance-group="accent"] .studio-pref-option:before{content:"";width:29px;height:19px;border-radius:4px;background:#2857b5}
 #appPage #settingsPage [data-preference="indigo"]:before{background:#5145b8!important}
 #appPage #settingsPage [data-preference="teal"]:before{background:#087b78!important}
 #appPage #settingsPage [data-preference="slate"]:before{background:#475569!important}
@@ -87,10 +87,10 @@ body.apex-nav-collapsed #appPage #apexSidebar :is(.studio-profile-identity,.stud
 #appPage #settingsPage .studio-save-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;background:var(--ev-paper);border:1px solid var(--ev-line);border-radius:9px;padding:12px}
 #appPage #settingsPage .studio-save-status{margin-right:auto;color:var(--ev-muted);font-size:12px}
 #appPage #settingsPage .studio-save-row button:disabled{opacity:.5;cursor:default}
-#appPage #settingsPage [data-settings-view="fonts"] [data-preference="segoe"]{font-family:"Segoe UI",Arial,sans-serif!important}
-#appPage #settingsPage [data-settings-view="fonts"] [data-preference="inter"]{font-family:"APEX Inter","Segoe UI",sans-serif!important}
-#appPage #settingsPage [data-settings-view="fonts"] [data-preference="jakarta"]{font-family:"APEX Jakarta","Segoe UI",sans-serif!important}
-#appPage #settingsPage [data-settings-view="fonts"] [data-preference="arial"]{font-family:Arial,sans-serif!important}
+#appPage #settingsPage [data-appearance-group="font"] [data-preference="segoe"]{font-family:"Segoe UI",Arial,sans-serif!important}
+#appPage #settingsPage [data-appearance-group="font"] [data-preference="inter"]{font-family:"APEX Inter","Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-appearance-group="font"] [data-preference="jakarta"]{font-family:"APEX Jakarta","Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-appearance-group="font"] [data-preference="arial"]{font-family:Arial,sans-serif!important}
 
 /* Shared branding accents: keep status badges, chart categories and printed output semantic. */
 html[data-layout="evolution"]{--apex-b-blue:var(--studio-button)!important;--apex-b-blue-hover:var(--studio-button)!important;--apex-b-focus:var(--ev-accent)!important}
@@ -133,6 +133,40 @@ html[data-layout="evolution"] #apexUpdateNoticeBar{background:var(--studio-butto
 #appPage #apexUpNotes{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:12px}
 #appPage .apex-up-success{padding:12px;border-radius:8px;background:var(--ev-hero);color:var(--ev-accent)}
 #appPage .apex-update-studio [hidden]{display:none!important}
+
+html[data-layout="evolution"][data-studio-accent="emerald"]{--studio-button:#23734D;--studio-art:#184A35;--studio-deep:#102D20;--studio-glow:#2D9560;--studio-highlight:#A5EBC1;--studio-navmark:#A5EBC1;--ev-accent:#23734D!important;--ev-onaccent:#fff!important;--ev-nav:#17372A!important;--ev-active:#315F48!important;--ev-hero:#E4F4E9!important;--ev-hover:#EDF8F0!important;--ev-hero-ink:#102D20!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="emerald"]{--ev-accent:#90E2B4!important;--ev-onaccent:#10281E!important;--ev-nav:#10281E!important;--ev-active:#28523E!important;--ev-hero:#254A36!important;--ev-hover:#274435!important;--ev-hero-ink:#edf3fb!important;}
+#appPage #settingsPage [data-preference="emerald"]:before{background:#23734D!important}
+html[data-layout="evolution"][data-studio-accent="burgundy"]{--studio-button:#943B60;--studio-art:#52243C;--studio-deep:#34172A;--studio-glow:#AE4C78;--studio-highlight:#F6BCD5;--studio-navmark:#F6BCD5;--ev-accent:#943B60!important;--ev-onaccent:#fff!important;--ev-nav:#392035!important;--ev-active:#663A53!important;--ev-hero:#F8E7EF!important;--ev-hover:#FCF0F5!important;--ev-hero-ink:#34172A!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="burgundy"]{--ev-accent:#F1ABC8!important;--ev-onaccent:#2A1828!important;--ev-nav:#2A1828!important;--ev-active:#563049!important;--ev-hero:#543047!important;--ev-hover:#473044!important;--ev-hero-ink:#edf3fb!important;}
+#appPage #settingsPage [data-preference="burgundy"]:before{background:#943B60!important}
+html[data-layout="evolution"][data-studio-accent="ocean"]{--studio-button:#176D9B;--studio-art:#18485F;--studio-deep:#112D41;--studio-glow:#268BB8;--studio-highlight:#B5E9FF;--studio-navmark:#B5E9FF;--ev-accent:#176D9B!important;--ev-onaccent:#fff!important;--ev-nav:#18364A!important;--ev-active:#2A5871!important;--ev-hero:#E4F3FA!important;--ev-hover:#EDF8FC!important;--ev-hero-ink:#112D41!important;}
+html[data-layout="evolution"][data-theme="dark"][data-studio-accent="ocean"]{--ev-accent:#91D9F8!important;--ev-onaccent:#102736!important;--ev-nav:#102736!important;--ev-active:#24485C!important;--ev-hero:#23465B!important;--ev-hover:#233E50!important;--ev-hero-ink:#edf3fb!important;}
+#appPage #settingsPage [data-preference="ocean"]:before{background:#176D9B!important}
+
+html[data-layout="evolution"][data-studio-font="tahoma"]{--apex-ui-font:Tahoma,"Segoe UI",sans-serif!important;--apex-heading-font:Tahoma,"Segoe UI",sans-serif!important}
+html[data-layout="evolution"][data-studio-font="calibri"]{--apex-ui-font:Calibri,"Segoe UI",sans-serif!important;--apex-heading-font:Calibri,"Segoe UI",sans-serif!important}
+html[data-layout="evolution"]:is([data-studio-font="tahoma"],[data-studio-font="calibri"]) :is(#appPage,#loginPage){font-family:var(--apex-ui-font)!important}
+#appPage #settingsPage [data-preference="tahoma"]{font-family:Tahoma,"Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-preference="calibri"]{font-family:Calibri,"Segoe UI",sans-serif!important}
+#appPage #settingsPage [data-settings-view="appearance"]{gap:10px!important}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-preference-card{padding:13px!important}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-pref-label{margin:0 0 4px!important;font-size:14px!important}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-pref-note{margin:0 0 10px!important;line-height:1.4}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-pref-grid{grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:7px}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-pref-option{min-height:62px!important;padding:9px 10px!important}
+#appPage #settingsPage [data-settings-view="appearance"] .studio-save-row{position:sticky;bottom:0;z-index:8;box-shadow:0 -4px 16px #00000010}
+#appPage #apexSidebar .evo-side-footer{display:none!important}
+#appPage #apexSidebar .studio-profile-trigger{flex-direction:row!important}
+#appPage #apexSidebar .studio-profile-trigger .top-avatar{order:0!important}
+#appPage #apexSidebar .studio-profile-identity{order:1!important;text-align:left!important}
+#appPage #apexSidebar .studio-profile-chevron{order:2!important}
+html[data-studio-density="compact"] #appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) :is(td,th){padding-block:5px!important}
+html[data-studio-density="comfortable"] #appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) :is(td,th){padding-block:15px!important}
+html[data-studio-text-size="large"] #appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) td{font-size:14px!important}
+html[data-studio-text-size="large"] #appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) th{font-size:12px!important}
+html[data-studio-text-size="large"] #appPage #apexSidebar .apex-nav-text,html[data-studio-text-size="large"] #appPage :is(.primary,.secondary,.v3-tab,.studio-setting-link){font-size:14px!important}
+html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#apexUpdateNotice),html[data-studio-motion="reduced"] :is(#appPage,#loginPage,.apex-dialog-layer,#apexUpdateNotice) *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 
 @media(max-width:1050px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:170px minmax(0,1fr)!important}#appPage #settingsPage .evo-settings-rail{position:static!important}}
 @media(max-width:760px){#appPage #settingsPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage #settingsPage .studio-settings-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
