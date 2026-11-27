@@ -1,0 +1,48 @@
+/* Screen-only finishing layer. Existing layouts, status logic and print styles are unchanged. */
+@media screen {
+html[data-theme=dark][data-apex-design]{--apex-bg:#10151c;--apex-side:#141b25;--apex-surface:#1a2330;--apex-raised:#222e3c;--apex-border:#334153;--apex-text:#edf2f9;--apex-muted:#a9b9cc;--apex-accent:#9abfff;--apex-accent-strong:#3265b5;--apex-hover:#263547;--apex-header:#202c3a;--apex-shadow:0 8px 22px #0002;--apex-login-shadow:0 22px 70px #0006}
+html[data-theme=light][data-apex-design]{--apex-bg:#f3f5f8;--apex-side:#fbfcfe;--apex-surface:#fff;--apex-raised:#edf2f8;--apex-border:#d5dfe9;--apex-text:#172639;--apex-muted:#52657b;--apex-accent:#225bb6;--apex-accent-strong:#245db6;--apex-hover:#edf3fa;--apex-header:#f1f5fa;--apex-shadow:0 4px 18px #20354b09;--apex-login-shadow:0 20px 60px #243b5620}
+html[data-theme][data-apex-design]{--select-bg:var(--apex-surface);--select-fg:var(--apex-text);--input-border:var(--apex-border);--glass:var(--apex-surface);--field-bg:var(--apex-surface);--card-bg:var(--apex-surface);--nav-text:var(--apex-muted);--surface-hover:var(--apex-hover);--soft-highlight:var(--apex-accent);--shadow:var(--apex-shadow)}
+html[data-theme] .sidebar .menu-item{position:relative;font-weight:600!important;letter-spacing:.05px!important}
+html[data-theme] .sidebar .menu-item:not(.active):hover{background:var(--apex-hover)!important;color:var(--apex-text)!important}
+html[data-theme] .sidebar .menu-item.active::before{content:'';position:absolute;inset:7px auto 7px 0;width:3px;background:var(--apex-accent);border-radius:0 3px 3px 0;pointer-events:none}
+html[data-theme] .sidebar :is(.sidebar-user,.side-support){border-color:var(--apex-border)!important;color:var(--apex-text)!important;background:var(--apex-raised)!important;border-radius:9px!important}
+html[data-theme] .sidebar :is(.sidebar-user,.side-support) small{color:var(--apex-muted)!important}
+html[data-theme] :is(.top-muted,.section-panel-head p,.metric-foot,.page-intro p,.rw-heading p,.section-note){color:var(--apex-muted)!important}
+html[data-theme] :is(.metric,.section-panel,.report-card,.device-summary-card){box-shadow:var(--apex-shadow)!important}
+html[data-theme] .metric-value{font-weight:660!important;letter-spacing:-1px!important;font-variant-numeric:tabular-nums}
+html[data-theme] :is(.metric-head,.section-panel-head h3){font-weight:650!important}
+html[data-theme] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table) thead th{background:var(--apex-header)!important;color:var(--apex-muted)!important;text-transform:none!important;font-size:12px!important;letter-spacing:.08px!important}
+html[data-theme] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table) tbody tr:hover td{background:var(--apex-hover)!important}
+html[data-theme] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table) tbody td{font-variant-numeric:tabular-nums}
+html[data-theme] :is(.v3-tab,.detail-tabs button,.rw-view-tabs button,.rw-purchasing-tabs button){border-radius:7px!important;font-weight:600!important}
+html[data-theme] :is(.v3-tab,.detail-tabs button,.rw-view-tabs button,.rw-purchasing-tabs button):hover{background:var(--apex-hover)!important}
+html[data-theme] :is(.primary,.secondary):not(:disabled):hover{filter:brightness(1.08)}
+html[data-theme] :is(.primary,.secondary):disabled{opacity:.52!important;cursor:not-allowed}
+html[data-theme] :is(.modal-card,.modal-panel,.apex-dialog-panel){background:var(--apex-surface)!important;color:var(--apex-text)!important;border:1px solid var(--apex-border)!important;border-radius:14px!important;box-shadow:0 20px 65px #0004!important}
+html[data-theme] :is(.modal-header,.modal-actions){border-color:var(--apex-border)!important}
+html[data-theme] .global-search{background:var(--apex-raised)!important;border-color:var(--apex-border)!important;border-radius:8px!important}
+html[data-theme] .global-search input{background:transparent!important}
+#loginPage .login-left{isolation:isolate;background:radial-gradient(ellipse at 78% 23%,#254c76 0%,transparent 42%),linear-gradient(145deg,#172b41 0%,#101b2b 52%,#0d141f 100%)!important}
+#loginPage .login-left::before{background-size:64px 64px!important;mask-image:linear-gradient(140deg,#000,transparent 85%)}
+#loginPage .login-left::after{content:'';position:absolute;width:clamp(240px,34vw,520px);aspect-ratio:1;right:-12%;top:7%;border:1px solid #b3d4ff24;border-radius:28%;transform:rotate(35deg);box-shadow:0 0 0 42px #a4cbff09,0 0 0 88px #a4cbff06;pointer-events:none;z-index:-1}
+#loginPage .login-left .wordmark,#loginPage .footer-note{position:relative;z-index:1}
+#loginPage .login-hero h1{font-size:clamp(39px,4.8vw,76px)!important;letter-spacing:-.055em!important;font-weight:630!important;line-height:1.03!important}
+#loginPage .login-hero h1 em{color:#abcaff!important}
+#loginPage .login-hero p{max-width:440px;line-height:1.7!important;color:#c1cfe0!important}
+#loginPage .hero-points{display:flex!important;flex-wrap:wrap;gap:9px!important}
+#loginPage .hero-points>span{display:inline-flex!important;align-items:center;gap:8px!important;padding:7px 11px!important;border:1px solid #a6c8f02b!important;border-radius:7px!important;background:#accfff0a!important;font-size:11px!important;color:#d7e4f5!important;white-space:nowrap}
+#loginPage .hero-points .preview-feature-mark{font-size:10px!important;letter-spacing:.3px;color:#9abfff!important;font-weight:700}
+#loginPage .login-panel{background:radial-gradient(ellipse at 100% 0%,var(--apex-raised),transparent 65%),var(--apex-bg)!important}
+#loginPage .login-card{width:min(100%,440px)!important;padding:clamp(24px,3vw,38px)!important;border-radius:18px!important;box-shadow:var(--apex-login-shadow)!important}
+#loginPage .preview-login-kicker{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:1px;color:var(--apex-muted);font-weight:650;margin-bottom:22px}
+#loginPage .preview-online-dot{width:8px;height:8px;border-radius:50%;background:#52b894;box-shadow:0 0 0 4px #52b89422;flex:none}
+#loginPage .login-card h2{font-size:clamp(25px,2.25vw,32px)!important;line-height:1.17!important;letter-spacing:-.04em!important}
+#loginPage .login-card .eyebrow{font-size:10px!important;letter-spacing:1.5px!important}
+#loginPage .login-card input:not([type=checkbox]){background:var(--apex-raised)!important;min-height:47px;border-radius:9px!important}
+#loginPage .login-card .primary{background:var(--apex-accent-strong)!important;border-radius:9px!important;min-height:48px;font-weight:650!important}
+#loginPage .login-hint{border:1px solid var(--apex-border)!important;border-radius:9px!important;background:var(--apex-raised)!important;padding:10px!important}
+#loginPage .preview-login-theme{border-radius:9px;box-shadow:var(--apex-shadow);font-weight:600}
+@media(max-height:760px){#loginPage .login-card{padding:23px!important}#loginPage .preview-login-kicker{margin-bottom:12px}#loginPage .login-hero h1{font-size:clamp(34px,4.4vw,58px)!important}}
+@media(prefers-reduced-motion:no-preference){html[data-theme] :is(.menu-item,.v3-tab,.primary,.secondary){transition:background-color 140ms ease,color 140ms ease,border-color 140ms ease,filter 140ms ease!important}}
+}

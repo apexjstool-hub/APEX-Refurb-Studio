@@ -1,0 +1,253 @@
+/* First-loaded cascade layer: intentional screen-design properties take precedence
+   over legacy !important rules, while legacy workflow visibility and printing remain. */
+@layer evolution {
+@media screen {
+html[data-theme="light"]{--ev-bg:#f2f2ef;--ev-paper:#fff;--ev-ink:#20251f;--ev-muted:#62695e;--ev-line:#dedfd7;--ev-soft:#e9ebe4;--ev-accent:#34583d;--ev-onaccent:#fff;--ev-hover:#f0f4eb;--ev-hero:#dfe9b8;--ev-hero-ink:#26351e;--ev-nav:#202c23;--ev-navtext:#e3eadf;--ev-active:#d8ec9e;--ev-navmuted:#a6b4a8}
+html[data-theme="dark"]{--ev-bg:#171c1b;--ev-paper:#222927;--ev-ink:#f1f2e9;--ev-muted:#b2bcb0;--ev-line:#3a4540;--ev-soft:#2b3530;--ev-accent:#d8ec9e;--ev-onaccent:#202c23;--ev-hover:#2d3b31;--ev-hero:#d8ec9e;--ev-hero-ink:#26351e;--ev-nav:#101714;--ev-navtext:#e3eadf;--ev-active:#d8ec9e;--ev-navmuted:#a6b4a8}
+#appPage{--apex-bg:var(--ev-bg)!important;--apex-surface:var(--ev-paper)!important;--apex-text:var(--ev-ink)!important;--apex-muted:var(--ev-muted)!important;--apex-border:var(--ev-line)!important;--apex-raised:var(--ev-soft)!important;--apex-hover:var(--ev-hover)!important;--apex-accent:var(--ev-accent)!important;--apex-accent-strong:var(--ev-accent)!important;--apex-header:var(--ev-soft)!important;--panel:var(--ev-paper)!important;--panel2:var(--ev-soft)!important;--text:var(--ev-ink)!important;--muted:var(--ev-muted)!important;--border:var(--ev-line)!important;--accent:var(--ev-accent)!important;display:flex!important;flex-direction:column!important;height:100vh!important;width:100%!important;grid-template-columns:none!important;gap:0!important;padding:0!important;background:var(--ev-bg)!important;color:var(--ev-ink)!important;font-family:"Segoe UI Variable","Segoe UI",Arial,sans-serif!important;font-size:13px!important;overflow:hidden!important}
+#appPage.hidden{display:none!important}
+#appPage #apexSidebar{position:relative!important;inset:auto!important;display:block!important;flex:0 0 auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;padding:0!important;margin:0!important;background:var(--ev-nav)!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;z-index:10!important;color:var(--ev-navtext)!important}
+#apexSidebar>.sidebar-label,#apexSidebar>.sidebar-spacer{display:none!important}
+#apexSidebar .evo-navigation{display:flex!important;align-items:center!important;gap:18px!important;padding:12px 22px!important;min-height:76px!important;flex-wrap:wrap!important}
+#apexSidebar .evo-brand{display:flex!important;align-items:center!important;gap:9px!important;flex:0 0 auto!important}
+#apexSidebar .sidebar-header{display:flex!important;flex-direction:row!important;padding:0!important;gap:0!important;margin:0!important;border:0!important;align-items:center!important}
+#apexSidebar .sidebar-header .wordmark,#apexSidebar .sidebar-subtitle{display:none!important}
+#apexSidebar #apexNavCollapse{position:static!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:32px!important;height:32px!important;background:#ffffff12!important;color:var(--ev-navtext)!important;border:1px solid #ffffff25!important;border-radius:8px!important;margin:0!important}
+.evo-wordmark{display:flex!important;flex-direction:column!important;line-height:1!important;gap:6px!important;color:#fff!important;white-space:nowrap!important}.evo-wordmark>span{font-size:28px!important;font-weight:800!important;letter-spacing:-1.7px!important}.evo-mark-dot{color:#d8ec9e!important}.evo-wordmark small{font-size:8px!important;font-weight:700!important;letter-spacing:1.4px!important;color:var(--ev-navmuted)!important}
+#apexSidebar .evo-menu{display:flex!important;flex:1 1 600px!important;align-items:center!important;gap:5px!important;flex-wrap:wrap!important;min-width:0!important}
+#apexSidebar .menu{display:flex!important;flex-direction:row!important;align-items:center!important;gap:4px!important;margin:0!important;padding:0!important;border:0!important;flex-wrap:wrap!important;overflow:visible!important;width:auto!important}
+#apexSidebar .menu-item{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:11px 10px!important;min-height:40px!important;width:auto!important;min-width:0!important;border:0!important;border-radius:7px!important;background:transparent!important;color:var(--ev-navtext)!important;white-space:nowrap!important;text-align:center!important;box-shadow:none!important;font-weight:600!important;font-size:12px!important}
+#apexSidebar .menu-item:before,#apexSidebar .menu-item:after{display:none!important}#apexSidebar .menu-item .nav-symbol{display:grid!important;place-items:center!important;color:inherit!important;width:17px!important;height:17px!important;background:none!important;border:0!important;padding:0!important}#apexSidebar .menu-item .nav-symbol svg{width:17px!important;height:17px!important;stroke:currentColor!important}
+#apexSidebar .menu-item.active{background:var(--ev-active)!important;color:#23321e!important;font-weight:750!important}#apexSidebar .menu-item:not(.active):hover{background:#ffffff17!important;color:white!important}#apexSidebar .apex-nav-text{display:inline!important;color:inherit!important;font-size:12px!important}#apexSidebar .count-pill{display:none!important}
+body.apex-nav-collapsed #apexSidebar .menu-item .apex-nav-text{display:none!important}body.apex-nav-collapsed #apexSidebar .evo-menu{flex-basis:auto!important}body.apex-nav-collapsed #apexSidebar .menu-item{padding:10px!important}
+#apexSidebar .evo-utilities{display:flex!important;align-items:center!important;gap:8px!important;margin-left:auto!important}#apexSidebar .v3-utilities{display:block!important;margin:0!important;padding:0!important}#apexSidebar #v3Settings{background:#ffffff0d!important;color:var(--ev-navtext)!important;border:1px solid #ffffff22!important;border-radius:7px!important;padding:9px 11px!important;white-space:nowrap!important;font-size:12px!important}#apexSidebar :is(#hubSettings,#sidebarUser){display:flex!important;width:auto!important;min-width:36px!important;min-height:36px!important;align-items:center!important;justify-content:center!important;background:#ffffff0d!important;border:1px solid #ffffff22!important;padding:6px!important;border-radius:7px!important;margin:0!important;color:var(--ev-navtext)!important}#apexSidebar #hubSettings div,#apexSidebar #sidebarUser>span:nth-child(2),#apexSidebar #sidebarUser .user-logout{display:none!important}#apexSidebar #sidebarUser .avatar,#apexSidebar .small-square{width:25px!important;height:25px!important;margin:0!important;background:var(--ev-active)!important;color:#26351e!important;border-radius:6px!important}
+#appPage main.main{display:block!important;flex:1 1 auto!important;min-height:0!important;width:100%!important;min-width:0!important;max-width:none!important;overflow:auto!important;margin:0!important;padding:0!important;background:var(--ev-bg)!important;border:0!important;border-radius:0!important}
+#appPage .topbar{position:sticky!important;top:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:57px!important;gap:14px!important;padding:8px 28px!important;background:var(--ev-paper)!important;border:0!important;border-bottom:1px solid var(--ev-line)!important;box-shadow:none!important;color:var(--ev-ink)!important;z-index:8!important;border-radius:0!important;margin:0!important}
+#appPage .topbar .top-left{display:flex!important;align-items:center!important;gap:8px!important;color:var(--ev-ink)!important;font-size:12px!important}#appPage .topbar .top-muted,#appPage .top-slash{color:var(--ev-muted)!important}.evo-demo{display:flex!important;align-items:center!important;gap:7px!important;margin-left:12px!important;padding-left:14px!important;border-left:1px solid var(--ev-line)!important;color:var(--ev-muted)!important;font-size:10px!important;white-space:nowrap!important}.evo-demo b{color:var(--ev-ink)!important}.evo-demo-dot{width:7px!important;height:7px!important;border-radius:50%!important;background:#72a756!important}#appPage .topbar .global-search{background:var(--ev-soft)!important;border:1px solid var(--ev-line)!important;border-radius:7px!important;min-width:210px!important}#appPage .topbar :is(.theme-switch,.icon-action){border-radius:7px!important;background:var(--ev-soft)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important}
+#appPage .content{width:auto!important;max-width:1600px!important;min-width:0!important;margin:0 auto!important;padding:22px 28px 45px!important;background:transparent!important}
+#appPage #v3Topline{padding:0 0 12px!important;min-height:42px!important;margin:0!important;border:0!important;box-shadow:none!important;background:transparent!important;gap:12px!important}#appPage .v3-workspace-label>span{font-size:17px!important;letter-spacing:-.4px!important;color:var(--ev-ink)!important}#appPage .v3-workspace-label>small{color:var(--ev-muted)!important}#appPage #apexWorkspaceTabs{margin:0 0 18px!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--ev-line)!important;border-radius:0!important;padding:0 0 5px!important;box-shadow:none!important}#appPage :is(.v3-tabstrip,.rw-view-tabs,.rw-purchasing-tabs){border:0!important;border-radius:0!important;background:transparent!important;gap:8px!important;padding:0!important;box-shadow:none!important}#appPage :is(.v3-tab,.rw-view-tabs button,.rw-purchasing-tabs button){border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:transparent!important;color:var(--ev-muted)!important;padding:9px 12px!important;font-weight:600!important;box-shadow:none!important}#appPage :is(.v3-tab,.rw-view-tabs button,.rw-purchasing-tabs button):is(.active,.selected,[aria-selected="true"]){border-bottom-color:var(--ev-accent)!important;color:var(--ev-accent)!important;background:transparent!important}
+#appPage :is(.page-intro,.rw-heading,.apex-admin-intro,.apex-connect-page-intro){color:var(--ev-ink)!important;background:transparent!important;border:0!important;box-shadow:none!important;margin:0 0 18px!important;padding:8px 0!important}#appPage :is(.page-intro h1,.rw-heading h2,.apex-admin-intro h1,.apex-connect-page-intro h1){font-size:32px!important;letter-spacing:-1.25px!important;line-height:1.15!important;font-weight:650!important;color:var(--ev-ink)!important}#appPage :is(.page-intro p,.rw-heading p,.apex-admin-intro p){font-size:13px!important;color:var(--ev-muted)!important}#appPage .eyebrow,#appPage .rw-eyebrow{color:var(--ev-accent)!important;font-size:10px!important;letter-spacing:1.6px!important;font-weight:700!important}#appPage .heading-dot{color:var(--ev-accent)!important}
+#appPage :is(.primary,.secondary){border-radius:7px!important;font-weight:650!important;box-shadow:none!important;min-height:34px!important}#appPage .primary{background:var(--ev-accent)!important;color:var(--ev-onaccent)!important;border:1px solid var(--ev-accent)!important}#appPage .secondary{background:var(--ev-paper)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important}#appPage :is(.primary,.secondary):hover{filter:brightness(.96)!important}#appPage :is(.asset-link,.text-button){color:var(--ev-accent)!important;font-weight:650!important}
+#appPage :is(.section-panel,.v34-panel,.ops-card,.v3-panel,.apex-cloud-panel,.pallet-location-card,.rw-bulk-card,.apex-pulse,.report-card){background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:12px!important;box-shadow:none!important;color:var(--ev-ink)!important}#appPage :is(.section-panel-head,.v34-panel-title,.apex-cloud-head){border-color:var(--ev-line)!important;color:var(--ev-ink)!important}#appPage :is(.section-panel-head h3,.v34-panel h3,.apex-cloud-head h2){font-size:16px!important;font-weight:650!important;letter-spacing:-.35px!important;color:var(--ev-ink)!important}
+#appPage :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:7px!important;color:var(--ev-ink)!important;font-size:13px!important;box-shadow:none!important}#appPage :is(input,select,textarea):focus-visible{outline:2px solid var(--ev-accent)!important;outline-offset:1px!important}#appPage :is(input,textarea)::placeholder{color:var(--ev-muted)!important}
+/* Registry workspace: purpose-built masthead and filter rail. */
+#appPage .evo-register-head{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(165px,250px)!important;align-items:center!important;gap:18px!important;padding:18px 24px!important;margin:0 0 17px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:14px!important}#appPage .evo-register-head .page-intro{display:flex!important;margin:0!important;padding:0!important;min-width:0!important}#appPage .evo-register-head .page-intro .eyebrow{display:none!important}.evo-register-tag{display:block!important;color:var(--ev-accent)!important;font-size:10px!important;letter-spacing:1.5px!important;font-weight:700!important;margin-bottom:7px!important}#appPage .evo-register-head .inventory-overview{display:flex!important;align-items:center!important;justify-content:space-between!important;background:var(--ev-hero)!important;color:var(--ev-hero-ink)!important;border:0!important;border-radius:10px!important;padding:14px 18px!important;margin:0!important;box-shadow:none!important;min-height:88px!important}#appPage .evo-register-count .overview-number{font-size:37px!important;font-weight:750!important;letter-spacing:-1.5px!important;color:var(--ev-hero-ink)!important}#appPage .evo-register-count .overview-label{color:#46563b!important;font-size:10px!important;font-weight:750!important;letter-spacing:1px!important}#appPage .evo-register-count .overview-icon{color:#46563b!important;background:transparent!important}#appPage .evo-filterbar{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;padding:17px 20px!important;background:var(--ev-paper)!important;border-radius:12px 12px 0 0!important}#appPage .evo-filterbar .toolbar{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important;width:100%!important}#appPage .evo-filterbar .table-search{flex:1 1 240px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:7px!important}#appPage .evo-filterbar .table-search input{border:0!important;background:transparent!important}#appPage .apex-inventory-results{background:var(--ev-soft)!important;padding:9px 20px!important;color:var(--ev-muted)!important}
+#appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) thead th{background:var(--ev-soft)!important;color:var(--ev-muted)!important;font-size:10px!important;font-weight:750!important;letter-spacing:.75px!important;text-transform:uppercase!important;padding-block:12px!important;border-color:var(--ev-line)!important}#appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) tbody td{background:var(--ev-paper)!important;color:var(--ev-ink)!important;border-color:var(--ev-line)!important;font-size:12px!important;padding-block:9px!important}#appPage :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table,.v34-recent table) tbody tr:hover td{background:var(--ev-hover)!important}#appPage .studio-device-cell{display:flex!important;align-items:center!important;gap:8px!important}#appPage .studio-device-icon{display:grid!important;place-items:center!important;background:var(--ev-soft)!important;color:var(--ev-accent)!important;width:28px!important;height:28px!important;border-radius:6px!important;flex-shrink:0!important}#appPage .studio-device-cell strong{font-size:12px!important;font-weight:650!important;white-space:nowrap!important}#appPage .studio-device-cell small{display:block!important;color:var(--ev-muted)!important;font-size:10px!important}
+/* Asset and administration workspaces retain the original forms and tab state. */
+#appPage .v34-form-group{background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:12px!important;padding:15px!important}#appPage .v34-form-group-head{border-color:var(--ev-line)!important}#appPage .evo-settings-layout{display:grid!important;grid-template-columns:210px minmax(0,1fr)!important;gap:18px!important;align-items:start!important}#appPage .evo-settings-rail{position:sticky!important;top:65px!important;display:grid!important;gap:12px!important;padding:17px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-radius:12px!important}#appPage .evo-settings-title{font-size:13px!important;color:var(--ev-ink)!important}#appPage .evo-settings-rail .apex-admin-links{display:grid!important;grid-template-columns:1fr!important;gap:3px!important}#appPage .evo-settings-rail a{display:block!important;text-decoration:none!important;background:transparent!important;border:0!important;border-radius:5px!important;padding:9px!important;color:var(--ev-muted)!important;font-size:12px!important}#appPage .evo-settings-rail a:hover{background:var(--ev-soft)!important;color:var(--ev-accent)!important}#appPage .evo-settings-body{min-width:0!important}
+#appPage :is(.modal-card,.modal-panel,.apex-dialog-panel){background:var(--ev-paper)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important;border-radius:14px!important;box-shadow:0 24px 70px #0005!important}#appPage :is(.primary,.secondary,.menu-item,.icon-action){transition:background-color 120ms ease,color 120ms ease,filter 120ms ease!important}
+@media(max-width:1150px){#apexSidebar .evo-navigation{gap:10px!important;padding:9px 15px!important}#apexSidebar .evo-menu{flex-basis:500px!important}#appPage .evo-demo{display:none!important}#appPage .content{padding:16px!important}#appPage .evo-dashboard-grid{grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr)!important}}
+@media(max-width:850px){#appPage .evo-dashboard-hero,#appPage .evo-dashboard-grid,#appPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage .evo-settings-rail{position:static!important}#appPage .evo-register-head{grid-template-columns:1fr!important}#appPage .topbar{flex-wrap:wrap!important}}
+@media(prefers-reduced-motion:reduce){#appPage *{transition-duration:0ms!important;animation-duration:0ms!important}}
+/* Final density and contrast refinements from browser review. */
+#appPage #apexSidebar .evo-navigation{min-height:60px!important;padding-block:8px!important}
+#appPage #apexSidebar .menu-item.active .apex-nav-text{color:#f1f6ff!important}
+#appPage #apexSidebar .menu-item .apex-nav-text{color:inherit!important}
+#appPage .topbar .global-search input{background:transparent!important;border:0!important}
+#appPage .topbar .top-left{justify-content:flex-start!important;flex:1!important}
+#appPage .topbar .top-left .evo-demo{display:flex!important}
+#appPage .topbar .top-left #breadPage,#appPage .topbar .top-left #breadSub,#appPage .topbar .top-left .top-slash{display:inline!important}
+#appPage .topbar .top-left .signature-preview-badge{display:none!important}
+#appPage .evo-register-head{padding:12px 20px!important;margin-bottom:12px!important}
+#appPage .evo-register-head .inventory-overview{min-height:68px!important;padding:10px 14px!important}
+#appPage .evo-register-head .page-intro h1{font-size:27px!important;margin:0 0 4px!important}
+#appPage #inventoryTable .asset-link,#appPage #inventoryTable .v34-serial{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+#appPage #inventoryTable .asset-link{font-size:11px!important}
+#appPage .v34-recent [data-v34-open],#appPage .v34-legend-row{color:var(--ev-accent)!important}
+#appPage .apex-b-dashboard-actions :is(strong,small){color:var(--ev-ink)!important}
+#appPage .apex-b-dashboard-actions small{color:var(--ev-muted)!important}
+#appPage .rw-heading.evo-page-head{padding:18px 20px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-left:5px solid var(--ev-accent)!important;border-radius:12px!important}
+#appPage .rw-queue-summary{gap:9px!important}
+#appPage .rw-queue-summary>button{border:1px solid var(--ev-line)!important;background:var(--ev-paper)!important;border-radius:9px!important;color:var(--ev-ink)!important}
+#appPage .rw-toolbar{background:var(--ev-paper)!important;border-color:var(--ev-line)!important}
+#appPage .v350-capture,#appPage .ws-scan-panel{border-radius:14px!important;background:var(--ev-paper)!important;border:1px solid var(--ev-line)!important;border-left:5px solid var(--ev-accent)!important}
+@media(max-width:1150px){#appPage .topbar .top-left .evo-demo{display:none!important}}
+
+
+
+
+
+
+
+
+
+
+
+#appPage #apexDeviceActions,#appPage #v3AssetTabs{background:var(--ev-paper)!important;border-color:var(--ev-line)!important;box-shadow:none!important}
+#appPage #apexDeviceActions :is(strong,small){color:var(--ev-ink)!important}
+#appPage #apexDeviceActions button:not(.primary){background:var(--ev-paper)!important;color:var(--ev-accent)!important;border-color:var(--ev-line)!important}
+#appPage #rwQueue .rw-queue-summary :is(strong,b){color:var(--ev-ink)!important}#appPage #rwQueue .rw-queue-summary small{color:var(--ev-muted)!important}
+#appPage .v34-panel-title #v34ViewAll{color:var(--ev-accent)!important}
+}}
+/* Preview 6: vertical workspace rail and compact operations dashboard. */
+@layer evolution {
+@media screen {
+html[data-theme="light"]{--ev-bg:#f3f5f8;--ev-paper:#fff;--ev-ink:#18263a;--ev-muted:#5c6d82;--ev-line:#e0e6ee;--ev-soft:#eef2f7;--ev-accent:#2857b5;--ev-onaccent:#fff;--ev-hover:#edf3fc;--ev-hero:#e4edff;--ev-hero-ink:#17325c;--ev-nav:#142239;--ev-navtext:#e7edf7;--ev-active:#344d77;--ev-navmuted:#9baec9}
+html[data-theme="dark"]{--ev-bg:#111923;--ev-paper:#1b2736;--ev-ink:#edf3fb;--ev-muted:#a5b4c9;--ev-line:#334359;--ev-soft:#233247;--ev-accent:#9cbdff;--ev-onaccent:#142239;--ev-hover:#263951;--ev-hero:#263d61;--ev-hero-ink:#e6efff;--ev-nav:#101a2a;--ev-navtext:#e7edf7;--ev-active:#304b76;--ev-navmuted:#9baec9}
+#appPage{flex-direction:row!important;align-items:stretch!important}
+#appPage #apexSidebar{flex:0 0 228px!important;width:228px!important;min-width:228px!important;max-width:228px!important;height:100vh!important;overflow:hidden!important;border-right:1px solid #ffffff15!important}
+#apexSidebar .evo-navigation{height:100%!important;box-sizing:border-box!important;display:flex!important;flex-flow:column nowrap!important;align-items:stretch!important;gap:0!important;padding:18px 12px 12px!important;overflow:hidden!important}
+#apexSidebar .evo-brand{flex:0 0 auto!important;flex-direction:row-reverse!important;justify-content:space-between!important;padding:0 6px 20px!important;margin:0 0 12px!important;border-bottom:1px solid #ffffff16!important;gap:8px!important}
+#apexSidebar .evo-wordmark>span{font-size:32px!important;font-weight:800!important;letter-spacing:-1.8px!important}#apexSidebar .evo-mark-dot{color:#9dbdff!important}#apexSidebar .evo-wordmark small{letter-spacing:1px!important;font-size:8px!important}
+#apexSidebar .evo-menu{flex:1 1 auto!important;flex-direction:column!important;align-items:stretch!important;flex-wrap:nowrap!important;gap:0!important;overflow-y:auto!important;overflow-x:hidden!important;min-height:0!important;scrollbar-width:thin!important}
+#apexSidebar .evo-nav-label{font-size:9px!important;font-weight:700!important;letter-spacing:1.4px!important;color:var(--ev-navmuted)!important;padding:12px 10px 8px!important;white-space:nowrap!important}
+#apexSidebar .menu{flex-direction:column!important;align-items:stretch!important;flex-wrap:nowrap!important;gap:4px!important;width:100%!important;margin:0 0 15px!important}
+#apexSidebar .menu-item{position:relative!important;justify-content:flex-start!important;width:100%!important;min-height:40px!important;gap:11px!important;padding:10px 11px!important;text-align:left!important;border-radius:8px!important;white-space:nowrap!important}
+#apexSidebar .menu-item.active{background:var(--ev-active)!important;color:#f1f6ff!important;box-shadow:inset 3px 0 #9cbdff!important}#apexSidebar .menu-item.active .nav-symbol,#apexSidebar .menu-item.active .apex-nav-text{color:#f1f6ff!important}
+#apexSidebar .menu-item .apex-nav-text{font-size:12px!important;font-weight:600!important;color:inherit!important}
+#apexSidebar .menu-item .nav-symbol{width:19px!important;height:19px!important;flex:0 0 19px!important;color:#b4c8e6!important}#apexSidebar .count-pill{display:inline-flex!important;justify-content:center!important;margin-left:auto!important;background:#ffffff18!important;color:#eaf1ff!important;border-radius:5px!important;font-size:10px!important;padding:2px 5px!important;min-width:20px!important}
+#apexSidebar .evo-utilities{flex:0 0 auto!important;margin:0!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;padding-top:7px!important;border-top:1px solid #ffffff19!important}
+#apexSidebar #v3Settings{width:100%!important;text-align:left!important;padding:11px!important;background:#ffffff0b!important;border-color:#ffffff14!important;color:#e7edf7!important}
+#apexSidebar :is(#hubSettings,#sidebarUser){width:100%!important;min-height:42px!important;gap:9px!important;justify-content:flex-start!important;padding:8px!important;background:#ffffff08!important;border-color:#ffffff14!important;text-align:left!important}
+#apexSidebar #hubSettings div,#apexSidebar #sidebarUser>span:nth-child(2){display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important}#apexSidebar #sidebarUser .user-logout{display:inline!important;margin-left:auto!important;color:#b8c9e2!important}#apexSidebar :is(#hubSettings,#sidebarUser) :is(b,small){color:#e7edf7!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:11px!important}#apexSidebar :is(#hubSettings,#sidebarUser) small{color:#a4b6d0!important;font-size:10px!important}#apexSidebar #sidebarUser .avatar,#apexSidebar .small-square{flex:0 0 29px!important;width:29px!important;height:29px!important;background:#334e79!important;color:#eaf1ff!important}
+.evo-side-footer{display:flex!important;align-items:flex-start!important;gap:7px!important;padding:8px 7px 0!important;color:#a8b9cf!important;font-size:9px!important;font-weight:700!important;letter-spacing:.8px!important}.evo-side-footer i{height:7px!important;width:7px!important;background:#63d3a5!important;border-radius:100%!important;margin-top:3px!important;flex-shrink:0!important}.evo-side-footer small{display:block!important;font-size:10px!important;letter-spacing:0!important;font-weight:400!important;margin-top:4px!important;color:#a8b9cf!important}
+body.apex-nav-collapsed #appPage #apexSidebar{width:66px!important;min-width:66px!important;max-width:66px!important;flex-basis:66px!important}body.apex-nav-collapsed #apexSidebar .evo-navigation{padding:14px 8px!important}body.apex-nav-collapsed #apexSidebar .evo-brand{justify-content:center!important;padding:0 0 14px!important}body.apex-nav-collapsed #apexSidebar :is(.evo-wordmark,.evo-nav-label,.count-pill,.evo-side-footer,#hubSettings div,#sidebarUser>span:nth-child(2),.user-logout){display:none!important}body.apex-nav-collapsed #apexSidebar .evo-menu{flex:1 1 auto!important}body.apex-nav-collapsed #apexSidebar .menu-item{justify-content:center!important;padding:10px!important}body.apex-nav-collapsed #apexSidebar :is(#hubSettings,#sidebarUser){justify-content:center!important;padding:5px!important}body.apex-nav-collapsed #apexSidebar #v3Settings{font-size:0!important;text-align:center!important;padding:8px!important}body.apex-nav-collapsed #apexSidebar #v3Settings::before{content:"⚙";font-size:18px!important}
+#appPage main.main{width:0!important;flex:1 1 0!important;min-width:0!important;height:100vh!important;overflow:auto!important}
+#appPage .content{padding:19px 24px 42px!important;max-width:1800px!important}
+#appPage .topbar{padding:9px 22px!important;min-height:58px!important}#appPage .topbar .top-left{min-width:0!important}#appPage .topbar .top-left .evo-demo{display:none!important}#appPage .topbar .global-search{min-width:170px!important;max-width:295px!important}#appPage .topbar .preview-indicator{font-size:9px!important;white-space:nowrap!important}
+#appPage .evo-register-count :is(.overview-label,.overview-icon){color:var(--ev-hero-ink)!important}
+@media(max-width:1250px){#appPage .content{padding:15px 17px 35px!important}#appPage .evo-dashboard-grid{grid-template-columns:minmax(0,1.4fr) minmax(235px,1fr)!important}#appPage .topbar .preview-indicator{display:none!important}}
+@media(max-width:1050px){#appPage .evo-dashboard-grid,#appPage .evo-settings-layout{grid-template-columns:1fr!important}#appPage .evo-settings-rail{position:static!important}#appPage .evo-register-head{grid-template-columns:1fr!important}#appPage .topbar{flex-wrap:wrap!important}}
+}}
+@layer evolution {@media screen {
+#appPage #apexSidebar #sidebarUser .avatar{color:#eaf1ff!important}
+#appPage #apexSidebar .menu-item:focus-visible,#appPage #apexSidebar button:focus-visible{outline:2px solid #b4ceff!important;outline-offset:-2px!important}
+#appPage #inventoryPage #inventoryTable{overflow-x:auto!important;max-width:100%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child){width:100%!important;min-width:1150px!important;table-layout:fixed!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(1){width:3.5%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(2){width:8.5%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(3){width:18%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(4){width:12%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(5){width:9%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(6){width:8%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(7){width:13%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(8){width:14%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(9){width:9%!important}
+#appPage #inventoryPage #inventoryTable>.asset-table:has(>thead>tr>th:nth-child(10):last-child) thead th:nth-child(10){width:5%!important}
+#appPage #inventoryPage #inventoryTable .v34-serial{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;word-break:normal!important}
+#appPage #inventoryPage #inventoryTable .studio-device-cell strong{overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important}
+}}
+@layer evolution {@media screen {
+#appPage #apexSidebar .menu-item.active .apex-nav-text{color:#f1f6ff!important;-webkit-text-fill-color:#f1f6ff!important}
+#appPage #apexSidebar #sidebarUser .avatar{-webkit-text-fill-color:#eaf1ff!important}
+}}
+
+/* 4.4.35: keep the original dashboard grid; Evolution colours stay in place. */
+@layer evolution {@media screen {
+#appPage #v34Dashboard .v34-stat{background:var(--ev-paper)!important;color:var(--ev-ink)!important;border-color:var(--ev-line)!important;border-radius:11px!important}
+#appPage #v34Dashboard .v34-stat :is(b,small){color:var(--ev-ink)!important}
+#appPage #assetPage #apexDeviceActions{display:none!important}
+#appPage #apexSidebar .evo-navigation{padding:12px 10px 10px!important;min-height:0!important}
+#appPage #apexSidebar .evo-brand{padding-bottom:12px!important;margin-bottom:5px!important}
+#appPage #apexSidebar .evo-menu{overflow-y:auto!important;scrollbar-width:none!important;-ms-overflow-style:none!important;flex:1 1 auto!important;min-height:0!important}
+#appPage #apexSidebar .evo-menu::-webkit-scrollbar{display:none!important;width:0!important}
+#appPage #apexSidebar .menu{gap:2px!important;margin-bottom:6px!important;flex:0 0 auto!important}
+#appPage #apexSidebar .menu-item{min-height:36px!important;padding:7px 10px!important;flex:0 0 auto!important}
+#appPage #apexSidebar .evo-nav-label{padding:8px 10px 5px!important}
+#appPage #apexSidebar .evo-utilities{gap:5px!important;padding-top:5px!important}
+#appPage #apexSidebar #v3Settings{padding:8px 10px!important;min-height:34px!important}
+#appPage #apexSidebar #sidebarUser{min-height:36px!important;padding:5px 8px!important}
+#appPage #apexSidebar .evo-side-footer{padding:4px 7px 0!important}
+#appPage .evo-settings-connection{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--ev-line)}
+#appPage .evo-connection-heading{font-size:13px;color:var(--ev-ink)}
+#appPage #apexSharedAccountPanel #hubSettings{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;text-align:left!important;color:var(--ev-ink)!important;background:var(--ev-soft)!important;border:1px solid var(--ev-line)!important;border-radius:8px!important;padding:12px!important;margin:0!important}
+#appPage #apexSharedAccountPanel #hubSettings div{display:grid!important;gap:4px!important}
+#appPage #apexSharedAccountPanel #hubSettings b{color:var(--ev-ink)!important}#appPage #apexSharedAccountPanel #hubSettings small{color:var(--ev-muted)!important}
+#appPage #apexSharedAccountPanel #hubSettings .small-square{background:var(--ev-accent)!important;color:var(--ev-onaccent)!important}
+@media(max-height:720px){#appPage #apexSidebar .evo-navigation{padding:8px!important}#appPage #apexSidebar .evo-brand{padding-bottom:8px!important;margin-bottom:0!important}#appPage #apexSidebar .menu-item{min-height:32px!important;padding:5px 9px!important}#appPage #apexSidebar .evo-nav-label{padding:6px 9px 3px!important}#appPage #apexSidebar .evo-side-footer{display:none!important}}
+}}
+
+/* 4.4.36 compact workspace chrome: screen-only, original controls and print layouts retained. */
+@layer evolution {@media screen {
+#appPage .topbar{box-sizing:border-box!important;height:auto!important;min-height:46px!important;padding:5px 18px!important;gap:8px!important}
+#appPage .topbar .top-actions{gap:6px!important;min-width:0!important}
+#appPage .topbar .global-search{height:32px!important;min-height:32px!important;max-width:270px!important;padding-block:0!important}
+#appPage .topbar :is(.icon-action,.theme-switch){height:32px!important;min-height:32px!important;padding-block:0!important}
+#appPage .topbar #topScan{display:inline-grid!important;place-items:center!important;width:32px!important;min-width:32px!important;padding:0!important;background:transparent!important;border:1px solid transparent!important;color:var(--ev-ink)!important;box-shadow:none!important;border-radius:6px!important}
+#appPage .topbar #topScan:hover{background:var(--ev-soft)!important;border-color:var(--ev-line)!important}
+#appPage .topbar #topScan .evo-scan-icon{display:block!important;width:18px!important;height:18px!important;stroke:currentColor!important;flex-shrink:0!important}
+#appPage .topbar #topScan:focus-visible{outline:2px solid var(--ev-accent)!important;outline-offset:2px!important}
+#appPage main.main>.content{padding:10px 18px 28px!important;gap:0!important}
+#appPage #v3Topline{min-height:0!important;padding:0 0 4px!important;margin:0 0 4px!important;gap:4px 10px!important;grid-template-rows:auto auto!important;border-bottom:0!important}
+#appPage #v3Topline .v3-workspace-label{gap:0!important;min-height:0!important;margin:0!important;padding:0!important}
+#appPage #v3Topline .v3-workspace-label>span{font-size:17px!important;line-height:1.22!important;letter-spacing:-.3px!important}
+#appPage #v3Topline .v3-workspace-label small{font-size:11px!important;line-height:1.2!important;margin:0!important}
+#appPage #v3Topline .v34-header-actions{gap:6px!important;margin:0!important}
+#appPage #v3Topline .v34-header-actions button{min-height:30px!important;padding:5px 10px!important;font-size:11.5px!important}
+#appPage #v3Topline .v3-tabstrip:not(.v3-single){gap:4px!important;padding:0!important;margin:0!important;min-height:0!important}
+#appPage :is(#v3Topline .v3-tab,#v3AssetTabs .v3-tab,.rw-view-tabs .v3-tab,.rw-purchasing-tabs .v3-tab){min-height:28px!important;padding:5px 10px!important;font-size:11.5px!important;line-height:1.3!important}
+#appPage #apexWorkspaceTabs{min-height:30px!important;height:auto!important;padding:0 0 2px!important;margin:0 0 9px!important;gap:4px!important;border-color:var(--ev-line)!important}
+#appPage #apexWorkspaceTabs .apex-workspace-tab-list{gap:3px!important;scrollbar-width:thin!important}
+#appPage #apexWorkspaceTabs .apex-workspace-tab{height:28px!important;width:144px!important;min-width:144px!important;max-width:144px!important;flex-basis:144px!important;border-radius:6px 6px 0 0!important}
+#appPage #apexWorkspaceTabs .apex-workspace-tab-switch{padding:3px 5px 3px 7px!important;min-height:0!important;line-height:1.2!important;font-size:11.5px!important}
+#appPage #apexWorkspaceTabs :is(.apex-workspace-tab-close,.apex-workspace-tab-add,.apex-workspace-history button){min-height:26px!important;padding:2px 6px!important;line-height:1!important}
+#appPage .content>section:not(.hidden)>.evo-page-head{margin:0 0 8px!important;padding:4px 0!important;min-height:0!important;gap:8px!important}
+#appPage .content>section:not(.hidden)>.evo-page-head :is(h1,h2){font-size:21px!important;line-height:1.2!important;margin:0 0 2px!important;letter-spacing:-.4px!important}
+#appPage .content>section:not(.hidden)>.evo-page-head p{font-size:11.5px!important;line-height:1.3!important;margin:0!important}
+#appPage .content>section:not(.hidden)>.evo-page-head :is(.eyebrow,.rw-eyebrow){font-size:9px!important;line-height:1.2!important;margin:0 0 3px!important}
+#appPage #refurbWorkspacePage .rw-heading.evo-page-head{padding:7px 10px!important;border-left-width:3px!important;margin-bottom:6px!important;border-radius:8px!important}
+#appPage #refurbWorkspacePage :is(.rw-view-tabs,.rw-purchasing-tabs){min-height:0!important;margin:0 0 8px!important;padding:0!important;gap:4px!important}
+#appPage #refurbWorkspacePage .rw-queue-summary{margin-bottom:8px!important;gap:6px!important}
+#appPage #refurbWorkspacePage .rw-queue-summary>button{min-height:0!important;padding:7px 10px!important}
+#appPage #refurbWorkspacePage .rw-queue-controls{gap:5px!important;margin-bottom:8px!important}
+#appPage #refurbWorkspacePage .rw-toolbar{padding:6px 8px!important;min-height:0!important}
+#appPage #inventoryPage .evo-register-head{grid-template-columns:minmax(0,1fr) minmax(120px,175px)!important;gap:10px!important;padding:7px 12px!important;margin:0 0 8px!important;border-radius:9px!important}
+#appPage #inventoryPage .evo-register-head .inventory-overview{min-height:36px!important;padding:5px 9px!important;gap:8px!important;border-radius:6px!important}
+#appPage #inventoryPage .evo-register-head .overview-number{font-size:21px!important;line-height:1.1!important;margin:0!important}
+#appPage #inventoryPage .evo-register-head .overview-label{font-size:9px!important;line-height:1.2!important}
+#appPage #inventoryPage .evo-register-head .overview-icon{font-size:18px!important;width:auto!important;height:auto!important;min-width:0!important}
+#appPage #inventoryPage .evo-register-head .page-intro h1{font-size:21px!important;margin:0!important;line-height:1.2!important}
+#appPage #inventoryPage .evo-register-head .evo-register-tag{font-size:9px!important;margin:0 0 2px!important;line-height:1.2!important}
+#appPage #inventoryPage .evo-register-head .page-intro p{font-size:11px!important;margin:2px 0 0!important;line-height:1.3!important}
+#appPage #inventoryPage .evo-filterbar{padding:7px 10px!important;gap:6px!important}
+#appPage #assetPage .device-inventory-navigation{margin:0 0 4px!important;padding:0!important;min-height:0!important}
+#appPage #assetPage .compact-breadcrumb{margin:0 0 6px!important;padding:0!important;font-size:11px!important;line-height:1.3!important}
+
+
+#appPage #assetPage #v3AssetTabs{min-height:0!important;padding:3px 7px!important;margin:7px 0!important;gap:4px!important}
+#appPage #settingsPage .apex-admin-intro{padding:4px 0!important;margin:0 0 8px!important}
+#appPage #settingsPage .apex-admin-intro h1{font-size:21px!important;margin:0 0 2px!important}
+@media(max-width:1050px){#appPage #inventoryPage .evo-register-head{grid-template-columns:minmax(0,1fr) minmax(100px,140px)!important}#appPage .topbar .global-search{max-width:200px!important}}
+@media(max-width:760px){#appPage #inventoryPage .evo-register-head{grid-template-columns:1fr!important}#appPage .topbar{flex-wrap:wrap!important}#appPage #apexWorkspaceTabs .apex-workspace-tab{width:120px!important;min-width:120px!important;max-width:120px!important;flex-basis:120px!important}}
+}}
+
+@layer evolution {@media screen {
+#appPage .topbar .top-left:has(.evo-docked-tabs){flex:1 1 350px!important;min-width:0!important;overflow:hidden!important;gap:0!important}
+#appPage .topbar .top-left:has(.evo-docked-tabs)>:not(.evo-docked-tabs){display:none!important}
+#appPage .topbar #apexWorkspaceTabs.evo-docked-tabs{flex:1 1 auto!important;min-width:0!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;border:0!important;min-height:30px!important;align-self:center!important}
+#appPage .topbar #apexWorkspaceTabs .apex-workspace-tab{border-radius:6px!important}
+#appPage .topbar #apexWorkspaceTabs .apex-workspace-tab.is-active{background:var(--ev-soft)!important;border-color:var(--ev-line)!important;color:var(--ev-ink)!important}
+#appPage #inventoryPage .evo-register-head.evo-redundant-register{display:none!important}
+@media(max-width:1100px){#appPage .topbar{flex-wrap:wrap!important}#appPage .topbar .top-left:has(.evo-docked-tabs){flex:1 1 100%!important;order:2!important}#appPage .topbar .top-actions{margin-left:auto!important}}
+}}
+@layer evolution {@media screen {
+#appPage .topbar .top-left:has(#apexWorkspaceTabs.evo-docked-tabs){visibility:visible!important;flex:1 1 0!important;justify-content:flex-start!important}
+#appPage .topbar .top-left:has(#apexWorkspaceTabs.evo-docked-tabs)>:is(#breadPage,#breadSub,.top-slash,.evo-demo){display:none!important}
+#appPage .topbar:has(#apexWorkspaceTabs.evo-docked-tabs) .preview-indicator{display:none!important}
+#appPage .topbar .top-left #apexWorkspaceTabs.evo-docked-tabs{visibility:visible!important;display:flex!important;min-width:0!important;flex:1 1 0!important}
+#appPage .topbar #apexWorkspaceTabList{min-width:0!important;flex:1 1 auto!important;overflow-x:auto!important}
+@media(max-width:1100px){#appPage .topbar .top-left:has(#apexWorkspaceTabs.evo-docked-tabs){flex:1 1 100%!important;order:2!important}}
+}}
+@layer evolution {@media screen {
+#appPage .topbar:has(#apexWorkspaceTabs.evo-docked-tabs){display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto!important;align-items:center!important}
+#appPage .topbar .top-left:has(#apexWorkspaceTabs.evo-docked-tabs){width:100%!important;max-width:none!important;min-width:0!important;grid-column:1!important;grid-row:1!important}
+#appPage .topbar:has(#apexWorkspaceTabs.evo-docked-tabs) .top-actions{width:auto!important;max-width:none!important;grid-column:2!important;grid-row:1!important;justify-self:end!important}
+@media(max-width:1100px){#appPage .topbar:has(#apexWorkspaceTabs.evo-docked-tabs){grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important}#appPage .topbar .top-left:has(#apexWorkspaceTabs.evo-docked-tabs){grid-column:1!important;grid-row:2!important}#appPage .topbar:has(#apexWorkspaceTabs.evo-docked-tabs) .top-actions{grid-column:1!important;grid-row:1!important}}
+}}
+
+/* Compact asset header: live administrative actions replace the redundant save notice. */
+@layer evolution {@media screen {
+#appPage #assetPage #assetEditedHint{display:none!important}
+#appPage #assetPage #apexAssetDetailsSection .flat-editor-heading{align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:0 0 8px!important;margin:0 0 10px!important;flex-wrap:wrap!important}
+#appPage #assetPage #apexAssetDetailsSection .flat-editor-heading h2{margin:0!important;line-height:1.25!important}
+#appPage #assetPage .evo-asset-data-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:6px!important;margin:0 0 6px!important;padding:0!important;min-width:0!important}
+#appPage #assetPage .flat-editor-heading .evo-asset-data-actions{margin:0!important;margin-left:auto!important}
+#appPage #assetPage .evo-asset-data-actions>button{display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-height:30px!important;height:auto!important;padding:5px 10px!important;border-radius:7px!important;font-size:11.5px!important;line-height:1.3!important;font-weight:600!important;white-space:nowrap!important;box-shadow:none!important;margin:0!important}
+#appPage #assetPage .evo-asset-data-actions>button.secondary{background:var(--ev-paper)!important;color:var(--ev-ink)!important;border:1px solid var(--ev-line)!important}
+#appPage #assetPage .evo-asset-data-actions>button.secondary:hover{background:var(--ev-hover)!important}
+#appPage #assetPage .evo-asset-data-actions>#v3DeleteAsset{color:#b52d42!important;background:transparent!important;border:1px solid #d58b96!important}
+html[data-theme="dark"] #appPage #assetPage .evo-asset-data-actions>#v3DeleteAsset{color:#ff9ca9!important;border-color:#985363!important}
+#appPage #assetPage .evo-asset-data-actions>#v3DeleteAsset:hover{background:rgba(190,45,66,.10)!important}
+#appPage #assetPage .evo-asset-data-actions>#v3DeleteAsset svg{width:15px!important;height:15px!important;flex-shrink:0!important}
+#appPage #assetPage .evo-asset-data-actions>button:focus-visible{outline:2px solid var(--ev-accent)!important;outline-offset:2px!important}
+}}

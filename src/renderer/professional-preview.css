@@ -1,0 +1,48 @@
+@media screen {
+/* Final visual layer: original page structure and sizing retained. */
+html[data-theme=dark]{--apex-bg:#101419;--apex-side:#141920;--apex-surface:#1b222b;--apex-raised:#222b36;--apex-border:#303a46;--apex-text:#f1f4f8;--apex-muted:#a8b3c1;--apex-accent:#83b2fc;--apex-accent-strong:#386fc4;--apex-action:#83b2fc;--bg:var(--apex-bg);--panel:var(--apex-surface);--panel2:var(--apex-raised);--side:var(--apex-side);--line:var(--apex-border);--text:var(--apex-text);--muted:var(--apex-muted);--violet:var(--apex-accent);--violet2:var(--apex-accent-strong);color-scheme:dark}
+html[data-theme=light][data-apex-design]{--apex-bg:#f4f6f9;--apex-side:#fff;--apex-surface:#fff;--apex-raised:#edf1f5;--apex-border:#dce2e9;--apex-text:#182330;--apex-muted:#536274;--apex-accent:#2563eb;--apex-accent-strong:#245bc0;--bg:var(--apex-bg);--panel:var(--apex-surface);--panel2:var(--apex-raised);--side:var(--apex-side);--line:var(--apex-border);--text:var(--apex-text);--muted:var(--apex-muted);--violet:var(--apex-accent);--violet2:var(--apex-accent-strong);color-scheme:light}
+html[data-theme] body,html[data-theme] button,html[data-theme] input,html[data-theme] select,html[data-theme] textarea{font-family:'Segoe UI Variable Text','Segoe UI',Arial,sans-serif!important;font-variant-numeric:tabular-nums;letter-spacing:normal}
+html[data-theme] body,html[data-theme] .app-shell,html[data-theme] .content{background:var(--apex-bg)!important;color:var(--apex-text)}
+html[data-theme] .sidebar{background:var(--apex-side)!important;border-color:var(--apex-border)!important;box-shadow:none!important}
+html[data-theme] .sidebar .menu-item{color:var(--apex-muted)!important;font-weight:550!important;border-radius:7px!important}
+html[data-theme] .sidebar .menu-item.active{background:color-mix(in srgb,var(--apex-accent) 13%,var(--apex-side))!important;color:var(--apex-accent)!important;border-color:color-mix(in srgb,var(--apex-accent) 25%,var(--apex-border))!important;box-shadow:none!important}
+html[data-theme] .sidebar .nav-symbol{color:inherit!important}
+html[data-theme] .sidebar .wordmark,html[data-theme] .sidebar .wordmark b{color:var(--apex-text)!important}
+html[data-theme] .sidebar-label,html[data-theme] .sidebar-subtitle{color:var(--apex-muted)!important;letter-spacing:.8px!important}
+html[data-theme] .topbar{background:var(--apex-surface)!important;border-color:var(--apex-border)!important;box-shadow:none!important}
+html[data-theme] :is(.section-panel,.metric,.metric-card,.stat-card,.report-card,.device-summary-card,.pallet-location-card,.ops-card,.v3-panel){background:var(--apex-surface)!important;border-color:var(--apex-border)!important;border-radius:9px!important;box-shadow:none!important}
+html[data-theme] :is(.page-intro h1,.rw-heading h2,.section-panel h3){letter-spacing:-.45px!important;font-weight:650!important}
+html[data-theme] .primary{background:var(--apex-accent-strong)!important;color:white!important;border-color:transparent!important;border-radius:7px!important;box-shadow:none!important}
+html[data-theme] .secondary{background:var(--apex-surface)!important;color:var(--apex-text)!important;border-color:var(--apex-border)!important;border-radius:7px!important;box-shadow:none!important}
+html[data-theme] :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--apex-surface)!important;color:var(--apex-text)!important;border-color:var(--apex-border)!important;border-radius:7px!important;box-shadow:none!important}
+html[data-theme] :is(input,textarea)::placeholder{color:var(--apex-muted)!important;opacity:.8}
+html[data-theme] :is(button,input,select,textarea):focus-visible{outline:2px solid var(--apex-accent)!important;outline-offset:2px}
+html[data-theme] :is(th,td){border-color:var(--apex-border)!important}
+html[data-theme] th{font-weight:600!important;letter-spacing:.2px!important}
+html[data-theme] .hero-banner{background:var(--apex-raised)!important;border-color:var(--apex-border)!important;box-shadow:none!important}
+html[data-theme] .hero-banner :is(h2,p){color:var(--apex-text)!important}
+html[data-theme] .eyebrow{color:var(--apex-accent)!important}
+html[data-theme] .heading-dot{color:var(--apex-accent)!important}
+.preview-indicator{color:var(--apex-muted);font-size:10px;font-weight:700;letter-spacing:.6px;border:1px solid var(--apex-border);border-radius:5px;padding:6px 8px;white-space:nowrap}
+#loginPage .login-left{background:radial-gradient(ellipse at 80% 20%,#233c55 0,transparent 42%),linear-gradient(145deg,#121b26,#101419 74%)!important;color:#f1f4f8!important;position:relative;overflow:hidden}
+#loginPage .login-left::before{content:'';position:absolute;inset:0;background-image:linear-gradient(#a8c4e008 1px,transparent 1px),linear-gradient(90deg,#a8c4e008 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+#loginPage .login-left .wordmark,#loginPage .login-left .wordmark b{color:#f1f4f8!important}
+#loginPage .login-hero{position:relative;z-index:1}
+#loginPage .login-hero h1{font-size:clamp(38px,4.4vw,68px)!important;font-weight:600!important;line-height:1.1!important;letter-spacing:-2.6px!important;color:#f1f4f8!important}
+#loginPage .login-hero h1 em{color:#95bdf0!important;font-style:normal!important}
+#loginPage .login-hero p,#loginPage .hero-points span,#loginPage .footer-note{color:#a8b3c1!important}
+#loginPage .login-hero .eyebrow{color:#95bdf0!important;letter-spacing:2px!important}
+#loginPage .login-panel{background:var(--apex-bg)!important;position:relative}
+#loginPage .login-card{background:var(--apex-surface)!important;color:var(--apex-text)!important;border:1px solid var(--apex-border)!important;box-shadow:0 22px 70px #0002!important;border-radius:14px!important;padding:32px!important}
+#loginPage .login-card h2{color:var(--apex-text)!important;font-size:26px!important;font-weight:650!important;letter-spacing:-.6px!important}
+#loginPage .login-card p,#loginPage .login-hint,#loginPage .login-panel-footer{color:var(--apex-muted)!important}
+#loginPage .login-card label{color:var(--apex-text)!important}
+#loginPage .login-card .primary{background:#2863be!important;color:white!important}
+
+.preview-login-theme{position:absolute;right:24px;top:24px;z-index:5;background:var(--apex-surface);color:var(--apex-text);border:1px solid var(--apex-border);padding:8px 12px;border-radius:7px;cursor:pointer}
+@media(prefers-reduced-motion:no-preference){html[data-theme] button{transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s!important}#loginPage .login-card{animation:preview-in .22s ease-out}@keyframes preview-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
+@media(prefers-reduced-motion:reduce){html[data-theme] *,html[data-theme] *::before,html[data-theme] *::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+html[data-theme] .apex-dialog-panel{background:var(--apex-surface)!important;border-color:var(--apex-border)!important;border-radius:12px!important;color:var(--apex-text)!important}
+}

@@ -25,6 +25,7 @@ let cloudSession=null;
 const cloudSeenRevisions=new Map();
 let win,authenticated=false,authMode=null,cloudUserRole=null,loginFailures=0,nextAttempt=0,ownedHub=null,cloudProcess=null,cloudRunningSince=null,cloudLastMessage="";
 const userDir=()=>app.getPath('userData');
+const layoutPreference=require('./layout-preference');
 const dbPath=()=>path.join(userDir(),'inventory-db.json');
 const hubPath=()=>path.join(userDir(),'hub-connection.json');
 const demoItems=[
@@ -593,6 +594,10 @@ ipcMain.handle('inventory:updateCheck',()=>safe(()=>authenticated?updateCentre.c
 ipcMain.handle('inventory:updateDownload',()=>safe(()=>authenticated?updateCentre.download():{ok:false,error:'Sign in first.'}));
 ipcMain.handle('inventory:updateInstall',()=>safe(()=>authenticated?updateCentre.install():{ok:false,error:'Sign in first.'}));
 app.whenReady().then(()=>{
+ ipcMain.handle('inventory:layoutPreference', (event, layout)=>safe(()=>{
+  if(!win||event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)return {ok:false,error:'Main window required.'};
+  return layout===undefined?{ok:true,layout:layoutPreference.read(userDir())}:layoutPreference.write(userDir(),layout);
+ }));
  loadDB();
  session.defaultSession.setPermissionRequestHandler((wc,permission,cb,details)=>{
   const camera=permission==='media'&&(!details?.mediaTypes||(details.mediaTypes.includes('video')&&!details.mediaTypes.includes('audio')));
@@ -884,7 +889,7 @@ app.whenReady().then(()=>{
  const localAutoBackup=()=>{try{if(backupManager.due(userDir()))backupManager.snapshot({root:userDir(),files:localBackupFiles(),reason:'automatic'});}catch(e){console.error('Local backup:',e.message);}};
  localAutoBackup();const localBackupTimer=setInterval(localAutoBackup,6*60*60*1000);localBackupTimer.unref();
  win=new BrowserWindow({width:1536,height:960,minWidth:980,minHeight:640,backgroundColor:'#f5f7fb',show:false,title:'APEX Smart Inventory Studio',icon:path.join(__dirname,'assets',process.platform==='win32'?'apex-app.ico':'apex-app.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
- win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer','index.html'));
+ win.once('ready-to-show',()=>win.show());win.loadFile(path.join(__dirname,'renderer',layoutPreference.read(userDir())==='classic'?'index.html':'index-evolution.html'));
   backgroundReminders=require('./background-reminder-tray').create({getWindow:()=>win,getSettings:()=>require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json')),userDir,canNotify:()=>authenticated&&(authMode!=='local'||!loadDB().user.mustChangePassword)});
   backgroundReminders.applySettings();
   win.on('close',event=>backgroundReminders?.interceptClose(event));

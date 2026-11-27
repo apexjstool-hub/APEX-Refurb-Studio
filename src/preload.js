@@ -1,6 +1,7 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
+ layoutPreference:layout=>ipcRenderer.invoke('inventory:layoutPreference',layout),
  onInventoryArrived:callback=>{if(typeof callback!=='function')return;const listener=(_event,value)=>callback(value);ipcRenderer.on('apex:inventory-arrived',listener);return()=>ipcRenderer.removeListener('apex:inventory-arrived',listener);},
  printAssetBatch:input=>ipcRenderer.invoke('inventory:printAssetBatch',input),
  microdreamReports:input=>ipcRenderer.invoke('inventory:microdreamReports',input),

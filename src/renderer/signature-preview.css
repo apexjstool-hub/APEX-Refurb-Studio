@@ -1,0 +1,77 @@
+/* Signature visual layer: screen only. No print or workflow logic changes. */
+@media screen {
+html[data-theme=light][data-apex-design]{--apex-bg:#eef1f5;--apex-side:#101e2b;--apex-surface:#fff;--apex-raised:#f3f6f9;--apex-border:#dce3eb;--apex-text:#172b3c;--apex-muted:#5a6b7c;--apex-accent:#087c76;--apex-accent-strong:#08756f;--apex-hover:#e7f3f1;--apex-header:#f0f4f7;--signature-side-text:#b8c8d7;--signature-side-active:#d0fff3;--signature-side-hover:#203646;--signature-active:#17443f;--apex-shadow:0 3px 14px #142c4510}
+html[data-theme=dark][data-apex-design]{--apex-bg:#0d151e;--apex-side:#101d29;--apex-surface:#16232f;--apex-raised:#1c2d3a;--apex-border:#2c4050;--apex-text:#e8f1f6;--apex-muted:#a6b9ca;--apex-accent:#65dfc0;--apex-accent-strong:#087b70;--apex-hover:#203b43;--apex-header:#1d303d;--signature-side-text:#b8c8d7;--signature-side-active:#d0fff3;--signature-side-hover:#203646;--signature-active:#17443f;--apex-shadow:0 4px 18px #0002}
+html[data-theme][data-apex-design] body{font-family:'Segoe UI Variable','Segoe UI',Arial,sans-serif!important;font-size:13px;line-height:1.5}
+html[data-theme][data-apex-design] #apexSidebar{background:#101e2b!important;color:#f1f7fb!important;border:0!important;box-shadow:5px 0 18px #0b172515!important;padding:18px 12px 12px!important}
+html[data-theme][data-apex-design] #apexSidebar .sidebar-header{border-color:#ffffff20!important;padding-bottom:20px!important;margin-bottom:18px!important}
+html[data-theme][data-apex-design] #apexSidebar .wordmark,html[data-theme][data-apex-design] #apexSidebar .wordmark b{color:#f0f7fb!important;font-weight:750!important;letter-spacing:.3px!important}
+html[data-theme][data-apex-design] #apexSidebar .sidebar-subtitle,html[data-theme][data-apex-design] #apexSidebar .sidebar-label{color:#92aabd!important;font-size:10px!important;letter-spacing:1.4px!important}
+html[data-theme][data-apex-design] #apexSidebar .menu-item{color:var(--signature-side-text)!important;background:transparent!important;border:1px solid transparent!important;border-radius:7px!important;min-height:42px!important;font-size:13px!important;box-shadow:none!important;font-weight:500!important}
+html[data-theme][data-apex-design] #apexSidebar .menu-item:hover{background:var(--signature-side-hover)!important;color:#fff!important}
+html[data-theme][data-apex-design] #apexSidebar .menu-item.active{background:var(--signature-active)!important;border-color:#397169!important;color:var(--signature-side-active)!important;font-weight:650!important}
+html[data-theme][data-apex-design] #apexSidebar .menu-item.active::before{background:#7be6c7!important;width:3px!important;inset:9px auto 9px 0}
+#apexSidebar .nav-symbol svg{width:19px;height:19px;display:block;margin:auto}
+html[data-theme][data-apex-design] #apexSidebar :is(.side-support,.sidebar-user,.v3-small-link,.apex-nav-collapse){color:#d2e0eb!important;background:#182b3a!important;border-color:#304756!important}
+html[data-theme][data-apex-design] #apexSidebar :is(.side-support,.sidebar-user) small{color:#a9bfce!important}
+html[data-theme][data-apex-design] #apexSidebar .count-pill{background:#243e4b!important;color:#d1e6e7!important;border:0!important}
+html[data-theme][data-apex-design] .topbar{height:62px!important;min-height:62px!important;border-bottom:1px solid var(--apex-border)!important;padding-inline:24px!important;background:var(--apex-surface)!important}
+html[data-theme][data-apex-design] .topbar .top-left{font-size:13px!important;font-weight:650!important}
+html[data-theme][data-apex-design] .topbar .global-search{border-radius:7px!important;min-height:35px!important}
+html[data-theme][data-apex-design] .content{padding:20px 26px 40px!important;max-width:none!important}
+html[data-theme][data-apex-design] .v3-topline{background:transparent!important;border:0!important;box-shadow:none!important;padding:0 0 14px!important;margin-bottom:18px!important;border-bottom:1px solid var(--apex-border)!important}
+html[data-theme][data-apex-design] .v3-workspace-label>span{font-size:22px!important;font-weight:700!important;letter-spacing:-.6px!important}
+html[data-theme][data-apex-design] :is(.v3-tabstrip,.rw-view-tabs,.rw-purchasing-tabs){background:var(--apex-raised)!important;border:1px solid var(--apex-border)!important;padding:4px!important;border-radius:9px!important;gap:3px!important}
+html[data-theme][data-apex-design] :is(.v3-tab,.rw-view-tabs button,.rw-purchasing-tabs button){border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;color:var(--apex-muted)!important;font-size:12px!important;font-weight:600!important;min-height:32px!important}
+html[data-theme][data-apex-design] :is(.v3-tab,.rw-view-tabs button,.rw-purchasing-tabs button):is(.active,.selected,[aria-selected=true]){background:var(--apex-surface)!important;color:var(--apex-accent)!important;border-color:var(--apex-border)!important;box-shadow:0 2px 4px #0001!important}
+html[data-theme][data-apex-design] :is(.page-intro h1,.rw-heading h2){font-size:30px!important;line-height:1.18!important;font-weight:720!important;letter-spacing:-1.1px!important}
+html[data-theme][data-apex-design] :is(.page-intro,.rw-heading){margin-bottom:18px!important}
+html[data-theme][data-apex-design] .eyebrow{letter-spacing:1.35px!important;font-size:10px!important;font-weight:700!important}
+html[data-theme][data-apex-design] .hero-banner{display:flex!important;position:relative!important;overflow:hidden!important;min-height:166px!important;padding:24px 28px!important;border-radius:13px!important;background:linear-gradient(115deg,#112b38,#174d4b 70%,#20665b)!important;border:0!important;box-shadow:0 8px 20px #092c361e!important;color:#ecfffa!important}
+html[data-theme][data-apex-design] .hero-banner :is(h2,p){color:#eafff9!important}html[data-theme][data-apex-design] .hero-banner h2{font-size:28px!important;font-weight:650!important;letter-spacing:-.8px!important}html[data-theme][data-apex-design] .hero-banner p{color:#c3ded9!important}
+html[data-theme][data-apex-design] .hero-banner :is(.banner-tag,.banner-button){background:#ffffff13!important;color:#eafff9!important;border:1px solid #c1ffed42!important;border-radius:6px!important}
+html[data-theme][data-apex-design] .hero-banner .banner-art{opacity:.48!important;filter:hue-rotate(100deg)}
+html[data-theme][data-apex-design] .metrics{gap:14px!important;margin-block:16px 20px!important}
+html[data-theme][data-apex-design] .metric{position:relative;padding:18px 19px!important;min-height:124px!important;border-radius:12px!important;border:1px solid var(--apex-border)!important;box-shadow:var(--apex-shadow)!important}
+html[data-theme][data-apex-design] .metric-value{font-size:38px!important;font-weight:700!important;letter-spacing:-1.5px!important;line-height:1.2!important}
+html[data-theme][data-apex-design] .metric-head{font-size:12px!important;font-weight:600!important}
+html[data-theme][data-apex-design] .metric-icon{border-radius:8px!important;min-width:32px!important;height:32px!important;background:var(--apex-hover)!important;color:var(--apex-accent)!important}
+html[data-theme][data-apex-design] .metric-icon.green{color:#168b66!important}html[data-theme][data-apex-design] .metric-icon.amber{color:#c48a37!important}html[data-theme][data-apex-design] .metric-icon.pink{color:#d27689!important}
+html[data-theme][data-apex-design] :is(.section-panel,.report-card,.device-summary-card,.pallet-location-card,.ops-card,.v3-panel){border-radius:12px!important;border:1px solid var(--apex-border)!important;box-shadow:var(--apex-shadow)!important}
+html[data-theme][data-apex-design] .section-panel-head{padding:17px 19px!important;border-bottom:1px solid var(--apex-border)!important}
+html[data-theme][data-apex-design] .section-panel-head h3{font-size:16px!important;font-weight:700!important;letter-spacing:-.3px!important}
+html[data-theme][data-apex-design] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table,.ops-part-progress-table) thead th{background:var(--apex-header)!important;color:var(--apex-muted)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.4px!important;text-transform:uppercase!important;padding-block:11px!important}
+html[data-theme][data-apex-design] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table) tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--apex-raised) 48%,var(--apex-surface))!important}
+html[data-theme][data-apex-design] :is(.asset-table,.rw-work-table,.v34-table,.v346-table,.locations-table,.inventory-parts-table) tbody tr:hover td{background:var(--apex-hover)!important}
+html[data-theme][data-apex-design] :is(.primary,.secondary){font-weight:650!important;border-radius:7px!important;letter-spacing:0!important}
+html[data-theme][data-apex-design] .primary{background:var(--apex-accent-strong)!important;color:#fff!important;box-shadow:0 2px 4px #0001!important}
+html[data-theme][data-apex-design] :is(.asset-link,.text-button){color:var(--apex-accent)!important;font-weight:650!important}
+html[data-theme][data-apex-design] :is(.modal-card,.modal-panel,.apex-dialog-panel){border-radius:15px!important;box-shadow:0 24px 90px #0005!important}
+/* A genuinely new sign-in composition: framed presentation panel and editorial form. */
+#loginPage{background:var(--apex-bg)!important;grid-template-columns:minmax(0,1.16fr) minmax(0,1fr)!important;padding:20px!important;gap:0!important;box-sizing:border-box!important}
+#loginPage .login-left{border:0!important;border-radius:24px!important;min-height:0!important;padding:clamp(28px,4.1vw,66px)!important;background:radial-gradient(ellipse at 100% 100%,#24695c,transparent 70%),linear-gradient(145deg,#112633,#10212d 65%,#163b3b)!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
+#loginPage .login-left::before{background-image:linear-gradient(#b4f8e60b 1px,transparent 1px),linear-gradient(90deg,#b4f8e60b 1px,transparent 1px)!important;background-size:44px 44px!important;mask-image:none!important}
+#loginPage .login-left::after{display:none!important}
+#loginPage .login-hero{margin:0!important;max-width:600px!important;z-index:2!important}
+#loginPage .login-hero h1{font-size:clamp(38px,4.6vw,72px)!important;line-height:1.04!important;font-weight:700!important;letter-spacing:-.065em!important;margin:12px 0 18px!important}
+#loginPage .login-hero h1 em,#loginPage .login-hero .eyebrow{color:#83e6c9!important}
+#loginPage .login-hero p{color:#c0d6d7!important;font-size:14px!important;line-height:1.65!important;max-width:390px!important}
+#loginPage .hero-points{display:none!important}
+#loginPage .signature-login-art{position:relative;height:clamp(100px,17vh,185px);min-height:85px;margin:8px 0 5px;display:flex;align-items:center;gap:10px;z-index:1}
+.sig-orbit{position:absolute;right:-12%;top:-110%;width:350px;height:350px;border:1px solid #b1fae522;border-radius:50%;box-shadow:0 0 0 30px #b1fae509,0 0 0 65px #b1fae506;pointer-events:none}
+.sig-tile{position:relative;flex:1;min-width:0;padding:14px 12px;border:1px solid #a4e6d333;border-radius:11px;background:#234c4a85;color:#effff9;backdrop-filter:blur(8px);box-shadow:0 10px 24px #0002}.sig-tile small{display:block;font-size:9px;font-weight:650;letter-spacing:1px;color:#9ed6c9;white-space:nowrap}.sig-tile strong{display:block;font-size:20px;font-weight:650;letter-spacing:-.6px;margin:4px 0}.sig-tile span{color:#83e6c9;font-size:11px;letter-spacing:1px;white-space:nowrap}.sig-tile-two{transform:translateY(-9px)}.sig-tile-three{transform:translateY(-18px)}
+#loginPage .footer-note{font-size:10px!important;letter-spacing:1.5px!important;color:#a2bdbc!important}
+#loginPage .login-panel{background:transparent!important;padding:44px 30px 24px!important}
+#loginPage .login-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:8px!important;max-width:390px!important;width:100%!important}
+#loginPage .login-card .preview-login-kicker{font-size:10px!important;color:var(--apex-accent)!important;margin-bottom:29px!important}
+#loginPage .login-card h2{font-size:35px!important;font-weight:720!important;letter-spacing:-1.35px!important;margin-top:6px!important}
+#loginPage .login-card>p{font-size:13px!important;line-height:1.5!important}
+#loginPage .login-card label{font-size:12px!important;font-weight:650!important}
+#loginPage .login-card input:not([type=checkbox]){min-height:48px!important;background:var(--apex-surface)!important;border-radius:8px!important;border:1px solid var(--apex-border)!important}
+#loginPage .login-card .primary{background:var(--apex-accent-strong)!important;min-height:50px!important;border-radius:8px!important;font-size:14px!important}
+#loginPage .login-hint{background:var(--apex-raised)!important;border-radius:8px!important;font-size:11px!important}
+#loginPage .preview-login-theme{top:18px!important;right:18px!important}
+@media(max-height:760px){#loginPage{padding:12px!important}#loginPage .login-left{padding:25px 30px!important}#loginPage .login-hero h1{font-size:clamp(35px,4.1vw,53px)!important}#loginPage .signature-login-art{height:100px!important}#loginPage .login-card .preview-login-kicker{margin-bottom:16px!important}}
+@media(max-width:850px){#loginPage{grid-template-columns:1fr!important;padding:0!important}#loginPage .login-left{display:none!important}#loginPage .login-panel{min-height:100vh!important}}
+@media(prefers-reduced-motion:no-preference){#loginPage .sig-tile{animation:signature-arrival .4s ease-out both}.sig-tile-two{animation-delay:.06s!important}.sig-tile-three{animation-delay:.12s!important}@keyframes signature-arrival{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}}
+}
