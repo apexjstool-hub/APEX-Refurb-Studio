@@ -4,8 +4,8 @@
 #assetSummary #saToggle svg{width:15px;height:15px;flex-shrink:0}#assetSummary #saToggle:hover{border-color:var(--device-card-accent,#b5d4ff)!important}
 #assetSummary .sa-badge{background:#b93649;color:white;border-radius:12px;padding:2px 5px;font-size:10px;min-width:15px;text-align:center}
 #assetSummary .sa-badge[hidden],#saDrawer[hidden]{display:none!important}
-#appPage #saDrawer{position:fixed;z-index:90;left:0;right:auto;top:calc(var(--apex-chrome-height,0px) + 8px);bottom:0;width:min(var(--sa-width,380px),calc(100vw - 16px));max-width:100%;display:flex;flex-direction:column;background:var(--apex-surface,var(--panel,#fff));color:var(--apex-text,var(--text,#172337));border:1px solid var(--apex-border,var(--line,#dce3eb));border-radius:0 12px 12px 0;box-shadow:10px 4px 36px #0004;overflow:hidden;animation:sa-in .18s ease-out}
-@keyframes sa-in{from{transform:translateX(-100%);opacity:.75}to{transform:translateX(0);opacity:1}}
+#appPage #saDrawer{position:fixed;z-index:90;right:0;left:auto;top:calc(var(--apex-chrome-height,0px) + 8px);bottom:0;width:min(var(--sa-width,380px),calc(100vw - 16px));max-width:100%;display:flex;flex-direction:column;background:var(--apex-surface,var(--panel,#fff));color:var(--apex-text,var(--text,#172337));border:1px solid var(--apex-border,var(--line,#dce3eb));border-radius:12px 0 0 12px;box-shadow:-10px 4px 36px #0004;overflow:hidden;animation:sa-in .18s ease-out}
+@keyframes sa-in{from{transform:translateX(100%);opacity:.75}to{transform:translateX(0);opacity:1}}
 html[data-studio-motion="reduced"] #saDrawer{animation:none!important}
 @media(prefers-reduced-motion:reduce){#saDrawer{animation:none!important}}
 #saDrawer .sa-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px;border-bottom:1px solid var(--apex-border,var(--line));flex:none}
