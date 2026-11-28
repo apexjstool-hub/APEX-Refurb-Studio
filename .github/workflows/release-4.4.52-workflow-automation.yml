@@ -1,0 +1,110 @@
+name: Publish APEX 4.4.52 Workflow Automation
+on:
+  push:
+    branches: [release/4.4.52-workflow-automation]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: apex-stable-4452
+  cancel-in-progress: true
+jobs:
+  verify-build-publish:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify version and existing stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($pkg.version -ne '4.4.52') { throw 'Version must be 4.4.52' }
+          if ($pkg.build.appId -ne 'com.apex.inventory') { throw 'Production updater identity must be preserved' }
+          if ($pkg.build.publish[0].releaseType -ne 'release') { throw 'Stable GitHub update feed required' }
+          gh release view v4.4.52 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'v4.4.52 already exists; never overwrite a release' }
+          $existing = gh release view v4.4.51 --repo ${{ github.repository }} --json tagName
+          if ($LASTEXITCODE -ne 0) { throw 'Existing stable 4.4.51 release missing' }
+      - name: Restore public cloud sign-in configuration
+        env:
+          APEX_CLOUD_CONFIG: ${{ secrets.APEX_CLOUD_LOGIN_CONFIG }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APEX_CLOUD_CONFIG)) { throw 'APEX_CLOUD_LOGIN_CONFIG GitHub secret missing' }
+          $config = $env:APEX_CLOUD_CONFIG | ConvertFrom-Json
+          $key = [string]$config.anonKey
+          if ($key.StartsWith('sb_secret_')) { throw 'Server credentials cannot be bundled into the app' }
+          [IO.File]::WriteAllText((Join-Path $PWD 'src/cloud-login-distribution.json'),$env:APEX_CLOUD_CONFIG)
+          node scripts/configure-distribution-login.js --check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid public cloud config' }
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Bundle offline fonts
+        run: |
+          node scripts/prepare-typography-fonts.js
+          if ($LASTEXITCODE -ne 0) { throw 'Font preparation failed' }
+      - name: Verify export regression and important integrations
+        run: |
+          node --check src/refurb-export.js
+          node --check src/inventory-workflow.js
+          node --check src/inventory-status-display.js
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid export source' }
+          node --test --test-concurrency=1 tests/login-polish.test.js tests/update-centre-v2.test.js tests/appearance-preferences.test.js tests/settings-studio.test.js tests/window-chrome.test.js tests/evolution-layout.test.js tests/apex-themed-dialogs-4433.test.js tests/apex-connect-draggable-admin-4432.test.js tests/apex-connect-phone-badge-delete-4431.test.js tests/message-notification-preferences.test.js tests/notification-session.test.js tests/parts-order-notification.test.js tests/background-reminder-tray.test.js tests/apex-connect-notification-4430.test.js tests/apex-connect-maintenance-4429.test.js tests/apex-connect-4428.test.js tests/workspace-tabs-2-4427.test.js tests/smart-key-not-a-part-4425.test.js tests/quick-asset-labels.test.js tests/label-print-recovery.test.js tests/qa-sticker-sequential-print-4424.test.js tests/custom-labels.test.js tests/asset-labels-completed-qa-4423.test.js tests/asset-labels-tab.test.js tests/asset-labels-2x1-fit-433.test.js tests/microdream-unified-scanner-4422.test.js tests/microdream-simple-scan-4421.test.js tests/microdream-multipallet-4420.test.js tests/microdream-reference-4419.test.js tests/microdream-documents.test.js tests/microdream-reports.test.js tests/parts-fitting-respray-4418.test.js tests/microdream-pallet-respray.test.js tests/refurb-workflow.test.js tests/inventory-tracker.test.js tests/repair-work-type.test.js tests/respray-parts-required-status.test.js tests/inventory-status-display.test.js tests/template-parts-export.test.js tests/inventory-selection-excel.test.js tests/refurb-parts-bridge.test.js tests/diagnostic-intake.test.js tests/update-popup-schedule.test.js tests/action-centre.test.js tests/workflow-automation.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed: no release' }
+      - name: Verify actual Electron palette and notification placement in isolated fixture
+        timeout-minutes: 3
+        run: |
+          npx --no-install electron tests/appearance-render-smoke.js
+          if ($LASTEXITCODE -ne 0) { throw 'Appearance rendering failed: no release' }
+      - name: Verify Action Centre in an isolated Electron fixture
+        timeout-minutes: 3
+        run: |
+          npx --no-install electron tests/action-centre-render-smoke.js
+          if ($LASTEXITCODE -ne 0) { throw 'Action Centre rendering failed: no release' }
+      - name: Verify Workflow Automation in an isolated Electron fixture
+        timeout-minutes: 3
+        run: |
+          npx --no-install electron tests/workflow-automation-render-smoke.js
+          if ($LASTEXITCODE -ne 0) { throw 'Automation rendering failed: no release' }
+      - name: Verify both quick label print documents at physical 2x1 size
+        timeout-minutes: 3
+        run: |
+          node --check tests/quick-asset-label-render.js
+          if ($LASTEXITCODE -ne 0) { throw 'Quick label test syntax invalid: no release' }
+          npx --no-install electron tests/quick-asset-label-render.js
+          if ($LASTEXITCODE -ne 0) { throw 'Quick label rendering failed: no release' }
+      - name: Verify all APEX JavaScript source syntax
+        run: |
+          Get-ChildItem src,scripts -Recurse -File -Filter *.js | ForEach-Object {
+            node --check $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Invalid source syntax: $($_.FullName)" }
+          }
+      - name: Build Windows installer and update metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run pack:windows -- --publish never
+          if ($LASTEXITCODE -ne 0) { throw 'Windows build failed' }
+          if (!(Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.52.exe')) { throw 'Installer missing' }
+          if (!(Test-Path 'dist/latest.yml')) { throw 'latest.yml missing' }
+          node scripts/verify-release-files.js
+          if ($LASTEXITCODE -ne 0) { throw 'Update metadata mismatch: no release' }
+      - name: Publish verified stable GitHub update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $files = @('dist/APEX-Refurb-Studio-Setup-4.4.52.exe','dist/latest.yml')
+          if (Test-Path 'dist/APEX-Refurb-Studio-Setup-4.4.52.exe.blockmap') { $files += 'dist/APEX-Refurb-Studio-Setup-4.4.52.exe.blockmap' }
+          gh release view v4.4.52 --repo ${{ github.repository }} --json tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw 'Refusing to replace existing release' }
+          $latest = gh release view --repo ${{ github.repository }} --json tagName --jq '.tagName'
+          if ($LASTEXITCODE -ne 0 -or $latest -ne 'v4.4.51') { throw 'Latest stable changed; review before publishing' }
+          gh release create v4.4.52 @files --repo ${{ github.repository }} --target $env:GITHUB_SHA --latest --title 'APEX Management Studio 4.4.52 - Workflow Automation' --notes 'Settings-based Workflow Automation with local rules, dry runs, templates, Action Centre labels and urgency, local reminders and session history. No automatic inventory changes or shared cloud execution. Same production identity, cloud configuration and inventory logic. No schema migration. Save your work before updating.'
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed' }

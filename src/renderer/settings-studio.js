@@ -12,6 +12,7 @@
  ['cloud','Cloud & connections','Shared account, trusted hub and cloud synchronisation.'],
  ['devices','Authorised SSDs','Manage approved portable Diagnostics devices.'],
  ['notifications','Notifications','Configure workstation reminders.'],
+ ['automation','Workflow Automation','Create, test and manage safe workshop automation rules.'],
  ['messages','Messaging','Manage message retention and notifications.'],
  ['backups','Backups & health','Review backups and connected tool health.'],
  ['intake','Intake verification','Review confirmed Diagnostics and RefurbFlow imports.'],
@@ -31,7 +32,7 @@
  const append=(id,node)=>{if(node)pages.get(id).append(node);};
  append('updates',direct('apexUpdateCentre'));
  append('cloud',direct('apexSharedAccountPanel'));append('cloud',direct('apexAdvancedCloudSetup'));append('cloud',direct('apexCloudUrl'));
- append('devices',direct('apexPortableDevices'));append('notifications',direct('apexReminderSettings'));append('notifications',direct('acSettings'));append('messages',direct('apexMessageNotificationSettings'));append('messages',direct('apexConnectMaintenance'));append('backups',direct('reliabilityPanel'));append('intake',direct('verificationPanel'));append('conflicts',direct('conflictPanel'));
+ append('devices',direct('apexPortableDevices'));append('notifications',direct('apexReminderSettings'));append('notifications',direct('acSettings'));append('automation',direct('automationSettings'));append('messages',direct('apexMessageNotificationSettings'));append('messages',direct('apexConnectMaintenance'));append('backups',direct('reliabilityPanel'));append('intake',direct('verificationPanel'));append('conflicts',direct('conflictPanel'));
  const stack=originalNodes.find(n=>n.classList.contains('settings-stack'));
  if(stack){
   for(const row of [...stack.children]){

@@ -16,7 +16,7 @@
  const heading=make('strong','evo-connection-heading');heading.textContent='Shared inventory & local hub';
  connection.append(heading,hub);shared.append(connection);
  utilities.prepend(label('ADMINISTRATION'));nav.append(brand,menu,utilities);side.append(nav);
- const demo=make('div','evo-demo');demo.innerHTML='<span class="evo-demo-dot"></span><b>Evolution edition</b><span>4.4.51</span>';document.querySelector('.topbar .top-left').append(demo);
+ const demo=make('div','evo-demo');demo.innerHTML='<span class="evo-demo-dot"></span><b>Evolution edition</b><span>4.4.52</span>';document.querySelector('.topbar .top-left').append(demo);
  const top=$('v3Topline');top.classList.add('evo-workspace-header');
  // Keep the live workspace tabs and their history/close/add handlers; place in unused topbar space.
  const openTabs=$('apexWorkspaceTabs');if(openTabs){document.querySelector('.topbar .top-left').append(openTabs);openTabs.classList.add('evo-docked-tabs');}

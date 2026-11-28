@@ -4,7 +4,7 @@
  if(!root||!model)return;
  const esc=html,session=window.ApexNotificationSession,key='apex.action-centre.thresholds.v1';
  let lastItems=null,lastSnapshot=null,lastCfg=null,lastMinute=-1;
- let cfg=model.defaults,snapshot=null,report=null,level='all',category='all',query='',page=0,busy=false,error='',lastLoaded=0;
+ let cfg=model.defaults,snapshot=null,baseReport=null,level='all',category='all',query='',page=0,busy=false,error='',lastLoaded=0;
  const size=25;
  try{cfg=model.settings(JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
  const labels=Object.fromEntries(model.groups.map(([id,label])=>[id,label]));
@@ -15,8 +15,9 @@
  function showBadge(n){badge.hidden=!n;badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n+' urgent actions');}
  function update(reset=false){
   if(reset)page=0;
-  if(!isActive()){report=null;showBadge(0);body.replaceChildren();status.textContent='Sign in to view actions.';for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent='—';return;}
-  const minute=Math.floor(Date.now()/60000);if(!report||lastItems!==items||lastSnapshot!==snapshot||lastCfg!==cfg||lastMinute!==minute){report=model.calculate(snapshot,items,cfg);lastItems=items;lastSnapshot=snapshot;lastCfg=cfg;lastMinute=minute;}
+  if(!isActive()){baseReport=null;showBadge(0);body.replaceChildren();status.textContent='Sign in to view actions.';for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent='—';return;}
+  const minute=Math.floor(Date.now()/60000);if(!baseReport||lastItems!==items||lastSnapshot!==snapshot||lastCfg!==cfg||lastMinute!==minute){baseReport=model.calculate(snapshot,items,cfg);lastItems=items;lastSnapshot=snapshot;lastCfg=cfg;lastMinute=minute;}
+  const report=window.ApexWorkflowAutomation?.apply(baseReport,{fresh:!error&&!(syncMode==='cloud'&&cloudRefreshFailed)})||baseReport;
   const counts=report.counts;showBadge(report.available?counts.urgent:0);
   for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent=report.available?String(counts[el.dataset.acCount]):'—';
   const inventoryStale=syncMode==='cloud'&&cloudRefreshFailed;
@@ -27,7 +28,7 @@
   $('acResultCount').textContent=report.available?visible.length+' matching actions':'—';
   $('acPrevious').disabled=page===0;$('acNext').disabled=page>=max;$('acRange').textContent=visible.length?(page*size+1)+'–'+Math.min(visible.length,(page+1)*size)+' of '+visible.length:'0 results';
   $('acRoute').hidden=!(routes[category]); 
-  body.innerHTML=visible.length?visible.slice(page*size,(page+1)*size).map(r=>'<tr><td><span class="ac-priority ac-'+esc(r.level)+'">'+esc(levels[r.level])+'</span></td><td><button type="button" class="asset-link ac-open" data-ac-asset="'+esc(r.id)+'">'+esc(r.id)+'</button><small>'+esc(r.name||'Unknown device')+'</small></td><td><strong>'+esc(labels[r.category])+'</strong><small>'+esc(r.detail)+'</small></td><td>'+esc(r.location||'Unassigned')+'<small>'+esc(r.technician||'')+'</small></td><td>'+esc(r.age===null?'—':r.age+'d')+'</td><td><button type="button" class="secondary ac-open" data-ac-asset="'+esc(r.id)+'">Review asset</button></td></tr>').join(''):'<tr><td colspan="6" class="ac-empty">'+(report.available?'No actions match this view.':'Workflow data is not available yet. Use Refresh actions to retry.')+'</td></tr>';
+  body.innerHTML=visible.length?visible.slice(page*size,(page+1)*size).map(r=>'<tr><td><span class="ac-priority ac-'+esc(r.level)+'">'+esc(levels[r.level])+'</span></td><td><button type="button" class="asset-link ac-open" data-ac-asset="'+esc(r.id)+'">'+esc(r.id)+'</button><small>'+esc(r.name||'Unknown device')+'</small></td><td><strong>'+esc(labels[r.category])+'</strong><small>'+esc(r.detail)+'</small>'+(r.automation?.length?'<small class="wa-label">Automation: '+esc(r.automation.join(', '))+'</small>':'')+'</td><td>'+esc(r.location||'Unassigned')+'<small>'+esc(r.technician||'')+'</small></td><td>'+esc(r.age===null?'—':r.age+'d')+'</td><td><button type="button" class="secondary ac-open" data-ac-asset="'+esc(r.id)+'">Review asset</button></td></tr>').join(''):'<tr><td colspan="6" class="ac-empty">'+(report.available?'No actions match this view.':'Workflow data is not available yet. Use Refresh actions to retry.')+'</td></tr>';
  }
  function handleSnapshot(){if(!isActive())return;snapshot=window.ApexWorkflowSnapshot||null;lastLoaded=Date.now();error='';update();}
  async function readWorkflow(){
@@ -50,7 +51,8 @@
   $('acSaveThresholds').onclick=()=>{if(!isActive())return;const next={};for(const k of Object.keys(model.defaults)){const el=$('acThreshold-'+k);if(!el.checkValidity()){el.reportValidity();return;}next[k]=Number(el.value);}try{localStorage.setItem(key,JSON.stringify(model.settings(next)));cfg=model.settings(next);$('acSettingsStatus').textContent='Saved on this computer.';update(true);}catch{$('acSettingsStatus').textContent='Unable to save preferences.';}};
  }
  window.addEventListener('apex:workflow-updated',handleSnapshot);
- window.addEventListener('apex:notification-session',()=>{if(!isActive()){snapshot=null;report=null;lastLoaded=0;error='';level=category='all';query='';page=0;search.value='';filter.value=categories.value='all';update();}else void readWorkflow();});
+ window.addEventListener('apex:automation-updated',()=>update());
+ window.addEventListener('apex:notification-session',()=>{if(!isActive()){snapshot=null;baseReport=null;lastLoaded=0;error='';level=category='all';query='';page=0;search.value='';filter.value=categories.value='all';update();}else void readWorkflow();});
  const baseRender=render;render=function(...args){const result=baseRender(...args);update();return result;};
  if(isActive())void readWorkflow();else update();
 })();

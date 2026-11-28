@@ -611,6 +611,10 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:settingsUnlock',secured(password=>accountSecurity.unlock(password)));
  ipcMain.handle('inventory:settingsLock',()=>accountSecurity.lock());
  ipcMain.handle('inventory:settingsAccess',secured(()=>({ok:true,admin:adminOnly(),unlocked:accountSecurity.isUnlocked()})));
+ const automationStore=require('./workflow-automation-store');
+ const automationScope=()=>authMode==='cloud'?'cloud:'+String(cloudSession?.url||''):hubConfig()?.url?'hub:'+hubConfig().url:'local';
+ ipcMain.handle('inventory:automationRead',secured(()=>({ok:true,config:automationStore.read(userDir(),automationScope()),scope:crypto.createHash('sha256').update(automationScope()).digest('hex')})));
+ ipcMain.handle('inventory:automationSave',settingsSecured(input=>{const scope=automationScope();if(input?.scope!==crypto.createHash('sha256').update(scope).digest('hex'))return {ok:false,error:'Connection changed. Reload the automation rules first.'};return {ok:true,config:automationStore.write(userDir(),scope,input.config)};}));
  ipcMain.handle('inventory:reminderSettings',secured(()=>({ok:true,settings:require('./reminder-settings').read(path.join(userDir(),'refurb-reminders.json'))})));
  ipcMain.handle('inventory:saveReminderSettings',settingsSecured(input=>{const settings=require('./reminder-settings').write(path.join(userDir(),'refurb-reminders.json'),input);backgroundReminders?.applySettings();return {ok:true,settings};}));
   ipcMain.handle('inventory:desktopReminderNotify',secured(input=>backgroundReminders?.notify(input)||{ok:false,error:'Reminder service unavailable'}));

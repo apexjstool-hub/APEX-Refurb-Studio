@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('apexInventory',Object.freeze({
  settingsUnlock:password=>ipcRenderer.invoke('inventory:settingsUnlock',password),
  settingsLock:()=>ipcRenderer.invoke('inventory:settingsLock'),
  settingsAccess:()=>ipcRenderer.invoke('inventory:settingsAccess'),
+ automationRead:()=>ipcRenderer.invoke('inventory:automationRead'),
+ automationSave:input=>ipcRenderer.invoke('inventory:automationSave',input),
  reminderSettings:()=>ipcRenderer.invoke('inventory:reminderSettings'),
  desktopReminderNotify:items=>ipcRenderer.invoke('inventory:desktopReminderNotify',items),
  saveReminderSettings:input=>ipcRenderer.invoke('inventory:saveReminderSettings',input),

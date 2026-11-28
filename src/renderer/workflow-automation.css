@@ -1,0 +1,13 @@
+@media screen{
+#automationSettings{color:var(--apex-text,var(--text));display:grid;gap:12px}
+#automationSettings .wa-panel{padding:14px;border:1px solid var(--apex-border,var(--line));border-radius:10px;background:var(--apex-surface,var(--panel));min-width:0}
+#automationSettings h3{margin:0 0 7px;font-size:16px}#automationSettings p{margin:4px 0 8px}
+#automationSettings .wa-head,#automationSettings .wa-rule,#automationSettings .wa-history-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#automationSettings .wa-head{justify-content:space-between}#automationSettings .wa-rule>div{flex:1;min-width:170px}#automationSettings .wa-rule small{display:block;margin-top:4px;color:var(--apex-muted,var(--muted))}
+#automationSettings .wa-rule,#automationSettings .wa-history-row{padding:8px 0;border-bottom:1px solid var(--apex-border,var(--line))}
+#automationSettings .wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:9px 0}
+#automationSettings .wa-grid label{display:grid;gap:5px}#automationSettings .wa-check{display:flex;align-items:center;gap:8px}
+#automationSettings input[type=checkbox]{width:auto;min-height:0}#automationSettings [hidden]{display:none!important}
+#automationSettings .wa-history-row strong{flex:1}#automationSettings .wa-history-row span{font-variant-numeric:tabular-nums}
+#actionCentrePage .wa-label{color:var(--apex-accent,var(--accent));font-weight:600}
+}
