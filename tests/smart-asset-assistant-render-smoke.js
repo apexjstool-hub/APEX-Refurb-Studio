@@ -1,0 +1,40 @@
+'use strict';
+const {app,BrowserWindow}=require('electron');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'apex-assistant-smoke-'));app.setPath('userData',dir);app.disableHardwareAcceleration();
+const renderer=path.join(__dirname,'../src/renderer'),fixture=path.join(renderer,'.assistant-smoke.html');let win;
+const timer=setTimeout(()=>finish(1,Error('Assistant smoke timed out')),45000);
+function finish(code,error){clearTimeout(timer);if(error)console.error(error);if(win&&!win.isDestroyed())win.destroy();try{fs.rmSync(fixture,{force:true});}catch{}app.exit(code);}
+app.whenReady().then(async()=>{
+ const markup=fs.readFileSync(path.join(renderer,'index-evolution.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
+ fs.writeFileSync(fixture,markup);win=new BrowserWindow({show:false,width:1366,height:768,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});
+ await win.loadFile(fixture);
+ const run=s=>win.webContents.executeJavaScript(s);
+ // Keep fixture state and renderer code in one evaluation; IPC receives only plain test results.
+ const setup=`document.getElementById('loginPage').classList.add('hidden');document.getElementById('appPage').classList.remove('hidden');document.getElementById('dashboardPage').classList.add('hidden');document.getElementById('actionCentrePage').classList.remove('hidden');document.documentElement.dataset.theme='light';document.documentElement.dataset.apexPage='actionCentre';
+ let currentPage='actionCentre',syncMode='local',cloudRefreshFailed=false,opened='',routed='',items=[{id:'DEMO-1',model:'Latitude',manufacturer:'Dell',serial:'S1',productType:'Laptop',processor:'i5',ram:'8 GB',storage:'256 GB',location:'Shelf 1',status:'Awaiting Processing'},{id:'DEMO-2',model:'ThinkPad',manufacturer:'Lenovo',serial:'S2',productType:'Laptop',processor:'i5',ram:'8 GB',storage:'256 GB',location:'Shelf 2',status:'Awaiting Processing'}];
+ const html=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ let render=()=>{},openAsset=id=>{opened=id;},setPage=p=>{routed=p;},refresh=async()=>{},notify=()=>{};
+ const old=new Date(Date.now()-20*86400000).toISOString();
+ const fixtureWorkflow={jobs:{'DEMO-1':{assetId:'DEMO-1',status:'Awaiting Parts',createdAt:old,updatedAt:old,parts:[{id:'p1',name:'LCD',qty:1,received:0,fitted:0,createdAt:old}]},'DEMO-2':{assetId:'DEMO-2',status:'Quality Control',parts:[]}},orders:[],resprayPallets:[]};
+ let activeAssetId='DEMO-1',dirty=false,selectedTab='',rollbackOpened=false;
+ const deviceName=a=>a.manufacturer+' '+a.model;
+ window.apexInventory={workflow:async()=>({ok:true,workflow:fixtureWorkflow}),openAssistantRollback:async()=>{rollbackOpened=true;return {ok:true};}};
+ const api=window.apexInventory;window.apexEnsureSettingsUnlocked=async()=>true;
+ let updateAssetOverview=()=>{const a=items.find(x=>x.id===activeAssetId);document.getElementById('assetSummary').innerHTML=window.ApexDeviceSummary.card(a,{labels:['Recorded work']},{value:'Good',source:'Saved'},html,deviceName(a));};`;
+ const scripts=['../inventory-workflow.js','../action-centre.js','../device-summary.js','../grade-projection.js','../smart-asset-assistant.js','notification-session.js','action-centre.js','smart-asset-assistant.js'].map(p=>fs.readFileSync(path.join(renderer,p),'utf8')).join('\n;\n');
+ const checks=`const $=id=>document.getElementById(id);window.ApexNotificationSession.start();await new Promise(r=>setTimeout(r,60));
+ document.documentElement.classList.add('apex-v34');document.documentElement.dataset.layout='evolution';document.documentElement.dataset.studioAccent='cobalt';
+ currentPage='asset';document.documentElement.dataset.apexPage='asset';$('actionCentrePage').classList.add('hidden');$('assetPage').classList.remove('hidden');$('assetPage').dataset.section='overview';updateAssetOverview();
+ const target=document.createElement('button');target.dataset.assetTab='parts';target.onclick=()=>{selectedTab='parts';};$('assetPage').append(target);
+ const card=$('assetSummary'),height=card.getBoundingClientRect().height,top=$('apexAssetDetailsSection').getBoundingClientRect().top;
+ $('saToggle').click();const first=$('saContent').textContent,shown=!$('saDrawer').hidden,position=getComputedStyle($('saDrawer')).position,unchanged=Math.abs(card.getBoundingClientRect().height-height)<1&&Math.abs($('apexAssetDetailsSection').getBoundingClientRect().top-top)<1;
+ $('saWidth').value=480;$('saWidth').dispatchEvent(new Event('input'));const resized=$('saDrawer').style.getPropertyValue('--sa-width');
+ $('saContent').querySelector('[data-sa-tab="parts"]').click();const closedByLink=$('saDrawer').hidden;
+ $('saToggle').click();activeAssetId='DEMO-2';updateAssetOverview();const switched=$('saTitleAsset').textContent,clean=!$('saContent').textContent.includes('LCD');
+ currentPage='settings';document.documentElement.dataset.apexPage='settings';await new Promise(r=>setTimeout(r,10));$('saEnabled').checked=false;$('saSave').click();await new Promise(r=>setTimeout(r,20));$('saPreviousRelease').click();await new Promise(r=>setTimeout(r,20));
+ currentPage='asset';document.documentElement.dataset.apexPage='asset';updateAssetOverview();const disabled=!$('saToggle')&&!!$('assetPrintLabel')&&!card.querySelector('.sa-heading-actions');
+ window.ApexNotificationSession.stop();return {first,shown,position,unchanged,resized,selectedTab,closedByLink,switched,clean,disabled,rollbackOpened,cleared:$('saDrawer').hidden&&!$('saContent').textContent};`;
+ const result=await run('(async()=>{\n'+setup+'\n;\n'+scripts+'\n;\n'+checks+'\n})()');
+ assert.match(result.first,/LCD/);assert.equal(result.shown,true);assert.equal(result.position,'fixed');assert.equal(result.unchanged,true);assert.equal(result.resized,'480px');assert.equal(result.selectedTab,'parts');assert.equal(result.closedByLink,true);assert.match(result.switched,/DEMO-2/);assert.equal(result.clean,true);assert.equal(result.disabled,true);assert.equal(result.rollbackOpened,true);assert.equal(result.cleared,true);console.log('Smart Asset Assistant smoke passed');finish(0);
+}).catch(e=>finish(1,e));

@@ -30,7 +30,7 @@
  }
  const direct=(id)=>originalNodes.find(n=>n.id===id||n.querySelector('#'+id));
  const append=(id,node)=>{if(node)pages.get(id).append(node);};
- append('updates',direct('apexUpdateCentre'));
+ append('updates',direct('apexUpdateCentre'));append('appearance',direct('saSettings'));
  append('cloud',direct('apexSharedAccountPanel'));append('cloud',direct('apexAdvancedCloudSetup'));append('cloud',direct('apexCloudUrl'));
  append('devices',direct('apexPortableDevices'));append('notifications',direct('apexReminderSettings'));append('notifications',direct('acSettings'));append('automation',direct('automationSettings'));append('messages',direct('apexMessageNotificationSettings'));append('messages',direct('apexConnectMaintenance'));append('backups',direct('reliabilityPanel'));append('intake',direct('verificationPanel'));append('conflicts',direct('conflictPanel'));
  const stack=originalNodes.find(n=>n.classList.contains('settings-stack'));

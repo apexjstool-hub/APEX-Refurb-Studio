@@ -611,6 +611,7 @@ app.whenReady().then(()=>{
  ipcMain.handle('inventory:settingsUnlock',secured(password=>accountSecurity.unlock(password)));
  ipcMain.handle('inventory:settingsLock',()=>accountSecurity.lock());
  ipcMain.handle('inventory:settingsAccess',secured(()=>({ok:true,admin:adminOnly(),unlocked:accountSecurity.isUnlocked()})));
+ ipcMain.handle('inventory:openAssistantRollback',settingsSecured(async()=>{try{await shell.openExternal('https://github.com/apexjstool-hub/APEX-Refurb-Studio/releases/tag/v4.4.52');return {ok:true};}catch{return {ok:false,error:'Could not open the previous stable release.'};}}));
  const automationStore=require('./workflow-automation-store');
  const automationScope=()=>authMode==='cloud'?'cloud:'+String(cloudSession?.url||''):hubConfig()?.url?'hub:'+hubConfig().url:'local';
  ipcMain.handle('inventory:automationRead',secured(()=>({ok:true,config:automationStore.read(userDir(),automationScope()),scope:crypto.createHash('sha256').update(automationScope()).digest('hex')})));

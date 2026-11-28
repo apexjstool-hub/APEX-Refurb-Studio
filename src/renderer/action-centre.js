@@ -3,7 +3,7 @@
  const $=id=>document.getElementById(id),root=$('actionCentrePage'),model=window.ApexActionCentre;
  if(!root||!model)return;
  const esc=html,session=window.ApexNotificationSession,key='apex.action-centre.thresholds.v1';
- let lastItems=null,lastSnapshot=null,lastCfg=null,lastMinute=-1;
+ let lastItems=null,lastSnapshot=null,lastCfg=null,lastMinute=-1,latestReport=null;
  let cfg=model.defaults,snapshot=null,baseReport=null,level='all',category='all',query='',page=0,busy=false,error='',lastLoaded=0;
  const size=25;
  try{cfg=model.settings(JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
@@ -15,9 +15,11 @@
  function showBadge(n){badge.hidden=!n;badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n+' urgent actions');}
  function update(reset=false){
   if(reset)page=0;
-  if(!isActive()){baseReport=null;showBadge(0);body.replaceChildren();status.textContent='Sign in to view actions.';for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent='—';return;}
+  if(!isActive()){baseReport=null;latestReport=null;showBadge(0);body.replaceChildren();status.textContent='Sign in to view actions.';for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent='—';return;}
   const minute=Math.floor(Date.now()/60000);if(!baseReport||lastItems!==items||lastSnapshot!==snapshot||lastCfg!==cfg||lastMinute!==minute){baseReport=model.calculate(snapshot,items,cfg);lastItems=items;lastSnapshot=snapshot;lastCfg=cfg;lastMinute=minute;}
   const report=window.ApexWorkflowAutomation?.apply(baseReport,{fresh:!error&&!(syncMode==='cloud'&&cloudRefreshFailed)})||baseReport;
+  latestReport=report;
+  window.dispatchEvent(new Event('apex:action-centre-updated'));
   const counts=report.counts;showBadge(report.available?counts.urgent:0);
   for(const el of root.querySelectorAll('[data-ac-count]'))el.textContent=report.available?String(counts[el.dataset.acCount]):'—';
   const inventoryStale=syncMode==='cloud'&&cloudRefreshFailed;
@@ -50,6 +52,7 @@
   for(const k of Object.keys(model.defaults))$('acThreshold-'+k).value=cfg[k];
   $('acSaveThresholds').onclick=()=>{if(!isActive())return;const next={};for(const k of Object.keys(model.defaults)){const el=$('acThreshold-'+k);if(!el.checkValidity()){el.reportValidity();return;}next[k]=Number(el.value);}try{localStorage.setItem(key,JSON.stringify(model.settings(next)));cfg=model.settings(next);$('acSettingsStatus').textContent='Saved on this computer.';update(true);}catch{$('acSettingsStatus').textContent='Unable to save preferences.';}};
  }
+ window.ApexActionCentreView=Object.freeze({getAssetState(id){if(!isActive()||!latestReport?.available)return {available:false,rows:[],workflow:null,stale:false};return {available:true,rows:latestReport.rows.filter(r=>String(r.id)===String(id)),workflow:snapshot,stale:!!error||syncMode==='cloud'&&cloudRefreshFailed||syncMode==='shared'&&$('connectionDetail')?.textContent==='Hub unavailable'};}});
  window.addEventListener('apex:workflow-updated',handleSnapshot);
  window.addEventListener('apex:automation-updated',()=>update());
  window.addEventListener('apex:notification-session',()=>{if(!isActive()){snapshot=null;baseReport=null;lastLoaded=0;error='';level=category='all';query='';page=0;search.value='';filter.value=categories.value='all';update();}else void readWorkflow();});
